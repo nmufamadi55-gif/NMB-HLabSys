@@ -1,0 +1,123 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Consent Management";
+    ViewData["RoleSubtitle"] = "Patient Portal";
+    ViewData["UserGreeting"] = $"🩺 {@ViewBag.PatientName} (ID: {@ViewBag.PatientID})";
+    ViewData["UserInitials"] = "TM";
+}
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Patient")">📋 My Results</a></li>
+    <li><a href="@Url.Action("MedicalHistory", "Patient")">📝 Medical History</a></li>
+    <li><a href="@Url.Action("Consent", "Patient")" class="active">🔐 Consent Management</a></li>
+    <li><a href="@Url.Action("Trends", "Patient")">📈 Track Trends</a></li>
+}
+
+<div class="alert alert-info" style="background:#EFF6FF; padding:1rem; border-radius:12px; margin-bottom:1.5rem;">
+    <strong>🔐 About Consent:</strong> You control which doctors can access your previous test results. Grant or revoke access at any time.
+</div>
+
+<div class="grid-2col">
+    <div class="card-modern">
+        <div class="card-header-flex">
+            <h3>✅ Doctors with Access</h3>
+            <button class="btn-sm-lab" onclick="showDemoAlert('Grant access to new doctor')">+ Grant Access</button>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Doctor Name</th>
+                        <th>HPCSA #</th>
+                        <th>Access Granted</th>
+                        <th>Test Requests Shared</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Dr. Sarah Johnson</td>
+                        <td>MP1234567</td>
+                        <td>2024-01-15</td>
+                        <td>REQ-001, REQ-002, REQ-004</td>
+                        <td><button class="btn-outline-lab" onclick="showDemoAlert('Revoke access from Dr. Johnson')">Revoke</button></td>
+                    </tr>
+                    <tr>
+                        <td>Dr. Michael Brown</td>
+                        <td>MP1234568</td>
+                        <td>2024-06-20</td>
+                        <td>REQ-003 only</td>
+                        <td><button class="btn-outline-lab" onclick="showDemoAlert('Revoke access from Dr. Brown')">Revoke</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card-modern">
+        <h3>🔐 Grant New Access</h3>
+        <div class="form-group">
+            <label><strong>Select Doctor</strong></label>
+            <select style="width:100%; padding:10px; border-radius:12px; border:1px solid #E2E8F0;">
+                <option>Dr. Lisa Ndlovu (MP1234569)</option>
+                <option>Dr. Peter Khumalo (MP1234570)</option>
+                <option>Dr. Thabo Cele (MP1234571)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label><strong>Select Test Requests to Share</strong></label>
+            <div style="border:1px solid #E2E8F0; border-radius:12px; padding:10px;">
+                <label><input type="checkbox"> REQ-001 - Full Blood Count (Apr 9, 2025)</label><br>
+                <label><input type="checkbox"> REQ-002 - Coagulation Studies (Apr 8, 2025)</label><br>
+                <label><input type="checkbox"> REQ-004 - Lipid Profile (Mar 20, 2025)</label><br>
+                <label><input type="checkbox" checked> REQ-005 - FBC Follow-up (Apr 10, 2025)</label>
+            </div>
+        </div>
+        <button class="btn-sm-lab" onclick="showDemoAlert('Access granted! Doctor will be notified via email.')">Grant Access</button>
+    </div>
+</div>
+
+<div class="card-modern">
+    <div class="card-header-flex">
+        <h3>📜 Consent History</h3>
+        <button class="btn-outline-lab" onclick="showDemoAlert('Download consent history PDF')">Export Log</button>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Action</th>
+                    <th>Doctor</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>2024-01-15</td>
+                    <td>Granted</td>
+                    <td>Dr. Sarah Johnson</td>
+                    <td>Access to all past and future results</td>
+                </tr>
+                <tr>
+                    <td>2024-06-20</td>
+                    <td>Granted</td>
+                    <td>Dr. Michael Brown</td>
+                    <td>Access to test results from 2024 onwards</td>
+                </tr>
+                <tr>
+                    <td>2025-02-10</td>
+                    <td>Modified</td>
+                    <td>Dr. Sarah Johnson</td>
+                    <td>Restricted access to REQ-001 only</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function showDemoAlert(msg) {
+        alert('🔔 ' + msg + ' (Demo: Backend integration coming Semester 2)');
+    }
+</script>

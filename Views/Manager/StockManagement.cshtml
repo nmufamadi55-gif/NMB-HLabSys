@@ -1,0 +1,57 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Stock Management";
+    ViewData["RoleSubtitle"] = "Manager Portal";
+    ViewData["UserGreeting"] = "📊 Amanda Adams";
+    ViewData["UserInitials"] = "AA";
+}
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Manager")">📈 Overview</a></li>
+    <li><a href="@Url.Action("TestCatalogue", "Manager")">📚 Test Catalogue</a></li>
+    <li><a href="@Url.Action("StockManagement", "Manager")" class="active">📦 Stock & Orders</a></li>
+    <li><a href="@Url.Action("StaffManagement", "Manager")">👥 Staff Management</a></li>
+}
+
+<div class="stat-cards">
+    <div class="stat-item"><div class="stat-icon-lg">🔴</div><div><h3>2</h3><p>Below Reorder Level</p></div></div>
+    <div class="stat-item"><div class="stat-icon-lg">🟡</div><div><h3>1</h3><p>Near Reorder (≤10%)</p></div></div>
+    <div class="stat-item"><div class="stat-icon-lg">✅</div><div><h3>5</h3><p>Active Orders</p></div></div>
+</div>
+
+<div class="card-modern">
+    <div class="card-header-flex">
+        <h3>📦 Current Inventory</h3>
+        <button class="btn-sm-lab" onclick="showDemoAlert('Adjust stock levels')">Adjust Stock</button>
+    </div>
+    <table>
+        <thead><tr><th>Consumable</th><th>Quantity On Hand</th><th>Reorder Level</th><th>Supplier</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody>
+            <tr><td>EDTA Tubes</td><td>45</td><td>50</td><td>MedSupply SA</td><td><span class="badge badge-stat">REORDER NOW</span></td><td><button class="btn-sm-lab" onclick="showDemoAlert('Create order for EDTA Tubes')">Order</button></td></tr>
+            <tr><td>Reagent Kits</td><td>120</td><td>30</td><td>LabTech Solutions</td><td><span class="badge badge-completed">OK</span></td><td><button class="btn-outline-lab" onclick="showDemoAlert('Reorder Reagent Kits')">Reorder</button></td></tr>
+            <tr><td>Citrate Tubes</td><td>32</td><td>40</td><td>MedSupply SA</td><td><span class="badge badge-progress">Needs Order</span></td><td><button class="btn-sm-lab" onclick="showDemoAlert('Create order for Citrate Tubes')">Order</button></td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="grid-2col">
+    <div class="card-modern">
+        <h3>📋 Suppliers</h3>
+        <ul style="margin-top:1rem;">
+            <li><strong>MedSupply SA</strong> - contact@medsupply.co.za</li>
+            <li><strong>LabTech Solutions</strong> - orders@labtech.com</li>
+            <li><strong>Haematology Direct</strong> - sales@haemdirect.com</li>
+        </ul>
+        <button class="btn-outline-lab" style="margin-top:1rem;" onclick="showDemoAlert('Add new supplier')">+ Add Supplier</button>
+    </div>
+    <div class="card-modern">
+        <h3>📦 Pending Orders</h3>
+        <ul style="margin-top:1rem;">
+            <li><strong>ORD-002</strong> - LabTech Solutions - <span class="badge badge-progress">Partially Complete</span></li>
+            <li><strong>ORD-003</strong> - MedSupply SA - <span class="badge">Ordered</span></li>
+        </ul>
+        <button class="btn-sm-lab" style="margin-top:1rem;" onclick="showDemoAlert('Create grouped order by supplier')">Create Order</button>
+    </div>
+</div>
+
+<script>function showDemoAlert(msg){alert('🔔 '+msg);}</script>

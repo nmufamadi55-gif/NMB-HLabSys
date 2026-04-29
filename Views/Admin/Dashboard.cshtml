@@ -1,0 +1,60 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Admin Dashboard";
+    ViewData["RoleSubtitle"] = "Admin Portal";
+    ViewData["UserGreeting"] = "⚙️ System Administrator";
+    ViewData["UserInitials"] = "AD";
+}
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Admin")" class="active">📋 Dashboard</a></li>
+    <li><a href="@Url.Action("Conditions", "Admin")">🩺 Medical Conditions</a></li>
+    <li><a href="@Url.Action("Allergies", "Admin")">⚠️ Allergies</a></li>
+    <li><a href="@Url.Action("Medications", "Admin")">💊 Medications</a></li>
+}
+
+<div class="stat-cards">
+    <div class="stat-item"><div class="stat-icon-lg">🩺</div><div><h3>24</h3><p>Conditions</p></div></div>
+    <div class="stat-item"><div class="stat-icon-lg">⚠️</div><div><h3>12</h3><p>Allergies</p></div></div>
+    <div class="stat-item"><div class="stat-icon-lg">💊</div><div><h3>38</h3><p>Medications</p></div></div>
+</div>
+
+<div class="grid-2col">
+    <div class="card-modern">
+        <h3>📋 Quick Actions</h3>
+        <ul style="margin-top:1rem;">
+            <li><a href="#" onclick="showDemoAlert('Add new medical condition')">➕ Add Medical Condition</a></li>
+            <li><a href="#" onclick="showDemoAlert('Add new allergy')">⚠️ Add New Allergy</a></li>
+            <li><a href="#" onclick="showDemoAlert('Add new medication')">💊 Add New Medication</a></li>
+            <li><a href="#" onclick="showDemoAlert('Manage categories')">📁 Manage Categories</a></li>
+        </ul>
+    </div>
+    <div class="card-modern">
+        <h3>📊 System Overview</h3>
+        <ul style="margin-top:1rem;">
+            <li>👥 Active Users: 45</li>
+            <li>👨‍⚕️ Doctors Registered: 12</li>
+            <li>🔬 Lab Technicians: 8</li>
+            <li>🩺 Patients: 124</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card-modern">
+    <div class="card-header-flex">
+        <h3>🔄 Recent Lookup Table Changes</h3>
+        <button class="btn-outline-lab" onclick="showDemoAlert('View full audit log')">Audit Log</button>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead><tr><th>Date</th><th>Type</th><th>Item</th><th>Action</th><th>User</th></tr></thead>
+            <tbody>
+                <tr><td>2025-04-08</td><td>Condition</td><td>Haemochromatosis</td><td>Added</td><td>Admin</td></tr>
+                <tr><td>2025-04-07</td><td>Allergy</td><td>Latex</td><td>Modified</td><td>Admin</td></tr>
+                <tr><td>2025-04-05</td><td>Medication</td><td>Apixaban</td><td>Added</td><td>Admin</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>function showDemoAlert(msg){alert('🔔 '+msg);}</script>

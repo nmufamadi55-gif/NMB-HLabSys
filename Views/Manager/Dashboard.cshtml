@@ -1,0 +1,54 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Manager Dashboard";
+    ViewData["RoleSubtitle"] = "Manager Portal";
+    ViewData["UserGreeting"] = "📊 Amanda Adams (Lab Manager)";
+    ViewData["UserInitials"] = "AA";
+}
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Manager")" class="active">📈 Overview</a></li>
+    <li><a href="@Url.Action("TestCatalogue", "Manager")">📚 Test Catalogue</a></li>
+    <li><a href="@Url.Action("StockManagement", "Manager")">📦 Stock & Orders</a></li>
+    <li><a href="@Url.Action("StaffManagement", "Manager")">👥 Staff Management</a></li>
+}
+
+<div class="stat-cards">
+    <div class="stat-item"><div class="stat-icon-lg">⚠️</div><div><h3>3</h3><p>Low Stock Alerts</p></div></div>
+    <div class="stat-item"><div class="stat-icon-lg">📊</div><div><h3>342</h3><p>Tests This Month</p></div></div>
+    <div class="stat-item"><div class="stat-icon-lg">👥</div><div><h3>8</h3><p>Active Staff</p></div></div>
+</div>
+
+<div class="grid-2col">
+    <div class="card-modern">
+        <h3>📈 Monthly Performance</h3>
+        <div style="height:150px; background:#F4F7FC; border-radius:16px; display:flex; align-items:center; justify-content:center; margin:1rem 0;">
+            📊 [Bar Chart: FBC 156 | Coag 89 | Diff 97]
+        </div>
+        <button class="btn-outline-lab" onclick="showDemoAlert('Generate monthly report PDF')">Download Report (PDF)</button>
+    </div>
+    <div class="card-modern">
+        <h3>⚠️ Critical Alerts</h3>
+        <ul style="margin-top:1rem;">
+            <li style="color:#E26D5C;">🔴 EDTA Tubes below reorder level (45/50)</li>
+            <li style="color:#E8A845;">🟡 2 STAT requests pending &gt;30min</li>
+            <li style="color:#2C8C6E;">✅ No equipment failures reported</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card-modern">
+    <div class="card-header-flex">
+        <h3>📋 Recent Orders</h3>
+        <button class="btn-sm-lab" onclick="showDemoAlert('Create new stock order')">+ Create Order</button>
+    </div>
+    <table>
+        <thead><tr><th>Order #</th><th>Supplier</th><th>Date</th><th>Status</th><th>Items</th><th>Action</th></tr></thead>
+        <tbody>
+            <tr><td>ORD-001</td><td>MedSupply SA</td><td>2025-04-08</td><td><span class="badge badge-completed">Complete</span></td><td>EDTA Tubes (100)</td><td><button class="btn-outline-lab" onclick="showDemoAlert('View order')">View</button></td></tr>
+            <tr><td>ORD-002</td><td>LabTech Solutions</td><td>2025-04-10</td><td><span class="badge badge-progress">Partially Complete</span></td><td>Reagent Kits (50), Citrate Tubes (100)</td><td><button class="btn-outline-lab" onclick="showDemoAlert('View order')">View</button></td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script>function showDemoAlert(msg){alert('🔔 '+msg);}</script>

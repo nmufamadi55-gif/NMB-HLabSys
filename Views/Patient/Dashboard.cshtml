@@ -1,0 +1,122 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "My Health Portal";
+    ViewData["RoleSubtitle"] = "Patient Portal";
+    ViewData["UserGreeting"] = $"🩺 {@ViewBag.PatientName} (ID: {@ViewBag.PatientID})";
+    ViewData["UserInitials"] = "TM";
+}
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Patient")" class="active">📋 My Results</a></li>
+    <li><a href="@Url.Action("MedicalHistory", "Patient")">📝 Medical History</a></li>
+    <li><a href="@Url.Action("Consent", "Patient")">🔐 Consent Management</a></li>
+    <li><a href="@Url.Action("Trends", "Patient")">📈 Track Trends</a></li>
+}
+
+<div class="stat-cards">
+    <div class="stat-item">
+        <div class="stat-icon-lg">📋</div>
+        <div>
+            <h3>6</h3>
+            <p>Total Tests</p>
+        </div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-icon-lg">⚠️</div>
+        <div>
+            <h3>1</h3>
+            <p>Abnormal Results</p>
+        </div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-icon-lg">📄</div>
+        <div>
+            <h3>4</h3>
+            <p>Reports Available</p>
+        </div>
+    </div>
+</div>
+
+<div class="card-modern">
+    <div class="card-header-flex">
+        <h3>📋 Recent Test Results</h3>
+        <button class="btn-outline-lab" onclick="showDemoAlert('Download all reports as ZIP')">Download All</button>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Test Name</th>
+                    <th>Result</th>
+                    <th>Normal Range</th>
+                    <th>Status</th>
+                    <th>Doctor</th>
+                    <th>Report</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>2025-04-05</td>
+                    <td>Full Blood Count - Haemoglobin</td>
+                    <td>13.2 g/dL</td>
+                    <td>12-16 g/dL</td>
+                    <td><span class="badge badge-completed">Normal</span></td>
+                    <td>Dr. Sarah Johnson</td>
+                    <td><button class="btn-sm-lab" onclick="showDemoAlert('Download PDF report')">PDF</button></td>
+                </tr>
+                <tr>
+                    <td>2025-04-05</td>
+                    <td>Full Blood Count - WCC</td>
+                    <td>7.5 x10³/µL</td>
+                    <td>4-11 x10³/µL</td>
+                    <td><span class="badge badge-completed">Normal</span></td>
+                    <td>Dr. Sarah Johnson</td>
+                    <td><button class="btn-sm-lab" onclick="showDemoAlert('Download PDF report')">PDF</button></td>
+                </tr>
+                <tr class="abnormal-row">
+                    <td>2025-03-20</td>
+                    <td>Lipid Profile - Cholesterol</td>
+                    <td><strong>5.2 mmol/L</strong></td>
+                    <td>&lt;5.0 mmol/L</td>
+                    <td><span class="badge badge-progress">Borderline High</span></td>
+                    <td>Dr. Michael Brown</td>
+                    <td><button class="btn-sm-lab" onclick="showDemoAlert('Download PDF & view doctor notes')">View</button></td>
+                </tr>
+                <tr>
+                    <td>2025-03-20</td>
+                    <td>Lipid Profile - Triglycerides</td>
+                    <td>1.8 mmol/L</td>
+                    <td>&lt;1.7 mmol/L</td>
+                    <td><span class="badge badge-progress">Elevated</span></td>
+                    <td>Dr. Michael Brown</td>
+                    <td><button class="btn-sm-lab" onclick="showDemoAlert('Download PDF report')">PDF</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="grid-2col">
+    <div class="card-modern">
+        <h3>📊 Health Summary</h3>
+        <div style="height:120px; background:#F4F7FC; border-radius:16px; display:flex; align-items:center; justify-content:center; margin:1rem 0;">
+            📈 [Cholesterol Trend: 6.2 → 5.8 → 5.5 → 5.2]
+        </div>
+        <button class="btn-outline-lab" onclick="showDemoAlert('View detailed trend analysis')">View Full Trends</button>
+    </div>
+    <div class="card-modern">
+        <h3>📅 Upcoming / Pending Tests</h3>
+        <ul style="margin-top:1rem;">
+            <li>🔬 FBC Follow-up - Requested Apr 10, 2025</li>
+            <li>🩸 Lipid Profile - Due for annual check (May 2025)</li>
+        </ul>
+        <button class="btn-outline-lab" style="margin-top:1rem;" onclick="showDemoAlert('Request new test from doctor')">Request New Test</button>
+    </div>
+</div>
+
+<script>
+    function showDemoAlert(msg) {
+        alert('🔔 ' + msg + ' (Demo: Backend integration coming Semester 2)');
+    }
+</script>

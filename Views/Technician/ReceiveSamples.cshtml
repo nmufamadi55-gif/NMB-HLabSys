@@ -1,0 +1,118 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Receive Samples";
+    ViewData["RoleSubtitle"] = "Technician Portal";
+    ViewData["UserGreeting"] = $"🔬 {@ViewBag.TechName} (EMP:{@ViewBag.EmployeeNumber})";
+    ViewData["UserInitials"] = "MP";
+}
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Technician")">📊 Workload</a></li>
+    <li><a href="@Url.Action("ReceiveSamples", "Technician")" class="active">📦 Receive Samples</a></li>
+    <li><a href="@Url.Action("PerformTests", "Technician")">⚙️ Perform Tests</a></li>
+    <li><a href="@Url.Action("Verification", "Technician")">✅ Verification</a></li>
+}
+
+<div class="stat-cards">
+    <div class="stat-item"><div class="stat-icon-lg">📦</div><div><h3>4</h3><p>Pending Receipts</p></div></div>
+    <div class="stat-item"><div class="stat-icon-lg">✅</div><div><h3>23</h3><p>Received Today</p></div></div>
+    <div class="stat-item"><div class="stat-icon-lg">⏳</div><div><h3>2</h3><p>Overdue Samples</p></div></div>
+</div>
+
+<div class="card-modern">
+    <div class="card-header-flex">
+        <h3>📦 Pending Sample Receipts</h3>
+        <button class="btn-sm-lab" onclick="showDemoAlert('Scan barcode to receive sample')">🔍 Scan Barcode</button>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr><th>Barcode</th><th>Request #</th><th>Patient</th><th>Sample Type</th><th>Collected Date</th><th>Status</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span style="font-family:monospace;">BAR-47832</span></td>
+                    <td>REQ-004</td>
+                    <td>Thabo Mbeki</td>
+                    <td>Whole Blood (EDTA Tube)</td>
+                    <td>2025-04-10 09:30</td>
+                    <td><span class="badge badge-progress">Awaiting</span></td>
+                    <td><button class="btn-sm-lab" onclick="receiveSample('BAR-47832', 'REQ-004')">📥 Mark Received</button></td>
+                </tr>
+                <tr>
+                    <td><span style="font-family:monospace;">BAR-47833</span></td>
+                    <td>REQ-005</td>
+                    <td>Lerato Dlamini</td>
+                    <td>Plasma (Citrate Tube)</td>
+                    <td>2025-04-10 10:15</td>
+                    <td><span class="badge badge-progress">Awaiting</span></td>
+                    <td><button class="btn-sm-lab" onclick="receiveSample('BAR-47833', 'REQ-005')">📥 Mark Received</button></td>
+                </tr>
+                <tr>
+                    <td><span style="font-family:monospace;">BAR-47834</span></td>
+                    <td>REQ-006</td>
+                    <td>John Smith</td>
+                    <td>Bone Marrow Aspirate</td>
+                    <td>2025-04-09 14:20</td>
+                    <td><span class="badge badge-stat">Urgent</span></td>
+                    <td><button class="btn-sm-lab" onclick="receiveSample('BAR-47834', 'REQ-006')">📥 Mark Received</button></td>
+                </tr>
+                <tr>
+                    <td><span style="font-family:monospace;">BAR-47835</span></td>
+                    <td>REQ-007</td>
+                    <td>Maria Santos</td>
+                    <td>Whole Blood (EDTA Tube)</td>
+                    <td>2025-04-10 08:45</td>
+                    <td><span class="badge badge-progress">Awaiting</span></td>
+                    <td><button class="btn-sm-lab" onclick="receiveSample('BAR-47835', 'REQ-007')">📥 Mark Received</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card-modern">
+    <div class="card-header-flex">
+        <h3>📋 Recently Received Samples</h3>
+        <button class="btn-outline-lab" onclick="showDemoAlert('View all received samples history')">View History</button>
+    </div>
+    <table>
+        <thead>
+            <tr><th>Barcode</th><th>Request #</th><th>Patient</th><th>Received By</th><th>Received At</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>BAR-47828</td>
+                <td>REQ-003</td>
+                <td>John Smith</td>
+                <td>Tech Peters</td>
+                <td>2025-04-09 15:30</td>
+                <td><span class="badge badge-completed">Verified</span></td>
+                <td><button class="btn-outline-lab" onclick="showDemoAlert('View sample details')">Details</button></td>
+            </tr>
+            <tr>
+                <td>BAR-47829</td>
+                <td>REQ-002</td>
+                <td>Lerato Dlamini</td>
+                <td>Tech Smith</td>
+                <td>2025-04-09 11:20</td>
+                <td><span class="badge badge-completed">Processing</span></td>
+                <td><button class="btn-outline-lab" onclick="showDemoAlert('View sample details')">Details</button></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="alert alert-info" style="background:#EFF6FF; padding:1rem; border-radius:12px;">
+    <strong>📌 Quality Check Reminder:</strong> Verify sample integrity before accepting. Reject if hemolyzed or insufficient volume.
+</div>
+
+@section Scripts {
+    <script>
+        function receiveSample(barcode, requestNo) {
+            showDemoAlert(`Sample ${barcode} for ${requestNo} marked as RECEIVED. Status updated to "Samples Received".`);
+            // In backend: update database, set status, record timestamp
+        }
+        function showDemoAlert(msg) { alert('🔔 ' + msg + ' (Demo: Backend integration coming Semester 2)'); }
+    </script>
+}

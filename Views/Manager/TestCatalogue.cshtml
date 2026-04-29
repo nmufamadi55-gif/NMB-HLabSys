@@ -1,0 +1,38 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Test Catalogue";
+    ViewData["RoleSubtitle"] = "Manager Portal";
+    ViewData["UserGreeting"] = "📊 Amanda Adams";
+    ViewData["UserInitials"] = "AA";
+}
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Manager")">📈 Overview</a></li>
+    <li><a href="@Url.Action("TestCatalogue", "Manager")" class="active">📚 Test Catalogue</a></li>
+    <li><a href="@Url.Action("StockManagement", "Manager")">📦 Stock & Orders</a></li>
+    <li><a href="@Url.Action("StaffManagement", "Manager")">👥 Staff Management</a></li>
+}
+
+<div class="card-modern">
+    <div class="card-header-flex">
+        <h3>📚 Test Categories & Types</h3>
+        <button class="btn-sm-lab" onclick="showDemoAlert('Add new test category')">+ Add Category</button>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr><th>Category</th><th>Test Name</th><th>Sample Type</th><th>Unit</th><th>Normal Range</th><th>Turnaround</th><th>Consumables</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+                <tr><td rowspan="3">Full Blood Count</td><td>Haemoglobin (Hb)</td><td>Whole Blood</td><td>g/dL</td><td>12-16</td><td>45 min</td><td>EDTA Tube</td><td><button class="btn-outline-lab" onclick="showDemoAlert('Edit test')">Edit</button></td></tr>
+                <tr><td>White Cell Count</td><td>Whole Blood</td><td>x10³/µL</td><td>4-11</td><td>45 min</td><td>EDTA Tube</td><td><button class="btn-outline-lab" onclick="showDemoAlert('Edit test')">Edit</button></td></tr>
+                <tr><td>Platelet Count</td><td>Whole Blood</td><td>x10³/µL</td><td>150-450</td><td>45 min</td><td>EDTA Tube</td><td><button class="btn-outline-lab" onclick="showDemoAlert('Edit test')">Edit</button></td></tr>
+                <tr><td rowspan="2">Coagulation Studies</td><td>PT/INR</td><td>Plasma</td><td>seconds</td><td>11-13.5</td><td>60 min</td><td>Citrate Tube</td><td><button class="btn-outline-lab" onclick="showDemoAlert('Edit test')">Edit</button></td></tr>
+                <tr><td>APTT</td><td>Plasma</td><td>seconds</td><td>25-35</td><td>60 min</td><td>Citrate Tube</td><td><button class="btn-outline-lab" onclick="showDemoAlert('Edit test')">Edit</button></td></tr>
+            </tbody>
+        </table>
+    </div>
+    <button class="btn-outline-lab" style="margin-top:1rem;" onclick="showDemoAlert('Add new test type')">+ Add New Test Type</button>
+</div>
+
+<script>function showDemoAlert(msg){alert('🔔 '+msg);}</script>

@@ -1,0 +1,83 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "My Patients";
+    ViewData["RoleSubtitle"] = "Doctor Portal";
+    ViewData["UserGreeting"] = "Manage your patient roster";
+    ViewData["UserInitials"] = "DJ";
+    ViewData["UserName"] = "Dr. Sarah Johnson";
+}
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Doctor")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+    <li><a href="@Url.Action("TestRequests", "Doctor")"><i class="fas fa-notes-medical"></i> <span>Test Requests</span></a></li>
+    <li><a href="@Url.Action("Patients", "Doctor")" class="active"><i class="fas fa-users"></i> <span>My Patients</span></a></li>
+    <li><a href="@Url.Action("Alerts", "Doctor")"><i class="fas fa-bell"></i> <span>Alerts</span></a></li>
+    <li><a href="@Url.Action("Results", "Doctor")"><i class="fas fa-chart-line"></i> <span>Results</span></a></li>
+    <li><a href="@Url.Action("Reports", "Doctor")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+}
+
+<div class="card">
+    <div class="filter-bar">
+        <input type="text" id="patientSearch" placeholder="🔍 Search by name or ID" style="padding:0.3rem; border-radius:30px;">
+        <button class="btn-sm" onclick="searchPatients()">Search</button>
+        <button class="btn-sm" onclick="resetSearch()">Clear</button>
+        <button class="btn-sm" onclick="location.href='@Url.Action("Patients", "Doctor")'" style="background:#10B981;">+ Register</button>
+    </div>
+    <div class="table-container">
+        <table id="patientsTable">
+            <thead><tr><th>Name</th><th>ID Number</th><th>DOB</th><th>Contact</th><th>Conditions</th><th>Actions</th></tr></thead>
+            <tbody id="patientsBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    let patients = [
+        { name:"Thabo Mbeki", idNumber:"8001015009087", dob:"1980-01-01", phone:"0821234567", conditions:["Hypertension"] },
+        { name:"Lerato Dlamini", idNumber:"8505155009088", dob:"1985-05-15", phone:"0832345678", conditions:["Diabetes"] },
+        { name:"John Smith", idNumber:"9001015009089", dob:"1990-01-01", phone:"0843456789", conditions:[] }
+    ];
+    function renderPatients() {
+        const tbody = document.getElementById('patientsBody');
+        tbody.innerHTML = patients.map(p => `<tr><td><strong>${p.name}</strong></td><td>${p.idNumber}</td><td>${p.dob}</td><td>${p.phone}</td><td>${p.conditions.join(',') || '-'}</td><td><button class="btn-sm" onclick="alert('History for ${p.name}')">History</button> <button class="btn-sm" onclick="location.href='@Url.Action("TestRequests", "Doctor")'">Request</button></td></tr>`).join('');
+    }
+    function searchPatients() { renderPatients(); }
+    function resetSearch() { renderPatients(); }
+    renderPatients();
+</script>
+
+<style>
+    .card {
+        background: white;
+        border-radius: 16px;
+        padding: 1rem;
+        border: 1px solid #E2E8F0;
+    }
+
+    .filter-bar {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 0.6rem;
+        text-align: left;
+        border-bottom: 1px solid #E2E8F0;
+    }
+
+    .btn-sm {
+        background: #0841C9;
+        color: white;
+        border: none;
+        padding: 0.2rem 0.6rem;
+        border-radius: 30px;
+        cursor: pointer;
+    }
+</style>

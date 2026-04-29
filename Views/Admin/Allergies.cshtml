@@ -1,0 +1,70 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Allergies Management";
+    ViewData["RoleSubtitle"] = "Admin Portal";
+    ViewData["UserGreeting"] = "⚙️ System Administrator";
+    ViewData["UserInitials"] = "AD";
+}
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Admin")">📋 Dashboard</a></li>
+    <li><a href="@Url.Action("Conditions", "Admin")">🩺 Medical Conditions</a></li>
+    <li><a href="@Url.Action("Allergies", "Admin")" class="active">⚠️ Allergies</a></li>
+    <li><a href="@Url.Action("Medications", "Admin")">💊 Medications</a></li>
+}
+
+<div class="card-modern">
+    <div class="card-header-flex">
+        <h3>⚠️ Allergies Reference List</h3>
+        <button class="btn-sm-lab" onclick="showDemoAlert('Add new allergy')">+ Add Allergy</button>
+    </div>
+
+    <div class="grid-2col">
+        <div class="card-modern" style="background:#F8FAFE;">
+            <h4>💊 Medication Allergies</h4>
+            <ul style="margin-top:0.5rem;">
+                <li>Penicillin <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Penicillin')">Edit</button></li>
+                <li>Sulfa Drugs <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Sulfa')">Edit</button></li>
+                <li>Aspirin (NSAID) <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Aspirin')">Edit</button></li>
+                <li>Cephalosporins <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Cephalosporins')">Edit</button></li>
+                <li>Codeine <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Codeine')">Edit</button></li>
+            </ul>
+        </div>
+
+        <div class="card-modern" style="background:#F8FAFE;">
+            <h4>🍽️ Food Allergies</h4>
+            <ul style="margin-top:0.5rem;">
+                <li>Peanuts <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Peanuts')">Edit</button></li>
+                <li>Tree Nuts <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Tree Nuts')">Edit</button></li>
+                <li>Shellfish <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Shellfish')">Edit</button></li>
+                <li>Eggs <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Eggs')">Edit</button></li>
+                <li>Soy <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Soy')">Edit</button></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="grid-2col" style="margin-top:1rem;">
+        <div class="card-modern" style="background:#F8FAFE;">
+            <h4>🐝 Environmental Allergies</h4>
+            <ul style="margin-top:0.5rem;">
+                <li>Dust Mites <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Dust Mites')">Edit</button></li>
+                <li>Pollen <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Pollen')">Edit</button></li>
+                <li>Latex <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Latex')">Edit</button></li>
+                <li>Mould <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Mould')">Edit</button></li>
+                <li>Animal Dander <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Animal Dander')">Edit</button></li>
+            </ul>
+        </div>
+
+        <div class="card-modern" style="background:#F8FAFE;">
+            <h4>🦟 Insect Allergies</h4>
+            <ul style="margin-top:0.5rem;">
+                <li>Bee Venom <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Bee Venom')">Edit</button></li>
+                <li>Wasp Venom <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Wasp Venom')">Edit</button></li>
+                <li>Fire Ants <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Fire Ants')">Edit</button></li>
+            </ul>
+            <button class="btn-outline-lab" style="margin-top:0.5rem;" onclick="showDemoAlert('Add new allergy category')">+ Add Category</button>
+        </div>
+    </div>
+</div>
+
+<script>function showDemoAlert(msg){alert('🔔 '+msg);}</script>

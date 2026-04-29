@@ -1,0 +1,79 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Medications Management";
+    ViewData["RoleSubtitle"] = "Admin Portal";
+    ViewData["UserGreeting"] = "⚙️ System Administrator";
+    ViewData["UserInitials"] = "AD";
+}
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Admin")">📋 Dashboard</a></li>
+    <li><a href="@Url.Action("Conditions", "Admin")">🩺 Medical Conditions</a></li>
+    <li><a href="@Url.Action("Allergies", "Admin")">⚠️ Allergies</a></li>
+    <li><a href="@Url.Action("Medications", "Admin")" class="active">💊 Medications</a></li>
+}
+
+<div class="card-modern">
+    <div class="card-header-flex">
+        <h3>💊 Medication Reference Library</h3>
+        <button class="btn-sm-lab" onclick="showDemoAlert('Add new medication')">+ Add Medication</button>
+    </div>
+
+    <div class="grid-2col">
+        <div class="card-modern" style="background:#F8FAFE;">
+            <h4>❤️ Cardiovascular</h4>
+            <ul style="margin-top:0.5rem;">
+                <li>Lisinopril (ACE Inhibitor) <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Lisinopril')">Edit</button></li>
+                <li>Amlodipine (Calcium Blocker) <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Amlodipine')">Edit</button></li>
+                <li>Atorvastatin (Statin) <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Atorvastatin')">Edit</button></li>
+                <li>Warfarin (Anticoagulant) <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Warfarin')">Edit</button></li>
+                <li>Apixaban (DOAC) <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Apixaban')">Edit</button></li>
+            </ul>
+        </div>
+
+        <div class="card-modern" style="background:#F8FAFE;">
+            <h4>🩸 Endocrine / Diabetes</h4>
+            <ul style="margin-top:0.5rem;">
+                <li>Metformin <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Metformin')">Edit</button></li>
+                <li>Insulin Glargine <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Insulin Glargine')">Edit</button></li>
+                <li>Gliclazide <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Gliclazide')">Edit</button></li>
+                <li>Levothyroxine <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Levothyroxine')">Edit</button></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="grid-2col" style="margin-top:1rem;">
+        <div class="card-modern" style="background:#F8FAFE;">
+            <h4>🧠 Neurological / Psychiatric</h4>
+            <ul style="margin-top:0.5rem;">
+                <li>Sertraline (SSRI) <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Sertraline')">Edit</button></li>
+                <li>Escitalopram <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Escitalopram')">Edit</button></li>
+                <li>Carbamazepine <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Carbamazepine')">Edit</button></li>
+                <li>Gabapentin <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Gabapentin')">Edit</button></li>
+            </ul>
+        </div>
+
+        <div class="card-modern" style="background:#F8FAFE;">
+            <h4>🩻 Haematology / Oncology</h4>
+            <ul style="margin-top:0.5rem;">
+                <li>Hydroxyurea <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Hydroxyurea')">Edit</button></li>
+                <li>Imatinib <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Imatinib')">Edit</button></li>
+                <li>Rituximab <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Rituximab')">Edit</button></li>
+                <li>Filgrastim (G-CSF) <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Filgrastim')">Edit</button></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="card-modern">
+    <div class="card-header-flex">
+        <h3>📋 Bulk Import / Export</h3>
+        <div>
+            <button class="btn-outline-lab" onclick="showDemoAlert('Export medications to CSV')">Export CSV</button>
+            <button class="btn-outline-lab" onclick="showDemoAlert('Import medications from CSV')">Import CSV</button>
+        </div>
+    </div>
+    <p style="color:#5A6E7A;">Manage medication reference data in bulk for efficient system administration.</p>
+</div>
+
+<script>function showDemoAlert(msg){alert('🔔 '+msg);}</script>

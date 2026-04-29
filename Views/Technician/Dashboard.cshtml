@@ -1,0 +1,33 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Technician Workload";
+    ViewData["RoleSubtitle"] = "Technician Portal";
+    ViewData["UserGreeting"] = $"🔬 {@ViewBag.TechName} (EMP:{@ViewBag.EmployeeNumber})";
+    ViewData["UserInitials"] = "MP";
+}
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Technician")" class="active">📊 Workload</a></li>
+    <li><a href="@Url.Action("ReceiveSamples", "Technician")">📦 Receive Samples</a></li>
+    <li><a href="@Url.Action("PerformTests", "Technician")">⚙️ Perform Tests</a></li>
+    <li><a href="@Url.Action("Verification", "Technician")">✅ Verification</a></li>
+}
+
+<div class="stat-cards">
+    <div class="stat-item"><div class="stat-icon-lg">⏳</div><div><h3>5</h3><p>Pending Tests</p></div></div>
+    <div class="stat-item"><div class="stat-icon-lg">⚠️</div><div><h3>2</h3><p>Overdue</p></div></div>
+    <div class="stat-item"><div class="stat-icon-lg">✅</div><div><h3>8</h3><p>Awaiting Verify</p></div></div>
+</div>
+
+<div class="card-modern">
+    <h3>🔬 Assigned Tests</h3>
+    <table>
+        <thead><tr><th>Test</th><th>Req#</th><th>Due</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+            <tr><td>Full Blood Count</td><td>REQ-001</td><td>Today 16:00</td><td><span class="badge badge-progress">In Progress</span></td><td><button class="btn-sm-lab" onclick="showDemoAlert('Capture results')">Capture</button></td></tr>
+            <tr><td>Coagulation</td><td>REQ-002</td><td>Today 14:30</td><td><span class="badge">Pending</span></td><td><button class="btn-sm-lab" onclick="showDemoAlert('Start test - consumables deducted')">Select</button></td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script>function showDemoAlert(msg){alert('🔔 '+msg);}</script>

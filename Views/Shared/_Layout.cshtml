@@ -1,0 +1,45 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - NMB-HLabSys</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css">
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <div class="app-grid">
+        <!-- Sidebar -->
+        <aside class="sidebar-lab">
+            <div class="logo-area">
+                <h2>🩸 NMB-HLabSys</h2>
+                <span>@ViewData["RoleSubtitle"]</span>
+            </div>
+            <ul class="nav-links">
+                @await RenderSectionAsync("SidebarMenu", required: true)
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-panel">
+            <div class="header-glass">
+                <div class="flex-between" style="width:100%;">
+                    <div>
+                        <button class="menu-toggle" id="menuToggleBtn">☰</button>
+                        <span class="user-greeting">@ViewData["UserGreeting"]</span>
+                    </div>
+                    <div class="user-tag">
+                        <div class="avatar">@ViewData["UserInitials"]</div>
+                        <div class="logout-pill" id="logoutBtn">Logout</div>
+                    </div>
+                </div>
+            </div>
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/js/site.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

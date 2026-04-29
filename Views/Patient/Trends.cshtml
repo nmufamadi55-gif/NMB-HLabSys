@@ -1,0 +1,82 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Health Trends";
+    ViewData["RoleSubtitle"] = "Patient Portal";
+    ViewData["UserGreeting"] = $"🩺 {@ViewBag.PatientName} (ID: {@ViewBag.PatientID})";
+    ViewData["UserInitials"] = "TM";
+}
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Patient")">📋 My Results</a></li>
+    <li><a href="@Url.Action("MedicalHistory", "Patient")">📝 Medical History</a></li>
+    <li><a href="@Url.Action("Consent", "Patient")">🔐 Consent Management</a></li>
+    <li><a href="@Url.Action("Trends", "Patient")" class="active">📈 Track Trends</a></li>
+}
+
+<div class="card-modern">
+    <div class="card-header-flex">
+        <h3>📈 Haemoglobin Trend (Last 12 months)</h3>
+        <div class="form-group" style="width:200px;">
+            <select style="padding:8px; border-radius:20px;" onchange="showDemoAlert('Date range changed')">
+                <option>Last 6 months</option>
+                <option selected>Last 12 months</option>
+                <option>Last 2 years</option>
+            </select>
+        </div>
+    </div>
+    <div style="height:250px; background:#F4F7FC; border-radius:20px; display:flex; align-items:center; justify-content:center; flex-direction:column; margin:1rem 0;">
+        <div style="font-size:3rem;">📊</div>
+        <div style="text-align:center;">
+            <p><strong>Normal Range: 12-16 g/dL</strong></p>
+            <div style="width:100%; max-width:400px; background:#E2E8F0; height:8px; border-radius:10px; margin:10px auto;">
+                <div style="width:65%; background:#2C8C6E; height:8px; border-radius:10px;"></div>
+            </div>
+            <p>Apr 2024: 13.8 | Jul 2024: 13.2 | Oct 2024: 12.9 | Jan 2025: 13.1 | Apr 2025: 13.2</p>
+        </div>
+    </div>
+</div>
+
+<div class="card-modern">
+    <div class="card-header-flex">
+        <h3>🩸 Cholesterol Trend</h3>
+        <div class="form-group" style="width:200px;">
+            <select style="padding:8px; border-radius:20px;" onchange="showDemoAlert('Test type changed')">
+                <option selected>Total Cholesterol</option>
+                <option>LDL Cholesterol</option>
+                <option>HDL Cholesterol</option>
+                <option>Triglycerides</option>
+            </select>
+        </div>
+    </div>
+    <div style="height:200px; background:#F4F7FC; border-radius:20px; display:flex; align-items:center; justify-content:center; flex-direction:column; margin:1rem 0;">
+        <div style="font-size:2rem;">📉</div>
+        <p>Showing decreasing trend: <strong>6.2 → 5.8 → 5.5 → 5.2 mmol/L</strong> (Goal: &lt;5.0)</p>
+        <p style="font-size:0.8rem; color:#5A6E7A;">Lifestyle changes showing positive results!</p>
+    </div>
+    <button class="btn-outline-lab" onclick="showDemoAlert('Download trend report PDF')">Download Trend Report (PDF)</button>
+</div>
+
+<div class="grid-2col">
+    <div class="card-modern">
+        <h3>📊 Platelet Count History</h3>
+        <div style="height:120px; background:#F4F7FC; border-radius:16px; display:flex; align-items:center; justify-content:center; margin:1rem 0;">
+            📈 [Range: 220 → 245 → 238 → 250] Normal
+        </div>
+        <button class="btn-outline-lab" onclick="showDemoAlert('View detailed platelet history')">View Details</button>
+    </div>
+    <div class="card-modern">
+        <h3>📋 Health Insights</h3>
+        <ul style="margin-top:1rem;">
+            <li>✅ Haemoglobin stable within normal range</li>
+            <li>⚠️ Cholesterol trending downward - continue lifestyle changes</li>
+            <li>✅ Blood pressure controlled with medication</li>
+        </ul>
+        <button class="btn-outline-lab" style="margin-top:1rem;" onclick="showDemoAlert('Share insights with doctor')">Share with Doctor</button>
+    </div>
+</div>
+
+<script>
+    function showDemoAlert(msg) {
+        alert('🔔 ' + msg + ' (Demo: Backend integration coming Semester 2)');
+    }
+</script>

@@ -1,0 +1,91 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Test Requests";
+    ViewData["RoleSubtitle"] = "Doctor Portal";
+    ViewData["UserGreeting"] = "Manage and track all test requests";
+    ViewData["UserInitials"] = "DJ";
+    ViewData["UserName"] = "Dr. Sarah Johnson";
+}
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Doctor")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+    <li><a href="@Url.Action("TestRequests", "Doctor")" class="active"><i class="fas fa-notes-medical"></i> <span>Test Requests</span></a></li>
+    <li><a href="@Url.Action("Patients", "Doctor")"><i class="fas fa-users"></i> <span>My Patients</span></a></li>
+    <li><a href="@Url.Action("Alerts", "Doctor")"><i class="fas fa-bell"></i> <span>Alerts</span></a></li>
+    <li><a href="@Url.Action("Results", "Doctor")"><i class="fas fa-chart-line"></i> <span>Results</span></a></li>
+    <li><a href="@Url.Action("Reports", "Doctor")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+}
+
+<div class="card">
+    <div class="filter-bar">
+        <input type="text" id="searchReq" placeholder="🔍 Search" style="padding:0.3rem; border-radius:30px; border:1px solid #E2E8F0;">
+        <select id="statusFilter" style="padding:0.3rem; border-radius:30px;">
+            <option value="all">All Status</option>
+            <option>Submitted</option>
+            <option>In Progress</option>
+            <option>Completed</option>
+            <option>Verified</option>
+        </select>
+        <button class="btn-sm" onclick="applyFilters()">Apply</button>
+        <button class="btn-sm" onclick="resetFilters()">Reset</button>
+        <button class="btn-sm" onclick="location.href='@Url.Action("TestRequests", "Doctor")'" style="background:#10B981;">+ New</button>
+    </div>
+    <div class="table-container">
+        <table id="requestsTable">
+            <thead><tr><th>Req #</th><th>Patient</th><th>Date</th><th>Tests</th><th>Status</th><th>Urgency</th><th>Action</th></tr></thead>
+            <tbody id="requestsBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    let requests = [
+        { id:1, reqNo:"REQ-001", patient:"Thabo Mbeki", date:"2025-04-09", tests:["FBC"], status:"In Progress", urgency:"stat" },
+        { id:2, reqNo:"REQ-002", patient:"Lerato Dlamini", date:"2025-04-08", tests:["Coagulation"], status:"Completed", urgency:"routine" },
+        { id:3, reqNo:"REQ-003", patient:"John Smith", date:"2025-04-07", tests:["Platelets"], status:"Verified", urgency:"urgent" }
+    ];
+    function renderRequests() {
+        const tbody = document.getElementById('requestsBody');
+        tbody.innerHTML = requests.map(r => `<tr><td><strong>${r.reqNo}</strong></td><td>${r.patient}</td><td>${r.date}</td><td>${r.tests.join(',')}</td><td>${r.status}</td><td>${r.urgency}</td><td><button class="btn-sm" onclick="alert('View ${r.reqNo}')">View</button></td></tr>`).join('');
+    }
+    function applyFilters() { renderRequests(); }
+    function resetFilters() { renderRequests(); }
+    renderRequests();
+</script>
+
+<style>
+    .card {
+        background: white;
+        border-radius: 16px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: 1px solid #E2E8F0;
+    }
+
+    .filter-bar {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 0.6rem;
+        text-align: left;
+        border-bottom: 1px solid #E2E8F0;
+    }
+
+    .btn-sm {
+        background: #0841C9;
+        color: white;
+        border: none;
+        padding: 0.2rem 0.6rem;
+        border-radius: 30px;
+        cursor: pointer;
+    }
+</style>
