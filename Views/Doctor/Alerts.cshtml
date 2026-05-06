@@ -16,54 +16,60 @@
     <li><a href="@Url.Action("Reports", "Doctor")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
 }
 
-<div class="stats" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-    <div class="stat-box" style="background:#FEF2F2;"><h4 id="criticalCount">0</h4><p>Critical (STAT)</p></div>
-    <div class="stat-box" style="background:#FFFBEB;"><h4 id="urgentCount">0</h4><p>Urgent</p></div>
-    <div class="stat-box"><h4 id="totalCount">0</h4><p>Total Alerts</p></div>
-</div>
-
-<div class="card">
-    <div class="filter-bar">
-        <input type="text" id="alertSearch" placeholder="🔍 Search" style="padding:0.3rem; border-radius:30px;">
-        <select id="alertUrgency" style="padding:0.3rem; border-radius:30px;">
-            <option value="all">All Urgency</option>
-            <option value="stat">STAT</option>
-            <option value="urgent">Urgent</option>
-        </select>
-        <button class="btn-sm" onclick="applyFilters()">Apply</button>
-        <button class="btn-sm" onclick="resetFilters()">Reset</button>
-    </div>
-    <div class="table-container">
-        <table id="alertsTable">
-            <thead><tr><th>Date</th><th>Patient</th><th>Test</th><th>Result</th><th>Normal</th><th>Urgency</th><th>Action</th></tr></thead>
-            <tbody id="alertsBody"></tbody>
-        </table>
-    </div>
-</div>
-
-<script>
-    let alerts = [
-        { date:"2025-04-09", patient:"Thabo Mbeki", test:"Haemoglobin", result:"7.2", normal:"12-16", urgency:"stat" },
-        { date:"2025-04-08", patient:"John Smith", test:"Platelets", result:"45", normal:"150-450", urgency:"urgent" }
-    ];
-    function renderAlerts() {
-        const tbody = document.getElementById('alertsBody');
-        tbody.innerHTML = alerts.map(a => `<tr style="background:#FEF2F2;"><td>${a.date}</td><td>${a.patient}</td><td>${a.test}</td><td style="color:#DC2626; font-weight:bold;">${a.result}</td><td>${a.normal}</td><td><span class="status-badge">${a.urgency.toUpperCase()}</span></td><td><button class="btn-sm" onclick="alert('Review ${a.patient}')">Review</button></td></tr>`).join('');
-        document.getElementById('criticalCount').innerText = alerts.filter(a=>a.urgency==='stat').length;
-        document.getElementById('urgentCount').innerText = alerts.filter(a=>a.urgency==='urgent').length;
-        document.getElementById('totalCount').innerText = alerts.length;
-    }
-    function applyFilters() { renderAlerts(); }
-    function resetFilters() { renderAlerts(); }
-    renderAlerts();
-</script>
-
 <style>
     .card {
         background: white;
         border-radius: 16px;
         padding: 1rem;
         border: 1px solid #E2E8F0;
+    }
+
+    .filter-bar {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+        align-items: center;
+    }
+
+    .filter-input, .filter-select {
+        padding: 0.3rem 0.6rem;
+        border-radius: 30px;
+        border: 1px solid #E2E8F0;
+        font-size: 0.75rem;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 0.6rem;
+        text-align: left;
+        border-bottom: 1px solid #E2E8F0;
+        font-size: 0.75rem;
+    }
+
+    th {
+        background: #F8FAFE;
+        font-weight: 600;
+        color: #5A6E7A;
+    }
+
+    .btn-sm {
+        background: #0841C9;
+        color: white;
+        border: none;
+        padding: 0.2rem 0.6rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.7rem;
+    }
+
+    .abnormal-value {
+        color: #DC2626;
+        font-weight: bold;
     }
 
     .stat-box {
@@ -76,36 +82,9 @@
     }
 
         .stat-box h4 {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             margin: 0;
         }
-
-    .filter-bar {
-        display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-        margin-bottom: 1rem;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    th, td {
-        padding: 0.6rem;
-        text-align: left;
-        border-bottom: 1px solid #E2E8F0;
-    }
-
-    .btn-sm {
-        background: #0841C9;
-        color: white;
-        border: none;
-        padding: 0.2rem 0.6rem;
-        border-radius: 30px;
-        cursor: pointer;
-    }
 
     .status-badge {
         background: #F8D7DA;
@@ -113,5 +92,81 @@
         padding: 0.2rem 0.5rem;
         border-radius: 30px;
         font-size: 0.7rem;
+        display: inline-block;
     }
 </style>
+
+<div class="stats" style="display: flex; gap: 0.8rem; margin-bottom: 1rem;">
+    <div class="stat-box" style="background:#FEF2F2;"><h4 id="criticalCount" style="color:#DC2626;">0</h4><p>Critical (STAT)</p></div>
+    <div class="stat-box" style="background:#FFFBEB;"><h4 id="urgentCount" style="color:#F59E0B;">0</h4><p>Urgent</p></div>
+    <div class="stat-box"><h4 id="totalCount">0</h4><p>Total Alerts</p></div>
+</div>
+
+<div class="card">
+    <div class="filter-bar">
+        <input type="text" id="alertSearch" class="filter-input" placeholder="🔍 Search patient">
+        <select id="alertUrgency" class="filter-select"><option value="all">All Urgency</option><option value="stat">STAT</option><option value="urgent">Urgent</option></select>
+        <input type="date" id="alertStartDate" class="filter-input" placeholder="Start Date">
+        <input type="date" id="alertEndDate" class="filter-input" placeholder="End Date">
+        <button class="btn-sm" onclick="applyAlertFilters()">Apply</button>
+        <button class="btn-sm" onclick="resetAlertFilters()" style="background:#6B7280;">Reset</button>
+    </div>
+    <div class="table-container">
+        <table id="alertsTable">
+            <thead><tr><th>Date</th><th>Patient</th><th>Test</th><th>Result</th><th>Normal Range</th><th>Urgency</th><th>Action</th></tr></thead>
+            <tbody id="alertsBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    let alerts = [
+        { date:"2025-04-09", patient:"Thabo Mbeki", test:"Haemoglobin", result:"7.2", normal:"12-16", urgency:"stat" },
+        { date:"2025-04-08", patient:"John Smith", test:"Platelets", result:"45", normal:"150-450", urgency:"urgent" },
+        { date:"2025-04-05", patient:"Maria Santos", test:"WBC", result:"18.5", normal:"4-11", urgency:"urgent" }
+    ];
+
+    function renderAlerts() {
+        let filtered = [...alerts];
+        const search = document.getElementById('alertSearch')?.value.toLowerCase() || '';
+        const urgency = document.getElementById('alertUrgency')?.value || 'all';
+        const startDate = document.getElementById('alertStartDate')?.value || '';
+        const endDate = document.getElementById('alertEndDate')?.value || '';
+
+        if(search) filtered = filtered.filter(a => a.patient.toLowerCase().includes(search));
+        if(urgency !== 'all') filtered = filtered.filter(a => a.urgency === urgency);
+        if(startDate) filtered = filtered.filter(a => a.date >= startDate);
+        if(endDate) filtered = filtered.filter(a => a.date <= endDate);
+
+        document.getElementById('criticalCount').innerText = alerts.filter(a => a.urgency === 'stat').length;
+        document.getElementById('urgentCount').innerText = alerts.filter(a => a.urgency === 'urgent').length;
+        document.getElementById('totalCount').innerText = alerts.length;
+
+        const tbody = document.getElementById('alertsBody');
+        tbody.innerHTML = filtered.map(a => `
+            <tr style="background:#FEF2F2;">
+                <td>${a.date}</td>
+                <td>${a.patient}</td>
+                <td>${a.test}</td>
+                <td><span class="abnormal-value">${a.result}</span></td>
+                <td>${a.normal}</td>
+                <td><span class="status-badge">${a.urgency.toUpperCase()}</span></td>
+                <td><button class="btn-sm" onclick="reviewAlert('${a.patient}', '${a.test}')">Review</button>
+                    <button class="btn-sm" onclick="acknowledgeAlert('${a.patient}')" style="background:#10B981;">Acknowledge</button>
+                </td>
+            </table>
+        `).join('');
+    }
+
+    function reviewAlert(patient, test) { alert(`🔍 Reviewing abnormal ${test} result for ${patient}.`); }
+    function acknowledgeAlert(patient) { alert(`✅ Alert for ${patient} acknowledged.`); }
+    function applyAlertFilters() { renderAlerts(); }
+    function resetAlertFilters() {
+        document.getElementById('alertSearch').value = '';
+        document.getElementById('alertUrgency').value = 'all';
+        document.getElementById('alertStartDate').value = '';
+        document.getElementById('alertEndDate').value = '';
+        renderAlerts();
+    }
+    renderAlerts();
+</script>

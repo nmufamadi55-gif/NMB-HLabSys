@@ -16,28 +16,6 @@
     <li><a href="@Url.Action("Reports", "Doctor")" class="active"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
 }
 
-<div class="card">
-    <h3>Generate Report</h3>
-    <div class="form-group"><label>Start Date</label><input type="date" id="reportStart" class="form-control"></div>
-    <div class="form-group"><label>End Date</label><input type="date" id="reportEnd" class="form-control"></div>
-    <div class="form-group"><label>Report Type</label><select id="reportType" class="form-control"><option value="all">All Test Requests</option><option value="completed">Completed</option><option value="abnormal">Abnormal Only</option></select></div>
-    <button class="btn-primary" onclick="generateReport()">Generate PDF Report</button>
-</div>
-
-<div class="card">
-    <h3>Quick Statistics</h3>
-    <div class="stat-box"><h3 id="statTotal">0</h3><p>Total Requests (This Month)</p></div>
-    <div class="stat-box"><h3 id="statCompleted">0</h3><p>Completed</p></div>
-    <div class="stat-box"><h3 id="statAbnormal">0</h3><p>Abnormal Results</p></div>
-</div>
-
-<script>
-    document.getElementById('statTotal').innerText = '47';
-    document.getElementById('statCompleted').innerText = '32';
-    document.getElementById('statAbnormal').innerText = '5';
-    function generateReport() { alert('PDF Report Generated!\nDownload will start shortly.'); }
-</script>
-
 <style>
     .card {
         background: white;
@@ -74,6 +52,16 @@
         cursor: pointer;
     }
 
+    .btn-sm {
+        background: #0841C9;
+        color: white;
+        border: none;
+        padding: 0.2rem 0.6rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.7rem;
+    }
+
     .stat-box {
         background: #F8FAFE;
         border-radius: 12px;
@@ -87,4 +75,141 @@
             color: #032C7D;
             margin: 0;
         }
+
+        .stat-box p {
+            margin: 0;
+            font-size: 0.7rem;
+            color: #5A6E7A;
+        }
+
+    .grid-2col {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 0.6rem;
+        text-align: left;
+        border-bottom: 1px solid #E2E8F0;
+        font-size: 0.75rem;
+    }
+
+    th {
+        background: #F8FAFE;
+        font-weight: 600;
+        color: #5A6E7A;
+    }
 </style>
+
+<div class="grid-2col">
+    <div class="card">
+        <h3><i class="fas fa-chart-simple"></i> Generate Report</h3>
+        <div class="form-group">
+            <label>Start Date</label>
+            <input type="date" id="reportStart" class="form-control">
+        </div>
+        <div class="form-group">
+            <label>End Date</label>
+            <input type="date" id="reportEnd" class="form-control">
+        </div>
+        <div class="form-group">
+            <label>Report Type</label>
+            <select id="reportType" class="form-control">
+                <option value="all">All Test Requests</option>
+                <option value="completed">Completed Tests Only</option>
+                <option value="abnormal">Abnormal Results Only</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Format</label>
+            <select id="reportFormat" class="form-control">
+                <option value="pdf">PDF Document</option>
+                <option value="excel">Excel (CSV)</option>
+            </select>
+        </div>
+        <button class="btn-primary" onclick="generateReport()"><i class="fas fa-file-pdf"></i> Generate PDF Report</button>
+    </div>
+
+    <div class="card">
+        <h3><i class="fas fa-chart-pie"></i> Quick Statistics</h3>
+        <div class="stat-box">
+            <h3 id="statTotal">47</h3>
+            <p>Total Requests (This Month)</p>
+        </div>
+        <div class="stat-box">
+            <h3 id="statCompleted">32</h3>
+            <p>Completed</p>
+        </div>
+        <div class="stat-box">
+            <h3 id="statAbnormal">8</h3>
+            <p>Abnormal Results</p>
+        </div>
+        <div class="stat-box">
+            <h3 id="statPending">7</h3>
+            <p>Pending Release</p>
+        </div>
+        <button class="btn-primary" onclick="location.href='@Url.Action("Results", "Doctor")'" style="background:#6B7280; margin-top:0.5rem;">View Detailed Analytics →</button>
+    </div>
+</div>
+
+<div class="card">
+    <h3><i class="fas fa-download"></i> Saved Reports</h3>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Report Name</th>
+                    <th>Date Generated</th>
+                    <th>Type</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Monthly Summary - April 2025</td>
+                    <td>2025-04-30</td>
+                    <td>PDF</td>
+                    <td><button class="btn-sm" onclick="downloadReport('Monthly Summary - April 2025')">Download</button></td>
+                </tr>
+                <tr>
+                    <td>Abnormal Results Q1 2025</td>
+                    <td>2025-03-31</td>
+                    <td>PDF</td>
+                    <td><button class="btn-sm" onclick="downloadReport('Abnormal Results Q1 2025')">Download</button></td>
+                </tr>
+                <tr>
+                    <td>Patient Test History - Thabo Mbeki</td>
+                    <td>2025-03-28</td>
+                    <td>PDF</td>
+                    <td><button class="btn-sm" onclick="downloadReport('Patient Test History - Thabo Mbeki')">Download</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function generateReport() {
+        var start = document.getElementById('reportStart').value;
+        var end = document.getElementById('reportEnd').value;
+        var type = document.getElementById('reportType').value;
+        var format = document.getElementById('reportFormat').value;
+
+        var typeText = '';
+        if (type === 'all') typeText = 'All Test Requests';
+        else if (type === 'completed') typeText = 'Completed Tests Only';
+        else typeText = 'Abnormal Results Only';
+
+        alert('📄 Report Generated Successfully!\n\n📅 Period: ' + (start || 'All') + ' to ' + (end || 'All') + '\n📊 Type: ' + typeText + '\n📁 Format: ' + format.toUpperCase() + '\n\nDownload will start shortly.');
+    }
+
+    function downloadReport(reportName) {
+        alert('📥 Downloading "' + reportName + '"...\n\nThe report would be downloaded as PDF.');
+    }
+</script>

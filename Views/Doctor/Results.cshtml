@@ -16,55 +16,92 @@
     <li><a href="@Url.Action("Reports", "Doctor")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
 }
 
-<div class="stats" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-    <div class="stat-box"><h4 id="totalResults">0</h4><p>Total</p></div>
-    <div class="stat-box"><h4 id="abnormalResults">0</h4><p>Abnormal</p></div>
-    <div class="stat-box"><h4 id="pendingResults">0</h4><p>Pending Release</p></div>
-</div>
-
-<div class="card">
-    <div class="filter-bar">
-        <input type="text" id="resultSearch" placeholder="🔍 Search" style="padding:0.3rem; border-radius:30px;">
-        <select id="resultStatusFilter" style="padding:0.3rem; border-radius:30px;">
-            <option value="all">All</option>
-            <option value="pending">Pending</option>
-            <option value="released">Released</option>
-        </select>
-        <button class="btn-sm" onclick="applyFilters()">Apply</button>
-        <button class="btn-sm" onclick="resetFilters()">Reset</button>
-    </div>
-    <div class="table-container">
-        <table id="resultsTable">
-            <thead><tr><th>Date</th><th>Patient</th><th>Test</th><th>Result</th><th>Normal</th><th>Status</th><th>Action</th></tr></thead>
-            <tbody id="resultsBody"></tbody>
-        </table>
-    </div>
-</div>
-
-<script>
-    let results = [
-        { date:"2025-04-09", patient:"Thabo Mbeki", test:"Haemoglobin", result:"7.2", normal:"12-16", abnormal:true, released:false },
-        { date:"2025-04-08", patient:"Lerato Dlamini", test:"PT/INR", result:"12.5", normal:"11-13.5", abnormal:false, released:false },
-        { date:"2025-04-07", patient:"John Smith", test:"Platelets", result:"45", normal:"150-450", abnormal:true, released:false }
-    ];
-    function renderResults() {
-        const tbody = document.getElementById('resultsBody');
-        tbody.innerHTML = results.map(r => `<tr ${r.abnormal ? 'style="background:#FEF2F2;"' : ''}><td>${r.date}</td><td>${r.patient}</td><td>${r.test}</td><td style="${r.abnormal ? 'color:#DC2626; font-weight:bold;' : ''}">${r.result}</td><td>${r.normal}</td><td><span class="status-badge ${!r.released ? 'status-pending' : 'status-released'}">${!r.released ? 'Pending' : 'Released'}</span></td><td><button class="btn-sm" onclick="alert('View results for ${r.patient}')">View</button> ${!r.released ? `<button class="btn-sm" onclick="alert('Release to ${r.patient}')" style="background:#10B981;">Release</button>` : ''}</td></tr>`).join('');
-        document.getElementById('totalResults').innerText = results.length;
-        document.getElementById('abnormalResults').innerText = results.filter(r=>r.abnormal).length;
-        document.getElementById('pendingResults').innerText = results.filter(r=>!r.released).length;
-    }
-    function applyFilters() { renderResults(); }
-    function resetFilters() { renderResults(); }
-    renderResults();
-</script>
-
 <style>
     .card {
         background: white;
         border-radius: 16px;
         padding: 1rem;
+        margin-bottom: 1rem;
         border: 1px solid #E2E8F0;
+    }
+
+    .filter-bar {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+
+    .filter-input, .filter-select {
+        padding: 0.3rem 0.6rem;
+        border-radius: 30px;
+        border: 1px solid #E2E8F0;
+        font-size: 0.75rem;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 0.6rem;
+        text-align: left;
+        border-bottom: 1px solid #E2E8F0;
+        font-size: 0.75rem;
+    }
+
+    th {
+        background: #F8FAFE;
+        font-weight: 600;
+        color: #5A6E7A;
+    }
+
+    .btn-sm {
+        background: #0841C9;
+        color: white;
+        border: none;
+        padding: 0.2rem 0.6rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.7rem;
+    }
+
+    .btn-success-sm {
+        background: #10B981;
+        color: white;
+        border: none;
+        padding: 0.2rem 0.6rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.7rem;
+    }
+
+    .status-pending {
+        background: #FEF3C7;
+        color: #92400E;
+        display: inline-block;
+        padding: 0.15rem 0.4rem;
+        border-radius: 30px;
+        font-size: 0.65rem;
+    }
+
+    .status-released {
+        background: #D1FAE5;
+        color: #065F46;
+        display: inline-block;
+        padding: 0.15rem 0.4rem;
+        border-radius: 30px;
+        font-size: 0.65rem;
+    }
+
+    .abnormal-row {
+        background: #FEF2F2;
+    }
+
+    .abnormal-value {
+        color: #DC2626;
+        font-weight: bold;
     }
 
     .stat-box {
@@ -77,44 +114,159 @@
     }
 
         .stat-box h4 {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             margin: 0;
+            color: #032C7D;
         }
 
-    .filter-bar {
-        display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-        margin-bottom: 1rem;
-    }
-
-    table {
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
         width: 100%;
-        border-collapse: collapse;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
     }
 
-    th, td {
-        padding: 0.6rem;
-        text-align: left;
+        .modal-overlay.active {
+            display: flex;
+        }
+
+    .modal-container {
+        background: white;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 450px;
+    }
+
+    .modal-header, .modal-footer {
+        padding: 0.8rem 1rem;
         border-bottom: 1px solid #E2E8F0;
     }
 
-    .btn-sm {
-        background: #0841C9;
-        color: white;
-        border: none;
-        padding: 0.2rem 0.6rem;
-        border-radius: 30px;
-        cursor: pointer;
+    .modal-footer {
+        border-bottom: none;
+        border-top: 1px solid #E2E8F0;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
     }
 
-    .status-pending {
-        background: #FEF3C7;
-        color: #92400E;
+    .form-group {
+        margin-bottom: 0.8rem;
     }
 
-    .status-released {
-        background: #D1FAE5;
-        color: #065F46;
+        .form-group label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+
+    .form-control {
+        width: 100%;
+        padding: 0.4rem;
+        border: 1px solid #E2E8F0;
+        border-radius: 8px;
     }
 </style>
+
+<div class="stats" style="display: flex; gap: 0.8rem; margin-bottom: 1rem;">
+    <div class="stat-box"><h4 id="totalResults">0</h4><p>Total Results</p></div>
+    <div class="stat-box"><h4 id="abnormalResults">0</h4><p>Abnormal</p></div>
+    <div class="stat-box"><h4 id="pendingResults">0</h4><p>Pending Release</p></div>
+</div>
+
+<div class="card">
+    <div class="filter-bar">
+        <input type="text" id="resultSearch" class="filter-input" placeholder="🔍 Search patient">
+        <select id="resultStatusFilter" class="filter-select"><option value="all">All Status</option><option value="pending">Pending Release</option><option value="released">Released</option></select>
+        <select id="resultAbnormalFilter" class="filter-select"><option value="all">All Results</option><option value="abnormal">Abnormal Only</option><option value="normal">Normal Only</option></select>
+        <button class="btn-sm" onclick="applyResultFilters()">Apply</button>
+        <button class="btn-sm" onclick="resetResultFilters()" style="background:#6B7280;">Reset</button>
+    </div>
+    <div class="table-container">
+        <table id="resultsTable">
+            <thead><tr><th>Date</th><th>Patient</th><th>Test</th><th>Result</th><th>Normal Range</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="resultsBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Release Modal -->
+<div id="releaseModal" class="modal-overlay">
+    <div class="modal-container">
+        <div class="modal-header"><h3>Release Results to Patient</h3><button class="close-modal" onclick="closeReleaseModal()">&times;</button></div>
+        <div class="modal-body">
+            <div class="form-group"><label>Add Note (Optional)</label><textarea id="releaseNote" rows="2" class="form-control" placeholder="Personal message..."></textarea></div>
+            <div class="form-group"><label>Release Method</label><select id="releaseMethod" class="form-control"><option value="email">📧 Email PDF directly</option><option value="appointment">📞 Ask patient to book appointment</option></select></div>
+        </div>
+        <div class="modal-footer"><button class="btn-outline-sm" onclick="closeReleaseModal()">Cancel</button><button class="btn-sm" onclick="confirmReleaseAction()" style="background:#10B981;">Release</button></div>
+    </div>
+</div>
+
+<script>
+    let results = [
+        { id:1, date:"2025-04-09", patient:"Thabo Mbeki", test:"Haemoglobin", result:"7.2", normal:"12-16", abnormal:true, released:false },
+        { id:2, date:"2025-04-08", patient:"Lerato Dlamini", test:"PT/INR", result:"12.5", normal:"11-13.5", abnormal:false, released:false },
+        { id:3, date:"2025-04-07", patient:"John Smith", test:"Platelets", result:"45", normal:"150-450", abnormal:true, released:false }
+    ];
+    let currentReleaseId = null;
+
+    function renderResults() {
+        let filtered = [...results];
+        const search = document.getElementById('resultSearch')?.value.toLowerCase() || '';
+        const status = document.getElementById('resultStatusFilter')?.value || 'all';
+        const abnormalFilter = document.getElementById('resultAbnormalFilter')?.value || 'all';
+        if(search) filtered = filtered.filter(r=>r.patient.toLowerCase().includes(search));
+        if(status === 'pending') filtered = filtered.filter(r=>!r.released);
+        if(status === 'released') filtered = filtered.filter(r=>r.released);
+        if(abnormalFilter === 'abnormal') filtered = filtered.filter(r=>r.abnormal);
+        if(abnormalFilter === 'normal') filtered = filtered.filter(r=>!r.abnormal);
+
+        document.getElementById('totalResults').innerText = results.length;
+        document.getElementById('abnormalResults').innerText = results.filter(r=>r.abnormal).length;
+        document.getElementById('pendingResults').innerText = results.filter(r=>!r.released).length;
+
+        const tbody = document.getElementById('resultsBody');
+        tbody.innerHTML = filtered.map(r => `
+            <tr class="${r.abnormal ? 'abnormal-row' : ''}">
+                <td>${r.date}</td>
+                <td>${r.patient}<td>
+                <td>${r.test}</td>
+                <td><span class="${r.abnormal ? 'abnormal-value' : ''}">${r.result} ${r.abnormal ? '⚠️' : ''}</span></td>
+                <td>${r.normal}</td>
+                <td><span class="${!r.released ? 'status-pending' : 'status-released'}">${!r.released ? 'Pending' : 'Released'}</span></td>
+                <td>
+                    <button class="btn-sm" onclick="viewFullResults(${r.id})">View</button>
+                    ${!r.released ? `<button class="btn-success-sm" onclick="openReleaseModal(${r.id})">Release</button>` : ''}
+                </td>
+            </table>
+        `).join('');
+    }
+
+    function viewFullResults(id) { alert(`📊 Full results for request #${id}\n\nPDF report would open here.`); }
+    function openReleaseModal(id) { currentReleaseId = id; document.getElementById('releaseModal').classList.add('active'); }
+    function closeReleaseModal() { document.getElementById('releaseModal').classList.remove('active'); currentReleaseId = null; document.getElementById('releaseNote').value = ''; }
+    function confirmReleaseAction() {
+        if(currentReleaseId) {
+            const result = results.find(r=>r.id === currentReleaseId);
+            const note = document.getElementById('releaseNote').value;
+            const method = document.getElementById('releaseMethod').value;
+            if(result) {
+                result.released = true;
+                const message = method === 'email' ? 'PDF report emailed directly to patient.' : 'Patient asked to book an appointment.';
+                alert(`✅ Results released to ${result.patient}!\n📧 ${message}\n📝 Note: ${note || 'None'}`);
+            }
+        }
+        closeReleaseModal();
+        renderResults();
+    }
+    function applyResultFilters() { renderResults(); }
+    function resetResultFilters() { document.getElementById('resultSearch').value = ''; document.getElementById('resultStatusFilter').value = 'all'; document.getElementById('resultAbnormalFilter').value = 'all'; renderResults(); }
+    renderResults();
+</script>>
