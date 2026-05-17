@@ -4,13 +4,16 @@
     ViewData["RoleSubtitle"] = "Patient Portal";
     ViewData["UserGreeting"] = $"🩺 {@ViewBag.PatientName} (ID: {@ViewBag.PatientID})";
     ViewData["UserInitials"] = "TM";
+
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Patient")">📋 My Results</a></li>
+    <li><a href="@Url.Action("Dashboard", "Patient")" class="active">📋 My Results</a></li>
     <li><a href="@Url.Action("MedicalHistory", "Patient")">📝 Medical History</a></li>
-    <li><a href="@Url.Action("Consent", "Patient")" class="active">🔐 Consent Management</a></li>
+    <li><a href="@Url.Action("Consent", "Patient")">🔐 Consent Management</a></li>
     <li><a href="@Url.Action("Trends", "Patient")">📈 Track Trends</a></li>
+    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
 <div class="alert alert-info" style="background:#EFF6FF; padding:1rem; border-radius:12px; margin-bottom:1.5rem;">

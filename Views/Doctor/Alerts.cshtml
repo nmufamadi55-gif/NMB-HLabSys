@@ -3,170 +3,514 @@
     ViewData["Title"] = "Alerts & Abnormal Results";
     ViewData["RoleSubtitle"] = "Doctor Portal";
     ViewData["UserGreeting"] = "Review abnormal results that need your attention";
-    ViewData["UserInitials"] = "DJ";
-    ViewData["UserName"] = "Dr. Sarah Johnson";
+    ViewData["UserInitials"] = "SJ";
+    ViewData["UserName"] = "Sarah Johnson";
+
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Doctor")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+    <li><a href="@Url.Action("Dashboard", "Doctor")" class="active"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
     <li><a href="@Url.Action("TestRequests", "Doctor")"><i class="fas fa-notes-medical"></i> <span>Test Requests</span></a></li>
     <li><a href="@Url.Action("Patients", "Doctor")"><i class="fas fa-users"></i> <span>My Patients</span></a></li>
-    <li><a href="@Url.Action("Alerts", "Doctor")" class="active"><i class="fas fa-bell"></i> <span>Alerts</span></a></li>
+    <li><a href="@Url.Action("Alerts", "Doctor")"><i class="fas fa-bell"></i> <span>Alerts</span></a></li>
     <li><a href="@Url.Action("Results", "Doctor")"><i class="fas fa-chart-line"></i> <span>Results</span></a></li>
     <li><a href="@Url.Action("Reports", "Doctor")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
 <style>
-    .card {
+    .stats {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .stat-box {
         background: white;
         border-radius: 16px;
         padding: 1rem;
+        text-align: center;
+        flex: 1;
         border: 1px solid #E2E8F0;
+        min-width: 120px;
     }
 
+        .stat-box h4 {
+            font-size: 1.6rem;
+            margin: 0;
+        }
+
+        .stat-box p {
+            margin: 0;
+            font-size: 0.7rem;
+            color: #5A6E7A;
+        }
+
     .filter-bar {
+        background: white;
+        border-radius: 16px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
         display: flex;
-        gap: 0.5rem;
+        gap: 0.8rem;
         flex-wrap: wrap;
-        margin-bottom: 1rem;
         align-items: center;
+        border: 1px solid #E2E8F0;
     }
 
     .filter-input, .filter-select {
-        padding: 0.3rem 0.6rem;
-        border-radius: 30px;
+        padding: 0.4rem 0.8rem;
+        border-radius: 40px;
         border: 1px solid #E2E8F0;
         font-size: 0.75rem;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    th, td {
-        padding: 0.6rem;
-        text-align: left;
-        border-bottom: 1px solid #E2E8F0;
-        font-size: 0.75rem;
-    }
-
-    th {
-        background: #F8FAFE;
-        font-weight: 600;
-        color: #5A6E7A;
     }
 
     .btn-sm {
         background: #0841C9;
         color: white;
         border: none;
-        padding: 0.2rem 0.6rem;
-        border-radius: 30px;
+        padding: 0.3rem 0.8rem;
+        border-radius: 40px;
         cursor: pointer;
         font-size: 0.7rem;
     }
 
-    .abnormal-value {
-        color: #DC2626;
-        font-weight: bold;
-    }
-
-    .stat-box {
-        background: white;
-        border-radius: 12px;
-        padding: 0.5rem;
-        text-align: center;
+    .btn-outline-sm {
+        background: transparent;
         border: 1px solid #E2E8F0;
-        flex: 1;
+        padding: 0.3rem 0.8rem;
+        border-radius: 40px;
+        cursor: pointer;
+        font-size: 0.7rem;
     }
 
-        .stat-box h4 {
-            font-size: 1.3rem;
+    .btn-success-sm {
+        background: #10B981;
+        color: white;
+        border: none;
+        padding: 0.3rem 0.8rem;
+        border-radius: 40px;
+        cursor: pointer;
+        font-size: 0.7rem;
+    }
+
+    .alert-group {
+        margin-bottom: 1rem;
+        border: 1px solid #E2E8F0;
+        border-radius: 16px;
+        overflow: hidden;
+        background: white;
+    }
+
+    .alert-header {
+        background: #F8FAFE;
+        padding: 0.8rem 1.2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        border-bottom: 1px solid #E2E8F0;
+    }
+
+        .alert-header h4 {
             margin: 0;
+            color: #032C7D;
+            font-size: 1rem;
         }
 
-    .status-badge {
-        background: #F8D7DA;
-        color: #721C24;
-        padding: 0.2rem 0.5rem;
-        border-radius: 30px;
+        .alert-header .badge {
+            background: #DC2626;
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 30px;
+            font-size: 0.65rem;
+        }
+
+    .abnormal-test-item {
+        padding: 0.8rem 1.2rem;
+        border-bottom: 1px solid #E2E8F0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        background: #FEF2F2;
+    }
+
+        .abnormal-test-item:last-child {
+            border-bottom: none;
+        }
+
+    .test-info {
+        flex: 2;
+    }
+
+    .test-result {
+        font-weight: bold;
+        color: #DC2626;
+    }
+
+    .test-normal {
+        color: #5A6E7A;
         font-size: 0.7rem;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(3px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+    .modal-container {
+        background: white;
+        border-radius: 28px;
+        width: 90%;
+        max-width: 650px;
+        max-height: 85vh;
+        overflow-y: auto;
+        box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+    }
+
+    .modal-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #E2E8F0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #F8FAFE;
+        border-radius: 28px 28px 0 0;
+    }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #032C7D;
+            font-size: 1.2rem;
+        }
+
+    .modal-body {
+        padding: 1.2rem 1.5rem;
+    }
+
+    .modal-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid #E2E8F0;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.8rem;
+        background: #F8FAFE;
+        border-radius: 0 0 28px 28px;
+    }
+
+    .close-modal {
+        background: none;
+        border: none;
+        font-size: 1.3rem;
+        cursor: pointer;
+        color: #5A6E7A;
+    }
+
+        .close-modal:hover {
+            color: #DC2626;
+        }
+
+    .detail-section {
+        margin-bottom: 1rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 1px solid #E2E8F0;
+    }
+
+        .detail-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .detail-section h4 {
+            color: #032C7D;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+    .detail-row {
+        display: flex;
+        margin-bottom: 0.3rem;
+        font-size: 0.8rem;
+    }
+
+    .detail-label {
+        width: 110px;
+        font-weight: 600;
+        color: #5A6E7A;
+    }
+
+    .detail-value {
+        flex: 1;
+        color: #1A2C3A;
+    }
+
+    .medical-tag {
         display: inline-block;
+        padding: 0.15rem 0.4rem;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        margin-right: 0.2rem;
+        margin-bottom: 0.1rem;
+    }
+
+    .tag-condition {
+        background: #FEF3C7;
+        color: #92400E;
+    }
+
+    .tag-allergy {
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+
+    .tag-medication {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+
+    .recommendation-box {
+        background: #EFF6FF;
+        border-radius: 12px;
+        padding: 0.8rem;
+        margin-top: 0.8rem;
+        border-left: 4px solid #0841C9;
+    }
+
+    media (max-width: 768px) {
+        .stats
+
+    {
+        flex-direction: column;
+    }
+
+    .filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-input, .filter-select {
+        width: 100%;
+    }
+
+    .alert-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
     }
 </style>
 
-<div class="stats" style="display: flex; gap: 0.8rem; margin-bottom: 1rem;">
+<div class="stats">
     <div class="stat-box" style="background:#FEF2F2;"><h4 id="criticalCount" style="color:#DC2626;">0</h4><p>Critical (STAT)</p></div>
     <div class="stat-box" style="background:#FFFBEB;"><h4 id="urgentCount" style="color:#F59E0B;">0</h4><p>Urgent</p></div>
     <div class="stat-box"><h4 id="totalCount">0</h4><p>Total Alerts</p></div>
 </div>
 
-<div class="card">
-    <div class="filter-bar">
-        <input type="text" id="alertSearch" class="filter-input" placeholder="🔍 Search patient">
-        <select id="alertUrgency" class="filter-select"><option value="all">All Urgency</option><option value="stat">STAT</option><option value="urgent">Urgent</option></select>
-        <input type="date" id="alertStartDate" class="filter-input" placeholder="Start Date">
-        <input type="date" id="alertEndDate" class="filter-input" placeholder="End Date">
-        <button class="btn-sm" onclick="applyAlertFilters()">Apply</button>
-        <button class="btn-sm" onclick="resetAlertFilters()" style="background:#6B7280;">Reset</button>
-    </div>
-    <div class="table-container">
-        <table id="alertsTable">
-            <thead><tr><th>Date</th><th>Patient</th><th>Test</th><th>Result</th><th>Normal Range</th><th>Urgency</th><th>Action</th></tr></thead>
-            <tbody id="alertsBody"></tbody>
-        </table>
+<div class="filter-bar">
+    <input type="text" id="alertSearch" class="filter-input" placeholder="Search patient or request #" style="width:220px;">
+    <select id="alertUrgency" class="filter-select"><option value="all">All Urgency</option><option value="stat">STAT</option><option value="urgent">Urgent</option><option value="routine">Routine</option></select>
+    <input type="date" id="alertStartDate" class="filter-input" placeholder="Start Date">
+    <input type="date" id="alertEndDate" class="filter-input" placeholder="End Date">
+    <button class="btn-sm" onclick="applyFilters()">Apply</button>
+    <button class="btn-outline-sm" onclick="resetFilters()">Reset</button>
+</div>
+
+<div id="alertsContainer"></div>
+
+<!-- Review Alert Modal -->
+<div id="reviewModal" class="modal-overlay">
+    <div class="modal-container">
+        <div class="modal-header"><h3>🔍 Review Abnormal Result</h3><button class="close-modal" onclick="closeModal('reviewModal')">&times;</button></div>
+        <div class="modal-body" id="reviewContent"></div>
+        <div class="modal-footer">
+            <button class="btn-outline-sm" onclick="closeModal('reviewModal')">Close</button>
+            <button class="btn-success-sm" onclick="acknowledgeAndClose()">Acknowledge & Close</button>
+        </div>
     </div>
 </div>
 
-<script>
-    let alerts = [
-        { date:"2025-04-09", patient:"Thabo Mbeki", test:"Haemoglobin", result:"7.2", normal:"12-16", urgency:"stat" },
-        { date:"2025-04-08", patient:"John Smith", test:"Platelets", result:"45", normal:"150-450", urgency:"urgent" },
-        { date:"2025-04-05", patient:"Maria Santos", test:"WBC", result:"18.5", normal:"4-11", urgency:"urgent" }
+<script type="text/javascript">
+    // Mock data - Alerts grouped by Test Request
+    var alertsData = [
+        {
+            requestId: 1,
+            reqNo: "REQ-001",
+            patient: "Thabo Mbeki",
+            patientId: "8001015009087",
+            patientInfo: { name:"Thabo", surname:"Mbeki", dob:"1980-01-01", phone:"0821234567", conditions:["Hypertension"], allergies:["Penicillin"], medications:["Lisinopril 10mg"] },
+            date: "2025-04-09",
+            urgency: "stat",
+            abnormalTests: [
+                { testName: "Haemoglobin", result: "7.2", normalRange: "12-16", severity: "Critical", clinicalSignificance: "Severe anaemia. Patient may present with fatigue, pallor, shortness of breath." }
+            ]
+        },
+        {
+            requestId: 2,
+            reqNo: "REQ-003",
+            patient: "John Smith",
+            patientId: "9001015009089",
+            patientInfo: { name:"John", surname:"Smith", dob:"1990-01-01", phone:"0843456789", conditions:[], allergies:["Sulfa"], medications:[] },
+            date: "2025-04-07",
+            urgency: "urgent",
+            abnormalTests: [
+                { testName: "Platelets", result: "45", normalRange: "150-450", severity: "Critical", clinicalSignificance: "Severe thrombocytopenia. Risk of bleeding. Consider further investigation for immune thrombocytopenia or bone marrow disorders." },
+                { testName: "PT/INR", result: "14.2", normalRange: "11-13.5", severity: "Elevated", clinicalSignificance: "Elevated INR indicates possible coagulation disorder or medication effect." }
+            ]
+        },
+        {
+            requestId: 3,
+            reqNo: "REQ-004",
+            patient: "Maria Santos",
+            patientId: "9203035009090",
+            patientInfo: { name:"Maria", surname:"Santos", dob:"1992-03-03", phone:"0824567890", conditions:["Asthma"], allergies:["Dust Mites"], medications:["Ventolin"] },
+            date: "2025-04-10",
+            urgency: "urgent",
+            abnormalTests: [
+                { testName: "WBC", result: "18.5", normalRange: "4-11", severity: "High", clinicalSignificance: "Leukocytosis suggests possible infection or inflammatory process." }
+            ]
+        }
     ];
 
+    var currentReviewRequest = null;
+    var currentReviewTest = null;
+
     function renderAlerts() {
-        let filtered = [...alerts];
-        const search = document.getElementById('alertSearch')?.value.toLowerCase() || '';
-        const urgency = document.getElementById('alertUrgency')?.value || 'all';
-        const startDate = document.getElementById('alertStartDate')?.value || '';
-        const endDate = document.getElementById('alertEndDate')?.value || '';
+        var filtered = alertsData.filter(function(r) { return r.abnormalTests.length > 0; });
 
-        if(search) filtered = filtered.filter(a => a.patient.toLowerCase().includes(search));
-        if(urgency !== 'all') filtered = filtered.filter(a => a.urgency === urgency);
-        if(startDate) filtered = filtered.filter(a => a.date >= startDate);
-        if(endDate) filtered = filtered.filter(a => a.date <= endDate);
+        var search = document.getElementById('alertSearch') ? document.getElementById('alertSearch').value.toLowerCase() : '';
+        var urgency = document.getElementById('alertUrgency') ? document.getElementById('alertUrgency').value : 'all';
+        var startDate = document.getElementById('alertStartDate') ? document.getElementById('alertStartDate').value : '';
+        var endDate = document.getElementById('alertEndDate') ? document.getElementById('alertEndDate').value : '';
 
-        document.getElementById('criticalCount').innerText = alerts.filter(a => a.urgency === 'stat').length;
-        document.getElementById('urgentCount').innerText = alerts.filter(a => a.urgency === 'urgent').length;
-        document.getElementById('totalCount').innerText = alerts.length;
+        if(search) filtered = filtered.filter(function(r) { return r.reqNo.toLowerCase().includes(search) || r.patient.toLowerCase().includes(search); });
+        if(urgency !== 'all') filtered = filtered.filter(function(r) { return r.urgency === urgency; });
+        if(startDate) filtered = filtered.filter(function(r) { return r.date >= startDate; });
+        if(endDate) filtered = filtered.filter(function(r) { return r.date <= endDate; });
 
-        const tbody = document.getElementById('alertsBody');
-        tbody.innerHTML = filtered.map(a => `
-            <tr style="background:#FEF2F2;">
-                <td>${a.date}</td>
-                <td>${a.patient}</td>
-                <td>${a.test}</td>
-                <td><span class="abnormal-value">${a.result}</span></td>
-                <td>${a.normal}</td>
-                <td><span class="status-badge">${a.urgency.toUpperCase()}</span></td>
-                <td><button class="btn-sm" onclick="reviewAlert('${a.patient}', '${a.test}')">Review</button>
-                    <button class="btn-sm" onclick="acknowledgeAlert('${a.patient}')" style="background:#10B981;">Acknowledge</button>
-                </td>
-            </table>
-        `).join('');
+        document.getElementById('criticalCount').innerText = alertsData.filter(function(r) { return r.urgency === 'stat' && r.abnormalTests.length > 0; }).length;
+        document.getElementById('urgentCount').innerText = alertsData.filter(function(r) { return r.urgency === 'urgent' && r.abnormalTests.length > 0; }).length;
+        document.getElementById('totalCount').innerText = filtered.length;
+
+        var container = document.getElementById('alertsContainer');
+        if(filtered.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:2rem; background:white; border-radius:20px;">No alerts found</div>';
+            return;
+        }
+
+        var html = '';
+        for(var f = 0; f < filtered.length; f++) {
+            var r = filtered[f];
+            var urgencyColor = (r.urgency === 'stat') ? '#DC2626' : '#F59E0B';
+            html += '<div class="alert-group">' +
+                '<div class="alert-header" onclick="toggleRequest(' + r.requestId + ')">' +
+                '<div><h4> ' + r.reqNo + ' - ' + r.patient + '</h4><small>' + r.date + ' | Urgency: <span style="color:' + urgencyColor + '; font-weight:bold;">' + r.urgency.toUpperCase() + '</span></small></div>' +
+                '<div><span class="badge">' + r.abnormalTests.length + ' Abnormal Result(s)</span> <span style="margin-left:0.5rem;">▼</span></div>' +
+                '</div>' +
+                '<div id="alert-' + r.requestId + '" class="alert-details" style="display:block;">';
+            for(var a = 0; a < r.abnormalTests.length; a++) {
+                var t = r.abnormalTests[a];
+                html += '<div class="abnormal-test-item">' +
+                    '<div class="test-info"><strong>' + t.testName + '</strong><br><span class="test-normal">Normal Range: ' + t.normalRange + '</span></div>' +
+                    '<div class="test-result">Result: ' + t.result + ' </div>' +
+                    '<div><button class="btn-sm" onclick="reviewAlert(' + r.requestId + ', \'' + t.testName.replace(/'/g, "\\'") + '\', event)">Review</button></div>' +
+                    '</div>';
+            }
+            html += '</div></div>';
+        }
+        container.innerHTML = html;
     }
 
-    function reviewAlert(patient, test) { alert(`🔍 Reviewing abnormal ${test} result for ${patient}.`); }
-    function acknowledgeAlert(patient) { alert(`✅ Alert for ${patient} acknowledged.`); }
-    function applyAlertFilters() { renderAlerts(); }
-    function resetAlertFilters() {
-        document.getElementById('alertSearch').value = '';
-        document.getElementById('alertUrgency').value = 'all';
-        document.getElementById('alertStartDate').value = '';
-        document.getElementById('alertEndDate').value = '';
+    function toggleRequest(requestId) {
+        var el = document.getElementById('alert-' + requestId);
+        if(el) {
+            if(el.style.display === 'none') { el.style.display = 'block'; }
+            else { el.style.display = 'none'; }
+        }
+    }
+
+    function reviewAlert(requestId, testName, event) {
+        if(event) event.stopPropagation();
+        var request = alertsData.find(function(r) { return r.requestId === requestId; });
+        if(!request) return;
+        var test = request.abnormalTests.find(function(t) { return t.testName === testName; });
+        if(!test) return;
+
+        currentReviewRequest = request;
+        currentReviewTest = test;
+
+        var patient = request.patientInfo;
+        var content = '<div class="detail-section"><h4>Abnormal Result Details</h4>' +
+            '<div class="detail-row"><div class="detail-label">Request:</div><div class="detail-value">' + request.reqNo + '</div></div>' +
+            '<div class="detail-row"><div class="detail-label">Test Name:</div><div class="detail-value"><strong>' + test.testName + '</strong></div></div>' +
+            '<div class="detail-row"><div class="detail-label">Result:</div><div class="detail-value"><span style="color:#DC2626; font-weight:bold;">' + test.result + '</span> (Normal: ' + test.normalRange + ')</div></div>' +
+            '<div class="detail-row"><div class="detail-label">Severity:</div><div class="detail-value"><span style="background:#FEE2E2; color:#991B1B; padding:0.2rem 0.5rem; border-radius:20px; font-size:0.7rem;">' + test.severity + '</span></div></div>' +
+            '<div class="detail-row"><div class="detail-label">Clinical Significance:</div><div class="detail-value">' + test.clinicalSignificance + '</div></div></div>' +
+
+            '<div class="detail-section"><h4>Patient Information</h4>' +
+            '<div class="detail-row"><div class="detail-label">Full Name:</div><div class="detail-value">' + patient.name + ' ' + patient.surname + '</div></div>' +
+            '<div class="detail-row"><div class="detail-label">ID Number:</div><div class="detail-value">' + request.patientId + '</div></div>' +
+            '<div class="detail-row"><div class="detail-label">Date of Birth:</div><div class="detail-value">' + patient.dob + '</div></div>' +
+            '<div class="detail-row"><div class="detail-label">Contact:</div><div class="detail-value">' + patient.phone + '</div></div>' +
+            '<div class="detail-row"><div class="detail-label">Conditions:</div><div class="detail-value">' + (patient.conditions.map(function(c) { return '<span class="medical-tag tag-condition">' + c + '</span>'; }).join('') || 'None') + '</div></div>' +
+            '<div class="detail-row"><div class="detail-label">Allergies:</div><div class="detail-value">' + (patient.allergies.map(function(a) { return '<span class="medical-tag tag-allergy">' + a + '</span>'; }).join('') || 'None') + '</div></div>' +
+            '<div class="detail-row"><div class="detail-label">Medications:</div><div class="detail-value">' + (patient.medications.map(function(m) { return '<span class="medical-tag tag-medication">' + m + '</span>'; }).join('') || 'None') + '</div></div></div>' +
+
+            '<div class="recommendation-box"><strong>Recommended Actions:</strong><br>' +
+            '<ul style="margin-top:0.5rem; margin-left:1rem;">' +
+            '<li>Review patient history and clinical presentation</li>' +
+            '<li>Consider repeat testing to confirm result</li>' +
+            '<li>' + (test.testName === 'Haemoglobin' ? 'Consider iron studies and further haematology evaluation' : '') + '</li>' +
+            '<li>' + (test.testName === 'Platelets' ? 'Assess for bleeding risk, consider haematology referral' : '') + '</li>' +
+            '<li>Document findings in patient record</li>' +
+            '<li>Schedule follow-up appointment if needed</li>' +
+            '</ul></div>';
+
+        document.getElementById('reviewContent').innerHTML = content;
+        document.getElementById('reviewModal').classList.add('active');
+    }
+
+    function acknowledgeAndClose() {
+        if(currentReviewRequest && currentReviewTest) {
+            alert('Alert for ' + currentReviewRequest.patient + ' - ' + currentReviewTest.testName + ' has been acknowledged.\n\nAction recorded. Patient record updated.');
+        }
+        closeModal('reviewModal');
         renderAlerts();
     }
+
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('active');
+        currentReviewRequest = null;
+        currentReviewTest = null;
+    }
+
+    function applyFilters() { renderAlerts(); }
+    function resetFilters() {
+        if(document.getElementById('alertSearch')) document.getElementById('alertSearch').value = '';
+        if(document.getElementById('alertUrgency')) document.getElementById('alertUrgency').value = 'all';
+        if(document.getElementById('alertStartDate')) document.getElementById('alertStartDate').value = '';
+        if(document.getElementById('alertEndDate')) document.getElementById('alertEndDate').value = '';
+        renderAlerts();
+    }
+
     renderAlerts();
 </script>

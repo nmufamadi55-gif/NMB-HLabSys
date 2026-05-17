@@ -4,13 +4,16 @@
     ViewData["RoleSubtitle"] = "Technician Portal";
     ViewData["UserGreeting"] = $"🔬 {@ViewBag.TechName} (EMP:{@ViewBag.EmployeeNumber})";
     ViewData["UserInitials"] = "MP";
+
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Technician")">📊 Workload</a></li>
+    <li><a href="@Url.Action("Dashboard", "Technician")" class="active">📊 Workload</a></li>
     <li><a href="@Url.Action("ReceiveSamples", "Technician")">📦 Receive Samples</a></li>
     <li><a href="@Url.Action("PerformTests", "Technician")">⚙️ Perform Tests</a></li>
-    <li><a href="@Url.Action("Verification", "Technician")" class="active">✅ Verification</a></li>
+    <li><a href="@Url.Action("Verification", "Technician")">✅ Verification</a></li>
+    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
 <div class="stat-cards">

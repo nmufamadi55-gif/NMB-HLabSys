@@ -1,0 +1,411 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "My Profile";
+    ViewData["RoleSubtitle"] = @ViewBag.UserRole + " Portal";
+    ViewData["UserGreeting"] = @ViewBag.UserGreeting;
+    ViewData["UserInitials"] = @ViewBag.UserInitials;
+    ViewData["UserName"] = @ViewBag.UserName;
+}
+
+@section SidebarMenu {
+    @if (ViewBag.UserRole == "Doctor")
+    {
+        <li><a href="@Url.Action("Dashboard", "Doctor")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+        <li><a href="@Url.Action("TestRequests", "Doctor")"><i class="fas fa-notes-medical"></i> <span>Test Requests</span></a></li>
+        <li><a href="@Url.Action("Patients", "Doctor")"><i class="fas fa-users"></i> <span>My Patients</span></a></li>
+        <li><a href="@Url.Action("Alerts", "Doctor")"><i class="fas fa-bell"></i> <span>Alerts</span></a></li>
+        <li><a href="@Url.Action("Results", "Doctor")"><i class="fas fa-chart-line"></i> <span>Results</span></a></li>
+        <li><a href="@Url.Action("Reports", "Doctor")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+        <li><a href="@Url.Action("Index", "Profile")" class="active"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+    }
+    else if (ViewBag.UserRole == "Technician")
+    {
+        <li><a href="@Url.Action("Dashboard", "Technician")"><i class="fas fa-tachometer-alt"></i> <span>Workload</span></a></li>
+        <li><a href="@Url.Action("ReceiveSamples", "Technician")"><i class="fas fa-boxes"></i> <span>Receive Samples</span></a></li>
+        <li><a href="@Url.Action("PerformTests", "Technician")"><i class="fas fa-microscope"></i> <span>Perform Tests</span></a></li>
+        <li><a href="@Url.Action("Verification", "Technician")"><i class="fas fa-check-double"></i> <span>Verification</span></a></li>
+        <li><a href="@Url.Action("Index", "Profile")" class="active"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+    }
+    else if (ViewBag.UserRole == "Manager")
+    {
+        <li><a href="@Url.Action("Dashboard", "Manager")"><i class="fas fa-chart-line"></i> <span>Overview</span></a></li>
+        <li><a href="@Url.Action("TestCatalogue", "Manager")"><i class="fas fa-book"></i> <span>Test Catalogue</span></a></li>
+        <li><a href="@Url.Action("StockManagement", "Manager")"><i class="fas fa-boxes"></i> <span>Stock & Orders</span></a></li>
+        <li><a href="@Url.Action("StaffManagement", "Manager")"><i class="fas fa-users-cog"></i> <span>Staff Management</span></a></li>
+        <li><a href="@Url.Action("Index", "Profile")" class="active"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+    }
+    else if (ViewBag.UserRole == "Patient")
+    {
+        <li><a href="@Url.Action("Dashboard", "Patient")"><i class="fas fa-notes-medical"></i> <span>My Results</span></a></li>
+        <li><a href="@Url.Action("MedicalHistory", "Patient")"><i class="fas fa-history"></i> <span>Medical History</span></a></li>
+        <li><a href="@Url.Action("Consent", "Patient")"><i class="fas fa-hand-peace"></i> <span>Consent</span></a></li>
+        <li><a href="@Url.Action("Trends", "Patient")"><i class="fas fa-chart-line"></i> <span>Trends</span></a></li>
+        <li><a href="@Url.Action("Index", "Profile")" class="active"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+    }
+    else if (ViewBag.UserRole == "Admin")
+    {
+        <li><a href="@Url.Action("Dashboard", "Admin")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+        <li><a href="@Url.Action("Conditions", "Admin")"><i class="fas fa-database"></i> <span>Conditions</span></a></li>
+        <li><a href="@Url.Action("Allergies", "Admin")"><i class="fas fa-allergies"></i> <span>Allergies</span></a></li>
+        <li><a href="@Url.Action("Medications", "Admin")"><i class="fas fa-capsules"></i> <span>Medications</span></a></li>
+        <li><a href="@Url.Action("Index", "Profile")" class="active"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+    }
+}
+
+<style>
+    .profile-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .profile-card {
+        background: white;
+        border-radius: 20px;
+        border: 1px solid #E2E8F0;
+        overflow: hidden;
+    }
+
+    .profile-card-header {
+        background: linear-gradient(135deg, #F8FAFE, #FFFFFF);
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #E2E8F0;
+    }
+
+        .profile-card-header h3 {
+            margin: 0;
+            color: #032C7D;
+            font-size: 1.1rem;
+        }
+
+    .profile-card-body {
+        padding: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.2rem;
+    }
+
+        .form-group label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 0.3rem;
+            color: #032C7D;
+        }
+
+    .form-control {
+        width: 100%;
+        padding: 0.6rem 0.8rem;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+    }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #0841C9;
+            box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
+        }
+
+    .btn-primary {
+        background: #0841C9;
+        color: white;
+        border: none;
+        padding: 0.5rem 1.2rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: all 0.2s;
+    }
+
+        .btn-primary:hover {
+            background: #032C7D;
+        }
+
+    .btn-outline {
+        background: transparent;
+        border: 1px solid #E2E8F0;
+        padding: 0.5rem 1.2rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.8rem;
+    }
+
+    .alert-success {
+        background: #D1FAE5;
+        color: #065F46;
+        padding: 0.8rem 1rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .alert-error {
+        background: #FEE2E2;
+        color: #991B1B;
+        padding: 0.8rem 1rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .password-requirements {
+        font-size: 0.7rem;
+        color: #5A6E7A;
+        margin-top: 0.3rem;
+    }
+
+    .row-2col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 24px;
+    }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 24px;
+    }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+    input:checked + .slider {
+        background-color: #0841C9;
+    }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+    .margin-top-0 {
+        margin-top: 0;
+    }
+
+    @@media (max-width: 768px) {
+        .profile-container {
+            grid-template-columns: 1fr;
+        }
+
+        .row-2col {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert-success">
+        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert-error">
+        <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+    </div>
+}
+
+<div class="profile-container">
+    <!-- Personal Information Card -->
+    <div class="profile-card">
+        <div class="profile-card-header">
+            <h3><i class="fas fa-user-circle"></i> Personal Information</h3>
+        </div>
+        <div class="profile-card-body">
+            <form method="post" action="@Url.Action("UpdateProfile", "Profile")">
+                <div class="row-2col">
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <input type="text" name="name" class="form-control" value="@(ViewBag.UserName?.Split(' ')[0] ?? "")" placeholder="First name">
+                    </div>
+                    <div class="form-group">
+                        <label>Last Name</label>
+                        <input type="text" name="surname" class="form-control" value="@(ViewBag.UserName?.Split(' ').Length > 1 ? ViewBag.UserName.Split(' ')[1] : "")" placeholder="Last name">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email Address (Username)</label>
+                    <input type="email" name="email" class="form-control" value="@ViewBag.UserEmail" placeholder="email@example.com">
+                    <small style="font-size:0.65rem; color:#5A6E7A;">This is your login username</small>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" name="phone" class="form-control" placeholder="082 123 4567">
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Change Password Card -->
+    <div class="profile-card">
+        <div class="profile-card-header">
+            <h3><i class="fas fa-lock"></i> Change Password</h3>
+        </div>
+        <div class="profile-card-body">
+            <form method="post" action="@Url.Action("ChangePassword", "Profile")">
+                <div class="form-group">
+                    <label>Current Password</label>
+                    <input type="password" name="currentPassword" class="form-control" placeholder="Enter current password" required>
+                </div>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" name="newPassword" id="newPassword" class="form-control" placeholder="Enter new password" required>
+                    <div class="password-requirements" id="passwordRequirements">
+                        <i class="fas fa-circle" style="font-size:0.5rem;" id="reqLength"></i> At least 8 characters<br>
+                        <i class="fas fa-circle" style="font-size:0.5rem;" id="reqUpper"></i> One uppercase letter<br>
+                        <i class="fas fa-circle" style="font-size:0.5rem;" id="reqNumber"></i> One number<br>
+                        <i class="fas fa-circle" style="font-size:0.5rem;" id="reqSpecial"></i> One special character (!@@#$%^&*)
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Confirm New Password</label>
+                    <input type="password" name="confirmPassword" id="confirmPassword" class="form-control" placeholder="Confirm new password" required>
+                    <div id="matchMessage" class="password-requirements"></div>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn-primary" id="changePasswordBtn"><i class="fas fa-key"></i> Update Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="profile-card margin-top-0">
+    <div class="profile-card-header">
+        <h3><i class="fas fa-shield-alt"></i> Account Security</h3>
+    </div>
+    <div class="profile-card-body">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <strong>Two-Factor Authentication</strong><br>
+                <small style="color:#5A6E7A;">Add an extra layer of security to your account</small>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="twoFactorToggle" onclick="toggleTwoFactor()">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <hr style="margin: 1rem 0; border-color: #E2E8F0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <strong>Recent Login Activity</strong><br>
+                <small style="color:#5A6E7A;">Last login: Today at 09:45 AM from Gqeberha, SA</small>
+            </div>
+            <button class="btn-outline" onclick="alert('View all login history')">View History</button>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function checkPasswordStrength() {
+        var password = document.getElementById('newPassword').value;
+
+        var lengthOk = password.length >= 8;
+        var upperOk = /[A-Z]/.test(password);
+        var numberOk = /[0-9]/.test(password);
+        var specialOk = /[!@@#$%^&*(),.?":{}|<>]/.test(password);
+
+        document.getElementById('reqLength').style.color = lengthOk ? '#10B981' : '#5A6E7A';
+        document.getElementById('reqUpper').style.color = upperOk ? '#10B981' : '#5A6E7A';
+        document.getElementById('reqNumber').style.color = numberOk ? '#10B981' : '#5A6E7A';
+        document.getElementById('reqSpecial').style.color = specialOk ? '#10B981' : '#5A6E7A';
+
+        if (lengthOk) {
+            document.getElementById('reqLength').className = 'fas fa-check-circle';
+        } else {
+            document.getElementById('reqLength').className = 'fas fa-circle';
+        }
+        if (upperOk) {
+            document.getElementById('reqUpper').className = 'fas fa-check-circle';
+        } else {
+            document.getElementById('reqUpper').className = 'fas fa-circle';
+        }
+        if (numberOk) {
+            document.getElementById('reqNumber').className = 'fas fa-check-circle';
+        } else {
+            document.getElementById('reqNumber').className = 'fas fa-circle';
+        }
+        if (specialOk) {
+            document.getElementById('reqSpecial').className = 'fas fa-check-circle';
+        } else {
+            document.getElementById('reqSpecial').className = 'fas fa-circle';
+        }
+
+        return lengthOk && upperOk && numberOk && specialOk;
+    }
+
+    function checkPasswordMatch() {
+        var password = document.getElementById('newPassword').value;
+        var confirm = document.getElementById('confirmPassword').value;
+        var matchMsg = document.getElementById('matchMessage');
+
+        if (confirm.length > 0) {
+            if (password === confirm) {
+                matchMsg.innerHTML = '<i class="fas fa-check-circle" style="color:#10B981;"></i> Passwords match';
+                matchMsg.style.color = '#10B981';
+            } else {
+                matchMsg.innerHTML = '<i class="fas fa-exclamation-circle" style="color:#DC2626;"></i> Passwords do not match';
+                matchMsg.style.color = '#DC2626';
+            }
+        } else {
+            matchMsg.innerHTML = '';
+        }
+    }
+
+    function toggleTwoFactor() {
+        var isChecked = document.getElementById('twoFactorToggle').checked;
+        if (isChecked) {
+            alert('Two-Factor Authentication would be configured here.\n\nYou would receive a verification code via SMS or authenticator app.');
+        } else {
+            alert('Two-Factor Authentication disabled.');
+        }
+    }
+
+    // Attach event listeners
+    document.getElementById('newPassword').oninput = function() {
+        checkPasswordStrength();
+        checkPasswordMatch();
+    };
+    document.getElementById('confirmPassword').oninput = function() {
+        checkPasswordMatch();
+    };
+</script>

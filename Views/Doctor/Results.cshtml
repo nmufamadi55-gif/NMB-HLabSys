@@ -3,23 +3,26 @@
     ViewData["Title"] = "Test Results";
     ViewData["RoleSubtitle"] = "Doctor Portal";
     ViewData["UserGreeting"] = "View and release patient test results";
-    ViewData["UserInitials"] = "DJ";
-    ViewData["UserName"] = "Dr. Sarah Johnson";
+    ViewData["UserInitials"] = "SJ";
+    ViewData["UserName"] = "Sarah Johnson";
+
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Doctor")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+    <li><a href="@Url.Action("Dashboard", "Doctor")" class="active"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
     <li><a href="@Url.Action("TestRequests", "Doctor")"><i class="fas fa-notes-medical"></i> <span>Test Requests</span></a></li>
     <li><a href="@Url.Action("Patients", "Doctor")"><i class="fas fa-users"></i> <span>My Patients</span></a></li>
     <li><a href="@Url.Action("Alerts", "Doctor")"><i class="fas fa-bell"></i> <span>Alerts</span></a></li>
-    <li><a href="@Url.Action("Results", "Doctor")" class="active"><i class="fas fa-chart-line"></i> <span>Results</span></a></li>
+    <li><a href="@Url.Action("Results", "Doctor")"><i class="fas fa-chart-line"></i> <span>Results</span></a></li>
     <li><a href="@Url.Action("Reports", "Doctor")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
 <style>
     .card {
         background: white;
-        border-radius: 16px;
+        border-radius: 20px;
         padding: 1rem;
         margin-bottom: 1rem;
         border: 1px solid #E2E8F0;
@@ -119,6 +122,46 @@
             color: #032C7D;
         }
 
+        .stat-box p {
+            margin: 0;
+            font-size: 0.7rem;
+            color: #5A6E7A;
+        }
+
+    .request-group {
+        margin-bottom: 1rem;
+        border: 1px solid #E2E8F0;
+        border-radius: 16px;
+        overflow: hidden;
+        background: white;
+    }
+
+    .request-header {
+        background: #F8FAFE;
+        padding: 0.6rem 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        cursor: pointer;
+        gap: 0.5rem;
+    }
+
+        .request-header h4 {
+            margin: 0;
+            color: #032C7D;
+            font-size: 0.9rem;
+        }
+
+    .request-tests {
+        padding: 0;
+    }
+
+        .request-tests table {
+            margin: 0;
+        }
+
+    /* Modal Styles */
     .modal-overlay {
         display: none;
         position: fixed;
@@ -126,7 +169,8 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0,0,0,0.5);
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(3px);
         z-index: 2000;
         align-items: center;
         justify-content: center;
@@ -138,40 +182,200 @@
 
     .modal-container {
         background: white;
-        border-radius: 20px;
+        border-radius: 28px;
         width: 90%;
-        max-width: 450px;
+        max-width: 650px;
+        max-height: 85vh;
+        overflow-y: auto;
+        box-shadow: 0 25px 50px rgba(0,0,0,0.25);
     }
 
-    .modal-header, .modal-footer {
-        padding: 0.8rem 1rem;
+    .modal-header {
+        padding: 1rem 1.5rem;
         border-bottom: 1px solid #E2E8F0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #F8FAFE;
+        border-radius: 28px 28px 0 0;
+    }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #032C7D;
+            font-size: 1.2rem;
+        }
+
+    .modal-body {
+        padding: 1.2rem 1.5rem;
     }
 
     .modal-footer {
-        border-bottom: none;
+        padding: 1rem 1.5rem;
         border-top: 1px solid #E2E8F0;
         display: flex;
         justify-content: flex-end;
-        gap: 0.5rem;
+        gap: 0.8rem;
+        background: #F8FAFE;
+        border-radius: 0 0 28px 28px;
     }
 
+    .close-modal {
+        background: none;
+        border: none;
+        font-size: 1.3rem;
+        cursor: pointer;
+        color: #5A6E7A;
+    }
+
+        .close-modal:hover {
+            color: #DC2626;
+        }
+
     .form-group {
-        margin-bottom: 0.8rem;
+        margin-bottom: 1rem;
     }
 
         .form-group label {
-            font-size: 0.75rem;
-            font-weight: 500;
+            font-size: 0.8rem;
+            font-weight: 600;
             display: block;
-            margin-bottom: 0.2rem;
+            margin-bottom: 0.3rem;
+            color: #032C7D;
         }
 
     .form-control {
         width: 100%;
-        padding: 0.4rem;
+        padding: 0.6rem;
         border: 1px solid #E2E8F0;
-        border-radius: 8px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 70px;
+        font-family: inherit;
+    }
+
+    .radio-group {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 0.3rem;
+    }
+
+    .radio-option {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border: 1px solid #E2E8F0;
+        border-radius: 40px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+        .radio-option.selected {
+            background: #0841C9;
+            border-color: #0841C9;
+            color: white;
+        }
+
+        .radio-option input {
+            margin: 0;
+        }
+
+        .radio-option i {
+            font-size: 1rem;
+        }
+
+    .detail-section {
+        margin-bottom: 1rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 1px solid #E2E8F0;
+    }
+
+        .detail-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .detail-section h4 {
+            color: #032C7D;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+    .detail-row {
+        display: flex;
+        margin-bottom: 0.3rem;
+        font-size: 0.8rem;
+    }
+
+    .detail-label {
+        width: 110px;
+        font-weight: 600;
+        color: #5A6E7A;
+    }
+
+    .detail-value {
+        flex: 1;
+        color: #1A2C3A;
+    }
+
+    .result-item {
+        background: #F8FAFE;
+        border-radius: 12px;
+        padding: 0.6rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .result-name {
+        font-weight: 600;
+        color: #032C7D;
+    }
+
+    .result-badge {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 20px;
+        font-size: 0.65rem;
+    }
+
+    .result-normal {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+
+    .result-abnormal {
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+
+    .medical-tag {
+        display: inline-block;
+        padding: 0.15rem 0.4rem;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        margin-right: 0.2rem;
+        margin-bottom: 0.1rem;
+    }
+
+    .tag-condition {
+        background: #FEF3C7;
+        color: #92400E;
+    }
+
+    .tag-allergy {
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+
+    .tag-medication {
+        background: #D1FAE5;
+        color: #065F46;
     }
 </style>
 
@@ -183,90 +387,289 @@
 
 <div class="card">
     <div class="filter-bar">
-        <input type="text" id="resultSearch" class="filter-input" placeholder="🔍 Search patient">
+        <input type="text" id="resultSearch" class="filter-input" placeholder="Search patient or request #" style="width:180px;">
         <select id="resultStatusFilter" class="filter-select"><option value="all">All Status</option><option value="pending">Pending Release</option><option value="released">Released</option></select>
-        <select id="resultAbnormalFilter" class="filter-select"><option value="all">All Results</option><option value="abnormal">Abnormal Only</option><option value="normal">Normal Only</option></select>
+        <select id="resultAbnormalFilter" class="filter-select"><option value="all">All Results</option><option value="abnormal">Abnormal Only</option></select>
         <button class="btn-sm" onclick="applyResultFilters()">Apply</button>
         <button class="btn-sm" onclick="resetResultFilters()" style="background:#6B7280;">Reset</button>
     </div>
-    <div class="table-container">
-        <table id="resultsTable">
-            <thead><tr><th>Date</th><th>Patient</th><th>Test</th><th>Result</th><th>Normal Range</th><th>Status</th><th>Action</th></tr></thead>
-            <tbody id="resultsBody"></tbody>
-        </table>
+    <div id="resultsContainer"></div>
+</div>
+
+<!-- View Results Modal -->
+<div id="viewResultsModal" class="modal-overlay">
+    <div class="modal-container">
+        <div class="modal-header"><h3>Test Results</h3><button class="close-modal" onclick="closeModal('viewResultsModal')">&times;</button></div>
+        <div class="modal-body" id="viewResultsContent"></div>
+        <div class="modal-footer">
+            <button class="btn-outline-sm" onclick="closeModal('viewResultsModal')">Close</button>
+            <button class="btn-sm" onclick="downloadResultsPDF()" style="background:#10B981;">Download PDF</button>
+        </div>
     </div>
 </div>
 
-<!-- Release Modal -->
+<!-- Release Results Modal - Improved -->
 <div id="releaseModal" class="modal-overlay">
     <div class="modal-container">
         <div class="modal-header"><h3>Release Results to Patient</h3><button class="close-modal" onclick="closeReleaseModal()">&times;</button></div>
         <div class="modal-body">
-            <div class="form-group"><label>Add Note (Optional)</label><textarea id="releaseNote" rows="2" class="form-control" placeholder="Personal message..."></textarea></div>
-            <div class="form-group"><label>Release Method</label><select id="releaseMethod" class="form-control"><option value="email">📧 Email PDF directly</option><option value="appointment">📞 Ask patient to book appointment</option></select></div>
+            <div class="form-group">
+                <label>Patient</label>
+                <input type="text" id="releasePatientName" class="form-control" readonly style="background:#F8FAFE;">
+            </div>
+            <div class="form-group">
+                <label>Test</label>
+                <input type="text" id="releaseTestName" class="form-control" readonly style="background:#F8FAFE;">
+            </div>
+            <div class="form-group">
+                <label>Result</label>
+                <input type="text" id="releaseResultValue" class="form-control" readonly style="background:#F8FAFE;">
+            </div>
+            <div class="form-group">
+                <label>Add Note to Patient</label>
+                <textarea id="releaseNote" rows="3" class="form-control" placeholder="Add a personal message to the patient..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Release Method</label>
+                <div class="radio-group" id="releaseMethodGroup">
+                    <div class="radio-option" data-value="email" onclick="selectReleaseMethod('email')">
+                        <i class="fas fa-envelope"></i> <span>Email PDF directly</span>
+                    </div>
+                    <div class="radio-option" data-value="appointment" onclick="selectReleaseMethod('appointment')">
+                        <i class="fas fa-calendar-check"></i> <span>Ask to book appointment</span>
+                    </div>
+                </div>
+                <input type="hidden" id="releaseMethod" value="email">
+            </div>
         </div>
-        <div class="modal-footer"><button class="btn-outline-sm" onclick="closeReleaseModal()">Cancel</button><button class="btn-sm" onclick="confirmReleaseAction()" style="background:#10B981;">Release</button></div>
+        <div class="modal-footer">
+            <button class="btn-outline-sm" onclick="closeReleaseModal()">Cancel</button>
+            <button class="btn-success-sm" onclick="confirmReleaseAction()">Release Results</button>
+        </div>
     </div>
 </div>
 
-<script>
-    let results = [
-        { id:1, date:"2025-04-09", patient:"Thabo Mbeki", test:"Haemoglobin", result:"7.2", normal:"12-16", abnormal:true, released:false },
-        { id:2, date:"2025-04-08", patient:"Lerato Dlamini", test:"PT/INR", result:"12.5", normal:"11-13.5", abnormal:false, released:false },
-        { id:3, date:"2025-04-07", patient:"John Smith", test:"Platelets", result:"45", normal:"150-450", abnormal:true, released:false }
+<script type="text/javascript">
+    // Mock data - Results grouped by Request
+    var testResults = [
+        {
+            requestId: 1,
+            reqNo: "REQ-001",
+            patient: "Thabo Mbeki",
+            patientId: "8001015009087",
+            patientInfo: { name:"Thabo", surname:"Mbeki", dob:"1980-01-01", phone:"0821234567", conditions:["Hypertension"], allergies:["Penicillin"], medications:["Lisinopril 10mg"] },
+            date: "2025-04-09",
+            urgency: "stat",
+            tests: [
+                { name: "Haemoglobin", result: "7.2", normal: "12-16", abnormal: true, released: false, reference: "g/dL", method: "Cyanmethemoglobin" },
+                { name: "White Cell Count", result: "8.5", normal: "4-11", abnormal: false, released: false, reference: "x10³/µL", method: "Flow cytometry" },
+                { name: "Platelet Count", result: "220", normal: "150-450", abnormal: false, released: false, reference: "x10³/µL", method: "Impedance" }
+            ]
+        },
+        {
+            requestId: 2,
+            reqNo: "REQ-002",
+            patient: "Lerato Dlamini",
+            patientId: "8505155009088",
+            patientInfo: { name:"Lerato", surname:"Dlamini", dob:"1985-05-15", phone:"0832345678", conditions:["Type 2 Diabetes"], allergies:[], medications:["Metformin 500mg"] },
+            date: "2025-04-08",
+            urgency: "routine",
+            tests: [
+                { name: "PT/INR", result: "12.5", normal: "11-13.5", abnormal: false, released: false, reference: "seconds", method: "Coagulometry" },
+                { name: "APTT", result: "32", normal: "25-35", abnormal: false, released: false, reference: "seconds", method: "Coagulometry" }
+            ]
+        },
+        {
+            requestId: 3,
+            reqNo: "REQ-003",
+            patient: "John Smith",
+            patientId: "9001015009089",
+            patientInfo: { name:"John", surname:"Smith", dob:"1990-01-01", phone:"0843456789", conditions:[], allergies:["Sulfa"], medications:[] },
+            date: "2025-04-07",
+            urgency: "urgent",
+            tests: [
+                { name: "Platelets", result: "45", normal: "150-450", abnormal: true, released: false, reference: "x10³/µL", method: "Impedance" }
+            ]
+        }
     ];
-    let currentReleaseId = null;
+
+    var currentViewRequest = null;
+    var currentReleaseRequestId = null;
+    var currentReleaseTestIndex = null;
 
     function renderResults() {
-        let filtered = [...results];
-        const search = document.getElementById('resultSearch')?.value.toLowerCase() || '';
-        const status = document.getElementById('resultStatusFilter')?.value || 'all';
-        const abnormalFilter = document.getElementById('resultAbnormalFilter')?.value || 'all';
-        if(search) filtered = filtered.filter(r=>r.patient.toLowerCase().includes(search));
-        if(status === 'pending') filtered = filtered.filter(r=>!r.released);
-        if(status === 'released') filtered = filtered.filter(r=>r.released);
-        if(abnormalFilter === 'abnormal') filtered = filtered.filter(r=>r.abnormal);
-        if(abnormalFilter === 'normal') filtered = filtered.filter(r=>!r.abnormal);
+        var filtered = testResults.slice();
+        var search = document.getElementById('resultSearch') ? document.getElementById('resultSearch').value.toLowerCase() : '';
+        var statusFilter = document.getElementById('resultStatusFilter') ? document.getElementById('resultStatusFilter').value : 'all';
+        var abnormalFilter = document.getElementById('resultAbnormalFilter') ? document.getElementById('resultAbnormalFilter').value : 'all';
 
-        document.getElementById('totalResults').innerText = results.length;
-        document.getElementById('abnormalResults').innerText = results.filter(r=>r.abnormal).length;
-        document.getElementById('pendingResults').innerText = results.filter(r=>!r.released).length;
+        if(search) filtered = filtered.filter(function(r) { return r.reqNo.toLowerCase().includes(search) || r.patient.toLowerCase().includes(search); });
+        if(statusFilter === 'pending') filtered = filtered.filter(function(r) { return r.tests.some(function(t) { return !t.released; }); });
+        if(statusFilter === 'released') filtered = filtered.filter(function(r) { return r.tests.every(function(t) { return t.released; }); });
+        if(abnormalFilter === 'abnormal') filtered = filtered.filter(function(r) { return r.tests.some(function(t) { return t.abnormal; }); });
 
-        const tbody = document.getElementById('resultsBody');
-        tbody.innerHTML = filtered.map(r => `
-            <tr class="${r.abnormal ? 'abnormal-row' : ''}">
-                <td>${r.date}</td>
-                <td>${r.patient}<td>
-                <td>${r.test}</td>
-                <td><span class="${r.abnormal ? 'abnormal-value' : ''}">${r.result} ${r.abnormal ? '⚠️' : ''}</span></td>
-                <td>${r.normal}</td>
-                <td><span class="${!r.released ? 'status-pending' : 'status-released'}">${!r.released ? 'Pending' : 'Released'}</span></td>
-                <td>
-                    <button class="btn-sm" onclick="viewFullResults(${r.id})">View</button>
-                    ${!r.released ? `<button class="btn-success-sm" onclick="openReleaseModal(${r.id})">Release</button>` : ''}
-                </td>
-            </table>
-        `).join('');
+        var totalResults = 0, abnormalResults = 0, pendingResults = 0;
+        for(var ri = 0; ri < testResults.length; ri++) {
+            var rt = testResults[ri];
+            for(var ti = 0; ti < rt.tests.length; ti++) {
+                totalResults++;
+                if(rt.tests[ti].abnormal) abnormalResults++;
+                if(!rt.tests[ti].released) pendingResults++;
+            }
+        }
+        document.getElementById('totalResults').innerText = totalResults;
+        document.getElementById('abnormalResults').innerText = abnormalResults;
+        document.getElementById('pendingResults').innerText = pendingResults;
+
+        var container = document.getElementById('resultsContainer');
+        if(filtered.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:2rem; background:white; border-radius:20px;">No results found</div>';
+            return;
+        }
+
+        var html = '';
+        for(var f = 0; f < filtered.length; f++) {
+            var r = filtered[f];
+            var hasPending = r.tests.some(function(t) { return !t.released; });
+            html += '<div class="request-group">' +
+                '<div class="request-header" onclick="toggleRequest(' + r.requestId + ')">' +
+                '<div><h4> ' + r.reqNo + ' - ' + r.patient + '</h4><small>' + r.date + '</small></div>' +
+                '<div>' + (hasPending ? '<span class="status-pending">Pending Release</span>' : '<span class="status-released">Released</span>') + '</div>' +
+                '</div>' +
+                '<div id="req-' + r.requestId + '" class="request-tests" style="display:block;">' +
+                '<table><thead><tr><th>Test Name</th><th>Result</th><th>Normal Range</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+            for(var ti = 0; ti < r.tests.length; ti++) {
+                var t = r.tests[ti];
+                var rowClass = t.abnormal ? 'abnormal-row' : '';
+                html += '<tr class="' + rowClass + '">' +
+                    '<td>' + t.name + '</td>' +
+                    '<td><span class="' + (t.abnormal ? 'abnormal-value' : '') + '">' + t.result + (t.abnormal ? ' ⚠️' : '') + '</span></td>' +
+                    '<td>' + t.normal + '</td>' +
+                    '<td><span class="' + (!t.released ? 'status-pending' : 'status-released') + '">' + (!t.released ? 'Pending' : 'Released') + '</span></td>' +
+                    '<td><button class="btn-sm" onclick="viewResults(' + r.requestId + ', ' + ti + ')">View</button> ' +
+                    (!t.released ? '<button class="btn-success-sm" onclick="openReleaseModal(' + r.requestId + ', ' + ti + ')">Release</button>' : '') + '</td>' +
+                    '</tr>';
+            }
+            html += '</tbody></table></div></div>';
+        }
+        container.innerHTML = html;
     }
 
-    function viewFullResults(id) { alert(`📊 Full results for request #${id}\n\nPDF report would open here.`); }
-    function openReleaseModal(id) { currentReleaseId = id; document.getElementById('releaseModal').classList.add('active'); }
-    function closeReleaseModal() { document.getElementById('releaseModal').classList.remove('active'); currentReleaseId = null; document.getElementById('releaseNote').value = ''; }
+    function toggleRequest(requestId) {
+        var el = document.getElementById('req-' + requestId);
+        if(el) {
+            if(el.style.display === 'none') { el.style.display = 'block'; }
+            else { el.style.display = 'none'; }
+        }
+    }
+
+    function viewResults(requestId, testIndex) {
+        var request = testResults.find(function(r) { return r.requestId === requestId; });
+        if(!request) return;
+        var test = request.tests[testIndex];
+        if(!test) return;
+
+        var patient = request.patientInfo;
+        var content = '<div class="detail-section"><h4>Test Result Details</h4>' +
+            '<div class="detail-row"><div class="detail-label">Request:</div><div class="detail-value">' + request.reqNo + '</div></div>' +
+            '<div class="detail-row"><div class="detail-label">Test Name:</div><div class="detail-value"><strong>' + test.name + '</strong></div></div>' +
+            '<div class="detail-row"><div class="detail-label">Result:</div><div class="detail-value"><span class="' + (test.abnormal ? 'abnormal-value' : '') + '">' + test.result + ' ' + test.reference + '</span></div></div>' +
+            '<div class="detail-row"><div class="detail-label">Normal Range:</div><div class="detail-value">' + test.normal + ' ' + test.reference + '</div></div>' +
+            '<div class="detail-row"><div class="detail-label">Method:</div><div class="detail-value">' + test.method + '</div></div>' +
+            '<div class="detail-row"><div class="detail-label">Interpretation:</div><div class="detail-value">' + (test.abnormal ? 'This result is outside the normal reference range. Clinical correlation recommended.' : 'Within normal reference range.') + '</div></div></div>' +
+
+            '<div class="detail-section"><h4>Patient Information</h4>' +
+            '<div class="detail-row"><div class="detail-label">Full Name:</div><div class="detail-value">' + patient.name + ' ' + patient.surname + '</div></div>' +
+            '<div class="detail-row"><div class="detail-label">ID Number:</div><div class="detail-value">' + request.patientId + '</div></div>' +
+            '<div class="detail-row"><div class="detail-label">Date of Birth:</div><div class="detail-value">' + patient.dob + '</div></div>' +
+            '<div class="detail-row"><div class="detail-label">Contact:</div><div class="detail-value">' + patient.phone + '</div></div>' +
+            '<div class="detail-row"><div class="detail-label">Conditions:</div><div class="detail-value">' + (patient.conditions.map(function(c) { return '<span class="medical-tag tag-condition">' + c + '</span>'; }).join('') || 'None') + '</div></div>' +
+            '<div class="detail-row"><div class="detail-label">Allergies:</div><div class="detail-value">' + (patient.allergies.map(function(a) { return '<span class="medical-tag tag-allergy">' + a + '</span>'; }).join('') || 'None') + '</div></div>' +
+            '<div class="detail-row"><div class="detail-label">Medications:</div><div class="detail-value">' + (patient.medications.map(function(m) { return '<span class="medical-tag tag-medication">' + m + '</span>'; }).join('') || 'None') + '</div></div></div>';
+
+        document.getElementById('viewResultsContent').innerHTML = content;
+        document.getElementById('viewResultsModal').classList.add('active');
+        currentViewRequest = { request: request, test: test };
+    }
+
+    function downloadResultsPDF() {
+        if(currentViewRequest) {
+            alert('Downloading PDF report for ' + currentViewRequest.test.name + ' - ' + currentViewRequest.request.reqNo);
+        } else {
+            alert('Downloading PDF report...');
+        }
+    }
+
+    function selectReleaseMethod(method) {
+        document.getElementById('releaseMethod').value = method;
+        var options = document.querySelectorAll('.radio-option');
+        for(var i = 0; i < options.length; i++) {
+            if(options[i].getAttribute('data-value') === method) {
+                options[i].classList.add('selected');
+            } else {
+                options[i].classList.remove('selected');
+            }
+        }
+    }
+
+    function openReleaseModal(requestId, testIndex) {
+        var request = testResults.find(function(r) { return r.requestId === requestId; });
+        if(!request) return;
+        var test = request.tests[testIndex];
+        if(!test) return;
+
+        currentReleaseRequestId = requestId;
+        currentReleaseTestIndex = testIndex;
+
+        document.getElementById('releasePatientName').value = request.patient;
+        document.getElementById('releaseTestName').value = test.name;
+        document.getElementById('releaseResultValue').value = test.result + ' ' + (test.abnormal ? '(Abnormal)' : '(Normal)');
+        document.getElementById('releaseNote').value = '';
+        document.getElementById('releaseMethod').value = 'email';
+        selectReleaseMethod('email');
+
+        document.getElementById('releaseModal').classList.add('active');
+    }
+
+    function closeReleaseModal() {
+        document.getElementById('releaseModal').classList.remove('active');
+        currentReleaseRequestId = null;
+        currentReleaseTestIndex = null;
+        document.getElementById('releaseNote').value = '';
+    }
+
     function confirmReleaseAction() {
-        if(currentReleaseId) {
-            const result = results.find(r=>r.id === currentReleaseId);
-            const note = document.getElementById('releaseNote').value;
-            const method = document.getElementById('releaseMethod').value;
-            if(result) {
-                result.released = true;
-                const message = method === 'email' ? 'PDF report emailed directly to patient.' : 'Patient asked to book an appointment.';
-                alert(`✅ Results released to ${result.patient}!\n📧 ${message}\n📝 Note: ${note || 'None'}`);
+        if(currentReleaseRequestId !== null && currentReleaseTestIndex !== null) {
+            var request = testResults.find(function(r) { return r.requestId === currentReleaseRequestId; });
+            if(request) {
+                var test = request.tests[currentReleaseTestIndex];
+                var note = document.getElementById('releaseNote').value;
+                var method = document.getElementById('releaseMethod').value;
+
+                test.released = true;
+
+                var message = method === 'email'
+                    ? 'PDF report emailed directly to patient.'
+                    : 'Patient has been notified to book an appointment.';
+
+                alert(' Results released to ' + request.patient + ' for ' + test.name + '!\n\n ' + message + '\n\n Note: ' + (note || 'None'));
             }
         }
         closeReleaseModal();
         renderResults();
     }
+
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('active');
+    }
+
     function applyResultFilters() { renderResults(); }
-    function resetResultFilters() { document.getElementById('resultSearch').value = ''; document.getElementById('resultStatusFilter').value = 'all'; document.getElementById('resultAbnormalFilter').value = 'all'; renderResults(); }
+    function resetResultFilters() {
+        if(document.getElementById('resultSearch')) document.getElementById('resultSearch').value = '';
+        if(document.getElementById('resultStatusFilter')) document.getElementById('resultStatusFilter').value = 'all';
+        if(document.getElementById('resultAbnormalFilter')) document.getElementById('resultAbnormalFilter').value = 'all';
+        renderResults();
+    }
+
     renderResults();
-</script>>
+</script>

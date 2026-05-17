@@ -4,13 +4,16 @@
     ViewData["RoleSubtitle"] = "Manager Portal";
     ViewData["UserGreeting"] = "📊 Amanda Adams";
     ViewData["UserInitials"] = "AA";
+
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Manager")">📈 Overview</a></li>
-    <li><a href="@Url.Action("TestCatalogue", "Manager")" class="active">📚 Test Catalogue</a></li>
+    <li><a href="@Url.Action("Dashboard", "Manager")" class="active">📈 Overview</a></li>
+    <li><a href="@Url.Action("TestCatalogue", "Manager")">📚 Test Catalogue</a></li>
     <li><a href="@Url.Action("StockManagement", "Manager")">📦 Stock & Orders</a></li>
     <li><a href="@Url.Action("StaffManagement", "Manager")">👥 Staff Management</a></li>
+    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
 <div class="card-modern">

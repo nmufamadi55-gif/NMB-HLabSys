@@ -3,33 +3,91 @@
     ViewData["Title"] = "My Patients";
     ViewData["RoleSubtitle"] = "Doctor Portal";
     ViewData["UserGreeting"] = "Manage your patient roster";
-    ViewData["UserInitials"] = "DJ";
-    ViewData["UserName"] = "Dr. Sarah Johnson";
+    ViewData["UserInitials"] = "SJ";
+    ViewData["UserName"] = "Sarah Johnson";
+
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Doctor")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+    <li><a href="@Url.Action("Dashboard", "Doctor")" class="active"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
     <li><a href="@Url.Action("TestRequests", "Doctor")"><i class="fas fa-notes-medical"></i> <span>Test Requests</span></a></li>
-    <li><a href="@Url.Action("Patients", "Doctor")" class="active"><i class="fas fa-users"></i> <span>My Patients</span></a></li>
+    <li><a href="@Url.Action("Patients", "Doctor")"><i class="fas fa-users"></i> <span>My Patients</span></a></li>
     <li><a href="@Url.Action("Alerts", "Doctor")"><i class="fas fa-bell"></i> <span>Alerts</span></a></li>
     <li><a href="@Url.Action("Results", "Doctor")"><i class="fas fa-chart-line"></i> <span>Results</span></a></li>
     <li><a href="@Url.Action("Reports", "Doctor")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
 <style>
     .card {
         background: white;
-        border-radius: 16px;
-        padding: 1rem;
-        margin-bottom: 1rem;
+        border-radius: 20px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
         border: 1px solid #E2E8F0;
     }
 
     .filter-bar {
         display: flex;
-        gap: 0.5rem;
+        gap: 0.8rem;
         flex-wrap: wrap;
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
+        align-items: center;
+    }
+
+    .filter-input {
+        padding: 0.6rem 1rem;
+        border-radius: 40px;
+        border: 1px solid #E2E8F0;
+        font-size: 0.85rem;
+        width: 250px;
+    }
+
+    .btn-sm {
+        background: #0841C9;
+        color: white;
+        border: none;
+        padding: 0.4rem 1rem;
+        border-radius: 40px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        transition: all 0.2s;
+    }
+
+        .btn-sm:hover {
+            background: #032C7D;
+        }
+
+    .btn-outline-sm {
+        background: transparent;
+        border: 1px solid #E2E8F0;
+        padding: 0.4rem 1rem;
+        border-radius: 40px;
+        cursor: pointer;
+        font-size: 0.75rem;
+    }
+
+        .btn-outline-sm:hover {
+            background: #F1F5F9;
+        }
+
+    .btn-success-sm {
+        background: #10B981;
+        color: white;
+        border: none;
+        padding: 0.4rem 1rem;
+        border-radius: 40px;
+        cursor: pointer;
+        font-size: 0.75rem;
+    }
+
+        .btn-success-sm:hover {
+            background: #059669;
+        }
+
+    .table-container {
+        overflow-x: auto;
     }
 
     table {
@@ -38,10 +96,10 @@
     }
 
     th, td {
-        padding: 0.6rem;
+        padding: 0.8rem 0.6rem;
         text-align: left;
         border-bottom: 1px solid #E2E8F0;
-        font-size: 0.75rem;
+        font-size: 0.8rem;
     }
 
     th {
@@ -50,36 +108,63 @@
         color: #5A6E7A;
     }
 
-    .btn-sm {
-        background: #0841C9;
-        color: white;
-        border: none;
-        padding: 0.2rem 0.6rem;
-        border-radius: 30px;
-        cursor: pointer;
-        font-size: 0.7rem;
+    tr:hover {
+        background: #F8FAFE;
     }
 
     .stats {
         display: flex;
-        gap: 0.8rem;
-        margin-bottom: 1rem;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
     }
 
     .stat-box {
         background: white;
-        border-radius: 12px;
-        padding: 0.5rem;
+        border-radius: 16px;
+        padding: 1rem;
         text-align: center;
-        border: 1px solid #E2E8F0;
         flex: 1;
+        border: 1px solid #E2E8F0;
+        min-width: 120px;
     }
 
         .stat-box h4 {
-            font-size: 1.3rem;
+            font-size: 1.6rem;
             margin: 0;
             color: #032C7D;
         }
+
+        .stat-box p {
+            margin: 0;
+            font-size: 0.7rem;
+            color: #5A6E7A;
+        }
+
+    .medical-tag {
+        display: inline-block;
+        background: #F1F5F9;
+        padding: 0.2rem 0.6rem;
+        border-radius: 30px;
+        font-size: 0.7rem;
+        margin-right: 0.3rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .tag-condition {
+        background: #FEF3C7;
+        color: #92400E;
+    }
+
+    .tag-allergy {
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+
+    .tag-medication {
+        background: #D1FAE5;
+        color: #065F46;
+    }
 
     .modal-overlay {
         display: none;
@@ -88,7 +173,8 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0,0,0,0.5);
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(3px);
         z-index: 2000;
         align-items: center;
         justify-content: center;
@@ -100,49 +186,272 @@
 
     .modal-container {
         background: white;
-        border-radius: 20px;
+        border-radius: 32px;
         width: 90%;
-        max-width: 500px;
+        max-width: 750px;
+        max-height: 85vh;
+        overflow-y: auto;
+        box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+        animation: modalFadeIn 0.2s ease;
+    }
+    keyframes modalFadeIn {
+        from
+
+    {
+        opacity: 0;
+        transform: scale(0.95);
     }
 
-    .modal-header, .modal-footer {
-        padding: 0.8rem 1rem;
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    }
+
+    .modal-header {
+        padding: 1.5rem 2rem;
         border-bottom: 1px solid #E2E8F0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: linear-gradient(135deg, #F8FAFE, #FFFFFF);
+        border-radius: 32px 32px 0 0;
+    }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #032C7D;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+    .modal-body {
+        padding: 2rem;
     }
 
     .modal-footer {
-        border-bottom: none;
+        padding: 1.2rem 2rem;
         border-top: 1px solid #E2E8F0;
         display: flex;
         justify-content: flex-end;
-        gap: 0.5rem;
+        gap: 1rem;
+        background: #F8FAFE;
+        border-radius: 0 0 32px 32px;
     }
 
+    .close-modal {
+        background: none;
+        border: none;
+        font-size: 1.6rem;
+        cursor: pointer;
+        color: #5A6E7A;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+    }
+
+        .close-modal:hover {
+            background: #F1F5F9;
+            color: #DC2626;
+        }
+
     .form-group {
-        margin-bottom: 0.8rem;
+        margin-bottom: 1.5rem;
     }
 
         .form-group label {
-            font-size: 0.75rem;
-            font-weight: 500;
+            font-size: 0.85rem;
+            font-weight: 600;
             display: block;
-            margin-bottom: 0.2rem;
+            margin-bottom: 0.5rem;
+            color: #032C7D;
+        }
+
+            .form-group label i {
+                margin-right: 0.3rem;
+                color: #0841C9;
+            }
+
+        .form-group .required {
+            color: #DC2626;
         }
 
     .form-control {
         width: 100%;
-        padding: 0.4rem;
+        padding: 0.8rem 1rem;
         border: 1px solid #E2E8F0;
-        border-radius: 8px;
+        border-radius: 12px;
+        font-size: 0.9rem;
     }
 
-    .medical-tag {
-        display: inline-block;
+        .form-control:focus {
+            outline: none;
+            border-color: #0841C9;
+            box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
+        }
+
+        .form-control.error {
+            border-color: #DC2626;
+            background: #FEF2F2;
+        }
+
+    .error-message {
+        color: #DC2626;
+        font-size: 0.7rem;
+        margin-top: 0.3rem;
+        display: block;
+    }
+
+    .row-2col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .searchable-dropdown {
+        position: relative;
+    }
+
+    .dropdown-input {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        font-size: 0.9rem;
+    }
+
+    .dropdown-results {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 10;
+        display: none;
+    }
+
+        .dropdown-results.show {
+            display: block;
+        }
+
+    .dropdown-item {
+        padding: 0.6rem 1rem;
+        cursor: pointer;
+    }
+
+        .dropdown-item:hover {
+            background: #F1F5F9;
+        }
+
+    .selected-items {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.8rem;
+    }
+
+    .selected-tag {
+        background: #0841C9;
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 30px;
+        font-size: 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .remove-tag {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 0.8rem;
+    }
+
+    .info-row {
+        display: flex;
+        margin-bottom: 0.8rem;
+    }
+
+    .info-label {
+        width: 120px;
+        font-weight: 600;
+        color: #5A6E7A;
+    }
+
+    .info-value {
+        flex: 1;
+        color: #1A2C3A;
+    }
+
+    .history-section {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #E2E8F0;
+    }
+
+        .history-section:last-child {
+            border-bottom: none;
+        }
+
+        .history-section h4 {
+            color: #032C7D;
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
+        }
+
+    .history-badge {
         background: #F1F5F9;
-        padding: 0.1rem 0.4rem;
+        padding: 0.2rem 0.5rem;
         border-radius: 20px;
-        font-size: 0.65rem;
-        margin-right: 0.2rem;
+        font-size: 0.7rem;
+    }
+
+    .history-list {
+        list-style: none;
+        padding-left: 0;
+    }
+
+        .history-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #E2E8F0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+    media (max-width: 768px) {
+        .stats
+
+    {
+        flex-direction: column;
+    }
+
+    .row-2col {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-body {
+        padding: 1.2rem;
+    }
+
+    .info-row {
+        flex-direction: column;
+    }
+
+    .info-label {
+        width: auto;
+        margin-bottom: 0.2rem;
+    }
+
     }
 </style>
 
@@ -154,14 +463,14 @@
 
 <div class="card">
     <div class="filter-bar">
-        <input type="text" id="patientSearch" class="form-control" placeholder="🔍 Search by name or ID" style="width:220px;">
-        <button class="btn-sm" onclick="searchPatients()">Search</button>
-        <button class="btn-sm" onclick="resetSearch()">Clear</button>
-        <button class="btn-sm" onclick="openRegisterModal()" style="background:#10B981;">+ Register Patient</button>
+        <input type="text" id="patientSearch" class="filter-input" placeholder="🔍 Search by name or ID number...">
+        <button class="btn-sm" onclick="searchPatients()"><i class="fas fa-search"></i> Search</button>
+        <button class="btn-outline-sm" onclick="resetSearch()">Clear</button>
+        <button class="btn-success-sm" onclick="openRegisterModal()"><i class="fas fa-user-plus"></i> Register New Patient</button>
     </div>
     <div class="table-container">
         <table id="patientsTable">
-            <thead><tr><th>Name</th><th>ID Number</th><th>DOB</th><th>Contact</th><th>Conditions</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Name</th><th>ID Number</th><th>Date of Birth</th><th>Contact</th><th>Conditions</th><th>Actions</th></tr></thead>
             <tbody id="patientsBody"></tbody>
         </table>
     </div>
@@ -170,67 +479,310 @@
 <!-- Register Patient Modal -->
 <div id="registerModal" class="modal-overlay">
     <div class="modal-container">
-        <div class="modal-header"><h3>Register New Patient</h3><button class="close-modal" onclick="closeRegisterModal()">&times;</button></div>
+        <div class="modal-header"><h3><i class="fas fa-user-plus"></i> Register New Patient</h3><button class="close-modal" onclick="closeRegisterModal()">&times;</button></div>
         <div class="modal-body">
-            <div class="form-group"><label>Full Name *</label><input type="text" id="regName" class="form-control" placeholder="First and Last name"></div>
-            <div class="form-group"><label>SA ID Number *</label><input type="text" id="regID" class="form-control" placeholder="13-digit ID number"></div>
-            <div class="form-group"><label>Date of Birth *</label><input type="date" id="regDOB" class="form-control"></div>
-            <div class="form-group"><label>Cellphone *</label><input type="text" id="regPhone" class="form-control" placeholder="0821234567"></div>
-            <div class="form-group"><label>Email</label><input type="email" id="regEmail" class="form-control" placeholder="patient@email.com"></div>
-            <div class="form-group"><label>Address</label><textarea id="regAddress" rows="2" class="form-control" placeholder="Home address"></textarea></div>
+            <div class="row-2col">
+                <div class="form-group"><label><i class="fas fa-user"></i> First Name <span class="required">*</span></label><input type="text" id="regName" class="form-control"><div id="nameError" class="error-message"></div></div>
+                <div class="form-group"><label><i class="fas fa-user"></i> Last Name <span class="required">*</span></label><input type="text" id="regSurname" class="form-control"><div id="surnameError" class="error-message"></div></div>
+            </div>
+            <div class="row-2col">
+                <div class="form-group"><label><i class="fas fa-id-card"></i> SA ID Number <span class="required">*</span></label><input type="text" id="regID" class="form-control" maxlength="13" placeholder="13-digit ID number" oninput="validateID()"><div id="idError" class="error-message"></div></div>
+                <div class="form-group"><label><i class="fas fa-calendar-alt"></i> Date of Birth <span class="required">*</span></label><input type="date" id="regDOB" class="form-control" onchange="validateDOB()"><div id="dobError" class="error-message"></div></div>
+            </div>
+            <div class="row-2col">
+                <div class="form-group"><label><i class="fas fa-phone"></i> Cellphone Number</label><input type="tel" id="regPhone" class="form-control" placeholder="082 123 4567"></div>
+                <div class="form-group"><label><i class="fas fa-envelope"></i> Email Address</label><input type="email" id="regEmail" class="form-control" placeholder="patient@example.com"></div>
+            </div>
+            <div class="form-group"><label><i class="fas fa-home"></i> Home Address</label><textarea id="regAddress" rows="2" class="form-control" placeholder="Street address, city, postal code"></textarea></div>
+
+            <div class="form-group">
+                <label><i class="fas fa-stethoscope"></i> Medical Conditions</label>
+                <div class="searchable-dropdown"><input type="text" id="conditionSearch" class="dropdown-input" placeholder="Type to search..." oninput="filterConditions()"><div id="conditionResults" class="dropdown-results"></div></div>
+                <div id="selectedConditions" class="selected-items"></div>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-allergies"></i> Allergies</label>
+                <div class="searchable-dropdown"><input type="text" id="allergySearch" class="dropdown-input" placeholder="Type to search..." oninput="filterAllergies()"><div id="allergyResults" class="dropdown-results"></div></div>
+                <div id="selectedAllergies" class="selected-items"></div>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-pills"></i> Medications</label>
+                <div class="searchable-dropdown"><input type="text" id="medicationSearch" class="dropdown-input" placeholder="Type to search..." oninput="filterMedications()"><div id="medicationResults" class="dropdown-results"></div></div>
+                <div id="selectedMedications" class="selected-items"></div>
+            </div>
         </div>
-        <div class="modal-footer"><button class="btn-outline-sm" onclick="closeRegisterModal()">Cancel</button><button class="btn-sm" onclick="registerPatient()">Register Patient</button></div>
+        <div class="modal-footer"><button class="btn-outline-sm" onclick="closeRegisterModal()">Cancel</button><button class="btn-sm" onclick="registerPatient()" style="background:#10B981;">Register Patient</button></div>
     </div>
 </div>
 
-<!-- View Patient History Modal -->
+<!-- History Modal -->
 <div id="historyModal" class="modal-overlay">
     <div class="modal-container">
-        <div class="modal-header"><h3>Patient Medical History</h3><button class="close-modal" onclick="closeHistoryModal()">&times;</button></div>
+        <div class="modal-header"><h3><i class="fas fa-notes-medical"></i> Patient Medical History</h3><button class="close-modal" onclick="closeHistoryModal()">&times;</button></div>
         <div class="modal-body" id="historyContent"></div>
-        <div class="modal-footer"><button class="btn-sm" onclick="closeHistoryModal()">Close</button></div>
+        <div class="modal-footer"><button class="btn-outline-sm" onclick="closeHistoryModal()">Close</button><button class="btn-success-sm" onclick="location.href='@Url.Action("TestRequests", "Doctor")'">Create Test Request</button></div>
     </div>
 </div>
 
 <script>
+    // ============ DATABASES (Sorted Alphabetically) ============
+    const conditionsDB = [
+        "Alzheimer's", "Anaemia", "Anxiety", "Asthma", "Chronic Kidney Disease", "COPD", "Coronary Artery Disease",
+        "Depression", "Epilepsy", "Gout", "Heart Failure", "Hepatitis B", "Hepatitis C", "HIV/AIDS", "Hyperlipidaemia",
+        "Hypertension", "Hyperthyroidism", "Hypothyroidism", "Leukemia", "Lymphoma", "Migraine", "Osteoarthritis",
+        "Osteoporosis", "Parkinson's Disease", "Psoriasis", "Rheumatoid Arthritis", "Thrombocytopenia", "Tuberculosis",
+        "Type 1 Diabetes", "Type 2 Diabetes"
+    ].sort();
+
+    const allergiesDB = [
+        "Animal Dander", "Aspirin", "Bee Venom", "Cephalosporins", "Codeine", "Dust Mites", "Eggs", "Fragrance",
+        "Ibuprofen", "Latex", "Milk", "Morphine", "Mould", "Naproxen", "Nickel", "Peanuts", "Penicillin", "Pollen",
+        "Shellfish", "Soy", "Sulfa Drugs", "Sunscreen", "Tetracycline", "Tree Nuts", "Wasp Venom", "Wheat"
+    ].sort();
+
+    const medicationsDB = [
+        "Amlodipine (10mg)", "Amlodipine (5mg)", "Apixaban (2.5mg)", "Apixaban (5mg)", "Aspirin (100mg)", "Aspirin (75mg)",
+        "Atorvastatin (10mg)", "Atorvastatin (20mg)", "Atorvastatin (40mg)", "Carbamazepine (200mg)", "Clopidogrel (75mg)",
+        "Escitalopram (10mg)", "Escitalopram (20mg)", "Gabapentin (300mg)", "Gliclazide (30mg)", "Gliclazide (60mg)",
+        "Hydroxyurea (500mg)", "Ibuprofen (400mg)", "Imatinib (400mg)", "Insulin Aspart", "Insulin Glargine (100 units/mL)",
+        "Levothyroxine (100mcg)", "Levothyroxine (25mcg)", "Levothyroxine (50mcg)", "Lisinopril (10mg)", "Lisinopril (20mg)",
+        "Lisinopril (5mg)", "Metformin (1000mg)", "Metformin (500mg)", "Metformin (850mg)", "Omeprazole (20mg)",
+        "Pantoprazole (40mg)", "Paracetamol (500mg)", "Prednisone (10mg)", "Prednisone (5mg)", "Sertraline (100mg)",
+        "Sertraline (50mg)", "Warfarin (2mg)", "Warfarin (5mg)"
+    ].sort();
+
+    let selectedConditions = [], selectedAllergies = [], selectedMedications = [];
+
     let patients = [
-        { name:"Thabo Mbeki", idNumber:"8001015009087", dob:"1980-01-01", phone:"0821234567", conditions:["Hypertension"], allergies:["Penicillin"], medications:["Lisinopril 10mg"] },
-        { name:"Lerato Dlamini", idNumber:"8505155009088", dob:"1985-05-15", phone:"0832345678", conditions:["Diabetes"], allergies:[], medications:["Metformin 500mg"] },
-        { name:"John Smith", idNumber:"9001015009089", dob:"1990-01-01", phone:"0843456789", conditions:[], allergies:["Sulfa"], medications:[] }
+        { id: 1, name: "Thabo", surname: "Mbeki", idNumber: "8001015009087", dob: "1980-01-01", phone: "0821234567", email: "thabo@email.com", address: "123 Main St", conditions: ["Hypertension"], allergies: ["Penicillin"], medications: ["Lisinopril (10mg)"] },
+        { id: 2, name: "Lerato", surname: "Dlamini", idNumber: "8505155009088", dob: "1985-05-15", phone: "0832345678", email: "lerato@email.com", address: "456 Oak Ave", conditions: ["Type 2 Diabetes"], allergies: [], medications: ["Metformin (500mg)"] },
+        { id: 3, name: "John", surname: "Smith", idNumber: "9001015009089", dob: "1990-01-01", phone: "0843456789", email: "john@email.com", address: "789 Pine Rd", conditions: [], allergies: ["Sulfa Drugs"], medications: [] }
     ];
 
-    function renderPatients(search='') {
-        let filtered = search ? patients.filter(p=>p.name.toLowerCase().includes(search)||p.idNumber.includes(search)) : patients;
-        const tbody = document.getElementById('patientsBody');
-        tbody.innerHTML = filtered.map(p => `<tr><td><strong>${p.name}</strong></td><td>${p.idNumber}</td><td>${p.dob}</td><td>${p.phone}</td><td>${p.conditions.map(c=>`<span class="medical-tag">${c}</span>`).join('')||'-'}</td>
-        <td><button class="btn-sm" onclick="viewHistory('${p.name}','${p.conditions.join(',')}','${p.allergies.join(',')}','${p.medications.join(',')}')">History</button>
-        <button class="btn-sm" onclick="location.href='@Url.Action("TestRequests", "Doctor")'">Request</button></td></tr>`).join('');
+    // ============ ID & DOB VALIDATION (FIXED WITH MODERN CENTURY LOGIC) ============
+    function validateID() {
+        const idInput = document.getElementById('regID');
+        const idError = document.getElementById('idError');
+        let id = idInput.value.replace(/\D/g, '');
+        idInput.value = id;
+
+        if (id.length === 13) {
+            const yy = parseInt(id.substring(0, 2));
+            const mm = parseInt(id.substring(2, 4));
+            const dd = parseInt(id.substring(4, 6));
+
+            // Determine century: 00-24 = 2000-2024, 25-99 = 1925-1999
+            let year;
+            if (yy >= 0 && yy <= 24) {
+                year = 2000 + yy;
+            } else {
+                year = 1900 + yy;
+            }
+
+            const month = mm;
+            const day = dd;
+
+            const date = new Date(year, month - 1, day);
+            const isValidDate = date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const isNotFuture = date <= today;
+
+            if (isValidDate && month >= 1 && month <= 12 && day >= 1 && day <= 31 && isNotFuture) {
+                idError.textContent = '';
+                idInput.classList.remove('error');
+
+                const dobInput = document.getElementById('regDOB');
+                const formattedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+                if (!dobInput.value || dobInput.value === formattedDate) {
+                    dobInput.value = formattedDate;
+                    validateDOB();
+                } else {
+                    validateDOB();
+                }
+                return true;
+            } else {
+                if (!isValidDate) idError.textContent = 'Invalid date in ID number (YYMMDD format)';
+                else if (!isNotFuture) idError.textContent = 'Date of birth cannot be in the future';
+                idInput.classList.add('error');
+                return false;
+            }
+        } else if (id.length > 0 && id.length !== 13) {
+            idError.textContent = 'ID number must be exactly 13 digits';
+            idInput.classList.add('error');
+            return false;
+        } else {
+            idError.textContent = '';
+            idInput.classList.remove('error');
+            return false;
+        }
     }
 
-    function viewHistory(name, conditions, allergies, medications) {
-        document.getElementById('historyContent').innerHTML = `
-            <p><strong>Patient:</strong> ${name}</p>
-            <p><strong>Conditions:</strong> ${conditions || 'None'}</p>
-            <p><strong>Allergies:</strong> ${allergies || 'None'}</p>
-            <p><strong>Current Medications:</strong> ${medications || 'None'}</p>
-            <hr>
-            <p><strong>Recent Test Requests:</strong></p>
-            <ul><li>REQ-001 - Full Blood Count (Apr 9, 2025)</li><li>REQ-004 - Lipid Profile (Mar 20, 2025)</li></ul>
-        `;
+    function validateDOB() {
+        const dobInput = document.getElementById('regDOB');
+        const dobError = document.getElementById('dobError');
+        const idInput = document.getElementById('regID');
+        const id = idInput.value;
+
+        if (!dobInput.value) {
+            dobError.textContent = 'Please select date of birth';
+            dobInput.classList.add('error');
+            return false;
+        }
+
+        const dobDate = new Date(dobInput.value);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (dobDate > today) {
+            dobError.textContent = 'Date of birth cannot be in the future';
+            dobInput.classList.add('error');
+            return false;
+        }
+
+        if (id.length === 13) {
+            const yy = parseInt(id.substring(0, 2));
+            const mm = parseInt(id.substring(2, 4));
+            const dd = parseInt(id.substring(4, 6));
+
+            let year;
+            if (yy >= 0 && yy <= 24) {
+                year = 2000 + yy;
+            } else {
+                year = 1900 + yy;
+            }
+
+            const idDateStr = `${year}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+            const dobDateStr = dobInput.value;
+
+            if (idDateStr !== dobDateStr) {
+                dobError.textContent = 'Date of birth does not match ID number';
+                dobInput.classList.add('error');
+                return false;
+            } else {
+                dobError.textContent = '';
+                dobInput.classList.remove('error');
+                return true;
+            }
+        } else {
+            dobError.textContent = '';
+            dobInput.classList.remove('error');
+            return true;
+        }
+    }
+
+    // ============ SEARCHABLE DROPDOWNS ============
+    function filterConditions() {
+        const search = document.getElementById('conditionSearch').value.toLowerCase();
+        const results = conditionsDB.filter(c => c.toLowerCase().includes(search));
+        const container = document.getElementById('conditionResults');
+        if (search && results.length > 0) {
+            container.innerHTML = results.map(r => `<div class="dropdown-item" onclick="addCondition('${r.replace(/'/g, "\\'")}')">${r}</div>`).join('');
+            container.classList.add('show');
+        } else container.classList.remove('show');
+    }
+
+    function addCondition(c) { if (!selectedConditions.includes(c)) { selectedConditions.push(c); renderSelectedConditions(); } document.getElementById('conditionSearch').value = ''; document.getElementById('conditionResults').classList.remove('show'); }
+    function removeCondition(c) { selectedConditions = selectedConditions.filter(x => x !== c); renderSelectedConditions(); }
+    function renderSelectedConditions() { document.getElementById('selectedConditions').innerHTML = selectedConditions.map(c => `<div class="selected-tag">${c} <button class="remove-tag" onclick="removeCondition('${c.replace(/'/g, "\\'")}')">&times;</button></div>`).join(''); }
+
+    function filterAllergies() {
+        const search = document.getElementById('allergySearch').value.toLowerCase();
+        const results = allergiesDB.filter(a => a.toLowerCase().includes(search));
+        const container = document.getElementById('allergyResults');
+        if (search && results.length > 0) {
+            container.innerHTML = results.map(r => `<div class="dropdown-item" onclick="addAllergy('${r.replace(/'/g, "\\'")}')">${r}</div>`).join('');
+            container.classList.add('show');
+        } else container.classList.remove('show');
+    }
+
+    function addAllergy(a) { if (!selectedAllergies.includes(a)) { selectedAllergies.push(a); renderSelectedAllergies(); } document.getElementById('allergySearch').value = ''; document.getElementById('allergyResults').classList.remove('show'); }
+    function removeAllergy(a) { selectedAllergies = selectedAllergies.filter(x => x !== a); renderSelectedAllergies(); }
+    function renderSelectedAllergies() { document.getElementById('selectedAllergies').innerHTML = selectedAllergies.map(a => `<div class="selected-tag">${a} <button class="remove-tag" onclick="removeAllergy('${a.replace(/'/g, "\\'")}')">&times;</button></div>`).join(''); }
+
+    function filterMedications() {
+        const search = document.getElementById('medicationSearch').value.toLowerCase();
+        const results = medicationsDB.filter(m => m.toLowerCase().includes(search));
+        const container = document.getElementById('medicationResults');
+        if (search && results.length > 0) {
+            container.innerHTML = results.map(r => `<div class="dropdown-item" onclick="addMedication('${r.replace(/'/g, "\\'")}')">💊 ${r}</div>`).join('');
+            container.classList.add('show');
+        } else container.classList.remove('show');
+    }
+
+    function addMedication(m) { if (!selectedMedications.includes(m)) { selectedMedications.push(m); renderSelectedMedications(); } document.getElementById('medicationSearch').value = ''; document.getElementById('medicationResults').classList.remove('show'); }
+    function removeMedication(m) { selectedMedications = selectedMedications.filter(x => x !== m); renderSelectedMedications(); }
+    function renderSelectedMedications() { document.getElementById('selectedMedications').innerHTML = selectedMedications.map(m => `<div class="selected-tag">💊 ${m} <button class="remove-tag" onclick="removeMedication('${m.replace(/'/g, "\\'")}')">&times;</button></div>`).join(''); }
+
+    document.addEventListener('click', function(e) { if (!e.target.closest('.searchable-dropdown')) document.querySelectorAll('.dropdown-results').forEach(d => d.classList.remove('show')); });
+
+    // ============ PATIENT MANAGEMENT ============
+    function renderPatients(search = '') {
+        let filtered = search ? patients.filter(p => p.name.toLowerCase().includes(search) || p.surname.toLowerCase().includes(search) || p.idNumber.includes(search)) : patients;
+        document.getElementById('patientsBody').innerHTML = filtered.map(p => `
+            <tr><td><strong>${p.name} ${p.surname}</strong></td><td>${p.idNumber}</td><td>${p.dob}</td><td>${p.phone}</td>
+            <td>${p.conditions.map(c => `<span class="medical-tag tag-condition">${c}</span>`).join('') || '-'}</td>
+            <td><button class="btn-outline-sm" onclick="viewHistory(${p.id})"><i class="fas fa-history"></i> History</button> <button class="btn-sm" onclick="location.href='@Url.Action("TestRequests", "Doctor")'"><i class="fas fa-flask"></i> Request</button></td></tr>
+        `).join('');
+    }
+
+    function viewHistory(id) {
+        const p = patients.find(p => p.id === id);
+        if (p) {
+            document.getElementById('historyContent').innerHTML = `
+                <div class="history-section"><h4><i class="fas fa-user-circle"></i> Personal Information</h4>
+                <div class="info-row"><div class="info-label">Full Name:</div><div class="info-value">${p.name} ${p.surname}</div></div>
+                <div class="info-row"><div class="info-label">ID Number:</div><div class="info-value">${p.idNumber}</div></div>
+                <div class="info-row"><div class="info-label">Date of Birth:</div><div class="info-value">${p.dob}</div></div>
+                <div class="info-row"><div class="info-label">Contact:</div><div class="info-value">${p.phone}</div></div>
+                <div class="info-row"><div class="info-label">Email:</div><div class="info-value">${p.email}</div></div>
+                <div class="info-row"><div class="info-label">Address:</div><div class="info-value">${p.address || 'Not provided'}</div></div></div>
+                <div class="history-section"><h4><i class="fas fa-stethoscope"></i> Medical Conditions</h4><p>${p.conditions.length > 0 ? p.conditions.map(c => `<span class="medical-tag tag-condition">${c}</span>`).join(' ') : '<span class="history-badge">No recorded conditions</span>'}</p></div>
+                <div class="history-section"><h4><i class="fas fa-allergies"></i> Allergies</h4><p>${p.allergies.length > 0 ? p.allergies.map(a => `<span class="medical-tag tag-allergy">${a}</span>`).join(' ') : '<span class="history-badge">No known allergies</span>'}</p></div>
+                <div class="history-section"><h4><i class="fas fa-pills"></i> Current Medications</h4><p>${p.medications.length > 0 ? p.medications.map(m => `<span class="medical-tag tag-medication">${m}</span>`).join(' ') : '<span class="history-badge">No current medications</span>'}</p></div>
+                <div class="history-section"><h4><i class="fas fa-flask"></i> Recent Test Requests</h4><ul class="history-list"><li><span>REQ-001 - Full Blood Count</span><span class="history-badge">Apr 9, 2025</span></li><li><span>REQ-004 - Lipid Profile</span><span class="history-badge">Mar 20, 2025</span></li></ul></div>
+            `;
+        }
         document.getElementById('historyModal').classList.add('active');
     }
 
     function searchPatients() { renderPatients(document.getElementById('patientSearch').value.toLowerCase()); }
-    function resetSearch() { document.getElementById('patientSearch').value=''; renderPatients(); }
-    function openRegisterModal() { document.getElementById('registerModal').classList.add('active'); }
+    function resetSearch() { document.getElementById('patientSearch').value = ''; renderPatients(); }
+    function openRegisterModal() { selectedConditions = []; selectedAllergies = []; selectedMedications = []; renderSelectedConditions(); renderSelectedAllergies(); renderSelectedMedications(); document.getElementById('registerModal').classList.add('active'); }
     function closeRegisterModal() { document.getElementById('registerModal').classList.remove('active'); }
     function closeHistoryModal() { document.getElementById('historyModal').classList.remove('active'); }
+
     function registerPatient() {
-        const name = document.getElementById('regName').value;
-        if(!name) { alert('Please enter patient name'); return; }
-        alert(`✅ Patient ${name} registered successfully!\n📧 Login credentials sent to email.`);
-        closeRegisterModal();
-        document.getElementById('regName').value=''; document.getElementById('regID').value=''; document.getElementById('regDOB').value=''; document.getElementById('regPhone').value=''; document.getElementById('regEmail').value=''; document.getElementById('regAddress').value='';
+        const name = document.getElementById('regName').value.trim();
+        const surname = document.getElementById('regSurname').value.trim();
+        const idNumber = document.getElementById('regID').value;
+        const dob = document.getElementById('regDOB').value;
+        let isValid = true;
+
+        if (!name) { document.getElementById('nameError').textContent = 'First name is required'; isValid = false; } else document.getElementById('nameError').textContent = '';
+        if (!surname) { document.getElementById('surnameError').textContent = 'Last name is required'; isValid = false; } else document.getElementById('surnameError').textContent = '';
+        if (idNumber.length !== 13) { document.getElementById('idError').textContent = 'ID number must be 13 digits'; isValid = false; }
+        if (!dob) { document.getElementById('dobError').textContent = 'Date of birth is required'; isValid = false; }
+        if (!validateID()) isValid = false;
+        if (!validateDOB()) isValid = false;
+
+        if (!isValid) { alert('Please correct the errors before submitting.'); return; }
+
+        const newPatient = { id: patients.length + 1, name, surname, idNumber, dob, phone: document.getElementById('regPhone').value, email: document.getElementById('regEmail').value, address: document.getElementById('regAddress').value, conditions: [...selectedConditions], allergies: [...selectedAllergies], medications: [...selectedMedications] };
+        patients.push(newPatient);
+        alert(`✅ Patient ${name} ${surname} registered successfully!\n📧 Login credentials sent to ${newPatient.email || 'the provided email'}.`);
+        closeRegisterModal(); renderPatients();
+
+        selectedConditions = []; selectedAllergies = []; selectedMedications = [];
+        renderSelectedConditions(); renderSelectedAllergies(); renderSelectedMedications();
+        document.getElementById('regName').value = ''; document.getElementById('regSurname').value = ''; document.getElementById('regID').value = ''; document.getElementById('regDOB').value = '';
+        document.getElementById('regPhone').value = ''; document.getElementById('regEmail').value = ''; document.getElementById('regAddress').value = '';
+        document.getElementById('conditionSearch').value = ''; document.getElementById('allergySearch').value = ''; document.getElementById('medicationSearch').value = '';
     }
+
     renderPatients();
 </script>
