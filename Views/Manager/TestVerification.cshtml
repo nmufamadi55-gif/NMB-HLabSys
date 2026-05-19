@@ -1,0 +1,33 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Test Verification";
+}
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Manager")">📈 Overview</a></li>
+    <li><a href="@Url.Action("TestCatalogue", "Manager")">📚 Test Catalogue</a></li>
+    <li><a href="@Url.Action("StockManagement", "Manager")" class="active">📦 Stock & Orders</a></li>
+    <li><a href="@Url.Action("StaffManagement", "Manager")">👥 Staff Management</a></li>
+}
+<div class="card-modern">
+    <h3>🧪 Pending Test Verification</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Patient</th>
+                <th>Test</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr>
+                <td>John Doe</td>
+                <td>Full Blood Count</td>
+                <td><span class="badge badge-progress">Pending</span></td>
+                <td><button class="btn-sm-lab">Verify</button></td>
+            </tr>
+        </tbody>
+    </table>
+</div>

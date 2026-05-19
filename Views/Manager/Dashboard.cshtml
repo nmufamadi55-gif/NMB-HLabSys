@@ -4,8 +4,6 @@
     ViewData["RoleSubtitle"] = "Manager Portal";
     ViewData["UserGreeting"] = "📊 Amanda Adams (Lab Manager)";
     ViewData["UserInitials"] = "AA";
-
-    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
 }
 
 @section SidebarMenu {
@@ -13,28 +11,191 @@
     <li><a href="@Url.Action("TestCatalogue", "Manager")">📚 Test Catalogue</a></li>
     <li><a href="@Url.Action("StockManagement", "Manager")">📦 Stock & Orders</a></li>
     <li><a href="@Url.Action("StaffManagement", "Manager")">👥 Staff Management</a></li>
-    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+    <li><a href="@Url.Action("Reports", "Manager")">📑 Reports</a></li>
+    <li><a href="@Url.Action("Settings", "Manager")">⚙️ Settings</a></li>
 }
 
+<!-- Low Stock Alert Modal -->
+<div id="lowStockModal" class="modal-overlay" style="display:none;">
+    <div class="modal-card" style="max-width:500px;">
+        <h3>⚠️ Low Stock Items</h3>
+        <div class="low-stock-list">
+            <div class="low-stock-item">
+                <strong>🔴 EDTA Tubes</strong>
+                <span>Current: 45 | Reorder Level: 50</span>
+                <button class="btn-sm-lab" onclick="createOrderFromAlert('EDTA Tubes')">Order Now</button>
+            </div>
+            <div class="low-stock-item">
+                <strong>🟡 Citrate Tubes</strong>
+                <span>Current: 32 | Reorder Level: 40</span>
+                <button class="btn-sm-lab" onclick="createOrderFromAlert('Citrate Tubes')">Order Now</button>
+            </div>
+            <div class="low-stock-item">
+                <strong>🟢 Reagent Kits</strong>
+                <span>Current: 28 | Reorder Level: 30</span>
+                <button class="btn-sm-lab" onclick="createOrderFromAlert('Reagent Kits')">Order Now</button>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-outline-lab" onclick="closeLowStockModal()">Close</button>
+            <button class="btn-sm-lab" onclick="orderAllLowStock()">Order All</button>
+        </div>
+    </div>
+</div>
+
+<!-- STAT Requests Modal -->
+<div id="statRequestsModal" class="modal-overlay" style="display:none;">
+    <div class="modal-card" style="max-width:600px;">
+        <h3>🟡 Pending STAT Requests (>30min)</h3>
+        <table class="data-table">
+            <thead>
+                <tr><th>Request ID</th><th>Patient</th><th>Test</th><th>Wait Time</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>STAT-001</td>
+                    <td>John Doe</td>
+                    <td>Full Blood Count</td>
+                    <td>45 min</td>
+                    <td><button class="btn-sm-lab" onclick="assignStatRequest('STAT-001')">Assign Now</button></td>
+                </tr>
+                <tr>
+                    <td>STAT-002</td>
+                    <td>Mary Smith</td>
+                    <td>Coagulation Studies</td>
+                    <td>52 min</td>
+                    <td><button class="btn-sm-lab" onclick="assignStatRequest('STAT-002')">Assign Now</button></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="modal-actions">
+            <button class="btn-outline-lab" onclick="closeStatModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Create Order Modal -->
+<div id="quickOrderModal" class="modal-overlay" style="display:none;">
+    <div class="modal-card" style="max-width:600px;">
+        <h3>📦 Create Stock Order</h3>
+        <div class="form-group">
+            <label>Supplier</label>
+            <select id="quickOrderSupplier" class="form-control">
+                <option>MedSupply SA</option>
+                <option>LabTech Solutions</option>
+                <option>Haematology Direct</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Order Number (Auto-generated)</label>
+            <input type="text" id="quickOrderNumber" class="form-control" readonly>
+        </div>
+        <div class="form-group">
+            <label>Items to Order</label>
+            <div id="quickOrderItems">
+                <div class="order-checkbox">
+                    <input type="checkbox" value="EDTA Tubes"> EDTA Tubes (Current: 45)
+                    <input type="number" placeholder="Qty" class="order-qty-input" style="width:80px; margin-left:10px;">
+                </div>
+                <div class="order-checkbox">
+                    <input type="checkbox" value="Citrate Tubes"> Citrate Tubes (Current: 32)
+                    <input type="number" placeholder="Qty" class="order-qty-input" style="width:80px; margin-left:10px;">
+                </div>
+                <div class="order-checkbox">
+                    <input type="checkbox" value="Reagent Kits"> Reagent Kits (Current: 120)
+                    <input type="number" placeholder="Qty" class="order-qty-input" style="width:80px; margin-left:10px;">
+                </div>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-outline-lab" onclick="closeQuickOrderModal()">Cancel</button>
+            <button class="btn-sm-lab" onclick="submitQuickOrder()">Submit Order & Email Supplier</button>
+        </div>
+    </div>
+</div>
+
+<!-- Order Details Modal -->
+<div id="orderDetailsModal" class="modal-overlay" style="display:none;">
+    <div class="modal-card" style="max-width:600px;">
+        <h3 id="orderDetailsTitle">Order Details</h3>
+        <div id="orderDetailsContent"></div>
+        <div class="modal-actions">
+            <button class="btn-outline-lab" onclick="closeOrderDetailsModal()">Close</button>
+            <button id="orderActionBtn" class="btn-sm-lab" onclick="orderAction()">Mark Received</button>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Report Modal -->
+<div id="reportModal" class="modal-overlay" style="display:none;">
+    <div class="modal-card" style="max-width:500px;">
+        <h3>📄 Generate Monthly Report</h3>
+        <div class="form-group">
+            <label>Select Month</label>
+            <select id="reportMonth" class="form-control">
+                <option value="2025-04">April 2025</option>
+                <option value="2025-03">March 2025</option>
+                <option value="2025-02">February 2025</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Report Type</label>
+            <select id="reportType" class="form-control">
+                <option>Tests Performed by Category</option>
+                <option>Technician Performance</option>
+                <option>Stock Usage Report</option>
+                <option>Doctor Activity Report</option>
+            </select>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-outline-lab" onclick="closeReportModal()">Cancel</button>
+            <button class="btn-sm-lab" onclick="generateReport()">Generate PDF</button>
+        </div>
+    </div>
+</div>
+
 <div class="stat-cards">
-    <div class="stat-item"><div class="stat-icon-lg">⚠️</div><div><h3>3</h3><p>Low Stock Alerts</p></div></div>
-    <div class="stat-item"><div class="stat-icon-lg">📊</div><div><h3>342</h3><p>Tests This Month</p></div></div>
-    <div class="stat-item"><div class="stat-icon-lg">👥</div><div><h3>8</h3><p>Active Staff</p></div></div>
+    <div class="stat-item" onclick="viewLowStockAlerts()" style="cursor:pointer;">
+        <div class="stat-icon-lg">⚠️</div>
+        <div><h3>3</h3><p>Low Stock Alerts <span style="font-size:11px;">▼ Click to view</span></p></div>
+    </div>
+    <div class="stat-item" onclick="viewMonthlyTests()" style="cursor:pointer;">
+        <div class="stat-icon-lg">📊</div>
+        <div><h3>342</h3><p>Tests This Month <span style="font-size:11px;">▼ Click for details</span></p></div>
+    </div>
+    <div class="stat-item" onclick="viewActiveStaff()" style="cursor:pointer;">
+        <div class="stat-icon-lg">👥</div>
+        <div><h3>8</h3><p>Active Staff <span style="font-size:11px;">▼ Click for list</span></p></div>
+    </div>
 </div>
 
 <div class="grid-2col">
     <div class="card-modern">
         <h3>📈 Monthly Performance</h3>
-        <div style="height:150px; background:#F4F7FC; border-radius:16px; display:flex; align-items:center; justify-content:center; margin:1rem 0;">
-            📊 [Bar Chart: FBC 156 | Coag 89 | Diff 97]
+        <div style="height:150px; background:#F4F7FC; border-radius:16px; display:flex; align-items:center; justify-content:center; margin:1rem 0; position:relative;">
+            <div style="text-align:center;">
+                <div style="display:flex; gap:20px; justify-content:center; margin-bottom:10px;">
+                    <div><div style="width:40px; height:80px; background:#2C8C6E; border-radius:8px; display:inline-block;"></div><div>FBC<br>156</div></div>
+                    <div><div style="width:40px; height:50px; background:#E8A845; border-radius:8px; display:inline-block;"></div><div>Coag<br>89</div></div>
+                    <div><div style="width:40px; height:55px; background:#5A6E7A; border-radius:8px; display:inline-block;"></div><div>Diff<br>97</div></div>
+                </div>
+                <small>Click chart for breakdown</small>
+            </div>
         </div>
-        <button class="btn-outline-lab" onclick="showDemoAlert('Generate monthly report PDF')">Download Report (PDF)</button>
+        <button class="btn-outline-lab" onclick="openReportModal()">Download Report (PDF)</button>
+        <button class="btn-outline-lab" onclick="viewTestBreakdown()" style="margin-left:10px;">View Breakdown</button>
     </div>
     <div class="card-modern">
         <h3>⚠️ Critical Alerts</h3>
         <ul style="margin-top:1rem;">
-            <li style="color:#E26D5C;">🔴 EDTA Tubes below reorder level (45/50)</li>
-            <li style="color:#E8A845;">🟡 2 STAT requests pending &gt;30min</li>
+            <li style="color:#E26D5C;">
+                🔴 EDTA Tubes below reorder level (45/50)
+                <button class="btn-link" onclick="createOrderFromAlert('EDTA Tubes')">Order Now</button>
+            </li>
+            <li style="color:#E8A845;">
+                🟡 2 STAT requests pending &gt;30min
+                <button class="btn-link" onclick="viewStatRequests()">View & Assign</button>
+            </li>
             <li style="color:#2C8C6E;">✅ No equipment failures reported</li>
         </ul>
     </div>
@@ -43,15 +204,305 @@
 <div class="card-modern">
     <div class="card-header-flex">
         <h3>📋 Recent Orders</h3>
-        <button class="btn-sm-lab" onclick="showDemoAlert('Create new stock order')">+ Create Order</button>
+        <button class="btn-sm-lab" onclick="openQuickOrderModal()">
+            + Create Order
+        </button>
     </div>
     <table>
         <thead><tr><th>Order #</th><th>Supplier</th><th>Date</th><th>Status</th><th>Items</th><th>Action</th></tr></thead>
         <tbody>
-            <tr><td>ORD-001</td><td>MedSupply SA</td><td>2025-04-08</td><td><span class="badge badge-completed">Complete</span></td><td>EDTA Tubes (100)</td><td><button class="btn-outline-lab" onclick="showDemoAlert('View order')">View</button></td></tr>
-            <tr><td>ORD-002</td><td>LabTech Solutions</td><td>2025-04-10</td><td><span class="badge badge-progress">Partially Complete</span></td><td>Reagent Kits (50), Citrate Tubes (100)</td><td><button class="btn-outline-lab" onclick="showDemoAlert('View order')">View</button></td></tr>
+            <tr>
+                <td>ORD-001</td>
+                <td>MedSupply SA</td>
+                <td>2025-04-08</td>
+                <td><span class="badge badge-completed">Complete</span></td>
+                <td>EDTA Tubes (100)</td>
+                <td>
+                    <button class="btn-outline-lab" onclick="viewOrderDetails('ORD-001', 'MedSupply SA', '2025-04-08', 'Complete', 'EDTA Tubes (100)')">
+                        View
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>ORD-002</td>
+                <td>LabTech Solutions</td>
+                <td>2025-04-10</td>
+                <td><span class="badge badge-progress">Partially Complete</span></td>
+                <td>Reagent Kits (25/50), Citrate Tubes (100/100)</td>
+                <td>
+                    <button class="btn-outline-lab" onclick="viewOrderDetails('ORD-002', 'LabTech Solutions', '2025-04-10', 'Partially Complete', 'Reagent Kits (25/50 received), Citrate Tubes (100/100 received)')">
+                        View
+                    </button>
+                    <button class="btn-sm-lab" onclick="markOrderReceived('ORD-002')">Mark Received</button>
+                </td>
+            </tr>
+            <tr>
+                <td>ORD-003</td>
+                <td>MedSupply SA</td>
+                <td>2025-04-15</td>
+                <td><span class="badge badge-ordered">Ordered</span></td>
+                <td>EDTA Tubes (200), Citrate Tubes (150)</td>
+                <td>
+                    <button class="btn-outline-lab" onclick="viewOrderDetails('ORD-003', 'MedSupply SA', '2025-04-15', 'Ordered', 'EDTA Tubes (200), Citrate Tubes (150) - Pending')">
+                        View
+                    </button>
+                    <button class="btn-outline-lab" onclick="cancelOrder('ORD-003')">Cancel</button>
+                </td>
+            </tr>
         </tbody>
     </table>
 </div>
 
-<script>function showDemoAlert(msg){alert('🔔 '+msg);}</script>
+<style>
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-card {
+        background: white;
+        border-radius: 24px;
+        padding: 1.5rem;
+        width: 90%;
+        max-width: 700px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .low-stock-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        border-bottom: 1px solid #E2E8F0;
+    }
+
+    .order-checkbox {
+        margin: 10px 0;
+        padding: 8px;
+        background: #F8FAFE;
+        border-radius: 8px;
+    }
+
+    .order-qty-input {
+        padding: 5px;
+        border-radius: 6px;
+        border: 1px solid #E2E8F0;
+    }
+
+    .btn-link {
+        background: none;
+        border: none;
+        color: #2C8C6E;
+        cursor: pointer;
+        text-decoration: underline;
+        font-size: 0.75rem;
+        margin-left: 8px;
+    }
+
+    .badge-ordered {
+        background: #5A6E7A;
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+    }
+
+    .stat-item {
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+        .stat-item:hover {
+            transform: translateY(-2px);
+        }
+</style>
+
+<script>
+    // ========== STAT CARD FUNCTIONS ==========
+    function viewLowStockAlerts() {
+        document.getElementById('lowStockModal').style.display = 'flex';
+    }
+
+    function closeLowStockModal() {
+        document.getElementById('lowStockModal').style.display = 'none';
+    }
+
+    function viewMonthlyTests() {
+        alert(`📊 Monthly Test Breakdown (April 2025)\n\n📈 Total Tests: 342\n\nBy Category:\n• Full Blood Count: 156 (45.6%)\n• Coagulation Studies: 89 (26.0%)\n• Differential Count: 97 (28.4%)\n\n📅 Daily Average: 11.4 tests\n⏱️ Avg Turnaround: 42 min\n✅ On-Time Rate: 93.3%`);
+    }
+
+    function viewActiveStaff() {
+        alert(`👥 Active Staff (8 total)\n\n🔬 Lab Technicians (4):\n• Michael Peters - Active\n• Tech Smith - Active\n• Jane Williams - Active\n• David Ngema - On Leave\n\n👨‍⚕️ Doctors (3):\n• Dr. Sarah Johnson - Active\n• Dr. Michael Brown - Active\n• Dr. Peter Khumalo - Active\n\n📋 Admin (1):\n• Admin User - Active`);
+    }
+
+    // ========== ALERT FUNCTIONS ==========
+    function createOrderFromAlert(itemName) {
+        document.getElementById('quickOrderSupplier').value = 'MedSupply SA';
+        document.getElementById('quickOrderNumber').value = 'ORD-' + new Date().getFullYear() + '-' + Math.floor(Math.random() * 1000);
+
+        // Auto-check the item
+        let checkboxes = document.querySelectorAll('#quickOrderItems input[type="checkbox"]');
+        checkboxes.forEach(cb => {
+            if(cb.value === itemName) cb.checked = true;
+        });
+
+        closeLowStockModal();
+        document.getElementById('quickOrderModal').style.display = 'flex';
+        alert(`📦 Creating order for: ${itemName}`);
+    }
+
+    function orderAllLowStock() {
+        alert(`📦 Bulk order created for all low stock items:\n\n• EDTA Tubes: 100 units\n• Citrate Tubes: 80 units\n• Reagent Kits: 60 units\n\n📧 Order email sent to MedSupply SA`);
+        closeLowStockModal();
+    }
+
+    function viewStatRequests() {
+        document.getElementById('statRequestsModal').style.display = 'flex';
+    }
+
+    function closeStatModal() {
+        document.getElementById('statRequestsModal').style.display = 'none';
+    }
+
+    function assignStatRequest(requestId) {
+        alert(`✅ STAT Request ${requestId} assigned to available technician.\n📧 Technician notified.\n⏱️ Expected turnaround: 25 minutes`);
+        closeStatModal();
+    }
+
+    // ========== ORDER FUNCTIONS ==========
+    function openQuickOrderModal() {
+        document.getElementById('quickOrderNumber').value = 'ORD-' + new Date().getFullYear() + '-' + Math.floor(Math.random() * 1000);
+        document.getElementById('quickOrderModal').style.display = 'flex';
+    }
+
+    function closeQuickOrderModal() {
+        document.getElementById('quickOrderModal').style.display = 'none';
+    }
+
+    function submitQuickOrder() {
+        let supplier = document.getElementById('quickOrderSupplier').value;
+        let orderNum = document.getElementById('quickOrderNumber').value;
+        let items = [];
+
+        let checkboxes = document.querySelectorAll('#quickOrderItems input[type="checkbox"]');
+        checkboxes.forEach(cb => {
+            if(cb.checked) {
+                let qty = cb.parentElement.querySelector('.order-qty-input').value;
+                items.push(`${cb.value} (${qty || '100'} units)`);
+            }
+        });
+
+        if(items.length === 0) {
+            alert('Please select at least one item to order');
+            return;
+        }
+
+        alert(`✅ Order ${orderNum} submitted to ${supplier}\n\n📦 Items ordered:\n• ${items.join('\n• ')}\n\n📧 Email sent to supplier with order details.\n📊 Order status: Ordered\n🕐 Estimated delivery: 3-5 business days`);
+
+        closeQuickOrderModal();
+
+        // Reset checkboxes
+        checkboxes.forEach(cb => {
+            cb.checked = false;
+            cb.parentElement.querySelector('.order-qty-input').value = '';
+        });
+    }
+
+    // ========== ORDER DETAILS FUNCTIONS ==========
+    let currentOrder = null;
+
+    function viewOrderDetails(orderId, supplier, date, status, items) {
+        currentOrder = { orderId, supplier, date, status, items };
+
+        document.getElementById('orderDetailsTitle').innerText = `Order Details: ${orderId}`;
+        document.getElementById('orderDetailsContent').innerHTML = `
+            <div class="order-detail-row"><strong>Supplier:</strong> ${supplier}</div>
+            <div class="order-detail-row"><strong>Date:</strong> ${date}</div>
+            <div class="order-detail-row"><strong>Status:</strong> <span class="badge ${status === 'Complete' ? 'badge-completed' : status === 'Partially Complete' ? 'badge-progress' : 'badge-ordered'}">${status}</span></div>
+            <div class="order-detail-row"><strong>Items:</strong> ${items}</div>
+            <div class="order-detail-row"><strong>Last Updated:</strong> ${new Date().toLocaleString()}</div>
+        `;
+
+        let actionBtn = document.getElementById('orderActionBtn');
+        if(status === 'Complete') {
+            actionBtn.style.display = 'none';
+        } else if(status === 'Partially Complete') {
+            actionBtn.style.display = 'inline-block';
+            actionBtn.innerText = 'Mark Fully Received';
+            actionBtn.onclick = () => markOrderReceived(orderId);
+        } else if(status === 'Ordered') {
+            actionBtn.style.display = 'inline-block';
+            actionBtn.innerText = 'Mark as Received';
+            actionBtn.onclick = () => markOrderReceived(orderId);
+        }
+
+        document.getElementById('orderDetailsModal').style.display = 'flex';
+    }
+
+    function closeOrderDetailsModal() {
+        document.getElementById('orderDetailsModal').style.display = 'none';
+    }
+
+    function markOrderReceived(orderId) {
+        if(confirm(`Mark order ${orderId} as fully received? Stock levels will be updated automatically.`)) {
+            alert(`✅ Order ${orderId} marked as received.\n\n📦 Stock updated:\n• EDTA Tubes: +100 (New total: 145)\n• Citrate Tubes: +150 (New total: 182)\n\n✅ Order status changed to "Complete"\n📅 Completion date: ${new Date().toLocaleDateString()}`);
+            closeOrderDetailsModal();
+            location.reload();
+        }
+    }
+
+    function cancelOrder(orderId) {
+        let reason = prompt('Please provide reason for cancellation:');
+        if(reason) {
+            let notify = confirm('Notify supplier via email?');
+            alert(`❌ Order ${orderId} cancelled.\n📝 Reason: ${reason}\n📅 Cancellation date: ${new Date().toLocaleDateString()}\n📧 Supplier notified: ${notify ? 'Yes' : 'No'}`);
+        }
+    }
+
+    // ========== REPORT FUNCTIONS ==========
+    function openReportModal() {
+        document.getElementById('reportModal').style.display = 'flex';
+    }
+
+    function closeReportModal() {
+        document.getElementById('reportModal').style.display = 'none';
+    }
+
+    function generateReport() {
+        let month = document.getElementById('reportMonth').value;
+        let monthName = document.getElementById('reportMonth').options[document.getElementById('reportMonth').selectedIndex].text;
+        let reportType = document.getElementById('reportType').value;
+
+        alert(`📄 Generating ${reportType} Report (PDF)\n\n📅 Period: ${monthName}\n\n📊 Summary:\n• Total Tests: 342\n• Tests by Category:\n  - Full Blood Count: 156\n  - Coagulation Studies: 89\n  - Differential Count: 97\n\n📈 Report will download shortly.`);
+
+        closeReportModal();
+    }
+
+    function viewTestBreakdown() {
+        alert(`📊 Detailed Test Breakdown (April 2025)\n\n🏥 Full Blood Count (156 tests):\n• Haemoglobin: 52\n• White Cell Count: 54\n• Platelet Count: 50\n\n🩸 Coagulation Studies (89 tests):\n• PT/INR: 45\n• APTT: 44\n\n🔬 Differential Count (97 tests):\n• Manual Diff: 60\n• Automated Diff: 37\n\n⏱️ Average Turnaround: 42 min\n✅ On-Time Rate: 93.3%`);
+    }
+
+    function orderAction() {
+        // This is set dynamically in viewOrderDetails
+    }
+
+    function showDemoAlert(msg) {
+        alert('🔔 ' + msg);
+    }
+</script>

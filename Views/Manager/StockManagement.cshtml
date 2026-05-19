@@ -4,17 +4,128 @@
     ViewData["RoleSubtitle"] = "Manager Portal";
     ViewData["UserGreeting"] = "📊 Amanda Adams";
     ViewData["UserInitials"] = "AA";
-
-    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Manager")" class="active">📈 Overview</a></li>
+    <li><a href="@Url.Action("Dashboard", "Manager")">📈 Overview</a></li>
     <li><a href="@Url.Action("TestCatalogue", "Manager")">📚 Test Catalogue</a></li>
-    <li><a href="@Url.Action("StockManagement", "Manager")">📦 Stock & Orders</a></li>
+    <li><a href="@Url.Action("StockManagement", "Manager")" class="active">📦 Stock & Orders</a></li>
     <li><a href="@Url.Action("StaffManagement", "Manager")">👥 Staff Management</a></li>
-    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
+
+<!-- Stock Adjustment Modal -->
+<div id="stockModal" class="modal-overlay" style="display:none;">
+    <div class="modal-card" style="max-width:450px;">
+        <h3 id="stockModalTitle">Adjust Stock</h3>
+        <div class="form-group">
+            <label>Consumable</label>
+            <input type="text" id="stockConsumable" class="form-control" readonly>
+        </div>
+        <div class="form-group">
+            <label>Current Quantity</label>
+            <input type="text" id="stockCurrentQty" class="form-control" readonly>
+        </div>
+        <div class="form-group">
+            <label>Adjustment Type</label>
+            <select id="adjustmentType" class="form-control" onchange="toggleAdjustmentInput()">
+                <option value="increase">+ Increase by</option>
+                <option value="decrease">- Decrease by</option>
+                <option value="set">= Set to specific value</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label id="adjustmentLabel">Amount to Increase</label>
+            <input type="number" id="adjustmentAmount" class="form-control" placeholder="Enter amount">
+        </div>
+        <div class="modal-actions">
+            <button class="btn-outline-lab" onclick="closeStockModal()">Cancel</button>
+            <button class="btn-sm-lab" onclick="saveStockAdjustment()">Apply Adjustment</button>
+        </div>
+    </div>
+</div>
+
+<!-- Create Order Modal -->
+<div id="orderModal" class="modal-overlay" style="display:none;">
+    <div class="modal-card" style="max-width:650px;">
+        <h3>Create Stock Order</h3>
+        <div class="form-group">
+            <label>Supplier</label>
+            <select id="orderSupplier" class="form-control">
+                <option>MedSupply SA</option>
+                <option>LabTech Solutions</option>
+                <option>Haematology Direct</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Order Number (Auto-generated)</label>
+            <input type="text" id="orderNumber" class="form-control" value="ORD-2026-00" readonly>
+        </div>
+        <div class="form-group">
+            <label>Items to Order</label>
+            <div id="orderItems">
+                <div class="order-item">
+                    <input type="checkbox" value="EDTA Tubes"> EDTA Tubes (Current: 45, Reorder: 50)
+                    <input type="number" placeholder="Qty" class="order-qty" style="width:80px; margin-left:10px;">
+                </div>
+                <div class="order-item">
+                    <input type="checkbox" value="Citrate Tubes"> Citrate Tubes (Current: 32, Reorder: 40)
+                    <input type="number" placeholder="Qty" class="order-qty" style="width:80px; margin-left:10px;">
+                </div>
+                <div class="order-item">
+                    <input type="checkbox" value="Reagent Kits"> Reagent Kits (Current: 120, Reorder: 30)
+                    <input type="number" placeholder="Qty" class="order-qty" style="width:80px; margin-left:10px;">
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Notes</label>
+            <textarea id="orderNotes" class="form-control" rows="2"></textarea>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-outline-lab" onclick="closeOrderModal()">Cancel</button>
+            <button class="btn-sm-lab" onclick="submitOrder()">Submit Order & Email Supplier</button>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Order Modal -->
+<div id="cancelOrderModal" class="modal-overlay" style="display:none;">
+    <div class="modal-card" style="max-width:450px;">
+        <h3>Cancel Order</h3>
+        <div class="form-group">
+            <label>Order ID</label>
+            <input type="text" id="cancelOrderId" class="form-control" readonly>
+        </div>
+        <div class="form-group">
+            <label>Reason for Cancellation *</label>
+            <textarea id="cancelReason" class="form-control" rows="3" placeholder="Please provide reason..."></textarea>
+        </div>
+        <div class="form-group">
+            <label><input type="checkbox" id="notifySupplier" checked> Notify supplier via email</label>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-outline-lab" onclick="closeCancelOrderModal()">Back</button>
+            <button class="btn-sm-lab" onclick="confirmCancelOrder()">Confirm Cancellation</button>
+        </div>
+    </div>
+</div>
+
+<!-- View Supplier Modal -->
+<div id="supplierModal" class="modal-overlay" style="display:none;">
+    <div class="modal-card" style="max-width:500px;">
+        <h3 id="supplierModalTitle">Supplier Details</h3>
+        <div class="supplier-detail">
+            <p><strong>Name:</strong> <span id="suppDetailName"></span></p>
+            <p><strong>Contact Person:</strong> <span id="suppDetailContact"></span></p>
+            <p><strong>Email:</strong> <span id="suppDetailEmail"></span></p>
+            <p><strong>Phone:</strong> <span id="suppDetailPhone"></span></p>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-outline-lab" onclick="closeSupplierModal()">Close</button>
+            <button class="btn-sm-lab" onclick="editSupplier()">Edit Supplier</button>
+        </div>
+    </div>
+</div>
 
 <div class="stat-cards">
     <div class="stat-item"><div class="stat-icon-lg">🔴</div><div><h3>2</h3><p>Below Reorder Level</p></div></div>
@@ -25,14 +136,47 @@
 <div class="card-modern">
     <div class="card-header-flex">
         <h3>📦 Current Inventory</h3>
-        <button class="btn-sm-lab" onclick="showDemoAlert('Adjust stock levels')">Adjust Stock</button>
+        <button class="btn-sm-lab" onclick="openStockModal('bulk')">Adjust Stock</button>
     </div>
     <table>
         <thead><tr><th>Consumable</th><th>Quantity On Hand</th><th>Reorder Level</th><th>Supplier</th><th>Status</th><th>Action</th></tr></thead>
         <tbody>
-            <tr><td>EDTA Tubes</td><td>45</td><td>50</td><td>MedSupply SA</td><td><span class="badge badge-stat">REORDER NOW</span></td><td><button class="btn-sm-lab" onclick="showDemoAlert('Create order for EDTA Tubes')">Order</button></td></tr>
-            <tr><td>Reagent Kits</td><td>120</td><td>30</td><td>LabTech Solutions</td><td><span class="badge badge-completed">OK</span></td><td><button class="btn-outline-lab" onclick="showDemoAlert('Reorder Reagent Kits')">Reorder</button></td></tr>
-            <tr><td>Citrate Tubes</td><td>32</td><td>40</td><td>MedSupply SA</td><td><span class="badge badge-progress">Needs Order</span></td><td><button class="btn-sm-lab" onclick="showDemoAlert('Create order for Citrate Tubes')">Order</button></td></tr>
+            <tr>
+                <td>EDTA Tubes</td>
+                <td><span id="qty-edta">45</span></td>
+                <td>50</td>
+                <td>MedSupply SA <button class="btn-link" onclick="viewSupplier('MedSupply SA')">View</button></td>
+                <td><span class="badge badge-stat">REORDER NOW</span></td>
+                <td>
+                    <button class="btn-sm-lab" onclick="openStockModal('EDTA Tubes', 'qty-edta', 45)">Adjust Stock</button>
+                    <button class="btn-outline-lab" onclick="createOrder('EDTA Tubes')">Order</button>
+                    <button class="btn-outline-lab" onclick="reorderItem('EDTA Tubes')">Reorder</button>
+                </td>
+            </tr>
+            <tr>
+                <td>Reagent Kits</td>
+                <td><span id="qty-reagent">120</span></td>
+                <td>30</td>
+                <td>LabTech Solutions <button class="btn-link" onclick="viewSupplier('LabTech Solutions')">View</button></td>
+                <td><span class="badge badge-completed">OK</span></td>
+                <td>
+                    <button class="btn-outline-lab" onclick="openStockModal('Reagent Kits', 'qty-reagent', 120)">Adjust Stock</button>
+                    <button class="btn-outline-lab" onclick="createOrder('Reagent Kits')">Order</button>
+                    <button class="btn-outline-lab" onclick="reorderItem('Reagent Kits')">Reorder</button>
+                </td>
+            </tr>
+            <tr>
+                <td>Citrate Tubes</td>
+                <td><span id="qty-citrate">32</span></td>
+                <td>40</td>
+                <td>MedSupply SA <button class="btn-link" onclick="viewSupplier('MedSupply SA')">View</button></td>
+                <td><span class="badge badge-progress">Needs Order</span></td>
+                <td>
+                    <button class="btn-sm-lab" onclick="openStockModal('Citrate Tubes', 'qty-citrate', 32)">Adjust Stock</button>
+                    <button class="btn-sm-lab" onclick="createOrder('Citrate Tubes')">Order</button>
+                    <button class="btn-outline-lab" onclick="reorderItem('Citrate Tubes')">Reorder</button>
+                </td>
+            </tr>
         </tbody>
     </table>
 </div>
@@ -41,20 +185,221 @@
     <div class="card-modern">
         <h3>📋 Suppliers</h3>
         <ul style="margin-top:1rem;">
-            <li><strong>MedSupply SA</strong> - contact@medsupply.co.za</li>
-            <li><strong>LabTech Solutions</strong> - orders@labtech.com</li>
-            <li><strong>Haematology Direct</strong> - sales@haemdirect.com</li>
+            <li>
+                <strong>MedSupply SA</strong> - contact@medsupply.co.za
+                <button class="btn-link" onclick="viewSupplier('MedSupply SA')">View</button>
+                <button class="btn-link" onclick="editSupplier('MedSupply SA')">Edit</button>
+            </li>
+            <li>
+                <strong>LabTech Solutions</strong> - sales@haemdirect.com
+                <button class="btn-link" onclick="viewSupplier('LabTech Solutions')">View</button>
+                <button class="btn-link" onclick="editSupplier('LabTech Solutions')">Edit</button>
+            </li>
+            <li>
+                <strong>Haematology Direct</strong> - contact@haemotDirect.co.za
+                <button class="btn-link" onclick="viewSupplier('Haematology Direct')">View</button>
+                <button class="btn-link" onclick="editSupplier('Haematology Direct')">Edit</button>
+            </li>
         </ul>
-        <button class="btn-outline-lab" style="margin-top:1rem;" onclick="showDemoAlert('Add new supplier')">+ Add Supplier</button>
+        <button class="btn-outline-lab" style="margin-top:1rem;" onclick="addSupplier()">+ Add Supplier</button>
     </div>
     <div class="card-modern">
         <h3>📦 Pending Orders</h3>
         <ul style="margin-top:1rem;">
-            <li><strong>ORD-002</strong> - LabTech Solutions - <span class="badge badge-progress">Partially Complete</span></li>
-            <li><strong>ORD-003</strong> - MedSupply SA - <span class="badge">Ordered</span></li>
+            <li>
+                <strong>ORD-002</strong> - LabTech Solutions - <span class="badge badge-progress">Partially Complete</span>
+                <button class="btn-link" onclick="viewOrder('ORD-002')">View</button>
+                <button class="btn-link" onclick="markOrderReceived('ORD-002')">Mark Received</button>
+            </li>
+            <li>
+                <strong>ORD-003</strong> - MedSupply SA - <span class="badge badge-progress">Ordered</span>
+                <button class="btn-link" onclick="viewOrder('ORD-003')">View</button>
+                <button class="btn-link" onclick="cancelOrder('ORD-003')">Cancel</button>
+            </li>
         </ul>
-        <button class="btn-sm-lab" style="margin-top:1rem;" onclick="showDemoAlert('Create grouped order by supplier')">Create Order</button>
+        <button class="btn-sm-lab" style="margin-top:1rem;" onclick="openOrderModal()">Create Order</button>
     </div>
 </div>
 
-<script>function showDemoAlert(msg){alert('🔔 '+msg);}</script>
+<script>
+    let currentStockItem = null;
+    let currentStockSpanId = null;
+    let currentStockValue = 0;
+
+    // Stock Adjustment Functions
+    function openStockModal(itemName, spanId, currentQty) {
+        currentStockItem = itemName;
+        currentStockSpanId = spanId;
+        currentStockValue = currentQty;
+
+        document.getElementById('stockModalTitle').innerText = 'Adjust Stock: ' + itemName;
+        document.getElementById('stockConsumable').value = itemName;
+        document.getElementById('stockCurrentQty').value = currentQty;
+        document.getElementById('adjustmentAmount').value = '';
+        document.getElementById('stockModal').style.display = 'flex';
+    }
+
+    function toggleAdjustmentInput() {
+        let type = document.getElementById('adjustmentType').value;
+        let label = document.getElementById('adjustmentLabel');
+        if(type === 'increase') label.innerText = 'Amount to Increase (+';
+        else if(type === 'decrease') label.innerText = 'Amount to Decrease (-';
+        else label.innerText = 'New Quantity (=';
+    }
+
+    function closeStockModal() {
+        document.getElementById('stockModal').style.display = 'none';
+    }
+
+    function saveStockAdjustment() {
+        let type = document.getElementById('adjustmentType').value;
+        let amount = parseInt(document.getElementById('adjustmentAmount').value);
+        let newQty = currentStockValue;
+
+        if(isNaN(amount)) { alert('Please enter a valid amount'); return; }
+
+        if(type === 'increase') newQty = currentStockValue + amount;
+        else if(type === 'decrease') newQty = Math.max(0, currentStockValue - amount);
+        else if(type === 'set') newQty = amount;
+
+        document.getElementById(currentStockSpanId).innerText = newQty;
+        alert(`✅ Stock adjusted: ${currentStockItem}\nOld: ${currentStockValue} → New: ${newQty}`);
+        closeStockModal();
+    }
+
+    // Order Functions
+    function openOrderModal() {
+        document.getElementById('orderNumber').value = 'ORD-' + new Date().getFullYear() + '-' + Math.floor(Math.random() * 1000);
+        document.getElementById('orderModal').style.display = 'flex';
+    }
+
+    function createOrder(itemName) {
+        document.getElementById('orderNumber').value = 'ORD-' + new Date().getFullYear() + '-' + Math.floor(Math.random() * 1000);
+        document.getElementById('orderModal').style.display = 'flex';
+        alert(`📦 Creating order for: ${itemName}`);
+    }
+
+    function reorderItem(itemName) {
+        alert(`🔄 Reorder triggered for: ${itemName}\n\nSuggested quantity: 100 units\nSupplier will be notified automatically.`);
+    }
+
+    function closeOrderModal() {
+        document.getElementById('orderModal').style.display = 'none';
+    }
+
+    function submitOrder() {
+        let supplier = document.getElementById('orderSupplier').value;
+        let orderNum = document.getElementById('orderNumber').value;
+        alert(`✅ Order ${orderNum} submitted to ${supplier}\n📧 Email sent to supplier with order details.\n📦 Stock will be updated when order is marked as received.`);
+        closeOrderModal();
+    }
+
+    function viewOrder(orderId) {
+        alert(`🔍 Viewing order details for: ${orderId}\n\nSupplier: LabTech Solutions\nDate: 2025-04-10\nStatus: Partially Complete\nItems: Reagent Kits (25/50 received), Citrate Tubes (100/100 received)`);
+    }
+
+    function markOrderReceived(orderId) {
+        if(confirm(`Mark order ${orderId} as received? Stock levels will be updated automatically.`)) {
+            alert(`✅ Order ${orderId} marked as received.\n📦 Stock levels updated.\n✅ Order status changed to "Complete".`);
+        }
+    }
+
+    // Order Cancellation
+    let currentCancelOrderId = null;
+
+    function cancelOrder(orderId) {
+        currentCancelOrderId = orderId;
+        document.getElementById('cancelOrderId').value = orderId;
+        document.getElementById('cancelReason').value = '';
+        document.getElementById('cancelOrderModal').style.display = 'flex';
+    }
+
+    function closeCancelOrderModal() {
+        document.getElementById('cancelOrderModal').style.display = 'none';
+    }
+
+    function confirmCancelOrder() {
+        let reason = document.getElementById('cancelReason').value;
+        let notify = document.getElementById('notifySupplier').checked;
+
+        if(!reason) { alert('Please provide a reason for cancellation'); return; }
+
+        alert(`❌ Order ${currentCancelOrderId} cancelled.\n📝 Reason: ${reason}\n📅 Cancellation date: ${new Date().toLocaleDateString()}\n📧 Supplier notified: ${notify ? 'Yes' : 'No'}`);
+        closeCancelOrderModal();
+    }
+
+    // Supplier Functions
+    function viewSupplier(supplierName) {
+        document.getElementById('supplierModalTitle').innerText = 'Supplier Details';
+        document.getElementById('suppDetailName').innerText = supplierName;
+
+        if(supplierName === 'MedSupply SA') {
+            document.getElementById('suppDetailContact').innerText = 'John Smith';
+            document.getElementById('suppDetailEmail').innerText = 'contact@medsupply.co.za';
+            document.getElementById('suppDetailPhone').innerText = '041 555 1000';
+        } else if(supplierName === 'LabTech Solutions') {
+            document.getElementById('suppDetailContact').innerText = 'Sarah Jones';
+            document.getElementById('suppDetailEmail').innerText = 'orders@labtech.com';
+            document.getElementById('suppDetailPhone').innerText = '041 555 2020';
+        } else {
+            document.getElementById('suppDetailContact').innerText = 'Mike Brown';
+            document.getElementById('suppDetailEmail').innerText = 'sales@haemdirect.co.za';
+            document.getElementById('suppDetailPhone').innerText = '041 555 3030';
+        }
+
+        document.getElementById('supplierModal').style.display = 'flex';
+    }
+
+    function editSupplier(supplierName) {
+        alert(`✏️ Edit supplier: ${supplierName}\n\nThis will open a form to edit supplier details.`);
+    }
+
+    function addSupplier() {
+        alert(`➕ Add New Supplier\n\nPlease enter:\n- Supplier Name\n- Contact Person\n- Email Address\n- Phone Number`);
+    }
+
+    function closeSupplierModal() {
+        document.getElementById('supplierModal').style.display = 'none';
+    }
+
+    function showDemoAlert(msg) { alert('🔔 ' + msg); }
+</script>
+
+<style>
+    .order-item {
+        margin: 10px 0;
+        padding: 8px;
+        background: #F8FAFE;
+        border-radius: 8px;
+    }
+
+    .order-qty {
+        margin-left: 10px;
+        padding: 5px;
+        border-radius: 6px;
+        border: 1px solid #E2E8F0;
+    }
+
+    .btn-link {
+        background: none;
+        border: none;
+        color: #2C8C6E;
+        cursor: pointer;
+        text-decoration: underline;
+        font-size: 0.75rem;
+    }
+
+    .supplier-detail p {
+        margin: 10px 0;
+        padding: 5px 0;
+        border-bottom: 1px solid #E2E8F0;
+    }
+
+    .badge-stat {
+        background: #E26D5C;
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+    }
+</style>
