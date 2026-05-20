@@ -4,69 +4,163 @@
     ViewData["RoleSubtitle"] = "Admin Portal";
     ViewData["UserGreeting"] = "⚙️ System Administrator";
     ViewData["UserInitials"] = "AD";
-    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Admin")" class="active">📋 Dashboard</a></li>
-    <li><a href="@Url.Action("Conditions", "Admin")">🩺 Medical Conditions</a></li>
+    <li><a href="@Url.Action("Dashboard", "Admin")">📋 Dashboard</a></li>
+    <li><a href="@Url.Action("Conditions", "Admin")" class="active">🩺 Medical Conditions</a></li>
     <li><a href="@Url.Action("Allergies", "Admin")">⚠️ Allergies</a></li>
     <li><a href="@Url.Action("Medications", "Admin")">💊 Medications</a></li>
-    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+    <li>
+        <a href="@Url.Action("Index", "Profile")">
+            <i class="fas fa-user-circle"></i>
+            <span>My Profile</span>
+        </a>
+    </li>
 }
 
 <div class="card-modern">
+
     <div class="card-header-flex">
         <h3>🩺 Medical Conditions by Category</h3>
-        <button class="btn-sm-lab" onclick="showDemoAlert('Add new condition category')">+ Add Category</button>
+
+        <button class="btn-sm-lab"
+                onclick="showDemoAlert('Add new condition category')">
+            + Add Category
+        </button>
     </div>
 
     <div class="grid-2col">
+
+        <!-- Haematological -->
         <div class="card-modern" style="background:#F8FAFE;">
+
             <h4>🔴 Haematological Conditions</h4>
-            <ul style="margin-top:0.5rem;">
-                <li>Anaemia <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Anaemia')">Edit</button></li>
-                <li>Leukaemia <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Leukaemia')">Edit</button></li>
-                <li>Lymphoma <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Lymphoma')">Edit</button></li>
-                <li>Haemophilia <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Haemophilia')">Edit</button></li>
-                <li>Thrombocytopenia <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Thrombocytopenia')">Edit</button></li>
+
+            <ul class="sortable-list" style="margin-top:0.5rem;">
+                <li>Anaemia</li>
+                <li>Leukaemia</li>
+                <li>Lymphoma</li>
+                <li>Haemophilia</li>
+                <li>Thrombocytopenia</li>
             </ul>
-            <button class="btn-outline-lab" style="margin-top:0.5rem;" onclick="showDemoAlert('Add new haematological condition')">+ Add Condition</button>
+
         </div>
 
+        <!-- Metabolic -->
         <div class="card-modern" style="background:#F8FAFE;">
+
             <h4>💚 Metabolic & Endocrine</h4>
-            <ul style="margin-top:0.5rem;">
-                <li>Diabetes Type 1 <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Diabetes Type 1')">Edit</button></li>
-                <li>Diabetes Type 2 <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Diabetes Type 2')">Edit</button></li>
-                <li>Hypertension <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Hypertension')">Edit</button></li>
-                <li>Hyperlipidaemia <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Hyperlipidaemia')">Edit</button></li>
+
+            <ul class="sortable-list" style="margin-top:0.5rem;">
+                <li>Diabetes Type 1</li>
+                <li>Diabetes Type 2</li>
+                <li>Hypertension</li>
+                <li>Hyperlipidaemia</li>
             </ul>
-            <button class="btn-outline-lab" style="margin-top:0.5rem;" onclick="showDemoAlert('Add new metabolic condition')">+ Add Condition</button>
+
         </div>
+
     </div>
 
     <div class="grid-2col" style="margin-top:1rem;">
+
+        <!-- Autoimmune -->
         <div class="card-modern" style="background:#F8FAFE;">
+
             <h4>🧬 Autoimmune & Inflammatory</h4>
-            <ul style="margin-top:0.5rem;">
-                <li>Rheumatoid Arthritis <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Rheumatoid Arthritis')">Edit</button></li>
-                <li>Lupus (SLE) <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Lupus')">Edit</button></li>
-                <li>Crohn's Disease <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Crohn\'s')">Edit</button></li>
+
+            <ul class="sortable-list" style="margin-top:0.5rem;">
+                <li>Rheumatoid Arthritis</li>
+                <li>Lupus (SLE)</li>
+                <li>Crohn's Disease</li>
             </ul>
-            <button class="btn-outline-lab" style="margin-top:0.5rem;" onclick="showDemoAlert('Add new autoimmune condition')">+ Add Condition</button>
+
         </div>
 
+        <!-- Neurological -->
         <div class="card-modern" style="background:#F8FAFE;">
+
             <h4>🧠 Neurological</h4>
-            <ul style="margin-top:0.5rem;">
-                <li>Epilepsy <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Epilepsy')">Edit</button></li>
-                <li>Migraine <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Migraine')">Edit</button></li>
-                <li>Parkinson's Disease <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Parkinson\'s')">Edit</button></li>
+
+            <ul class="sortable-list" style="margin-top:0.5rem;">
+                <li>Epilepsy</li>
+                <li>Migraine</li>
+                <li>Parkinson's Disease</li>
             </ul>
-            <button class="btn-outline-lab" style="margin-top:0.5rem;" onclick="showDemoAlert('Add new neurological condition')">+ Add Condition</button>
+
         </div>
+
     </div>
+
 </div>
 
-<script>function showDemoAlert(msg){alert('🔔 '+msg);}</script>
+<script>
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const lists = document.querySelectorAll(".sortable-list");
+
+        lists.forEach(function (list) {
+
+            let items = Array.from(list.querySelectorAll("li"));
+
+            items.sort(function (a, b) {
+                return a.textContent.trim().localeCompare(b.textContent.trim());
+            });
+
+            list.innerHTML = "";
+
+            items.forEach(function (item) {
+
+                let itemName = item.textContent.trim();
+
+                let li = document.createElement("li");
+
+                li.style.marginBottom = "0.5rem";
+
+                li.innerHTML = `
+                        <span>${itemName}</span>
+
+                        <button class="btn-outline-lab"
+                                style="margin-left:0.5rem;"
+                                onclick="showDemoAlert('Edit ${itemName}')">
+                            Edit
+                        </button>
+
+                        <button class="btn-outline-lab"
+                                style="margin-left:0.5rem; color:red; border-color:red;"
+                                onclick="removeItem(this)">
+                            Remove
+                        </button>
+                    `;
+
+                list.appendChild(li);
+
+            });
+
+        });
+
+    });
+
+    function removeItem(button) {
+
+        let itemName = button.parentElement.querySelector("span").textContent;
+
+        if (confirm("Are you sure you want to remove " + itemName + "?")) {
+
+            button.parentElement.remove();
+
+            alert(itemName + " has been removed.");
+
+        }
+
+    }
+
+    function showDemoAlert(msg) {
+
+        alert('🔔 ' + msg);
+
+    }
+
+</script>

@@ -4,15 +4,13 @@
     ViewData["RoleSubtitle"] = "Admin Portal";
     ViewData["UserGreeting"] = "⚙️ System Administrator";
     ViewData["UserInitials"] = "AD";
-
-    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Admin")" class="active">📋 Dashboard</a></li>
+    <li><a href="@Url.Action("Dashboard", "Admin")">📋 Dashboard</a></li>
     <li><a href="@Url.Action("Conditions", "Admin")">🩺 Medical Conditions</a></li>
     <li><a href="@Url.Action("Allergies", "Admin")">⚠️ Allergies</a></li>
-    <li><a href="@Url.Action("Medications", "Admin")">💊 Medications</a></li>
+    <li><a href="@Url.Action("Medications", "Admin")" class="active">💊 Medications</a></li>
     <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
@@ -25,22 +23,22 @@
     <div class="grid-2col">
         <div class="card-modern" style="background:#F8FAFE;">
             <h4>❤️ Cardiovascular</h4>
-            <ul style="margin-top:0.5rem;">
-                <li>Lisinopril (ACE Inhibitor) <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Lisinopril')">Edit</button></li>
-                <li>Amlodipine (Calcium Blocker) <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Amlodipine')">Edit</button></li>
-                <li>Atorvastatin (Statin) <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Atorvastatin')">Edit</button></li>
-                <li>Warfarin (Anticoagulant) <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Warfarin')">Edit</button></li>
-                <li>Apixaban (DOAC) <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Apixaban')">Edit</button></li>
+            <ul class="sortable-list" style="margin-top:0.5rem;">
+                <li>Lisinopril (ACE Inhibitor)</li>
+                <li>Amlodipine (Calcium Blocker)</li>
+                <li>Atorvastatin (Statin)</li>
+                <li>Warfarin (Anticoagulant)</li>
+                <li>Apixaban (DOAC)</li>
             </ul>
         </div>
 
         <div class="card-modern" style="background:#F8FAFE;">
             <h4>🩸 Endocrine / Diabetes</h4>
-            <ul style="margin-top:0.5rem;">
-                <li>Metformin <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Metformin')">Edit</button></li>
-                <li>Insulin Glargine <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Insulin Glargine')">Edit</button></li>
-                <li>Gliclazide <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Gliclazide')">Edit</button></li>
-                <li>Levothyroxine <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Levothyroxine')">Edit</button></li>
+            <ul class="sortable-list" style="margin-top:0.5rem;">
+                <li>Metformin</li>
+                <li>Insulin Glargine</li>
+                <li>Gliclazide</li>
+                <li>Levothyroxine</li>
             </ul>
         </div>
     </div>
@@ -48,21 +46,21 @@
     <div class="grid-2col" style="margin-top:1rem;">
         <div class="card-modern" style="background:#F8FAFE;">
             <h4>🧠 Neurological / Psychiatric</h4>
-            <ul style="margin-top:0.5rem;">
-                <li>Sertraline (SSRI) <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Sertraline')">Edit</button></li>
-                <li>Escitalopram <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Escitalopram')">Edit</button></li>
-                <li>Carbamazepine <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Carbamazepine')">Edit</button></li>
-                <li>Gabapentin <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Gabapentin')">Edit</button></li>
+            <ul class="sortable-list" style="margin-top:0.5rem;">
+                <li>Sertraline (SSRI)</li>
+                <li>Escitalopram</li>
+                <li>Carbamazepine</li>
+                <li>Gabapentin</li>
             </ul>
         </div>
 
         <div class="card-modern" style="background:#F8FAFE;">
             <h4>🩻 Haematology / Oncology</h4>
-            <ul style="margin-top:0.5rem;">
-                <li>Hydroxyurea <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Hydroxyurea')">Edit</button></li>
-                <li>Imatinib <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Imatinib')">Edit</button></li>
-                <li>Rituximab <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Rituximab')">Edit</button></li>
-                <li>Filgrastim (G-CSF) <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Filgrastim')">Edit</button></li>
+            <ul class="sortable-list" style="margin-top:0.5rem;">
+                <li>Hydroxyurea</li>
+                <li>Imatinib</li>
+                <li>Rituximab</li>
+                <li>Filgrastim (G-CSF)</li>
             </ul>
         </div>
     </div>
@@ -79,4 +77,56 @@
     <p style="color:#5A6E7A;">Manage medication reference data in bulk for efficient system administration.</p>
 </div>
 
-<script>function showDemoAlert(msg){alert('🔔 '+msg);}</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const lists = document.querySelectorAll(".sortable-list");
+
+        lists.forEach(function (list) {
+            let items = Array.from(list.querySelectorAll("li"));
+
+            items.sort(function (a, b) {
+                return a.textContent.trim().localeCompare(b.textContent.trim());
+            });
+
+            list.innerHTML = "";
+
+            items.forEach(function (item) {
+                let itemName = item.textContent.trim();
+
+                let li = document.createElement("li");
+                li.style.marginBottom = "0.5rem";
+
+                li.innerHTML = `
+                        <span>${itemName}</span>
+
+                        <button class="btn-outline-lab"
+                                style="margin-left:0.5rem;"
+                                onclick="showDemoAlert('Edit ${itemName}')">
+                            Edit
+                        </button>
+
+                        <button class="btn-outline-lab"
+                                style="margin-left:0.5rem; color:red; border-color:red;"
+                                onclick="removeItem(this)">
+                            Remove
+                        </button>
+                    `;
+
+                list.appendChild(li);
+            });
+        });
+    });
+
+    function removeItem(button) {
+        let itemName = button.parentElement.querySelector("span").textContent;
+
+        if (confirm("Are you sure you want to remove " + itemName + "?")) {
+            button.parentElement.remove();
+            alert(itemName + " has been removed.");
+        }
+    }
+
+    function showDemoAlert(msg) {
+        alert('🔔 ' + msg);
+    }
+</script>

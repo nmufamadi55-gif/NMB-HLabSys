@@ -23,51 +23,118 @@
     </div>
 
     <div class="grid-2col">
+
         <div class="card-modern" style="background:#F8FAFE;">
             <h4>💊 Medication Allergies</h4>
-            <ul style="margin-top:0.5rem;">
-                <li>Penicillin <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Penicillin')">Edit</button></li>
-                <li>Sulfa Drugs <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Sulfa')">Edit</button></li>
-                <li>Aspirin (NSAID) <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Aspirin')">Edit</button></li>
-                <li>Cephalosporins <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Cephalosporins')">Edit</button></li>
-                <li>Codeine <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Codeine')">Edit</button></li>
+            <ul class="sortable-list" style="margin-top:0.5rem;">
+                <li>Penicillin</li>
+                <li>Sulfa Drugs</li>
+                <li>Aspirin (NSAID)</li>
+                <li>Cephalosporins</li>
+                <li>Codeine</li>
             </ul>
         </div>
 
         <div class="card-modern" style="background:#F8FAFE;">
             <h4>🍽️ Food Allergies</h4>
-            <ul style="margin-top:0.5rem;">
-                <li>Peanuts <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Peanuts')">Edit</button></li>
-                <li>Tree Nuts <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Tree Nuts')">Edit</button></li>
-                <li>Shellfish <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Shellfish')">Edit</button></li>
-                <li>Eggs <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Eggs')">Edit</button></li>
-                <li>Soy <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Soy')">Edit</button></li>
+            <ul class="sortable-list" style="margin-top:0.5rem;">
+                <li>Peanuts</li>
+                <li>Tree Nuts</li>
+                <li>Shellfish</li>
+                <li>Eggs</li>
+                <li>Soy</li>
             </ul>
         </div>
+
     </div>
 
     <div class="grid-2col" style="margin-top:1rem;">
+
         <div class="card-modern" style="background:#F8FAFE;">
             <h4>🐝 Environmental Allergies</h4>
-            <ul style="margin-top:0.5rem;">
-                <li>Dust Mites <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Dust Mites')">Edit</button></li>
-                <li>Pollen <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Pollen')">Edit</button></li>
-                <li>Latex <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Latex')">Edit</button></li>
-                <li>Mould <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Mould')">Edit</button></li>
-                <li>Animal Dander <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Animal Dander')">Edit</button></li>
+            <ul class="sortable-list" style="margin-top:0.5rem;">
+                <li>Dust Mites</li>
+                <li>Pollen</li>
+                <li>Latex</li>
+                <li>Mould</li>
+                <li>Animal Dander</li>
             </ul>
         </div>
 
         <div class="card-modern" style="background:#F8FAFE;">
             <h4>🦟 Insect Allergies</h4>
-            <ul style="margin-top:0.5rem;">
-                <li>Bee Venom <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Bee Venom')">Edit</button></li>
-                <li>Wasp Venom <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Wasp Venom')">Edit</button></li>
-                <li>Fire Ants <button class="btn-outline-lab" style="margin-left:0.5rem;" onclick="showDemoAlert('Edit Fire Ants')">Edit</button></li>
+            <ul class="sortable-list" style="margin-top:0.5rem;">
+                <li>Bee Venom</li>
+                <li>Wasp Venom</li>
+                <li>Fire Ants</li>
             </ul>
-            <button class="btn-outline-lab" style="margin-top:0.5rem;" onclick="showDemoAlert('Add new allergy category')">+ Add Category</button>
+
+            <button class="btn-outline-lab"
+                    style="margin-top:0.5rem;"
+                    onclick="showDemoAlert('Add new allergy category')">
+                + Add Category
+            </button>
         </div>
+
     </div>
 </div>
 
-<script>function showDemoAlert(msg){alert('🔔 '+msg);}</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const lists = document.querySelectorAll(".sortable-list");
+
+        lists.forEach(function (list) {
+
+            let items = Array.from(list.querySelectorAll("li"));
+
+            items.sort(function (a, b) {
+                return a.textContent.trim().localeCompare(b.textContent.trim());
+            });
+
+            list.innerHTML = "";
+
+            items.forEach(function (item) {
+
+                let itemName = item.textContent.trim();
+
+                let li = document.createElement("li");
+                li.style.marginBottom = "0.5rem";
+
+                li.innerHTML = `
+                        <span>${itemName}</span>
+
+                        <button class="btn-outline-lab"
+                                style="margin-left:0.5rem;"
+                                onclick="showDemoAlert('Edit ${itemName}')">
+                            Edit
+                        </button>
+
+                        <button class="btn-outline-lab"
+                                style="margin-left:0.5rem; color:red; border-color:red;"
+                                onclick="removeItem(this)">
+                            Remove
+                        </button>
+                    `;
+
+                list.appendChild(li);
+            });
+
+        });
+
+    });
+
+    function removeItem(button) {
+
+        let itemName = button.parentElement.querySelector("span").textContent;
+
+        if (confirm("Are you sure you want to remove " + itemName + "?")) {
+            button.parentElement.remove();
+            alert(itemName + " has been removed.");
+        }
+    }
+
+    function showDemoAlert(msg) {
+        alert('🔔 ' + msg);
+    }
+</script>
