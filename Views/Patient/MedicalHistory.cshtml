@@ -4,48 +4,209 @@
     ViewData["RoleSubtitle"] = "Patient Portal";
     ViewData["UserGreeting"] = $"🩺 {@ViewBag.PatientName} (ID: {@ViewBag.PatientID})";
     ViewData["UserInitials"] = "TM";
-
-    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Patient")" class="active">📋 My Results</a></li>
-    <li><a href="@Url.Action("MedicalHistory", "Patient")">📝 Medical History</a></li>
+    <li><a href="@Url.Action("Dashboard", "Patient")">📋 My Results</a></li>
+    <li><a href="@Url.Action("MedicalHistory", "Patient")" class="active">📝 Medical History</a></li>
     <li><a href="@Url.Action("Consent", "Patient")">🔐 Consent Management</a></li>
     <li><a href="@Url.Action("Trends", "Patient")">📈 Track Trends</a></li>
-    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+    <li>
+        <a href="@Url.Action("Index", "Profile")">
+            <i class="fas fa-user-circle"></i>
+            <span>My Profile</span>
+        </a>
+    </li>
 }
 
+<style>
+
+    .history-card {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .status-badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-left: 10px;
+    }
+
+    .status-active {
+        background: #DCFCE7;
+        color: #166534;
+    }
+
+    .status-warning {
+        background: #FEF3C7;
+        color: #92400E;
+    }
+
+    .timeline-item {
+        border-left: 3px solid #3B82F6;
+        padding-left: 15px;
+        margin-bottom: 18px;
+        position: relative;
+    }
+
+        .timeline-item::before {
+            content: '';
+            width: 12px;
+            height: 12px;
+            background: #3B82F6;
+            border-radius: 50%;
+            position: absolute;
+            left: -8px;
+            top: 4px;
+        }
+
+    .table-container table tr:hover {
+        background: #F8FAFC;
+        transition: 0.2s;
+    }
+</style>
+
 <div class="grid-2col">
-    <div class="card-modern">
+
+    <!-- Chronic Conditions -->
+    <div class="card-modern history-card">
+
         <div class="card-header-flex">
             <h3>🩺 Chronic Conditions</h3>
-            <button class="btn-outline-lab" onclick="showDemoAlert('Add new condition')">+ Add</button>
+
+            <button class="btn-outline-lab"
+                    onclick="showDemoAlert('New condition added successfully')">
+                + Add
+            </button>
         </div>
+
         <ul style="margin-top:1rem;">
-            <li>🔹 <strong>Hypertension</strong> - Diagnosed: 2018</li>
-            <li>🔹 <strong>Type 2 Diabetes</strong> - Diagnosed: 2021</li>
+
+            <li style="margin-bottom:12px;">
+                🔹 <strong>Hypertension</strong>
+                <span class="status-badge status-active">Active</span>
+                <br />
+                <small>Diagnosed: 2018</small>
+
+                <br /><br />
+
+                <button class="btn-outline-lab"
+                        onclick="showDemoAlert('Condition updated successfully')">
+                    Edit
+                </button>
+
+                <button class="btn-outline-lab"
+                        style="color:red; border-color:red;"
+                        onclick="showDemoAlert('Condition removed successfully')">
+                    Remove
+                </button>
+            </li>
+
+            <li>
+                🔹 <strong>Type 2 Diabetes</strong>
+                <span class="status-badge status-warning">Monitoring</span>
+                <br />
+                <small>Diagnosed: 2021</small>
+
+                <br /><br />
+
+                <button class="btn-outline-lab"
+                        onclick="showDemoAlert('Condition updated successfully')">
+                    Edit
+                </button>
+
+                <button class="btn-outline-lab"
+                        style="color:red; border-color:red;"
+                        onclick="showDemoAlert('Condition removed successfully')">
+                    Remove
+                </button>
+            </li>
+
         </ul>
+
     </div>
-    <div class="card-modern">
+
+    <!-- Allergies -->
+    <div class="card-modern history-card">
+
         <div class="card-header-flex">
             <h3>⚠️ Allergies</h3>
-            <button class="btn-outline-lab" onclick="showDemoAlert('Add new allergy')">+ Add</button>
+
+            <button class="btn-outline-lab"
+                    onclick="showDemoAlert('New allergy added successfully')">
+                + Add
+            </button>
         </div>
+
         <ul style="margin-top:1rem;">
-            <li>🔸 <strong>Penicillin</strong> - Severe reaction</li>
-            <li>🔸 <strong>Dust Mites</strong> - Mild respiratory</li>
+
+            <li style="margin-bottom:12px;">
+                🔸 <strong>Penicillin</strong>
+                <span class="status-badge status-warning">Severe</span>
+
+                <br />
+                <small>Reaction: Rash / Breathing difficulty</small>
+
+                <br /><br />
+
+                <button class="btn-outline-lab"
+                        onclick="showDemoAlert('Allergy updated successfully')">
+                    Edit
+                </button>
+
+                <button class="btn-outline-lab"
+                        style="color:red; border-color:red;"
+                        onclick="showDemoAlert('Allergy removed successfully')">
+                    Remove
+                </button>
+            </li>
+
+            <li>
+                🔸 <strong>Dust Mites</strong>
+                <span class="status-badge status-active">Mild</span>
+
+                <br />
+                <small>Reaction: Mild respiratory irritation</small>
+
+                <br /><br />
+
+                <button class="btn-outline-lab"
+                        onclick="showDemoAlert('Allergy updated successfully')">
+                    Edit
+                </button>
+
+                <button class="btn-outline-lab"
+                        style="color:red; border-color:red;"
+                        onclick="showDemoAlert('Allergy removed successfully')">
+                    Remove
+                </button>
+            </li>
+
         </ul>
+
     </div>
+
 </div>
 
+<!-- Medications -->
+
 <div class="card-modern">
+
     <div class="card-header-flex">
         <h3>💊 Current Medications</h3>
-        <button class="btn-outline-lab" onclick="showDemoAlert('Add medication')">+ Add</button>
+
+        <button class="btn-outline-lab"
+                onclick="showDemoAlert('Medication added successfully')">
+            + Add
+        </button>
     </div>
+
     <div class="table-container">
+
         <table>
+
             <thead>
                 <tr>
                     <th>Medication</th>
@@ -53,52 +214,124 @@
                     <th>Frequency</th>
                     <th>Prescribed By</th>
                     <th>Start Date</th>
+                    <th>Status</th>
                     <th>Action</th>
                 </tr>
             </thead>
+
             <tbody>
+
                 <tr>
                     <td>Lisinopril</td>
                     <td>10mg</td>
                     <td>Once daily</td>
                     <td>Dr. Sarah Johnson</td>
                     <td>2024-01-15</td>
-                    <td><button class="btn-outline-lab" onclick="showDemoAlert('Update medication details')">Edit</button></td>
+                    <td><span class="status-badge status-active">Active</span></td>
+
+                    <td>
+                        <button class="btn-outline-lab"
+                                onclick="showDemoAlert('Medication updated successfully')">
+                            Edit
+                        </button>
+
+                        <button class="btn-outline-lab"
+                                style="color:red; border-color:red;"
+                                onclick="showDemoAlert('Medication removed successfully')">
+                            Remove
+                        </button>
+                    </td>
                 </tr>
+
                 <tr>
                     <td>Metformin</td>
                     <td>500mg</td>
                     <td>Twice daily</td>
                     <td>Dr. Michael Brown</td>
                     <td>2024-03-10</td>
-                    <td><button class="btn-outline-lab" onclick="showDemoAlert('Update medication details')">Edit</button></td>
+                    <td><span class="status-badge status-active">Active</span></td>
+
+                    <td>
+                        <button class="btn-outline-lab"
+                                onclick="showDemoAlert('Medication updated successfully')">
+                            Edit
+                        </button>
+
+                        <button class="btn-outline-lab"
+                                style="color:red; border-color:red;"
+                                onclick="showDemoAlert('Medication removed successfully')">
+                            Remove
+                        </button>
+                    </td>
                 </tr>
+
                 <tr>
                     <td>Atorvastatin</td>
                     <td>20mg</td>
-                    <td>Once daily (evening)</td>
+                    <td>Once daily</td>
                     <td>Dr. Michael Brown</td>
                     <td>2025-01-05</td>
-                    <td><button class="btn-outline-lab" onclick="showDemoAlert('Update medication details')">Edit</button></td>
+                    <td><span class="status-badge status-warning">Review</span></td>
+
+                    <td>
+                        <button class="btn-outline-lab"
+                                onclick="showDemoAlert('Medication updated successfully')">
+                            Edit
+                        </button>
+
+                        <button class="btn-outline-lab"
+                                style="color:red; border-color:red;"
+                                onclick="showDemoAlert('Medication removed successfully')">
+                            Remove
+                        </button>
+                    </td>
                 </tr>
+
             </tbody>
+
         </table>
+
     </div>
+
 </div>
 
+<!-- Hospitalizations -->
+
 <div class="card-modern">
+
     <div class="card-header-flex">
         <h3>📋 Past Hospitalizations / Procedures</h3>
-        <button class="btn-outline-lab" onclick="showDemoAlert('Add hospitalization record')">+ Add</button>
+
+        <button class="btn-outline-lab"
+                onclick="showDemoAlert('Hospitalization record added successfully')">
+            + Add
+        </button>
     </div>
-    <ul style="margin-top:1rem;">
-        <li>2022-06-15: Routine Appendectomy - St. Mary's Hospital</li>
-        <li>2020-11-02: ER Visit for Hypertensive Crisis</li>
-    </ul>
+
+    <div style="margin-top:1rem;">
+
+        <div class="timeline-item">
+            <strong>Routine Appendectomy</strong>
+            <br />
+            <small>St. Mary's Hospital | 2022-06-15</small>
+        </div>
+
+        <div class="timeline-item">
+            <strong>ER Visit for Hypertensive Crisis</strong>
+            <br />
+            <small>Emergency Unit | 2020-11-02</small>
+        </div>
+
+    </div>
+
 </div>
 
 <script>
+
     function showDemoAlert(msg) {
-        alert('🔔 ' + msg + ' (Demo: Backend integration coming Semester 2)');
+
+        alert('✅ ' + msg);
+
     }
+
 </script>

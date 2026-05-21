@@ -14,14 +14,83 @@
     <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
+<style>
+    .admin-toolbar {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+
+    .search-box {
+        padding: 10px 14px;
+        border-radius: 20px;
+        border: 1px solid #CBD5E1;
+        width: 280px;
+    }
+
+    .medication-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: white;
+        padding: 10px 12px;
+        border-radius: 14px;
+        margin-bottom: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .medication-actions {
+        display: flex;
+        gap: 6px;
+    }
+
+    .category-card {
+        transition: 0.25s;
+    }
+
+        .category-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+
+    .remove-btn {
+        color: red;
+        border-color: red;
+    }
+
+    .bulk-box {
+        background: #F8FAFE;
+        padding: 14px;
+        border-radius: 16px;
+        margin-top: 1rem;
+    }
+</style>
+
 <div class="card-modern">
     <div class="card-header-flex">
         <h3>💊 Medication Reference Library</h3>
-        <button class="btn-sm-lab" onclick="showDemoAlert('Add new medication')">+ Add Medication</button>
+
+        <button class="btn-sm-lab" onclick="showDemoAlert('New medication added successfully')">
+            + Add Medication
+        </button>
+    </div>
+
+    <div class="admin-toolbar">
+        <input type="text"
+               id="searchInput"
+               class="search-box"
+               placeholder="Search medications..."
+               onkeyup="searchMedications()" />
+
+        <button class="btn-outline-lab" onclick="showDemoAlert('Medication list exported successfully')">
+            Export List
+        </button>
     </div>
 
     <div class="grid-2col">
-        <div class="card-modern" style="background:#F8FAFE;">
+        <div class="card-modern category-card" style="background:#F8FAFE;">
             <h4>❤️ Cardiovascular</h4>
             <ul class="sortable-list" style="margin-top:0.5rem;">
                 <li>Lisinopril (ACE Inhibitor)</li>
@@ -32,7 +101,7 @@
             </ul>
         </div>
 
-        <div class="card-modern" style="background:#F8FAFE;">
+        <div class="card-modern category-card" style="background:#F8FAFE;">
             <h4>🩸 Endocrine / Diabetes</h4>
             <ul class="sortable-list" style="margin-top:0.5rem;">
                 <li>Metformin</li>
@@ -44,7 +113,7 @@
     </div>
 
     <div class="grid-2col" style="margin-top:1rem;">
-        <div class="card-modern" style="background:#F8FAFE;">
+        <div class="card-modern category-card" style="background:#F8FAFE;">
             <h4>🧠 Neurological / Psychiatric</h4>
             <ul class="sortable-list" style="margin-top:0.5rem;">
                 <li>Sertraline (SSRI)</li>
@@ -54,7 +123,7 @@
             </ul>
         </div>
 
-        <div class="card-modern" style="background:#F8FAFE;">
+        <div class="card-modern category-card" style="background:#F8FAFE;">
             <h4>🩻 Haematology / Oncology</h4>
             <ul class="sortable-list" style="margin-top:0.5rem;">
                 <li>Hydroxyurea</li>
@@ -69,12 +138,24 @@
 <div class="card-modern">
     <div class="card-header-flex">
         <h3>📋 Bulk Import / Export</h3>
+
         <div>
-            <button class="btn-outline-lab" onclick="showDemoAlert('Export medications to CSV')">Export CSV</button>
-            <button class="btn-outline-lab" onclick="showDemoAlert('Import medications from CSV')">Import CSV</button>
+            <button class="btn-outline-lab" onclick="showDemoAlert('Medications exported to CSV successfully')">
+                Export CSV
+            </button>
+
+            <button class="btn-outline-lab" onclick="showDemoAlert('Medication file imported successfully')">
+                Import CSV
+            </button>
         </div>
     </div>
-    <p style="color:#5A6E7A;">Manage medication reference data in bulk for efficient system administration.</p>
+
+    <div class="bulk-box">
+        <p style="color:#5A6E7A; margin:0;">
+            Manage medication reference data in bulk for efficient system administration.
+            This helps keep medication records consistent and easy to update.
+        </p>
+    </div>
 </div>
 
 <script>
@@ -94,22 +175,22 @@
                 let itemName = item.textContent.trim();
 
                 let li = document.createElement("li");
-                li.style.marginBottom = "0.5rem";
+                li.className = "medication-item";
 
                 li.innerHTML = `
-                        <span>${itemName}</span>
+                        <span class="medication-name">${itemName}</span>
 
-                        <button class="btn-outline-lab"
-                                style="margin-left:0.5rem;"
-                                onclick="showDemoAlert('Edit ${itemName}')">
-                            Edit
-                        </button>
+                        <div class="medication-actions">
+                            <button class="btn-outline-lab"
+                                    onclick="showDemoAlert('${itemName} updated successfully')">
+                                Edit
+                            </button>
 
-                        <button class="btn-outline-lab"
-                                style="margin-left:0.5rem; color:red; border-color:red;"
-                                onclick="removeItem(this)">
-                            Remove
-                        </button>
+                            <button class="btn-outline-lab remove-btn"
+                                    onclick="removeItem(this)">
+                                Remove
+                            </button>
+                        </div>
                     `;
 
                 list.appendChild(li);
@@ -118,15 +199,30 @@
     });
 
     function removeItem(button) {
-        let itemName = button.parentElement.querySelector("span").textContent;
+        let itemName = button.closest("li").querySelector(".medication-name").textContent;
 
         if (confirm("Are you sure you want to remove " + itemName + "?")) {
-            button.parentElement.remove();
-            alert(itemName + " has been removed.");
+            button.closest("li").remove();
+            alert("✅ " + itemName + " removed successfully.");
         }
     }
 
+    function searchMedications() {
+        let searchText = document.getElementById("searchInput").value.toLowerCase();
+        let items = document.querySelectorAll(".medication-item");
+
+        items.forEach(function (item) {
+            let medicationName = item.querySelector(".medication-name").textContent.toLowerCase();
+
+            if (medicationName.includes(searchText)) {
+                item.style.display = "flex";
+            } else {
+                item.style.display = "none";
+            }
+        });
+    }
+
     function showDemoAlert(msg) {
-        alert('🔔 ' + msg);
+        alert("✅ " + msg);
     }
 </script>

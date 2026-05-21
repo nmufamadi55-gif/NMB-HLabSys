@@ -4,27 +4,87 @@
     ViewData["RoleSubtitle"] = "Admin Portal";
     ViewData["UserGreeting"] = "⚙️ System Administrator";
     ViewData["UserInitials"] = "AD";
-
-    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Admin")" class="active">📋 Dashboard</a></li>
+    <li><a href="@Url.Action("Dashboard", "Admin")">📋 Dashboard</a></li>
     <li><a href="@Url.Action("Conditions", "Admin")">🩺 Medical Conditions</a></li>
-    <li><a href="@Url.Action("Allergies", "Admin")">⚠️ Allergies</a></li>
+    <li><a href="@Url.Action("Allergies", "Admin")" class="active">⚠️ Allergies</a></li>
     <li><a href="@Url.Action("Medications", "Admin")">💊 Medications</a></li>
     <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
+<style>
+    .admin-toolbar {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+
+    .search-box {
+        padding: 10px 14px;
+        border-radius: 20px;
+        border: 1px solid #CBD5E1;
+        width: 280px;
+    }
+
+    .allergy-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: white;
+        padding: 10px 12px;
+        border-radius: 14px;
+        margin-bottom: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .allergy-actions {
+        display: flex;
+        gap: 6px;
+    }
+
+    .category-card {
+        transition: 0.25s;
+    }
+
+        .category-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+
+    .remove-btn {
+        color: red;
+        border-color: red;
+    }
+</style>
+
 <div class="card-modern">
     <div class="card-header-flex">
         <h3>⚠️ Allergies Reference List</h3>
-        <button class="btn-sm-lab" onclick="showDemoAlert('Add new allergy')">+ Add Allergy</button>
+
+        <button class="btn-sm-lab" onclick="showDemoAlert('New allergy added successfully')">
+            + Add Allergy
+        </button>
+    </div>
+
+    <div class="admin-toolbar">
+        <input type="text"
+               id="searchInput"
+               class="search-box"
+               placeholder="Search allergies..."
+               onkeyup="searchAllergies()" />
+
+        <button class="btn-outline-lab" onclick="showDemoAlert('Allergy list exported successfully')">
+            Export List
+        </button>
     </div>
 
     <div class="grid-2col">
 
-        <div class="card-modern" style="background:#F8FAFE;">
+        <div class="card-modern category-card" style="background:#F8FAFE;">
             <h4>💊 Medication Allergies</h4>
             <ul class="sortable-list" style="margin-top:0.5rem;">
                 <li>Penicillin</li>
@@ -35,7 +95,7 @@
             </ul>
         </div>
 
-        <div class="card-modern" style="background:#F8FAFE;">
+        <div class="card-modern category-card" style="background:#F8FAFE;">
             <h4>🍽️ Food Allergies</h4>
             <ul class="sortable-list" style="margin-top:0.5rem;">
                 <li>Peanuts</li>
@@ -50,7 +110,7 @@
 
     <div class="grid-2col" style="margin-top:1rem;">
 
-        <div class="card-modern" style="background:#F8FAFE;">
+        <div class="card-modern category-card" style="background:#F8FAFE;">
             <h4>🐝 Environmental Allergies</h4>
             <ul class="sortable-list" style="margin-top:0.5rem;">
                 <li>Dust Mites</li>
@@ -61,7 +121,7 @@
             </ul>
         </div>
 
-        <div class="card-modern" style="background:#F8FAFE;">
+        <div class="card-modern category-card" style="background:#F8FAFE;">
             <h4>🦟 Insect Allergies</h4>
             <ul class="sortable-list" style="margin-top:0.5rem;">
                 <li>Bee Venom</li>
@@ -71,7 +131,7 @@
 
             <button class="btn-outline-lab"
                     style="margin-top:0.5rem;"
-                    onclick="showDemoAlert('Add new allergy category')">
+                    onclick="showDemoAlert('New allergy category added successfully')">
                 + Add Category
             </button>
         </div>
@@ -81,11 +141,9 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-
         const lists = document.querySelectorAll(".sortable-list");
 
         lists.forEach(function (list) {
-
             let items = Array.from(list.querySelectorAll("li"));
 
             items.sort(function (a, b) {
@@ -95,46 +153,57 @@
             list.innerHTML = "";
 
             items.forEach(function (item) {
-
                 let itemName = item.textContent.trim();
 
                 let li = document.createElement("li");
-                li.style.marginBottom = "0.5rem";
+                li.className = "allergy-item";
 
                 li.innerHTML = `
-                        <span>${itemName}</span>
+                        <span class="allergy-name">${itemName}</span>
 
-                        <button class="btn-outline-lab"
-                                style="margin-left:0.5rem;"
-                                onclick="showDemoAlert('Edit ${itemName}')">
-                            Edit
-                        </button>
+                        <div class="allergy-actions">
+                            <button class="btn-outline-lab"
+                                    onclick="showDemoAlert('${itemName} updated successfully')">
+                                Edit
+                            </button>
 
-                        <button class="btn-outline-lab"
-                                style="margin-left:0.5rem; color:red; border-color:red;"
-                                onclick="removeItem(this)">
-                            Remove
-                        </button>
+                            <button class="btn-outline-lab remove-btn"
+                                    onclick="removeItem(this)">
+                                Remove
+                            </button>
+                        </div>
                     `;
 
                 list.appendChild(li);
             });
-
         });
-
     });
 
     function removeItem(button) {
-
-        let itemName = button.parentElement.querySelector("span").textContent;
+        let itemName = button.closest("li").querySelector(".allergy-name").textContent;
 
         if (confirm("Are you sure you want to remove " + itemName + "?")) {
-            button.parentElement.remove();
-            alert(itemName + " has been removed.");
+            button.closest("li").remove();
+            alert("✅ " + itemName + " removed successfully.");
         }
     }
 
+    function searchAllergies() {
+        let searchText = document.getElementById("searchInput").value.toLowerCase();
+        let items = document.querySelectorAll(".allergy-item");
+
+        items.forEach(function (item) {
+            let allergyName = item.querySelector(".allergy-name").textContent.toLowerCase();
+
+            if (allergyName.includes(searchText)) {
+                item.style.display = "flex";
+            } else {
+                item.style.display = "none";
+            }
+        });
+    }
+
     function showDemoAlert(msg) {
-        alert('🔔 ' + msg);
+        alert("✅ " + msg);
     }
 </script>

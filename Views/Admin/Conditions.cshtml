@@ -19,44 +19,119 @@
     </li>
 }
 
+<style>
+
+    .admin-toolbar {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+
+    .search-box {
+        padding: 10px 14px;
+        border-radius: 20px;
+        border: 1px solid #CBD5E1;
+        width: 280px;
+    }
+
+    .condition-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: white;
+        padding: 10px 12px;
+        border-radius: 14px;
+        margin-bottom: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .condition-actions {
+        display: flex;
+        gap: 6px;
+    }
+
+    .category-card {
+        transition: 0.25s;
+    }
+
+        .category-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+
+    .remove-btn {
+        color: red;
+        border-color: red;
+    }
+</style>
+
 <div class="card-modern">
 
     <div class="card-header-flex">
+
         <h3>🩺 Medical Conditions by Category</h3>
 
         <button class="btn-sm-lab"
-                onclick="showDemoAlert('Add new condition category')">
+                onclick="showDemoAlert('New condition category added successfully')">
+
             + Add Category
+
         </button>
+
+    </div>
+
+    <div class="admin-toolbar">
+
+        <input type="text"
+               id="searchInput"
+               class="search-box"
+               placeholder="Search conditions..."
+               onkeyup="searchConditions()" />
+
+        <button class="btn-outline-lab"
+                onclick="showDemoAlert('Condition list exported successfully')">
+
+            Export List
+
+        </button>
+
     </div>
 
     <div class="grid-2col">
 
         <!-- Haematological -->
-        <div class="card-modern" style="background:#F8FAFE;">
+
+        <div class="card-modern category-card" style="background:#F8FAFE;">
 
             <h4>🔴 Haematological Conditions</h4>
 
             <ul class="sortable-list" style="margin-top:0.5rem;">
+
                 <li>Anaemia</li>
                 <li>Leukaemia</li>
                 <li>Lymphoma</li>
                 <li>Haemophilia</li>
                 <li>Thrombocytopenia</li>
+
             </ul>
 
         </div>
 
         <!-- Metabolic -->
-        <div class="card-modern" style="background:#F8FAFE;">
+
+        <div class="card-modern category-card" style="background:#F8FAFE;">
 
             <h4>💚 Metabolic & Endocrine</h4>
 
             <ul class="sortable-list" style="margin-top:0.5rem;">
+
                 <li>Diabetes Type 1</li>
                 <li>Diabetes Type 2</li>
                 <li>Hypertension</li>
                 <li>Hyperlipidaemia</li>
+
             </ul>
 
         </div>
@@ -66,27 +141,33 @@
     <div class="grid-2col" style="margin-top:1rem;">
 
         <!-- Autoimmune -->
-        <div class="card-modern" style="background:#F8FAFE;">
+
+        <div class="card-modern category-card" style="background:#F8FAFE;">
 
             <h4>🧬 Autoimmune & Inflammatory</h4>
 
             <ul class="sortable-list" style="margin-top:0.5rem;">
+
                 <li>Rheumatoid Arthritis</li>
                 <li>Lupus (SLE)</li>
                 <li>Crohn's Disease</li>
+
             </ul>
 
         </div>
 
         <!-- Neurological -->
-        <div class="card-modern" style="background:#F8FAFE;">
+
+        <div class="card-modern category-card" style="background:#F8FAFE;">
 
             <h4>🧠 Neurological</h4>
 
             <ul class="sortable-list" style="margin-top:0.5rem;">
+
                 <li>Epilepsy</li>
                 <li>Migraine</li>
                 <li>Parkinson's Disease</li>
+
             </ul>
 
         </div>
@@ -106,7 +187,9 @@
             let items = Array.from(list.querySelectorAll("li"));
 
             items.sort(function (a, b) {
+
                 return a.textContent.trim().localeCompare(b.textContent.trim());
+
             });
 
             list.innerHTML = "";
@@ -117,22 +200,28 @@
 
                 let li = document.createElement("li");
 
-                li.style.marginBottom = "0.5rem";
+                li.className = "condition-item";
 
                 li.innerHTML = `
-                        <span>${itemName}</span>
+                        <span class="condition-name">${itemName}</span>
 
-                        <button class="btn-outline-lab"
-                                style="margin-left:0.5rem;"
-                                onclick="showDemoAlert('Edit ${itemName}')">
-                            Edit
-                        </button>
+                        <div class="condition-actions">
 
-                        <button class="btn-outline-lab"
-                                style="margin-left:0.5rem; color:red; border-color:red;"
-                                onclick="removeItem(this)">
-                            Remove
-                        </button>
+                            <button class="btn-outline-lab"
+                                    onclick="showDemoAlert('${itemName} updated successfully')">
+
+                                Edit
+
+                            </button>
+
+                            <button class="btn-outline-lab remove-btn"
+                                    onclick="removeItem(this)">
+
+                                Remove
+
+                            </button>
+
+                        </div>
                     `;
 
                 list.appendChild(li);
@@ -145,21 +234,51 @@
 
     function removeItem(button) {
 
-        let itemName = button.parentElement.querySelector("span").textContent;
+        let itemName = button.closest("li")
+            .querySelector(".condition-name")
+            .textContent;
 
         if (confirm("Are you sure you want to remove " + itemName + "?")) {
 
-            button.parentElement.remove();
+            button.closest("li").remove();
 
-            alert(itemName + " has been removed.");
+            alert("✅ " + itemName + " removed successfully.");
 
         }
 
     }
 
+    function searchConditions() {
+
+        let searchText = document.getElementById("searchInput")
+            .value
+            .toLowerCase();
+
+        let items = document.querySelectorAll(".condition-item");
+
+        items.forEach(function (item) {
+
+            let name = item.querySelector(".condition-name")
+                .textContent
+                .toLowerCase();
+
+            if (name.includes(searchText)) {
+
+                item.style.display = "flex";
+
+            } else {
+
+                item.style.display = "none";
+
+            }
+
+        });
+
+    }
+
     function showDemoAlert(msg) {
 
-        alert('🔔 ' + msg);
+        alert("✅ " + msg);
 
     }
 

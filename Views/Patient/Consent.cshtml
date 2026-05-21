@@ -4,89 +4,304 @@
     ViewData["RoleSubtitle"] = "Patient Portal";
     ViewData["UserGreeting"] = $"🩺 {@ViewBag.PatientName} (ID: {@ViewBag.PatientID})";
     ViewData["UserInitials"] = "TM";
-
-    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Patient")" class="active">📋 My Results</a></li>
+    <li><a href="@Url.Action("Dashboard", "Patient")">📋 My Results</a></li>
     <li><a href="@Url.Action("MedicalHistory", "Patient")">📝 Medical History</a></li>
-    <li><a href="@Url.Action("Consent", "Patient")">🔐 Consent Management</a></li>
+    <li><a href="@Url.Action("Consent", "Patient")" class="active">🔐 Consent Management</a></li>
     <li><a href="@Url.Action("Trends", "Patient")">📈 Track Trends</a></li>
-    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+    <li>
+        <a href="@Url.Action("Index", "Profile")">
+            <i class="fas fa-user-circle"></i>
+            <span>My Profile</span>
+        </a>
+    </li>
 }
 
-<div class="alert alert-info" style="background:#EFF6FF; padding:1rem; border-radius:12px; margin-bottom:1.5rem;">
-    <strong>🔐 About Consent:</strong> You control which doctors can access your previous test results. Grant or revoke access at any time.
+<style>
+
+    .security-badge {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        background: #DCFCE7;
+        color: #166534;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-right: 8px;
+    }
+
+    .doctor-card {
+        transition: 0.25s;
+    }
+
+        .doctor-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        }
+
+    .status-pill {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-active {
+        background: #DCFCE7;
+        color: #166534;
+    }
+
+    .status-limited {
+        background: #FEF3C7;
+        color: #92400E;
+    }
+
+    .info-box {
+        background: #EFF6FF;
+        padding: 1rem;
+        border-radius: 16px;
+        margin-bottom: 1.5rem;
+    }
+</style>
+
+<!-- Info -->
+
+<div class="info-box">
+
+    <strong>🔐 About Consent Management</strong>
+
+    <p style="margin-top:10px;">
+        You control which healthcare professionals can access your laboratory records.
+        Access can be granted, modified, or revoked at any time.
+    </p>
+
+    <div style="margin-top:10px;">
+
+        <span class="security-badge">POPIA Compliant</span>
+
+        <span class="security-badge">Secure Sharing</span>
+
+        <span class="security-badge">Encrypted Access</span>
+
+    </div>
+
 </div>
 
+<!-- Access Tables -->
+
 <div class="grid-2col">
-    <div class="card-modern">
+
+    <!-- Doctors With Access -->
+
+    <div class="card-modern doctor-card">
+
         <div class="card-header-flex">
+
             <h3>✅ Doctors with Access</h3>
-            <button class="btn-sm-lab" onclick="showDemoAlert('Grant access to new doctor')">+ Grant Access</button>
+
+            <button class="btn-sm-lab"
+                    onclick="showDemoAlert('Doctor access invitation sent successfully')">
+                + Grant Access
+            </button>
+
         </div>
+
         <div class="table-container">
+
             <table>
+
                 <thead>
                     <tr>
-                        <th>Doctor Name</th>
+                        <th>Doctor</th>
                         <th>HPCSA #</th>
-                        <th>Access Granted</th>
-                        <th>Test Requests Shared</th>
+                        <th>Status</th>
+                        <th>Expiry</th>
                         <th>Action</th>
                     </tr>
                 </thead>
+
                 <tbody>
+
                     <tr>
-                        <td>Dr. Sarah Johnson</td>
+
+                        <td>
+                            <strong>Dr. Sarah Johnson</strong>
+                            <br />
+                            <small>Haematologist</small>
+                        </td>
+
                         <td>MP1234567</td>
-                        <td>2024-01-15</td>
-                        <td>REQ-001, REQ-002, REQ-004</td>
-                        <td><button class="btn-outline-lab" onclick="showDemoAlert('Revoke access from Dr. Johnson')">Revoke</button></td>
+
+                        <td>
+                            <span class="status-pill status-active">
+                                Full Access
+                            </span>
+                        </td>
+
+                        <td>2026-12-31</td>
+
+                        <td>
+
+                            <button class="btn-outline-lab"
+                                    onclick="showDemoAlert('Doctor access updated successfully')">
+                                Edit
+                            </button>
+
+                            <button class="btn-outline-lab"
+                                    style="color:red; border-color:red;"
+                                    onclick="confirmRevoke('Dr. Sarah Johnson')">
+                                Revoke
+                            </button>
+
+                        </td>
+
                     </tr>
+
                     <tr>
-                        <td>Dr. Michael Brown</td>
+
+                        <td>
+                            <strong>Dr. Michael Brown</strong>
+                            <br />
+                            <small>Internal Medicine</small>
+                        </td>
+
                         <td>MP1234568</td>
-                        <td>2024-06-20</td>
-                        <td>REQ-003 only</td>
-                        <td><button class="btn-outline-lab" onclick="showDemoAlert('Revoke access from Dr. Brown')">Revoke</button></td>
+
+                        <td>
+                            <span class="status-pill status-limited">
+                                Limited Access
+                            </span>
+                        </td>
+
+                        <td>2025-10-30</td>
+
+                        <td>
+
+                            <button class="btn-outline-lab"
+                                    onclick="showDemoAlert('Doctor access updated successfully')">
+                                Edit
+                            </button>
+
+                            <button class="btn-outline-lab"
+                                    style="color:red; border-color:red;"
+                                    onclick="confirmRevoke('Dr. Michael Brown')">
+                                Revoke
+                            </button>
+
+                        </td>
+
                     </tr>
+
                 </tbody>
+
             </table>
+
         </div>
+
     </div>
 
-    <div class="card-modern">
+    <!-- Grant Access -->
+
+    <div class="card-modern doctor-card">
+
         <h3>🔐 Grant New Access</h3>
+
         <div class="form-group">
+
             <label><strong>Select Doctor</strong></label>
+
             <select style="width:100%; padding:10px; border-radius:12px; border:1px solid #E2E8F0;">
+
                 <option>Dr. Lisa Ndlovu (MP1234569)</option>
+
                 <option>Dr. Peter Khumalo (MP1234570)</option>
+
                 <option>Dr. Thabo Cele (MP1234571)</option>
+
             </select>
+
         </div>
+
         <div class="form-group">
-            <label><strong>Select Test Requests to Share</strong></label>
-            <div style="border:1px solid #E2E8F0; border-radius:12px; padding:10px;">
-                <label><input type="checkbox"> REQ-001 - Full Blood Count (Apr 9, 2025)</label><br>
-                <label><input type="checkbox"> REQ-002 - Coagulation Studies (Apr 8, 2025)</label><br>
-                <label><input type="checkbox"> REQ-004 - Lipid Profile (Mar 20, 2025)</label><br>
-                <label><input type="checkbox" checked> REQ-005 - FBC Follow-up (Apr 10, 2025)</label>
-            </div>
+
+            <label><strong>Access Expiry Date</strong></label>
+
+            <input type="date"
+                   value="2026-12-31"
+                   style="width:100%; padding:10px; border-radius:12px; border:1px solid #E2E8F0;" />
+
         </div>
-        <button class="btn-sm-lab" onclick="showDemoAlert('Access granted! Doctor will be notified via email.')">Grant Access</button>
+
+        <div class="form-group">
+
+            <label><strong>Select Test Requests to Share</strong></label>
+
+            <div style="border:1px solid #E2E8F0; border-radius:12px; padding:10px;">
+
+                <label>
+                    <input type="checkbox">
+                    REQ-001 - Full Blood Count
+                </label>
+
+                <br>
+
+                <label>
+                    <input type="checkbox">
+                    REQ-002 - Coagulation Studies
+                </label>
+
+                <br>
+
+                <label>
+                    <input type="checkbox">
+                    REQ-004 - Lipid Profile
+                </label>
+
+                <br>
+
+                <label>
+                    <input type="checkbox" checked>
+                    REQ-005 - FBC Follow-up
+                </label>
+
+            </div>
+
+        </div>
+
+        <button class="btn-sm-lab"
+                onclick="showDemoAlert('Access granted successfully')">
+
+            Grant Access
+
+        </button>
+
     </div>
+
 </div>
 
+<!-- Consent History -->
+
 <div class="card-modern">
+
     <div class="card-header-flex">
+
         <h3>📜 Consent History</h3>
-        <button class="btn-outline-lab" onclick="showDemoAlert('Download consent history PDF')">Export Log</button>
+
+        <button class="btn-outline-lab"
+                onclick="showDemoAlert('Consent history exported successfully')">
+
+            Export Log
+
+        </button>
+
     </div>
+
     <div class="table-container">
+
         <table>
+
             <thead>
                 <tr>
                     <th>Date</th>
@@ -95,32 +310,85 @@
                     <th>Details</th>
                 </tr>
             </thead>
+
             <tbody>
+
                 <tr>
                     <td>2024-01-15</td>
-                    <td>Granted</td>
+
+                    <td>
+                        <span class="status-pill status-active">
+                            Granted
+                        </span>
+                    </td>
+
                     <td>Dr. Sarah Johnson</td>
-                    <td>Access to all past and future results</td>
+
+                    <td>
+                        Access to all past and future results
+                    </td>
                 </tr>
+
                 <tr>
                     <td>2024-06-20</td>
-                    <td>Granted</td>
+
+                    <td>
+                        <span class="status-pill status-active">
+                            Granted
+                        </span>
+                    </td>
+
                     <td>Dr. Michael Brown</td>
-                    <td>Access to test results from 2024 onwards</td>
+
+                    <td>
+                        Access to test results from 2024 onwards
+                    </td>
                 </tr>
+
                 <tr>
                     <td>2025-02-10</td>
-                    <td>Modified</td>
+
+                    <td>
+                        <span class="status-pill status-limited">
+                            Modified
+                        </span>
+                    </td>
+
                     <td>Dr. Sarah Johnson</td>
-                    <td>Restricted access to REQ-001 only</td>
+
+                    <td>
+                        Restricted access to REQ-001 only
+                    </td>
                 </tr>
+
             </tbody>
+
         </table>
+
     </div>
+
 </div>
 
 <script>
+
     function showDemoAlert(msg) {
-        alert('🔔 ' + msg + ' (Demo: Backend integration coming Semester 2)');
+
+        alert('✅ ' + msg);
+
     }
+
+    function confirmRevoke(doctorName) {
+
+        let confirmAction = confirm(
+            'Are you sure you want to revoke access from ' + doctorName + '?'
+        );
+
+        if (confirmAction) {
+
+            alert('🚫 Access revoked successfully.');
+
+        }
+
+    }
+
 </script>

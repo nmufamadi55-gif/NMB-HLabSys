@@ -4,8 +4,6 @@
     ViewData["RoleSubtitle"] = "Patient Portal";
     ViewData["UserGreeting"] = $"🩺 {@ViewBag.PatientName} (ID: {@ViewBag.PatientID})";
     ViewData["UserInitials"] = "TM";
-
-    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
 }
 
 @section SidebarMenu {
@@ -13,40 +11,151 @@
     <li><a href="@Url.Action("MedicalHistory", "Patient")">📝 Medical History</a></li>
     <li><a href="@Url.Action("Consent", "Patient")">🔐 Consent Management</a></li>
     <li><a href="@Url.Action("Trends", "Patient")">📈 Track Trends</a></li>
-    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+    <li>
+        <a href="@Url.Action("Index", "Profile")">
+            <i class="fas fa-user-circle"></i>
+            <span>My Profile</span>
+        </a>
+    </li>
 }
 
+<style>
+
+    .dashboard-card {
+        transition: 0.25s;
+    }
+
+        .dashboard-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        }
+
+    .health-score {
+        background: linear-gradient(135deg, #2C8C6E, #4ADE80);
+        color: white;
+        border-radius: 20px;
+        padding: 20px;
+        margin-top: 1rem;
+    }
+
+    .mini-chart {
+        height: 120px;
+        background: #F4F7FC;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 1rem 0;
+        flex-direction: column;
+    }
+
+    .progress-container {
+        background: #E2E8F0;
+        border-radius: 20px;
+        height: 10px;
+        overflow: hidden;
+        margin-top: 10px;
+    }
+
+    .progress-bar-green {
+        height: 10px;
+        width: 82%;
+        background: #22C55E;
+    }
+
+    .progress-bar-orange {
+        height: 10px;
+        width: 65%;
+        background: #F59E0B;
+    }
+
+    .abnormal-row {
+        background: #FEF2F2;
+    }
+
+    .status-pill {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-normal {
+        background: #DCFCE7;
+        color: #166534;
+    }
+
+    .status-warning {
+        background: #FEF3C7;
+        color: #92400E;
+    }
+</style>
+
+<!-- Stats -->
+
 <div class="stat-cards">
-    <div class="stat-item">
+
+    <div class="stat-item dashboard-card">
         <div class="stat-icon-lg">📋</div>
         <div>
             <h3>6</h3>
             <p>Total Tests</p>
         </div>
     </div>
-    <div class="stat-item">
+
+    <div class="stat-item dashboard-card">
         <div class="stat-icon-lg">⚠️</div>
         <div>
             <h3>1</h3>
             <p>Abnormal Results</p>
         </div>
     </div>
-    <div class="stat-item">
+
+    <div class="stat-item dashboard-card">
         <div class="stat-icon-lg">📄</div>
         <div>
             <h3>4</h3>
             <p>Reports Available</p>
         </div>
     </div>
+
 </div>
 
-<div class="card-modern">
-    <div class="card-header-flex">
-        <h3>📋 Recent Test Results</h3>
-        <button class="btn-outline-lab" onclick="showDemoAlert('Download all reports as ZIP')">Download All</button>
+<!-- Health Score -->
+
+<div class="health-score">
+
+    <h3>💚 Overall Health Status</h3>
+
+    <h1 style="margin-top:10px;">82%</h1>
+
+    <p>Stable condition with improving cholesterol levels.</p>
+
+    <div class="progress-container">
+        <div class="progress-bar-green"></div>
     </div>
+
+</div>
+
+<!-- Test Results -->
+
+<div class="card-modern">
+
+    <div class="card-header-flex">
+
+        <h3>📋 Recent Test Results</h3>
+
+        <button class="btn-outline-lab"
+                onclick="showDemoAlert('All reports downloaded successfully')">
+            Download All
+        </button>
+
+    </div>
+
     <div class="table-container">
+
         <table>
+
             <thead>
                 <tr>
                     <th>Date</th>
@@ -58,68 +167,191 @@
                     <th>Report</th>
                 </tr>
             </thead>
+
             <tbody>
+
                 <tr>
                     <td>2025-04-05</td>
                     <td>Full Blood Count - Haemoglobin</td>
                     <td>13.2 g/dL</td>
                     <td>12-16 g/dL</td>
-                    <td><span class="badge badge-completed">Normal</span></td>
+
+                    <td>
+                        <span class="status-pill status-normal">
+                            Normal
+                        </span>
+                    </td>
+
                     <td>Dr. Sarah Johnson</td>
-                    <td><button class="btn-sm-lab" onclick="showDemoAlert('Download PDF report')">PDF</button></td>
+
+                    <td>
+                        <button class="btn-sm-lab"
+                                onclick="showDemoAlert('PDF report downloaded successfully')">
+                            PDF
+                        </button>
+                    </td>
                 </tr>
+
                 <tr>
                     <td>2025-04-05</td>
                     <td>Full Blood Count - WCC</td>
                     <td>7.5 x10³/µL</td>
                     <td>4-11 x10³/µL</td>
-                    <td><span class="badge badge-completed">Normal</span></td>
+
+                    <td>
+                        <span class="status-pill status-normal">
+                            Normal
+                        </span>
+                    </td>
+
                     <td>Dr. Sarah Johnson</td>
-                    <td><button class="btn-sm-lab" onclick="showDemoAlert('Download PDF report')">PDF</button></td>
+
+                    <td>
+                        <button class="btn-sm-lab"
+                                onclick="showDemoAlert('PDF report downloaded successfully')">
+                            PDF
+                        </button>
+                    </td>
                 </tr>
+
                 <tr class="abnormal-row">
+
                     <td>2025-03-20</td>
-                    <td>Lipid Profile - Cholesterol</td>
-                    <td><strong>5.2 mmol/L</strong></td>
+
+                    <td>
+                        <strong>Lipid Profile - Cholesterol</strong>
+                    </td>
+
+                    <td>
+                        <strong>5.2 mmol/L</strong>
+                    </td>
+
                     <td>&lt;5.0 mmol/L</td>
-                    <td><span class="badge badge-progress">Borderline High</span></td>
+
+                    <td>
+                        <span class="status-pill status-warning">
+                            Borderline High
+                        </span>
+                    </td>
+
                     <td>Dr. Michael Brown</td>
-                    <td><button class="btn-sm-lab" onclick="showDemoAlert('Download PDF & view doctor notes')">View</button></td>
+
+                    <td>
+                        <button class="btn-sm-lab"
+                                onclick="showDemoAlert('Doctor report opened successfully')">
+                            View
+                        </button>
+                    </td>
+
                 </tr>
+
                 <tr>
+
                     <td>2025-03-20</td>
+
                     <td>Lipid Profile - Triglycerides</td>
+
                     <td>1.8 mmol/L</td>
+
                     <td>&lt;1.7 mmol/L</td>
-                    <td><span class="badge badge-progress">Elevated</span></td>
+
+                    <td>
+                        <span class="status-pill status-warning">
+                            Elevated
+                        </span>
+                    </td>
+
                     <td>Dr. Michael Brown</td>
-                    <td><button class="btn-sm-lab" onclick="showDemoAlert('Download PDF report')">PDF</button></td>
+
+                    <td>
+                        <button class="btn-sm-lab"
+                                onclick="showDemoAlert('PDF report downloaded successfully')">
+                            PDF
+                        </button>
+                    </td>
+
                 </tr>
+
             </tbody>
+
         </table>
+
     </div>
+
 </div>
 
+<!-- Bottom Cards -->
+
 <div class="grid-2col">
-    <div class="card-modern">
+
+    <!-- Trends -->
+
+    <div class="card-modern dashboard-card">
+
         <h3>📊 Health Summary</h3>
-        <div style="height:120px; background:#F4F7FC; border-radius:16px; display:flex; align-items:center; justify-content:center; margin:1rem 0;">
-            📈 [Cholesterol Trend: 6.2 → 5.8 → 5.5 → 5.2]
+
+        <div class="mini-chart">
+
+            <div style="font-size:2rem;">📈</div>
+
+            <p>
+                Cholesterol Trend:
+                <strong>6.2 → 5.8 → 5.5 → 5.2</strong>
+            </p>
+
+            <div class="progress-container" style="width:80%;">
+                <div class="progress-bar-orange"></div>
+            </div>
+
         </div>
-        <button class="btn-outline-lab" onclick="showDemoAlert('View detailed trend analysis')">View Full Trends</button>
+
+        <button class="btn-outline-lab"
+                onclick="showDemoAlert('Detailed trend analysis opened successfully')">
+            View Full Trends
+        </button>
+
     </div>
-    <div class="card-modern">
+
+    <!-- Pending -->
+
+    <div class="card-modern dashboard-card">
+
         <h3>📅 Upcoming / Pending Tests</h3>
+
         <ul style="margin-top:1rem;">
-            <li>🔬 FBC Follow-up - Requested Apr 10, 2025</li>
-            <li>🩸 Lipid Profile - Due for annual check (May 2025)</li>
+
+            <li>
+                🔬 FBC Follow-up
+                <br />
+                <small>Requested Apr 10, 2025</small>
+            </li>
+
+            <br />
+
+            <li>
+                🩸 Lipid Profile
+                <br />
+                <small>Due for annual check (May 2025)</small>
+            </li>
+
         </ul>
-        <button class="btn-outline-lab" style="margin-top:1rem;" onclick="showDemoAlert('Request new test from doctor')">Request New Test</button>
+
+        <button class="btn-outline-lab"
+                style="margin-top:1rem;"
+                onclick="showDemoAlert('New test request submitted successfully')">
+            Request New Test
+        </button>
+
     </div>
+
 </div>
 
 <script>
+
     function showDemoAlert(msg) {
-        alert('🔔 ' + msg + ' (Demo: Backend integration coming Semester 2)');
+
+        alert('✅ ' + msg);
+
     }
+
 </script>

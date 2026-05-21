@@ -4,82 +4,255 @@
     ViewData["RoleSubtitle"] = "Patient Portal";
     ViewData["UserGreeting"] = $"🩺 {@ViewBag.PatientName} (ID: {@ViewBag.PatientID})";
     ViewData["UserInitials"] = "TM";
-
-    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Patient")" class="active">📋 My Results</a></li>
+    <li><a href="@Url.Action("Dashboard", "Patient")">📋 My Results</a></li>
     <li><a href="@Url.Action("MedicalHistory", "Patient")">📝 Medical History</a></li>
     <li><a href="@Url.Action("Consent", "Patient")">🔐 Consent Management</a></li>
-    <li><a href="@Url.Action("Trends", "Patient")">📈 Track Trends</a></li>
+    <li><a href="@Url.Action("Trends", "Patient")" class="active">📈 Track Trends</a></li>
     <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
+<style>
+    .chart-box {
+        background: #F4F7FC;
+        border-radius: 20px;
+        padding: 20px;
+        margin: 1rem 0;
+        height: 320px;
+    }
+
+    .chart-box-small {
+        background: #F4F7FC;
+        border-radius: 20px;
+        padding: 20px;
+        margin: 1rem 0;
+        height: 220px;
+    }
+
+    .date-filter {
+        display: flex;
+        gap: 10px;
+        align-items: end;
+        flex-wrap: wrap;
+    }
+
+        .date-filter label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #34495e;
+        }
+
+        .date-filter input {
+            padding: 8px 12px;
+            border-radius: 16px;
+            border: 1px solid #CBD5E1;
+        }
+
+    .insight-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+        background: #E8F7EF;
+        color: #166534;
+        font-weight: 600;
+    }
+</style>
+
 <div class="card-modern">
     <div class="card-header-flex">
-        <h3>📈 Haemoglobin Trend (Last 12 months)</h3>
-        <div class="form-group" style="width:200px;">
-            <select style="padding:8px; border-radius:20px;" onchange="showDemoAlert('Date range changed')">
-                <option>Last 6 months</option>
-                <option selected>Last 12 months</option>
-                <option>Last 2 years</option>
-            </select>
-        </div>
-    </div>
-    <div style="height:250px; background:#F4F7FC; border-radius:20px; display:flex; align-items:center; justify-content:center; flex-direction:column; margin:1rem 0;">
-        <div style="font-size:3rem;">📊</div>
-        <div style="text-align:center;">
-            <p><strong>Normal Range: 12-16 g/dL</strong></p>
-            <div style="width:100%; max-width:400px; background:#E2E8F0; height:8px; border-radius:10px; margin:10px auto;">
-                <div style="width:65%; background:#2C8C6E; height:8px; border-radius:10px;"></div>
+        <h3>📈 Haemoglobin Trend</h3>
+
+        <div class="date-filter">
+            <div>
+                <label>From Date</label><br />
+                <input type="date" id="haemoFrom" value="2024-04-01" />
             </div>
-            <p>Apr 2024: 13.8 | Jul 2024: 13.2 | Oct 2024: 12.9 | Jan 2025: 13.1 | Apr 2025: 13.2</p>
+
+            <div>
+                <label>To Date</label><br />
+                <input type="date" id="haemoTo" value="2025-04-30" />
+            </div>
+
+            <button class="btn-outline-lab" onclick="applyDateFilter('Haemoglobin')">
+                Apply
+            </button>
         </div>
     </div>
+
+    <div class="chart-box">
+        <canvas id="haemoglobinChart"></canvas>
+    </div>
+
+    <p><strong>Normal Range:</strong> 12 - 16 g/dL</p>
+    <span class="insight-badge">✅ Haemoglobin is stable within normal range</span>
 </div>
 
 <div class="card-modern">
     <div class="card-header-flex">
         <h3>🩸 Cholesterol Trend</h3>
-        <div class="form-group" style="width:200px;">
-            <select style="padding:8px; border-radius:20px;" onchange="showDemoAlert('Test type changed')">
-                <option selected>Total Cholesterol</option>
-                <option>LDL Cholesterol</option>
-                <option>HDL Cholesterol</option>
-                <option>Triglycerides</option>
-            </select>
+
+        <div class="date-filter">
+            <div>
+                <label>From Date</label><br />
+                <input type="date" id="cholFrom" value="2022-01-01" />
+            </div>
+
+            <div>
+                <label>To Date</label><br />
+                <input type="date" id="cholTo" value="2025-12-31" />
+            </div>
+
+            <button class="btn-outline-lab" onclick="applyDateFilter('Cholesterol')">
+                Apply
+            </button>
         </div>
     </div>
-    <div style="height:200px; background:#F4F7FC; border-radius:20px; display:flex; align-items:center; justify-content:center; flex-direction:column; margin:1rem 0;">
-        <div style="font-size:2rem;">📉</div>
-        <p>Showing decreasing trend: <strong>6.2 → 5.8 → 5.5 → 5.2 mmol/L</strong> (Goal: &lt;5.0)</p>
-        <p style="font-size:0.8rem; color:#5A6E7A;">Lifestyle changes showing positive results!</p>
+
+    <div class="chart-box">
+        <canvas id="cholesterolChart"></canvas>
     </div>
-    <button class="btn-outline-lab" onclick="showDemoAlert('Download trend report PDF')">Download Trend Report (PDF)</button>
+
+    <p>
+        Showing decreasing trend:
+        <strong>6.2 → 5.8 → 5.5 → 5.2 mmol/L</strong>
+        (Goal: &lt;5.0)
+    </p>
+
+    <span class="insight-badge">📉 Lifestyle changes showing positive results</span>
+
+    <br /><br />
+
+    <button class="btn-outline-lab" onclick="showDemoAlert('Download trend report PDF')">
+        Download Trend Report (PDF)
+    </button>
 </div>
 
 <div class="grid-2col">
+
     <div class="card-modern">
-        <h3>📊 Platelet Count History</h3>
-        <div style="height:120px; background:#F4F7FC; border-radius:16px; display:flex; align-items:center; justify-content:center; margin:1rem 0;">
-            📈 [Range: 220 → 245 → 238 → 250] Normal
+        <div class="card-header-flex">
+            <h3>📊 Platelet Count History</h3>
+
+            <div class="date-filter">
+                <div>
+                    <label>From</label><br />
+                    <input type="date" id="plateletFrom" value="2024-04-01" />
+                </div>
+
+                <div>
+                    <label>To</label><br />
+                    <input type="date" id="plateletTo" value="2025-01-31" />
+                </div>
+
+                <button class="btn-outline-lab" onclick="applyDateFilter('Platelet Count')">
+                    Apply
+                </button>
+            </div>
         </div>
-        <button class="btn-outline-lab" onclick="showDemoAlert('View detailed platelet history')">View Details</button>
+
+        <div class="chart-box-small">
+            <canvas id="plateletChart"></canvas>
+        </div>
+
+        <p><strong>Status:</strong> Normal platelet range</p>
     </div>
+
     <div class="card-modern">
         <h3>📋 Health Insights</h3>
+
         <ul style="margin-top:1rem;">
             <li>✅ Haemoglobin stable within normal range</li>
             <li>⚠️ Cholesterol trending downward - continue lifestyle changes</li>
             <li>✅ Blood pressure controlled with medication</li>
+            <li>📊 Platelet count remains stable</li>
         </ul>
-        <button class="btn-outline-lab" style="margin-top:1rem;" onclick="showDemoAlert('Share insights with doctor')">Share with Doctor</button>
+
+        <button class="btn-outline-lab" style="margin-top:1rem;" onclick="showDemoAlert('Share insights with doctor')">
+            Share with Doctor
+        </button>
     </div>
+
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
+    new Chart(document.getElementById('haemoglobinChart'), {
+        type: 'line',
+        data: {
+            labels: ['Apr 2024', 'Jul 2024', 'Oct 2024', 'Jan 2025', 'Apr 2025'],
+            datasets: [{
+                label: 'Haemoglobin (g/dL)',
+                data: [13.8, 13.2, 12.9, 13.1, 13.2],
+                borderColor: '#2C8C6E',
+                backgroundColor: 'rgba(44, 140, 110, 0.15)',
+                borderWidth: 3,
+                pointRadius: 5,
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    new Chart(document.getElementById('cholesterolChart'), {
+        type: 'line',
+        data: {
+            labels: ['2022', '2023', '2024', '2025'],
+            datasets: [{
+                label: 'Total Cholesterol (mmol/L)',
+                data: [6.2, 5.8, 5.5, 5.2],
+                borderColor: '#E11D48',
+                backgroundColor: 'rgba(225, 29, 72, 0.12)',
+                borderWidth: 3,
+                pointRadius: 5,
+                tension: 0.4,
+                fill: true
+            },
+            {
+                label: 'Goal (<5.0 mmol/L)',
+                data: [5.0, 5.0, 5.0, 5.0],
+                borderColor: '#F59E0B',
+                borderDash: [6, 6],
+                borderWidth: 2,
+                pointRadius: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    new Chart(document.getElementById('plateletChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Apr', 'Jul', 'Oct', 'Jan'],
+            datasets: [{
+                label: 'Platelet Count',
+                data: [220, 245, 238, 250],
+                backgroundColor: '#2563EB',
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    function applyDateFilter(testName) {
+        alert('📈 ' + testName + ' report generated successfully.');
+    }
+
     function showDemoAlert(msg) {
-        alert('🔔 ' + msg + ' (Demo: Backend integration coming Semester 2)');
+        alert('✅ Action completed successfully.');
     }
 </script>
