@@ -1,0 +1,103 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Technician Reports";
+    ViewData["RoleSubtitle"] = "Technician Portal";
+    ViewData["UserGreeting"] = $"Lab Tech {ViewBag.TechName} (EMP:{ViewBag.EmployeeNumber})";
+    ViewData["UserInitials"] = "MP";
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+}
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Technician")" class="@(currentAction == "Dashboard" ? "active" : "")"><i class="fas fa-chart-line"></i> <span>Workload</span></a></li>
+    <li><a href="@Url.Action("ReceiveSamples", "Technician")" class="@(currentAction == "ReceiveSamples" ? "active" : "")"><i class="fas fa-box-open"></i> <span>Receive Samples</span></a></li>
+    <li><a href="@Url.Action("PerformTests", "Technician")" class="@(currentAction == "PerformTests" ? "active" : "")"><i class="fas fa-vial"></i> <span>Perform Tests</span></a></li>
+    <li><a href="@Url.Action("Verification", "Technician")" class="@(currentAction == "Verification" ? "active" : "")"><i class="fas fa-check-double"></i> <span>Verification</span></a></li>
+    <li><a href="@Url.Action("Reports", "Technician")" class="@(currentAction == "Reports" ? "active" : "")"><i class="fas fa-file-pdf"></i> <span>Reports</span></a></li>
+    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+}
+
+<div class="page-toolbar boss-insight">
+    <div>
+        <h2>Technician Performance Command Center</h2>
+        <p>Generate PDF-ready reports, track completion quality, and surface turnaround insights for management.</p>
+    </div>
+    <div class="toolbar-actions">
+        <button class="btn-outline-lab" onclick="showExecutiveSummary()"><i class="fas fa-magic"></i> Boss Summary</button>
+        <button class="btn-sm-lab" onclick="generateReport()"><i class="fas fa-file-export"></i> Generate PDF</button>
+    </div>
+</div>
+
+<div class="card-modern">
+    <div class="card-header-flex">
+        <h3><i class="fas fa-sliders"></i> Report Criteria</h3>
+        <span class="compact-tag">Grouped by category</span>
+    </div>
+    <div class="grid-2col compact-form">
+        <div><label>From Date</label><input id="fromDate" type="date" class="lab-input" value="2026-05-01"></div>
+        <div><label>To Date</label><input id="toDate" type="date" class="lab-input" value="2026-05-19"></div>
+        <div><label>Technician</label><input class="lab-input" value="@ViewBag.TechName" readonly></div>
+        <div><label>Report Type</label><select class="lab-select"><option>Tests completed by technician grouped by category</option></select></div>
+    </div>
+</div>
+
+<div class="stat-cards">
+    <div class="stat-item"><div class="stat-icon-lg"><i class="fas fa-flask"></i></div><div><h3 data-count="48">48</h3><p>Completed Tests</p></div></div>
+    <div class="stat-item"><div class="stat-icon-lg"><i class="fas fa-shield-alt"></i></div><div><h3 data-count="43">43</h3><p>Verified</p></div></div>
+    <div class="stat-item"><div class="stat-icon-lg"><i class="fas fa-rotate-left"></i></div><div><h3 data-count="5">5</h3><p>Returned Reviews</p></div></div>
+</div>
+
+<div class="grid-2col">
+    <div class="card-modern">
+        <div class="card-header-flex"><h3><i class="fas fa-gauge-high"></i> Quality Signals</h3><span class="compact-tag">Live preview</span></div>
+        <div class="metric-strip">
+            <div class="metric-chip"><strong>89.6%</strong><span>First-pass verification</span><div class="progress-track"><div class="progress-fill" style="width: 90%;"></div></div></div>
+            <div class="metric-chip"><strong>42 min</strong><span>Best category turnaround</span><div class="progress-track"><div class="progress-fill" style="width: 78%;"></div></div></div>
+            <div class="metric-chip"><strong>0</strong><span>Critical overdue verified late</span><div class="progress-track"><div class="progress-fill" style="width: 100%;"></div></div></div>
+        </div>
+    </div>
+    <div class="card-modern boss-insight">
+        <h3><i class="fas fa-lightbulb"></i> Management Insight</h3>
+        <ul class="lab-list">
+            <li><strong>Haematology</strong> carries the highest volume and strongest turnaround.</li>
+            <li><strong>Morphology</strong> has the most returned reviews and may need a second-check focus.</li>
+            <li><strong>Coagulation</strong> remains stable with low rework and predictable completion times.</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card-modern report-preview" id="reportPreview">
+    <div class="card-header-flex">
+        <div><h3>NMB-HLabSys Technician Completion Report</h3><p>@ViewBag.TechName (@ViewBag.EmployeeNumber)</p></div>
+        <span class="compact-tag"><i class="fas fa-eye"></i> PDF Preview</span>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead><tr><th>Category</th><th>Completed</th><th>Verified</th><th>Returned</th><th>Average Turnaround</th><th>Performance</th></tr></thead>
+            <tbody>
+                <tr><td>Haematology</td><td>22</td><td>20</td><td>2</td><td>42 min</td><td><div class="progress-track"><div class="progress-fill" style="width: 91%;"></div></div></td></tr>
+                <tr><td>Coagulation</td><td>14</td><td>13</td><td>1</td><td>55 min</td><td><div class="progress-track"><div class="progress-fill" style="width: 93%;"></div></div></td></tr>
+                <tr><td>Morphology</td><td>12</td><td>10</td><td>2</td><td>88 min</td><td><div class="progress-track"><div class="progress-fill" style="width: 83%;"></div></div></td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function generateReport() {
+    const from = document.getElementById('fromDate').value;
+    const to = document.getElementById('toDate').value;
+    const preview = document.getElementById('reportPreview');
+    preview.classList.add('generating');
+    showDemoAlert(`Preparing PDF report for @ViewBag.TechName from ${from} to ${to}.`, 'success');
+    setTimeout(() => {
+        preview.classList.remove('generating');
+        openLabPopup('PDF Report Ready', `<div class="alert-info-soft"><strong>Report:</strong> Tests completed by technician grouped by category<br><strong>Date range:</strong> ${from} to ${to}<br><strong>Technician:</strong> @ViewBag.TechName<br><strong>Attached sections:</strong> category totals, verification rate, returned reviews, turnaround summary.</div>`, 'Preview Complete');
+    }, 700);
+}
+
+function showExecutiveSummary() {
+    openLabPopup('Executive Summary', '<div class="metric-strip"><div class="metric-chip"><strong>48</strong><span>Tests completed</span></div><div class="metric-chip"><strong>89.6%</strong><span>First-pass verification</span></div><div class="metric-chip"><strong>42 min</strong><span>Fastest avg turnaround</span></div></div><div class="alert-info-soft">Recommendation: keep Michael Peters focused on Haematology volume while pairing Morphology reviews with a second senior technician.</div>', 'Impress Boss');
+}
+</script>
+}

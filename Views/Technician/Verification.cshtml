@@ -2,151 +2,109 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Test Verification";
     ViewData["RoleSubtitle"] = "Technician Portal";
-    ViewData["UserGreeting"] = $"🔬 {@ViewBag.TechName} (EMP:{@ViewBag.EmployeeNumber})";
+    ViewData["UserGreeting"] = $"Lab Tech {ViewBag.TechName} (EMP:{ViewBag.EmployeeNumber})";
     ViewData["UserInitials"] = "MP";
-
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Technician")" class="active">📊 Workload</a></li>
-    <li><a href="@Url.Action("ReceiveSamples", "Technician")">📦 Receive Samples</a></li>
-    <li><a href="@Url.Action("PerformTests", "Technician")">⚙️ Perform Tests</a></li>
-    <li><a href="@Url.Action("Verification", "Technician")">✅ Verification</a></li>
-    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+        <li><a href="@Url.Action("Dashboard", "Technician")" class="@(currentAction == "Dashboard" ? "active" : "")"><i class="fas fa-chart-line"></i> <span>Workload</span></a></li>
+        <li><a href="@Url.Action("ReceiveSamples", "Technician")" class="@(currentAction == "ReceiveSamples" ? "active" : "")"><i class="fas fa-box-open"></i> <span>Receive Samples</span></a></li>
+        <li><a href="@Url.Action("PerformTests", "Technician")" class="@(currentAction == "PerformTests" ? "active" : "")"><i class="fas fa-vial"></i> <span>Perform Tests</span></a></li>
+        <li><a href="@Url.Action("Verification", "Technician")" class="@(currentAction == "Verification" ? "active" : "")"><i class="fas fa-check-double"></i> <span>Verification</span></a></li>
+        <li><a href="@Url.Action("Reports", "Technician")" class="@(currentAction == "Reports" ? "active" : "")"><i class="fas fa-file-pdf"></i> <span>Reports</span></a></li>
+        <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
 <div class="stat-cards">
-    <div class="stat-item"><div class="stat-icon-lg">✅</div><div><h3>6</h3><p>Awaiting Verification</p></div></div>
-    <div class="stat-item"><div class="stat-icon-lg">🔄</div><div><h3>2</h3><p>Returned for Review</p></div></div>
-    <div class="stat-item"><div class="stat-icon-lg">📊</div><div><h3>34</h3><p>Verified Today</p></div></div>
+    <div class="stat-item"><div class="stat-icon-lg"><i class="fas fa-user-shield"></i></div><div><h3>6</h3><p>Awaiting Verification</p></div></div>
+    <div class="stat-item"><div class="stat-icon-lg"><i class="fas fa-rotate-left"></i></div><div><h3>2</h3><p>Returned for Review</p></div></div>
+    <div class="stat-item"><div class="stat-icon-lg"><i class="fas fa-check-circle"></i></div><div><h3>34</h3><p>Verified Today</p></div></div>
 </div>
 
 <div class="card-modern">
     <div class="card-header-flex">
-        <h3>✅ Tests Awaiting Your Verification</h3>
-        <div class="user-tag" style="background:#F1F5F9; padding:0.3rem 1rem; border-radius:40px;">
-            <span>🔐 Two-Step Validation Required</span>
-        </div>
+        <h3><i class="fas fa-check-double"></i> Two-Step Result Verification</h3>
+        <span class="compact-tag">Verifier must be a different technician</span>
     </div>
     <div class="table-container">
-        <table>
-            <thead>
-                <tr><th>Test Name</th><th>Request #</th><th>Patient</th><th>Performed By</th><th>Result Value</th><th>Normal Range</th><th>Status</th><th>Action</th></tr>
-            </thead>
+        <table id="verifyTable">
+            <thead><tr><th>Test Name</th><th>Request #</th><th>Patient</th><th>Performed By</th><th>Result</th><th>Normal Range</th><th>Verification Date/Time</th><th>Status</th><th>Action</th></tr></thead>
             <tbody>
-                <tr>
-                    <td>Full Blood Count - Hb</td>
-                    <td>REQ-001</td>
-                    <td>Thabo Mbeki</td>
-                    <td>Tech Peters</td>
-                    <td><strong class="abnormal-row" style="color:#E26D5C;">7.2 g/dL</strong></td>
-                    <td>12-16 g/dL</td>
-                    <td><span class="badge badge-progress">Pending</span></td>
-                    <td><button class="btn-sm-lab" onclick="openVerificationModal('FBC', 'REQ-001', '7.2', '12-16', 'Thabo Mbeki', true)">🔍 Verify</button></td>
-                </tr>
-                <tr>
-                    <td>Coagulation - PT/INR</td>
-                    <td>REQ-002</td>
-                    <td>Lerato Dlamini</td>
-                    <td>Tech Smith</td>
-                    <td>12.5 seconds</td>
-                    <td>11-13.5 seconds</td>
-                    <td><span class="badge badge-progress">Pending</span></td>
-                    <td><button class="btn-sm-lab" onclick="openVerificationModal('PT/INR', 'REQ-002', '12.5', '11-13.5', 'Lerato Dlamini', false)">🔍 Verify</button></td>
-                </tr>
-                <tr>
-                    <td>Platelet Count</td>
-                    <td>REQ-003</td>
-                    <td>John Smith</td>
-                    <td>Tech Peters</td>
-                    <td><strong class="abnormal-row" style="color:#E26D5C;">45 k/µL</strong></td>
-                    <td>150-450 k/µL</td>
-                    <td><span class="badge badge-progress">Pending</span></td>
-                    <td><button class="btn-sm-lab" onclick="openVerificationModal('Platelets', 'REQ-003', '45', '150-450', 'John Smith', true)">🔍 Verify</button></td>
-                </tr>
+                <tr data-performer="Tech Smith" data-type="PT/INR"><td>Coagulation - PT/INR</td><td>REQ-002</td><td>Lerato Dlamini</td><td>Tech Smith</td><td>12.5 seconds</td><td>11-13.5 seconds</td><td class="verified-at">-</td><td><span class="badge badge-progress">Completed</span></td><td><button class="btn-sm-lab" onclick="openVerificationModal(this, 'PT/INR', 'REQ-002', '12.5 seconds', '11-13.5 seconds', 'Lerato Dlamini', false, 'Tech Smith')"><i class="fas fa-check-double"></i> Verify</button></td></tr>
+                <tr data-performer="Tech Smith" data-type="Platelet Count"><td>Platelet Count</td><td>REQ-004</td><td>Maria Santos</td><td>Tech Smith</td><td><strong class="abnormal-text">45 k/uL</strong></td><td>150-450 k/uL</td><td class="verified-at">-</td><td><span class="badge badge-progress">Completed</span></td><td><button class="btn-sm-lab" onclick="openVerificationModal(this, 'Platelet Count', 'REQ-004', '45 k/uL', '150-450 k/uL', 'Maria Santos', true, 'Tech Smith')"><i class="fas fa-check-double"></i> Verify</button></td></tr>
+                <tr data-performer="Michael Peters" data-type="Full Blood Count"><td>Full Blood Count - Hb</td><td>REQ-001</td><td>Thabo Mbeki</td><td>Michael Peters</td><td><strong class="abnormal-text">7.2 g/dL</strong></td><td>12-16 g/dL</td><td class="verified-at">Locked</td><td><span class="badge badge-progress">Completed</span></td><td><button class="btn-outline-lab" onclick="blockOwnVerification()"><i class="fas fa-lock"></i> Locked</button></td></tr>
             </tbody>
         </table>
     </div>
 </div>
 
-<div class="card-modern">
-    <div class="card-header-flex">
-        <h3>🔄 Tests Returned for Review</h3>
-        <button class="btn-outline-lab" onclick="showDemoAlert('View all returned tests')">View All</button>
+<div class="grid-2col">
+    <div class="card-modern">
+        <h3><i class="fas fa-rotate-left"></i> Tests To Be Reviewed</h3>
+        <table>
+            <thead><tr><th>Test</th><th>Request</th><th>Original Result</th><th>Verifier Notes</th><th>Action</th></tr></thead>
+            <tbody>
+                <tr><td>Differential Count</td><td>REQ-003</td><td>Neutrophils 85%</td><td>Reference range is 40-70%. Recheck smear and adjust comments.</td><td><a class="btn-sm-lab" href="@Url.Action("PerformTests", "Technician")"><i class="fas fa-edit"></i> Correct</a></td></tr>
+                <tr><td>Full Blood Count</td><td>REQ-008</td><td>Hb 18.8 g/dL</td><td>Possible sample mix-up. Confirm barcode before resubmitting.</td><td><a class="btn-sm-lab" href="@Url.Action("PerformTests", "Technician")"><i class="fas fa-edit"></i> Correct</a></td></tr>
+            </tbody>
+        </table>
     </div>
-    <table>
-        <thead>
-            <tr><th>Test</th><th>Request</th><th>Original Result</th><th>Verifier Notes</th><th>Action</th></tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>Differential Count</td>
-                <td>REQ-005</td>
-                <td>Neutrophils 85%</td>
-                <td>"Please review: Reference range 40-70%"</td>
-                <td><button class="btn-outline-lab" onclick="showDemoAlert('Review and correct results')">Review & Correct</button></td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="card-modern">
+        <h3><i class="fas fa-history"></i> Review History</h3>
+        <div class="timeline">
+            <div><strong>REQ-003</strong><span>Returned by Tech Smith, 2026-05-19 10:32</span><p>Range mismatch. Review differential values.</p></div>
+            <div><strong>REQ-003</strong><span>Completed by Michael Peters, 2026-05-19 10:05</span><p>Initial result captured with abnormal flag.</p></div>
+            <div><strong>REQ-002</strong><span>Verified by Michael Peters, 2026-05-19 09:44</span><p>Doctor notification queued with PDF result attachment.</p></div>
+        </div>
+    </div>
 </div>
 
-<!-- Verification Modal (Hidden) -->
-<div id="verificationModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center;">
-    <div style="background:white; max-width:500px; width:90%; border-radius:24px; padding:1.8rem;">
+<div id="verificationModal" class="modal-backdrop-lab" style="display:none;">
+    <div class="modal-card-lab">
         <h3 id="modalTitle">Verify Test Result</h3>
         <div id="modalBody"></div>
-        <div style="margin-top:1.5rem; display:flex; gap:1rem; justify-content:flex-end;">
+        <div class="modal-actions">
             <button class="btn-outline-lab" onclick="closeVerificationModal()">Cancel</button>
-            <button class="btn-sm-lab" style="background:#2C8C6E;" onclick="verifyApprove()">✓ Approve & Verify</button>
-            <button class="btn-sm-lab" style="background:#E26D5C;" onclick="verifyReturn()">↺ Return for Review</button>
+            <button class="btn-sm-lab success-btn" onclick="verifyApprove()"><i class="fas fa-check"></i> Approve & Verify</button>
+            <button class="btn-sm-lab danger-btn" onclick="verifyReturn()"><i class="fas fa-rotate-left"></i> Return for Review</button>
         </div>
     </div>
 </div>
 
 @section Scripts {
     <script>
-        let currentVerifyData = {};
-
-        function openVerificationModal(testName, requestNo, result, normalRange, patient, isAbnormal) {
-            currentVerifyData = { testName, requestNo, result, normalRange, patient, isAbnormal };
-            document.getElementById('modalTitle').innerText = `Verify ${testName} - ${requestNo}`;
-            document.getElementById('modalBody').innerHTML = `
-                <div class="alert alert-info" style="background:#F4F7FC; padding:1rem; border-radius:12px; margin-bottom:1rem;">
-                    <strong>Patient:</strong> ${patient}<br>
-                    <strong>Result:</strong> <span style="color:${isAbnormal ? '#E26D5C' : '#2C8C6E'}; font-weight:bold;">${result}</span><br>
-                    <strong>Normal Range:</strong> ${normalRange}<br>
-                    <strong>Performed by:</strong> Another Technician
-                </div>
-                <div class="form-group">
-                    <label><strong>Verification Notes</strong></label>
-                    <textarea id="verifyNotes" rows="2" style="width:100%; padding:10px; border-radius:12px; border:1px solid #E2E8F0;" placeholder="Add any comments..."></textarea>
-                </div>
-                <p style="font-size:0.75rem; color:#5A6E7A;">⚠️ You cannot verify your own results. Two-step validation required.</p>
-            `;
-            document.getElementById('verificationModal').style.display = 'flex';
-        }
-
-        function closeVerificationModal() {
-            document.getElementById('verificationModal').style.display = 'none';
-        }
-
-        function verifyApprove() {
-            const notes = document.getElementById('verifyNotes')?.value || '';
-            showDemoAlert(`✓ Test ${currentVerifyData.testName} VERIFIED. Doctor will be notified via email with PDF attachment.`);
-            closeVerificationModal();
-        }
-
-        function verifyReturn() {
-            const notes = document.getElementById('verifyNotes')?.value || '';
-            if (!notes) {
-                alert('Please provide a reason for returning this test for review.');
-                return;
-            }
-            showDemoAlert(`↺ Test returned to technician. Status: "To Be Reviewed". Reason: "${notes}"`);
-            closeVerificationModal();
-        }
-
-        function showDemoAlert(msg) { alert('🔔 ' + msg); }
+    let currentVerifyRow = null;
+    let currentVerifyData = {};
+    const currentTechnician = '@ViewBag.TechName';
+    const allowedVerificationTypes = ['PT/INR', 'Platelet Count', 'Full Blood Count', 'Differential Count'];
+    function blockOwnVerification() { showDemoAlert('You cannot verify your own results. Another technician must complete the two-step validation.', 'warning'); }
+    function openVerificationModal(button, testName, requestNo, result, normalRange, patient, isAbnormal, performedBy) {
+        if (performedBy === currentTechnician) { blockOwnVerification(); return; }
+        if (!allowedVerificationTypes.includes(testName)) { showDemoAlert('You are not assigned to verify this test type.', 'warning'); return; }
+        currentVerifyRow = button.closest('tr');
+        currentVerifyData = { testName, requestNo, result, normalRange, patient, isAbnormal, performedBy };
+        document.getElementById('modalTitle').innerText = `Verify ${testName} - ${requestNo}`;
+        document.getElementById('modalBody').innerHTML = `<div class="alert-info-soft"><strong>Patient:</strong> ${patient}<br><strong>Result:</strong> <span class="${isAbnormal ? 'abnormal-text' : 'due-ok'}">${result}</span><br><strong>Normal Range:</strong> ${normalRange}<br><strong>Performed by:</strong> ${performedBy}<br><strong>Verified by:</strong> ${currentTechnician}<br><strong>Verification date/time:</strong> ${new Date().toLocaleString()}</div><label><strong>Verification Notes</strong></label><textarea id="verifyNotes" rows="3" class="lab-textarea" placeholder="Required when returning for review"></textarea>`;
+        document.getElementById('verificationModal').style.display = 'flex';
+    }
+    function closeVerificationModal() { document.getElementById('verificationModal').style.display = 'none'; }
+    function verifyApprove() {
+        currentVerifyRow.querySelector('.verified-at').textContent = new Date().toLocaleString();
+        currentVerifyRow.cells[7].innerHTML = '<span class="badge badge-completed">Verified</span>';
+        currentVerifyRow.cells[8].innerHTML = '<span class="compact-tag"><i class="fas fa-envelope"></i> Doctor notified</span>';
+        openLabPopup('Result Verified', '<div class="alert-info-soft"><strong>Status:</strong> Verified<br><strong>Doctor notification:</strong> queued when all request tests are verified<br><strong>Attachment:</strong> PDF result report</div>', 'Close');
+        closeVerificationModal();
+    }
+    function verifyReturn() {
+        const notes = document.getElementById('verifyNotes').value.trim();
+        if (!notes) { showDemoAlert('Please provide a return note for the technician who performed the test.', 'warning'); return; }
+        currentVerifyRow.querySelector('.verified-at').textContent = new Date().toLocaleString();
+        currentVerifyRow.cells[7].innerHTML = '<span class="badge badge-stat">To Be Reviewed</span>';
+        currentVerifyRow.cells[8].innerHTML = '<span class="compact-tag"><i class="fas fa-rotate-left"></i> Returned</span>';
+        showDemoAlert(`Result returned for review. Status changed to To Be Reviewed. Note: ${notes}`, 'warning');
+        closeVerificationModal();
+    }
     </script>
 }
+

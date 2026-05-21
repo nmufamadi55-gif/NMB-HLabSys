@@ -14,7 +14,7 @@
         <!-- Sidebar -->
         <aside class="sidebar-lab">
             <div class="logo-area">
-                <h2>🩸 NMB-HLabSys</h2>
+                <h2><i class="fas fa-flask"></i> NMB-HLabSys</h2>
                 <span>@ViewData["RoleSubtitle"]</span>
             </div>
             <ul class="nav-links" id="navLinks">
@@ -27,7 +27,7 @@
             <div class="header-glass">
                 <div class="flex-between" style="width:100%;">
                     <div>
-                        <button class="menu-toggle" id="menuToggleBtn">☰</button>
+                        <button class="menu-toggle" id="menuToggleBtn" aria-label="Toggle navigation"><i class="fas fa-bars"></i></button>
                         <span class="user-greeting">@ViewData["UserGreeting"]</span>
                     </div>
                     <div class="user-tag">
@@ -264,10 +264,8 @@
             }
 
         /* ========== MOBILE RESPONSIVE ========== */
-        media (max-width: 768px) {
-            .sidebar-lab
-
-        {
+        @@media (max-width: 768px) {
+            .sidebar-lab {
             transform: translateX(-100%);
             position: fixed;
             transition: transform 0.3s ease;
@@ -306,3 +304,4 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+

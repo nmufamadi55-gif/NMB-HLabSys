@@ -2,176 +2,128 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Perform Tests";
     ViewData["RoleSubtitle"] = "Technician Portal";
-    ViewData["UserGreeting"] = $"🔬 {@ViewBag.TechName} (EMP:{@ViewBag.EmployeeNumber})";
+    ViewData["UserGreeting"] = $"Lab Tech {ViewBag.TechName} (EMP:{ViewBag.EmployeeNumber})";
     ViewData["UserInitials"] = "MP";
-
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Technician")" class="active">📊 Workload</a></li>
-    <li><a href="@Url.Action("ReceiveSamples", "Technician")">📦 Receive Samples</a></li>
-    <li><a href="@Url.Action("PerformTests", "Technician")">⚙️ Perform Tests</a></li>
-    <li><a href="@Url.Action("Verification", "Technician")">✅ Verification</a></li>
-    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+        <li><a href="@Url.Action("Dashboard", "Technician")" class="@(currentAction == "Dashboard" ? "active" : "")"><i class="fas fa-chart-line"></i> <span>Workload</span></a></li>
+        <li><a href="@Url.Action("ReceiveSamples", "Technician")" class="@(currentAction == "ReceiveSamples" ? "active" : "")"><i class="fas fa-box-open"></i> <span>Receive Samples</span></a></li>
+        <li><a href="@Url.Action("PerformTests", "Technician")" class="@(currentAction == "PerformTests" ? "active" : "")"><i class="fas fa-vial"></i> <span>Perform Tests</span></a></li>
+        <li><a href="@Url.Action("Verification", "Technician")" class="@(currentAction == "Verification" ? "active" : "")"><i class="fas fa-check-double"></i> <span>Verification</span></a></li>
+        <li><a href="@Url.Action("Reports", "Technician")" class="@(currentAction == "Reports" ? "active" : "")"><i class="fas fa-file-pdf"></i> <span>Reports</span></a></li>
+        <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
 <div class="stat-cards">
-    <div class="stat-item"><div class="stat-icon-lg">⚙️</div><div><h3>5</h3><p>Ready to Perform</p></div></div>
-    <div class="stat-item"><div class="stat-icon-lg">⚠️</div><div><h3>2</h3><p>Overdue</p></div></div>
-    <div class="stat-item"><div class="stat-icon-lg">🔄</div><div><h3>3</h3><p>In Progress</p></div></div>
+    <div class="stat-item"><div class="stat-icon-lg"><i class="fas fa-flask"></i></div><div><h3>5</h3><p>Ready to Perform</p></div></div>
+    <div class="stat-item"><div class="stat-icon-lg"><i class="fas fa-clock"></i></div><div><h3>2</h3><p>Overdue</p></div></div>
+    <div class="stat-item"><div class="stat-icon-lg"><i class="fas fa-spinner"></i></div><div><h3 id="progressCount">3</h3><p>In Progress</p></div></div>
 </div>
 
 <div class="card-modern">
     <div class="card-header-flex">
-        <h3>🔬 Tests Assigned to You</h3>
-        <select onchange="filterTests(this.value)" style="padding:8px; border-radius:20px; border:1px solid #E2E8F0;">
-            <option value="all">All Tests</option>
-            <option value="pending">Pending</option>
-            <option value="overdue">Overdue</option>
-            <option value="stat">STAT (Urgent)</option>
-        </select>
+        <h3><i class="fas fa-clipboard-list"></i> Assigned Test Types Available to You</h3>
+        <select onchange="filterTests(this.value)" class="lab-select"><option value="all">All Tests</option><option value="Submitted">Waiting Selection</option><option value="In Progress">In Progress</option><option value="To Be Reviewed">To Be Reviewed</option><option value="STAT">STAT</option></select>
     </div>
     <div class="table-container">
         <table id="testsTable">
-            <thead>
-                <tr><th>Test Name</th><th>Request #</th><th>Patient</th><th>Sample Type</th><th>Turnaround</th><th>Due</th><th>Status</th><th>Consumables</th><th>Action</th></tr>
-            </thead>
+            <thead><tr><th>Test Name</th><th>Request #</th><th>Patient</th><th>Turnaround</th><th>Due</th><th>Progress Status</th><th>Consumables Deducted</th><th>Assigned Tech</th><th>Start</th><th>Completion</th><th>Action</th></tr></thead>
             <tbody>
-                <tr>
-                    <td>Full Blood Count</td>
-                    <td>REQ-001</td>
-                    <td>Thabo Mbeki</td>
-                    <td>Whole Blood</td>
-                    <td>45 min</td>
-                    <td><span style="color:#E26D5C;">Today 16:00</span></td>
-                    <td><span class="badge badge-progress">Ready</span></td>
-                    <td>EDTA Tube (1)</td>
-                    <td><button class="btn-sm-lab" onclick="startTest('FBC', 'REQ-001')">▶ Start Test</button></td>
-                </tr>
-                <tr>
-                    <td>Coagulation Studies (PT/INR)</td>
-                    <td>REQ-002</td>
-                    <td>Lerato Dlamini</td>
-                    <td>Plasma</td>
-                    <td>60 min</td>
-                    <td>Today 14:30</td>
-                    <td><span class="badge badge-progress">Ready</span></td>
-                    <td>Citrate Tube (1)</td>
-                    <td><button class="btn-sm-lab" onclick="startTest('Coagulation', 'REQ-002')">▶ Start Test</button></td>
-                </tr>
-                <tr>
-                    <td>Differential Count</td>
-                    <td>REQ-003</td>
-                    <td>John Smith</td>
-                    <td>Whole Blood</td>
-                    <td>30 min</td>
-                    <td><span style="color:#E26D5C;">Today 13:00</span></td>
-                    <td><span class="badge badge-stat">STAT</span></td>
-                    <td>EDTA Tube, Stain Kit</td>
-                    <td><button class="btn-sm-lab" onclick="startTest('Differential', 'REQ-003')">▶ Start Test (STAT)</button></td>
-                </tr>
-                <tr>
-                    <td>Peripheral Blood Film</td>
-                    <td>REQ-004</td>
-                    <td>Maria Santos</td>
-                    <td>Whole Blood</td>
-                    <td>120 min</td>
-                    <td>Tomorrow 10:00</td>
-                    <td><span class="badge">Pending</span></td>
-                    <td>Slide, Stain</td>
-                    <td><button class="btn-sm-lab" onclick="startTest('Film', 'REQ-004')">▶ Start Test</button></td>
-                </tr>
+                <tr data-status="Submitted" data-urgency="Routine" data-test="Full Blood Count" data-request="REQ-001" data-patient="Thabo Mbeki" data-range="12-16" data-unit="g/dL"><td>Full Blood Count</td><td>REQ-001</td><td>Thabo Mbeki</td><td>45 min</td><td><span class="due-warn">Today 16:00</span></td><td><span class="badge badge-progress">Submitted</span></td><td>EDTA Tube (1)</td><td class="assigned-tech">Unassigned</td><td class="started-at">-</td><td class="completed-at-cell">-</td><td><button class="btn-sm-lab" onclick="startTest(this)"><i class="fas fa-hand-pointer"></i> Select</button></td></tr>
+                <tr data-status="Submitted" data-urgency="Routine" data-test="PT/INR" data-request="REQ-002" data-patient="Lerato Dlamini" data-range="11-13.5" data-unit="seconds"><td>Coagulation Studies (PT/INR)</td><td>REQ-002</td><td>Lerato Dlamini</td><td>60 min</td><td><span class="due-danger">Overdue 35m</span></td><td><span class="badge badge-progress">Submitted</span></td><td>Citrate Tube (1)</td><td class="assigned-tech">Unassigned</td><td class="started-at">-</td><td class="completed-at-cell">-</td><td><button class="btn-sm-lab" onclick="startTest(this)"><i class="fas fa-hand-pointer"></i> Select</button></td></tr>
+                <tr data-status="To Be Reviewed" data-urgency="STAT" data-test="Differential Count" data-request="REQ-003" data-patient="John Smith" data-range="40-70" data-unit="%"><td>Differential Count</td><td>REQ-003</td><td>John Smith</td><td>30 min</td><td><span class="due-danger">Overdue 1h</span></td><td><span class="badge badge-stat">To Be Reviewed</span></td><td>EDTA Tube, Stain Kit</td><td class="assigned-tech">Michael Peters</td><td class="started-at">2026-05-19 09:35</td><td class="completed-at-cell">2026-05-19 10:05</td><td><button class="btn-sm-lab" onclick="startTest(this)"><i class="fas fa-rotate-left"></i> Review</button></td></tr>
+                <tr data-status="Submitted" data-urgency="Routine" data-test="Peripheral Blood Film" data-request="REQ-004" data-patient="Maria Santos" data-range="No blasts" data-unit=""><td>Peripheral Blood Film</td><td>REQ-004</td><td>Maria Santos</td><td>120 min</td><td>Today 18:30</td><td><span class="badge">Submitted</span></td><td>Slide, Stain</td><td class="assigned-tech">Unassigned</td><td class="started-at">-</td><td class="completed-at-cell">-</td><td><button class="btn-sm-lab" onclick="startTest(this)"><i class="fas fa-hand-pointer"></i> Select</button></td></tr>
             </tbody>
         </table>
     </div>
 </div>
 
-<div class="card-modern" id="testInProgress" style="display:none;">
-    <h3>⚡ Test in Progress</h3>
-    <div id="activeTestInfo"></div>
-    <div class="form-group" style="margin-top:1rem;">
-        <label><strong>Result Value</strong></label>
-        <input type="text" id="resultValue" placeholder="Enter result" style="width:100%; padding:10px; border-radius:12px; border:1px solid #E2E8F0;">
+<div class="grid-2col">
+    <div class="card-modern patient-context">
+        <h3><i class="fas fa-notes-medical"></i> Clinical Context</h3>
+        <p id="contextEmpty">Select a test to view medical conditions, allergies, medication, and doctor notes.</p>
+        <div id="patientContext" style="display:none;">
+            <div><strong>Patient:</strong> <span id="ctxPatient"></span></div>
+            <div><strong>Conditions:</strong> Chronic anaemia, hypertension</div>
+            <div><strong>Allergies:</strong> Penicillin</div>
+            <div><strong>Medication:</strong> Warfarin 5mg, Ferrous sulphate</div>
+            <div><strong>Doctor notes:</strong> Repeat test urgently if Hb below normal range. Check sample clotting before processing.</div>
+        </div>
     </div>
-    <div class="form-group">
-        <label><strong>Notes (Optional)</strong></label>
-        <textarea id="resultNotes" rows="2" style="width:100%; padding:10px; border-radius:12px; border:1px solid #E2E8F0;"></textarea>
+    <div class="card-modern">
+        <h3><i class="fas fa-boxes"></i> Consumables Stock</h3>
+        <ul class="lab-list" id="stockList"><li><span class="due-danger">EDTA Tubes:</span> <strong id="edtaStock">45</strong> remaining (Reorder: 50)</li><li><span class="due-warn">Reagent Kits:</span> 120 remaining</li><li><span class="due-ok">Citrate Tubes:</span> <strong id="citrateStock">78</strong> remaining</li></ul>
     </div>
-    <div class="form-group">
-        <label><input type="checkbox" id="abnormalFlag"> Mark as Abnormal</label>
-    </div>
-    <button class="btn-sm-lab" onclick="completeTest()">✅ Complete & Save Results</button>
-    <button class="btn-outline-lab" onclick="cancelTest()">Cancel</button>
 </div>
 
-<div class="grid-2col">
-    <div class="card-modern">
-        <h3>📊 Consumables Stock Alert</h3>
-        <ul style="margin-top:1rem;">
-            <li><span style="color:#E26D5C;">🔴 EDTA Tubes:</span> 45 remaining (Reorder: 50)</li>
-            <li><span style="color:#E8A845;">🟡 Reagent Kits:</span> 120 remaining</li>
-            <li><span style="color:#2C8C6E;">🟢 Citrate Tubes:</span> 78 remaining</li>
-        </ul>
-        <button class="btn-outline-lab" style="margin-top:1rem;" onclick="showDemoAlert('Request new consumables')">Request Stock</button>
+<div class="card-modern" id="testInProgress" style="display:none;">
+    <div class="card-header-flex"><h3><i class="fas fa-keyboard"></i> Capture Test Results</h3><span id="activeStatus" class="badge badge-progress">In Progress</span></div>
+    <div id="activeTestInfo" class="alert-info-soft"></div>
+    <div class="result-grid">
+        <div><label>Result Value</label><input type="number" step="0.01" id="resultValue" class="lab-input" placeholder="Enter result" oninput="checkAbnormal()"></div>
+        <div><label>Normal Range</label><input id="normalRange" class="lab-input" readonly></div>
+        <div><label>Unit</label><input id="resultUnit" class="lab-input" readonly></div>
+        <div><label>Completion Date/Time</label><input id="completedAt" class="lab-input" readonly></div>
     </div>
-    <div class="card-modern">
-        <h3>📋 Expected Completion Times</h3>
-        <ul style="margin-top:1rem;">
-            <li>Full Blood Count: <strong>45 min</strong> from start</li>
-            <li>Coagulation Studies: <strong>60 min</strong> from start</li>
-            <li>Differential Count: <strong>30 min</strong> from start</li>
-            <li>Peripheral Film: <strong>120 min</strong> from start</li>
-        </ul>
-    </div>
+    <div class="form-group"><label><strong>Notes</strong></label><textarea id="resultNotes" rows="3" class="lab-textarea" placeholder="Add result notes or review corrections"></textarea></div>
+    <div id="abnormalNotice" class="alert-danger-soft" style="display:none;">Abnormal result detected automatically.</div>
+    <button class="btn-sm-lab" onclick="completeTest()"><i class="fas fa-save"></i> Complete & Save Results</button>
+    <button class="btn-outline-lab" onclick="cancelTest()">Cancel</button>
 </div>
 
 @section Scripts {
     <script>
-        let currentTest = null;
-        let currentRequest = null;
-
-        function startTest(testName, requestNo) {
-            currentTest = testName;
-            currentRequest = requestNo;
-            document.getElementById('testInProgress').style.display = 'block';
-            document.getElementById('activeTestInfo').innerHTML = `
-                <div class="alert alert-info" style="background:#EFF6FF; padding:1rem; border-radius:12px;">
-                    <strong>🔬 Test:</strong> ${testName}<br>
-                    <strong>📋 Request:</strong> ${requestNo}<br>
-                    <strong>✅ Consumables deducted:</strong> Stock updated automatically
-                </div>
-            `;
-            showDemoAlert(`Test "${testName}" started. Consumables deducted from inventory. Status: In Progress`);
-        }
-
-        function completeTest() {
-            const result = document.getElementById('resultValue').value;
-            const notes = document.getElementById('resultNotes').value;
-            const isAbnormal = document.getElementById('abnormalFlag').checked;
-
-            if (!result) {
-                alert('Please enter a result value');
-                return;
-            }
-
-            showDemoAlert(`Results saved for ${currentTest}. Status changed to "Completed". Awaiting verification.`);
-            document.getElementById('testInProgress').style.display = 'none';
-            document.getElementById('resultValue').value = '';
-            document.getElementById('resultNotes').value = '';
-            document.getElementById('abnormalFlag').checked = false;
-            currentTest = null;
-        }
-
-        function cancelTest() {
-            document.getElementById('testInProgress').style.display = 'none';
-            currentTest = null;
-        }
-
-        function filterTests(value) {
-            showDemoAlert(`Filtering tests: ${value}`);
-        }
-
-        function showDemoAlert(msg) { alert('🔔 ' + msg + ' (Demo)'); }
+    let currentRow = null;
+    let currentTest = null;
+    function startTest(button) {
+        currentRow = button.closest('tr');
+        currentTest = currentRow.dataset;
+        currentRow.dataset.status = 'In Progress';
+        currentRow.cells[5].innerHTML = '<span class="badge badge-progress">In Progress</span>';
+        currentRow.querySelector('.assigned-tech').textContent = '@ViewBag.TechName';
+        currentRow.querySelector('.started-at').textContent = new Date().toLocaleString();
+        button.innerHTML = '<i class="fas fa-keyboard"></i> Capturing';
+        button.disabled = true;
+        document.getElementById('testInProgress').style.display = 'block';
+        document.getElementById('ctxPatient').textContent = currentTest.patient;
+        document.getElementById('contextEmpty').style.display = 'none';
+        document.getElementById('patientContext').style.display = 'grid';
+        document.getElementById('normalRange').value = currentTest.range;
+        document.getElementById('resultUnit').value = currentTest.unit;
+        document.getElementById('completedAt').value = '';
+        document.getElementById('activeTestInfo').innerHTML = `<strong>Test:</strong> ${currentTest.test}<br><strong>Request:</strong> ${currentTest.request}<br><strong>Technician assigned:</strong> @ViewBag.TechName<br><strong>Start date/time:</strong> ${new Date().toLocaleString()}<br><strong>Request status:</strong> In Progress<br><strong>Consumables:</strong> deducted from stock`;
+        deductStock(currentTest.test);
+    }
+    function deductStock(testName) {
+        if (testName.includes('PT')) document.getElementById('citrateStock').textContent = Math.max(0, Number(document.getElementById('citrateStock').textContent) - 1);
+        else document.getElementById('edtaStock').textContent = Math.max(0, Number(document.getElementById('edtaStock').textContent) - 1);
+    }
+    function checkAbnormal() {
+        const value = Number(document.getElementById('resultValue').value);
+        const range = currentTest?.range || '';
+        const parts = range.split('-').map(Number);
+        const abnormal = parts.length === 2 && (value < parts[0] || value > parts[1]);
+        document.getElementById('abnormalNotice').style.display = abnormal ? 'block' : 'none';
+    }
+    function completeTest() {
+        if (!document.getElementById('resultValue').value) { showDemoAlert('Please enter a result value before completing the test.', 'warning'); return; }
+        const completedAt = new Date().toLocaleString();
+        document.getElementById('completedAt').value = completedAt;
+        currentRow.dataset.status = 'Completed';
+        currentRow.cells[5].innerHTML = '<span class="badge badge-completed">Completed</span>';
+        currentRow.querySelector('.completed-at-cell').textContent = completedAt;
+        currentRow.cells[10].innerHTML = '<a class="btn-outline-lab" href="@Url.Action("Verification", "Technician")"><i class="fas fa-user-shield"></i> Await Verify</a>';
+        document.getElementById('activeStatus').textContent = 'Completed';
+        openLabPopup('Results Captured', '<div class="alert-info-soft"><strong>Test status:</strong> Completed<br><strong>Request rule:</strong> if this is the last outstanding test, request status changes to Completed<br><strong>Next step:</strong> second technician verification</div>', 'Got it');
+    }
+    function cancelTest() { document.getElementById('testInProgress').style.display = 'none'; }
+    function filterTests(value) {
+        document.querySelectorAll('#testsTable tbody tr').forEach(row => {
+            row.style.display = value === 'all' || row.dataset.status === value || row.dataset.urgency === value ? '' : 'none';
+        });
+    }
     </script>
 }
+

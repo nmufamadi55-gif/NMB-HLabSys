@@ -2,35 +2,106 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Technician Workload";
     ViewData["RoleSubtitle"] = "Technician Portal";
-    ViewData["UserGreeting"] = $"🔬 {@ViewBag.TechName} (EMP:{@ViewBag.EmployeeNumber})";
+    ViewData["UserGreeting"] = $"Lab Tech {ViewBag.TechName} (EMP:{ViewBag.EmployeeNumber})";
     ViewData["UserInitials"] = "MP";
-
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Technician")" class="active">📊 Workload</a></li>
-    <li><a href="@Url.Action("ReceiveSamples", "Technician")">📦 Receive Samples</a></li>
-    <li><a href="@Url.Action("PerformTests", "Technician")">⚙️ Perform Tests</a></li>
-    <li><a href="@Url.Action("Verification", "Technician")">✅ Verification</a></li>
-    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+        <li><a href="@Url.Action("Dashboard", "Technician")" class="@(currentAction == "Dashboard" ? "active" : "")"><i class="fas fa-chart-line"></i> <span>Workload</span></a></li>
+        <li><a href="@Url.Action("ReceiveSamples", "Technician")" class="@(currentAction == "ReceiveSamples" ? "active" : "")"><i class="fas fa-box-open"></i> <span>Receive Samples</span></a></li>
+        <li><a href="@Url.Action("PerformTests", "Technician")" class="@(currentAction == "PerformTests" ? "active" : "")"><i class="fas fa-vial"></i> <span>Perform Tests</span></a></li>
+        <li><a href="@Url.Action("Verification", "Technician")" class="@(currentAction == "Verification" ? "active" : "")"><i class="fas fa-check-double"></i> <span>Verification</span></a></li>
+        <li><a href="@Url.Action("Reports", "Technician")" class="@(currentAction == "Reports" ? "active" : "")"><i class="fas fa-file-pdf"></i> <span>Reports</span></a></li>
+        <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
+<div class="page-toolbar">
+    <div>
+        <h2>Technician Workload</h2>
+        <p>Monitor selected, waiting, verification, review, STAT, overdue, and near-due tests.</p>
+    </div>
+    <div class="toolbar-actions">
+        <input id="requestSearch" class="lab-input" type="search" placeholder="Request number" oninput="filterDashboard()">
+        <select id="urgencyFilter" class="lab-select" onchange="filterDashboard()">
+            <option value="all">All urgency</option>
+            <option value="STAT">STAT</option>
+            <option value="Routine">Routine</option>
+        </select>
+        <select id="categoryFilter" class="lab-select" onchange="filterDashboard()">
+            <option value="all">All categories</option>
+            <option value="Haematology">Haematology</option>
+            <option value="Coagulation">Coagulation</option>
+            <option value="Morphology">Morphology</option>
+        </select>
+        <select id="dueFilter" class="lab-select" onchange="filterDashboard()">
+            <option value="all">All due times</option>
+            <option value="overdue">Overdue</option>
+            <option value="near">Near limit</option>
+            <option value="today">Today</option>
+        </select>
+    </div>
+</div>
+
 <div class="stat-cards">
-    <div class="stat-item"><div class="stat-icon-lg">⏳</div><div><h3>5</h3><p>Pending Tests</p></div></div>
-    <div class="stat-item"><div class="stat-icon-lg">⚠️</div><div><h3>2</h3><p>Overdue</p></div></div>
-    <div class="stat-item"><div class="stat-icon-lg">✅</div><div><h3>8</h3><p>Awaiting Verify</p></div></div>
+    <div class="stat-item"><div class="stat-icon-lg"><i class="fas fa-user-check"></i></div><div><h3>5</h3><p>Selected by Me</p></div></div>
+    <div class="stat-item"><div class="stat-icon-lg"><i class="fas fa-inbox"></i></div><div><h3>7</h3><p>Waiting Selection</p></div></div>
+    <div class="stat-item"><div class="stat-icon-lg"><i class="fas fa-user-shield"></i></div><div><h3>6</h3><p>Waiting Verify</p></div></div>
+    <div class="stat-item"><div class="stat-icon-lg"><i class="fas fa-rotate-left"></i></div><div><h3>2</h3><p>To Be Reviewed</p></div></div>
+    <div class="stat-item"><div class="stat-icon-lg"><i class="fas fa-bolt"></i></div><div><h3>3</h3><p>STAT Tests</p></div></div>
+    <div class="stat-item"><div class="stat-icon-lg"><i class="fas fa-clock"></i></div><div><h3>4</h3><p>Overdue / Near Due</p></div></div>
 </div>
 
 <div class="card-modern">
-    <h3>🔬 Assigned Tests</h3>
-    <table>
-        <thead><tr><th>Test</th><th>Req#</th><th>Due</th><th>Status</th><th></th></tr></thead>
-        <tbody>
-            <tr><td>Full Blood Count</td><td>REQ-001</td><td>Today 16:00</td><td><span class="badge badge-progress">In Progress</span></td><td><button class="btn-sm-lab" onclick="showDemoAlert('Capture results')">Capture</button></td></tr>
-            <tr><td>Coagulation</td><td>REQ-002</td><td>Today 14:30</td><td><span class="badge">Pending</span></td><td><button class="btn-sm-lab" onclick="showDemoAlert('Start test - consumables deducted')">Select</button></td></tr>
-        </tbody>
-    </table>
+    <div class="card-header-flex">
+        <h3><i class="fas fa-tasks"></i> Active Work Queue</h3>
+        <span class="user-tag compact-tag">Auto flags turnaround risk</span>
+    </div>
+    <div class="table-container">
+        <table id="workloadTable">
+            <thead>
+                <tr><th>Request</th><th>Test Type</th><th>Category</th><th>Urgency</th><th>Status</th><th>Due</th><th>Assigned Tech</th><th>Expected Completion</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+                <tr data-request="REQ-001" data-urgency="Routine" data-category="Haematology" data-due="near"><td>REQ-001</td><td>Full Blood Count</td><td>Haematology</td><td><span class="badge">Routine</span></td><td><span class="badge badge-progress">In Progress</span></td><td><span class="due-warn">Today 16:00</span></td><td>Michael Peters</td><td>45 min turnaround</td><td><a class="btn-sm-lab" href="@Url.Action("PerformTests", "Technician")"><i class="fas fa-keyboard"></i> Capture</a></td></tr>
+                <tr data-request="REQ-002" data-urgency="Routine" data-category="Coagulation" data-due="overdue"><td>REQ-002</td><td>PT/INR</td><td>Coagulation</td><td><span class="badge">Routine</span></td><td><span class="badge badge-progress">Submitted</span></td><td><span class="due-danger">Overdue 35m</span></td><td>Unassigned</td><td>60 min turnaround</td><td><a class="btn-sm-lab" href="@Url.Action("PerformTests", "Technician")"><i class="fas fa-hand-pointer"></i> Select</a></td></tr>
+                <tr data-request="REQ-003" data-urgency="STAT" data-category="Morphology" data-due="overdue"><td>REQ-003</td><td>Differential Count</td><td>Morphology</td><td><span class="badge badge-stat">STAT</span></td><td><span class="badge badge-stat">To Be Reviewed</span></td><td><span class="due-danger">Overdue 1h</span></td><td>Michael Peters</td><td>30 min turnaround</td><td><a class="btn-sm-lab" href="@Url.Action("Verification", "Technician")"><i class="fas fa-notes-medical"></i> Review Notes</a></td></tr>
+                <tr data-request="REQ-004" data-urgency="STAT" data-category="Haematology" data-due="today"><td>REQ-004</td><td>Platelet Count</td><td>Haematology</td><td><span class="badge badge-stat">STAT</span></td><td><span class="badge badge-completed">Completed</span></td><td>Today 18:00</td><td>Tech Smith</td><td>30 min turnaround</td><td><a class="btn-outline-lab" href="@Url.Action("Verification", "Technician")"><i class="fas fa-check-double"></i> Verify</a></td></tr>
+                <tr data-request="REQ-005" data-urgency="Routine" data-category="Morphology" data-due="near"><td>REQ-005</td><td>Peripheral Blood Film</td><td>Morphology</td><td><span class="badge">Routine</span></td><td><span class="badge badge-progress">Submitted</span></td><td><span class="due-warn">Due in 55m</span></td><td>Unassigned</td><td>120 min turnaround</td><td><a class="btn-sm-lab" href="@Url.Action("PerformTests", "Technician")"><i class="fas fa-hand-pointer"></i> Select</a></td></tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 
-<script>function showDemoAlert(msg){alert('🔔 '+msg);}</script>
+<div class="grid-2col">
+    <div class="card-modern">
+        <h3><i class="fas fa-hourglass-half"></i> Turnaround Watch</h3>
+        <ul class="lab-list">
+            <li><strong>REQ-002 PT/INR:</strong> overdue, routine request already received.</li>
+            <li><strong>REQ-003 Differential:</strong> STAT result returned for correction.</li>
+            <li><strong>REQ-005 Blood Film:</strong> near limit and still unassigned.</li>
+        </ul>
+    </div>
+    <div class="card-modern">
+        <h3><i class="fas fa-clipboard-check"></i> Assigned Test Types</h3>
+        <div class="pill-row"><span>Full Blood Count</span><span>PT/INR</span><span>Differential Count</span><span>Peripheral Film</span></div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+    function filterDashboard() {
+        const request = document.getElementById('requestSearch').value.toLowerCase();
+        const urgency = document.getElementById('urgencyFilter').value;
+        const category = document.getElementById('categoryFilter').value;
+        const due = document.getElementById('dueFilter').value;
+        document.querySelectorAll('#workloadTable tbody tr').forEach(row => {
+            const matchesRequest = row.dataset.request.toLowerCase().includes(request);
+            const matchesUrgency = urgency === 'all' || row.dataset.urgency === urgency;
+            const matchesCategory = category === 'all' || row.dataset.category === category;
+            const matchesDue = due === 'all' || row.dataset.due === due;
+            row.style.display = matchesRequest && matchesUrgency && matchesCategory && matchesDue ? '' : 'none';
+        });
+    }
+    </script>
+}
