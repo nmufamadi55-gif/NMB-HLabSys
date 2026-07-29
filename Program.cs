@@ -1,16 +1,29 @@
+using Microsoft.EntityFrameworkCore;
+using NMB_HLabSys.Data;
+using NMB_HLabSys.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 builder.Services.AddControllersWithViews();
 
 // Add Session services
-builder.Services.AddDistributedMemoryCache(); // Stores session in memory
+builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30); // Session expires after 30 minutes of inactivity
-    options.Cookie.HttpOnly = true; // Makes the cookie inaccessible to client-side scripts
-    options.Cookie.IsEssential = true; // Required for session to work
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
 });
+
+// Register Services
+builder.Services.AddScoped<IStockManagementService, StockManagementService>();
+builder.Services.AddScoped<ITestManagementService, TestManagementService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
 
@@ -25,9 +38,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-// IMPORTANT: UseSession MUST come before UseAuthorization
 app.UseSession();
-
 app.UseAuthorization();
 
 app.MapControllerRoute(

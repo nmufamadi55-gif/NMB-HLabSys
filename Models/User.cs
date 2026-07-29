@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -11,17 +10,28 @@ namespace NMB_HLabSys.Models
         public int UserID { get; set; }
 
         [Required]
+        [StringLength(100)]
+        public string Name { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(100)]
+        public string Surname { get; set; } = string.Empty;
+
+        [Required]
         [EmailAddress]
         [StringLength(255)]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         [Required]
         [StringLength(255)]
-        public string PasswordHash { get; set; }
+        public string PasswordHash { get; set; } = string.Empty;
 
         [Required]
         [StringLength(20)]
-        public string UserRole { get; set; } // Patient, Doctor, Technician, Manager, Admin
+        public string UserRole { get; set; } = string.Empty; // Patient, Doctor, Technician, Manager, Admin
+
+        [StringLength(20)]
+        public string ContactNumber { get; set; } = string.Empty;
 
         public bool IsActive { get; set; } = true;
 
@@ -32,6 +42,8 @@ namespace NMB_HLabSys.Models
         public DateTime? ModifiedDate { get; set; }
 
         // Navigation properties
-        public virtual Patient Patient { get; set; }
+        public virtual Patient? Patient { get; set; }
+        public string? AspNetUserID { get; set; }
+
     }
 }
