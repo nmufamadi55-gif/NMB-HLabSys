@@ -1,0 +1,504 @@
+﻿@* Views/Shared/_NewRequestModal.cshtml *@
+
+<style>
+    /* ─── TOAST NOTIFICATIONS ─── */
+    .toast-container {
+        position: fixed;
+        top: 80px;
+        right: 24px;
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 380px;
+        width: 100%;
+        pointer-events: none;
+    }
+
+    .toast {
+        background: #fff;
+        border-radius: 14px;
+        padding: 1rem 1.2rem;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        border-left: 5px solid var(--primary-bright, #0841C9);
+        display: flex;
+        align-items: flex-start;
+        gap: 0.8rem;
+        pointer-events: auto;
+        animation: slideInRight 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .toast.hiding {
+            opacity: 0;
+            transform: translateX(40px);
+        }
+
+    .toast-icon {
+        font-size: 1.4rem;
+        flex-shrink: 0;
+        line-height: 1;
+        margin-top: 2px;
+    }
+
+    .toast-content {
+        flex: 1;
+        font-size: 0.9rem;
+        color: #1A2C3A;
+    }
+
+        .toast-content strong {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .toast-content small {
+            font-size: 0.75rem;
+            color: #5A6E7A;
+        }
+
+    .toast-close {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        color: #94A3B8;
+        padding: 0 0.2rem;
+        transition: color 0.2s;
+        flex-shrink: 0;
+        margin-top: -2px;
+    }
+
+        .toast-close:hover {
+            color: #1A2C3A;
+        }
+
+    .toast-success {
+        border-left-color: #10B981;
+    }
+
+        .toast-success .toast-icon {
+            color: #10B981;
+        }
+
+    .toast-error {
+        border-left-color: #EF4444;
+    }
+
+        .toast-error .toast-icon {
+            color: #EF4444;
+        }
+
+    .toast-warning {
+        border-left-color: #F59E0B;
+    }
+
+        .toast-warning .toast-icon {
+            color: #F59E0B;
+        }
+
+    .toast-info {
+        border-left-color: #1D97F1;
+    }
+
+        .toast-info .toast-icon {
+            color: #1D97F1;
+        }
+
+    @@keyframes slideInRight {
+        0% {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .toast-container {
+            top: 70px;
+            right: 12px;
+            left: 12px;
+            max-width: 100%;
+        }
+
+        .toast {
+            padding: 0.8rem 1rem;
+            font-size: 0.85rem;
+        }
+    }
+</style>
+
+<!-- ─── TOAST CONTAINER ─── -->
+<div id="toastContainer" class="toast-container"></div>
+
+<!-- ─── NEW REQUEST MODAL ─── -->
+<div id="newRequestModal" class="modal-overlay">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3>New Test Request</h3>
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-size:0.65rem;color:#5A6E7A;">Templates:</span>
+                <span class="template-tag" onclick="loadTemplate('routine')">Routine</span>
+                <span class="template-tag" onclick="loadTemplate('full')">Full Count</span>
+                <span class="template-tag" onclick="loadTemplate('coag')">Coagulation</span>
+                <button class="close-modal" onclick="closeNewRequestModal();">&times;</button>
+            </div>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Enter Patient SA ID Number <span style="color:#DC2626;">*</span></label>
+                <div style="display:flex; gap:0.5rem;">
+                    <input type="text" id="patientIdSearch" class="form-control" placeholder="e.g., 8001015009087">
+                    <button type="button" class="btn-sm btn-info" onclick="searchPatientById()">Search</button>
+                </div>
+            </div>
+            <div id="patientMedicalInfo"></div>
+            <div id="requestFormFields" style="display:none;">
+                <div class="form-group">
+                    <label>Urgency <span style="color:#DC2626;">*</span></label>
+                    <div style="display:flex; gap:0.8rem; flex-wrap:wrap; align-items:center;">
+                        <label style="display:flex; align-items:center; gap:0.2rem; cursor:pointer; font-size:0.85rem;">
+                            <input type="radio" name="urgency" value="routine" checked> <span class="priority-routine">Routine</span>
+                        </label>
+                        <label style="display:flex; align-items:center; gap:0.2rem; cursor:pointer; font-size:0.85rem;">
+                            <input type="radio" name="urgency" value="urgent"> <span class="priority-urgent">Urgent</span>
+                        </label>
+                        <label style="display:flex; align-items:center; gap:0.2rem; cursor:pointer; font-size:0.85rem;">
+                            <input type="radio" name="urgency" value="stat"> <span class="priority-stat">STAT</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Select Test Types <span style="color:#DC2626;">*</span></label>
+                    <div id="testCategoriesContainer"></div>
+                    <div id="selectedTestsSummary" class="selected-tests-summary" style="display:none;">
+                        <strong>Selected Tests:</strong>
+                        <div id="selectedTestsList"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Clinical Notes</label>
+                    <textarea id="newNotes" rows="2" class="form-control" placeholder="Enter relevant clinical information, symptoms, or special instructions..."></textarea>
+                </div>
+                <div id="sampleRequirements" style="display:none;"></div>
+                <div id="barcodeDisplay" style="display:none;"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-outline-sm" onclick="closeNewRequestModal(); resetNewRequestForm();">Cancel</button>
+            <button class="btn-sm btn-success" id="submitRequestBtn" onclick="submitNewRequest()" style="display:none;">Submit Request</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ─── DATA (shared with the page) ──────────────────────
+        if (typeof window.testDatabase === 'undefined') {
+            window.testDatabase = [
+                { name: "Haemoglobin (Hb)", category: "Full Blood Count (FBC)", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Gently invert 8-10 times to mix", equipment: "Vacutainer system" },
+                { name: "White Cell Count (WCC)", category: "Full Blood Count (FBC)", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Gently invert 8-10 times to mix", equipment: "Vacutainer system" },
+                { name: "Platelet Count", category: "Full Blood Count (FBC)", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Gently invert 8-10 times to mix", equipment: "Vacutainer system" },
+                { name: "Red Cell Count (RCC)", category: "Full Blood Count (FBC)", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Gently invert 8-10 times to mix", equipment: "Vacutainer system" },
+                { name: "PT/INR", category: "Coagulation Studies", sampleType: "Plasma", tube: "Citrate Tube", tubeColor: "Light blue top", volume: "2.7 mL", instructions: "Fill completely, invert gently 3-4 times", equipment: "Sodium citrate anticoagulant" },
+                { name: "APTT", category: "Coagulation Studies", sampleType: "Plasma", tube: "Citrate Tube", tubeColor: "Light blue top", volume: "2.7 mL", instructions: "Fill completely, invert gently 3-4 times", equipment: "Sodium citrate anticoagulant" },
+                { name: "Fibrinogen", category: "Coagulation Studies", sampleType: "Plasma", tube: "Citrate Tube", tubeColor: "Light blue top", volume: "2.7 mL", instructions: "Fill completely, invert gently 3-4 times", equipment: "Sodium citrate anticoagulant" },
+                { name: "Neutrophils", category: "Differential Count", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Blood smear required", equipment: "Microscope slides, stain" },
+                { name: "Lymphocytes", category: "Differential Count", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Blood smear required", equipment: "Microscope slides, stain" },
+                { name: "Monocytes", category: "Differential Count", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Blood smear required", equipment: "Microscope slides, stain" },
+                { name: "Film Comment", category: "Peripheral Blood Film", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Prepare thin blood smear", equipment: "Microscope, staining kit" },
+                { name: "Blast Cells", category: "Peripheral Blood Film", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Prepare thin blood smear", equipment: "Microscope, staining kit" }
+            ];
+            window.categories = Array.from(new Set(window.testDatabase.map(function(t) { return t.category; })));
+        }
+
+        if (typeof window.patientDatabase === 'undefined') {
+            window.patientDatabase = {
+                "8001015009087": { name:"Thabo", surname:"Mbeki", dob:"1980-01-01", phone:"0821234567", conditions:["Hypertension"], allergies:["Penicillin"], medications:["Lisinopril 10mg"] },
+                "8505155009088": { name:"Lerato", surname:"Dlamini", dob:"1985-05-15", phone:"0832345678", conditions:["Type 2 Diabetes"], allergies:[], medications:["Metformin 500mg"] },
+                "9001015009089": { name:"John", surname:"Smith", dob:"1990-01-01", phone:"0843456789", conditions:[], allergies:["Sulfa"], medications:[] }
+            };
+        }
+
+        // ─── TOAST SYSTEM ────────────────────────────────────────
+        function showToast(message, type, duration) {
+            type = type || 'success';
+            duration = duration || 4000;
+            var container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            var iconMap = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+            var icon = iconMap[type] || 'ℹ️';
+
+            var toast = document.createElement('div');
+            toast.className = 'toast toast-' + type;
+            toast.innerHTML = `
+                <div class="toast-icon">${icon}</div>
+                <div class="toast-content">
+                    <strong>${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
+                    ${message}
+                    <small>${new Date().toLocaleTimeString()}</small>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+            `;
+            container.appendChild(toast);
+
+            // Auto dismiss
+            setTimeout(function() {
+                toast.classList.add('hiding');
+                setTimeout(function() {
+                    if (toast.parentElement) toast.remove();
+                }, 300);
+            }, duration);
+
+            // Click anywhere on toast to dismiss
+            toast.addEventListener('click', function(e) {
+                if (e.target.tagName !== 'BUTTON') {
+                    toast.classList.add('hiding');
+                    setTimeout(function() {
+                        if (toast.parentElement) toast.remove();
+                    }, 300);
+                }
+            });
+        }
+
+        window.showToast = showToast;
+
+        // ─── STATE ──────────────────────────────────────────────
+        var currentSelectedPatient = null;
+        var currentSelectedTests = [];
+        var newRequestCallback = null;
+        var redirectUrl = null; // optional redirect after submit
+
+        // ─── OPEN / CLOSE ────────────────────────────────────────
+        window.openNewRequestModal = function(callback, options) {
+            if (callback) newRequestCallback = callback;
+            if (options && options.redirectUrl) redirectUrl = options.redirectUrl;
+            else redirectUrl = null;
+            resetNewRequestForm();
+            document.getElementById('newRequestModal').classList.add('active');
+        };
+
+        window.closeNewRequestModal = function() {
+            document.getElementById('newRequestModal').classList.remove('active');
+            resetNewRequestForm();
+            // Reset redirect after close
+            redirectUrl = null;
+        };
+
+        // ─── RESET FORM ──────────────────────────────────────────
+        function resetNewRequestForm() {
+            document.getElementById('patientIdSearch').value = '';
+            document.getElementById('patientMedicalInfo').innerHTML = '';
+            document.getElementById('requestFormFields').style.display = 'none';
+            document.getElementById('submitRequestBtn').style.display = 'none';
+            document.getElementById('barcodeDisplay').style.display = 'none';
+            document.getElementById('sampleRequirements').style.display = 'none';
+            document.getElementById('newNotes').value = '';
+            var routineRadio = document.querySelector('input[name="urgency"][value="routine"]');
+            if(routineRadio) routineRadio.checked = true;
+            currentSelectedTests = [];
+            currentSelectedPatient = null;
+            document.getElementById('testCategoriesContainer').innerHTML = '';
+            document.getElementById('selectedTestsList').innerHTML = '';
+            document.getElementById('selectedTestsSummary').style.display = 'none';
+        }
+        window.resetNewRequestForm = resetNewRequestForm;
+
+        // ─── SEARCH PATIENT ──────────────────────────────────────
+        window.searchPatientById = function() {
+            var id = document.getElementById('patientIdSearch').value.trim();
+            var patient = window.patientDatabase[id];
+            var infoDiv = document.getElementById('patientMedicalInfo');
+            var formFields = document.getElementById('requestFormFields');
+            var submitBtn = document.getElementById('submitRequestBtn');
+
+            if(patient) {
+                currentSelectedPatient = patient;
+                infoDiv.innerHTML = '<div class="patient-info-card"><strong>Patient Found:</strong> ' + patient.name + ' ' + patient.surname +
+                    '<br><small>ID: ' + id + ' | DOB: ' + patient.dob + ' | Contact: ' + patient.phone + '</small>' +
+                    '<br><small><strong>Conditions:</strong> ' + (patient.conditions.join(', ') || 'None') +
+                    ' | <strong>Allergies:</strong> ' + (patient.allergies.join(', ') || 'None') +
+                    ' | <strong>Medications:</strong> ' + (patient.medications.join(', ') || 'None') + '</small></div>';
+                formFields.style.display = 'block';
+                submitBtn.style.display = 'inline-block';
+                loadTestCategories();
+            } else {
+                infoDiv.innerHTML = '<div class="patient-info-card" style="border-left-color:#DC2626; color:#DC2626;">Patient not found. Please register first.</div>';
+                formFields.style.display = 'none';
+                submitBtn.style.display = 'none';
+                showToast('Patient not found. Please register first.', 'error');
+            }
+        };
+
+        // ─── LOAD TEST CATEGORIES ───────────────────────────────
+        function loadTestCategories() {
+            var container = document.getElementById('testCategoriesContainer');
+            var categories = window.categories || [];
+            var html = '';
+            categories.forEach(function(cat, idx) {
+                var categoryTests = window.testDatabase.filter(function(t) { return t.category === cat; });
+                var testsHtml = '';
+                categoryTests.forEach(function(t) {
+                    testsHtml += '<label><input type="checkbox" value="' + t.name + '" data-test-name="' + t.name + '" onchange="updateSelectedTests()"> ' + t.name + '</label>';
+                });
+                html += '<div class="category-group"><div class="category-header" onclick="toggleCategory(' + idx + ')">' + cat + ' <span style="float:right;">▼</span></div><div class="test-list" id="category-' + idx + '">' + testsHtml + '</div></div>';
+            });
+            container.innerHTML = html;
+        }
+
+        window.toggleCategory = function(idx) {
+            var el = document.getElementById('category-' + idx);
+            if(el) el.classList.toggle('show');
+        };
+
+        // ─── UPDATE SELECTED TESTS ──────────────────────────────
+        window.updateSelectedTests = function() {
+            var checkboxes = document.querySelectorAll('#testCategoriesContainer input:checked');
+            currentSelectedTests = Array.from(checkboxes).map(function(cb) { return cb.value; });
+            var selectedTestDetails = currentSelectedTests.map(function(testName) {
+                return window.testDatabase.find(function(t) { return t.name === testName; });
+            }).filter(function(t) { return t; });
+
+            var uniqueSamples = new Map();
+            selectedTestDetails.forEach(function(test) {
+                if(!uniqueSamples.has(test.tube)) {
+                    uniqueSamples.set(test.tube, { tube: test.tube, tubeColor: test.tubeColor, instructions: test.instructions, volume: test.volume, equipment: test.equipment });
+                }
+            });
+
+            var summaryDiv = document.getElementById('selectedTestsSummary');
+            var samplesDiv = document.getElementById('sampleRequirements');
+            if(currentSelectedTests.length > 0) {
+                summaryDiv.style.display = 'block';
+                document.getElementById('selectedTestsList').innerHTML = currentSelectedTests.map(function(t) { return '<span class="selected-test-tag">' + t + '</span>'; }).join('');
+                samplesDiv.style.display = 'block';
+                var samplesHtml = '<div class="sample-requirements"><strong>Sample Collection Requirements:</strong><br>';
+                var uniqueArray = Array.from(uniqueSamples.values());
+                uniqueArray.forEach(function(samp) {
+                    samplesHtml += '<div class="sample-item"><div class="sample-icon">🧪</div><div class="sample-details"><div class="sample-name">' + samp.tube + ' (' + samp.tubeColor + ')</div><div class="sample-instruction">Volume: ' + samp.volume + ' | ' + samp.instructions + ' | Equipment: ' + samp.equipment + '</div></div></div>';
+                });
+                samplesHtml += '</div>';
+                samplesDiv.innerHTML = samplesHtml;
+            } else {
+                summaryDiv.style.display = 'none';
+                samplesDiv.style.display = 'none';
+            }
+        };
+
+        // ─── TEMPLATES ───────────────────────────────────────────
+        window.loadTemplate = function(template) {
+            var checkboxes = document.querySelectorAll('#testCategoriesContainer input[type="checkbox"]');
+            checkboxes.forEach(function(cb) { cb.checked = false; });
+
+            var templateTests = [];
+            if (template === 'routine') {
+                templateTests = ['Haemoglobin (Hb)', 'White Cell Count (WCC)', 'Platelet Count'];
+            } else if (template === 'full') {
+                templateTests = ['Haemoglobin (Hb)', 'White Cell Count (WCC)', 'Platelet Count', 'Red Cell Count (RCC)', 'Neutrophils', 'Lymphocytes'];
+            } else if (template === 'coag') {
+                templateTests = ['PT/INR', 'APTT', 'Fibrinogen'];
+            }
+
+            checkboxes.forEach(function(cb) {
+                if (templateTests.indexOf(cb.value) > -1) {
+                    cb.checked = true;
+                }
+            });
+            window.updateSelectedTests();
+        };
+
+        // ─── SUBMIT REQUEST ──────────────────────────────────────
+        window.submitNewRequest = function() {
+            if(!currentSelectedPatient) {
+                showToast('Please search and select a patient first.', 'error');
+                return;
+            }
+            if(currentSelectedTests.length === 0) {
+                showToast('Please select at least one test type.', 'error');
+                return;
+            }
+            var urgencyRadio = document.querySelector('input[name="urgency"]:checked');
+            var urgency = urgencyRadio ? urgencyRadio.value : 'routine';
+
+            // Build request object
+            var newRequest = {
+                id: Date.now(),
+                reqNo: 'REQ-' + String(Date.now()).slice(-4),
+                patient: currentSelectedPatient.name + ' ' + currentSelectedPatient.surname,
+                patientId: document.getElementById('patientIdSearch').value.trim(),
+                patientInfo: currentSelectedPatient,
+                date: new Date().toISOString().split('T')[0],
+                tests: currentSelectedTests.slice(),
+                status: "Submitted",
+                urgency: urgency,
+                hasAbnormal: false,
+                results: null,
+                clinicalNotes: document.getElementById('newNotes').value
+            };
+
+            // Generate barcodes
+            var barcodes = currentSelectedTests.map(function() {
+                return 'BAR' + Date.now() + Math.random().toString(36).substring(2, 6).toUpperCase();
+            });
+            var barcodeHtml = '<div class="sample-requirements"><strong>Generated Barcodes:</strong><br>';
+            currentSelectedTests.forEach(function(test, idx) {
+                barcodeHtml += '<div class="barcode-item"><span>' + test + '</span><span><strong>' + barcodes[idx] + '</strong></span></div>';
+            });
+            barcodeHtml += '</div>';
+            document.getElementById('barcodeDisplay').innerHTML = barcodeHtml;
+            document.getElementById('barcodeDisplay').style.display = 'block';
+
+            // Show success toast
+            var testList = currentSelectedTests.join(', ');
+            showToast(
+                `<strong>${newRequest.reqNo}</strong> submitted for <strong>${newRequest.patient}</strong><br><small>Tests: ${testList}</small>`,
+                'success',
+                5000
+            );
+
+            // Invoke callback if provided (e.g., to add to a list on dashboard)
+            if (typeof newRequestCallback === 'function') {
+                newRequestCallback(newRequest);
+            }
+
+            // Close modal after short delay
+            setTimeout(function() {
+                closeNewRequestModal();
+                resetNewRequestForm();
+
+                // If redirectUrl is set, navigate after a moment
+                if (redirectUrl) {
+                    setTimeout(function() {
+                        window.location.href = redirectUrl;
+                    }, 800);
+                }
+            }, 1000);
+        };
+
+        // ─── CLOSE ON OVERLAY CLICK ─────────────────────────────
+        document.addEventListener('DOMContentLoaded', function() {
+            var overlay = document.getElementById('newRequestModal');
+            if (overlay) {
+                overlay.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeNewRequestModal();
+                    }
+                });
+            }
+        });
+
+    })();
+</script>

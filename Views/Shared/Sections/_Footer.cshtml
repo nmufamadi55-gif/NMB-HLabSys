@@ -1,0 +1,624 @@
+﻿<footer class="site-footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <a href="#" class="logo">
+                    <div class="logo-icon"><i class="fas fa-microscope"></i></div>
+                    <h1>NMB-HLabSys <span>v2.0</span></h1>
+                </a>
+                <p>
+                    Nelson Mandela Bay Haematology Diagnostic Laboratories —
+                    delivering excellence in haematology diagnostics through
+                    innovation, accuracy, and patient-centered care.
+                </p>
+                <div class="social-links">
+                    <a href="#" aria-label="Facebook" class="social-fb"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" aria-label="Twitter" class="social-tw"><i class="fab fa-twitter"></i></a>
+                    <a href="#" aria-label="LinkedIn" class="social-li"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#" aria-label="YouTube" class="social-yt"><i class="fab fa-youtube"></i></a>
+                    <a href="#" aria-label="Instagram" class="social-ig"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="WhatsApp" class="social-wa"><i class="fab fa-whatsapp"></i></a>
+                    <a href="#" aria-label="TikTok" class="social-tt"><i class="fab fa-tiktok"></i></a>
+                </div>
+            </div>
+            <div class="footer-col">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="#about"><i class="fas fa-chevron-right"></i> About Us</a></li>
+                    <li><a href="#services"><i class="fas fa-chevron-right"></i> Services</a></li>
+                    <li><a href="#features"><i class="fas fa-chevron-right"></i> Why Us</a></li>
+                    <li><a href="#testimonials"><i class="fas fa-chevron-right"></i> Testimonials</a></li>
+                    <li><a href="#contact"><i class="fas fa-chevron-right"></i> Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Support</h4>
+                <ul>
+                    <li><a href="#"><i class="fas fa-chevron-right"></i> Help Center</a></li>
+                    <li><a href="#"><i class="fas fa-chevron-right"></i> Documentation</a></li>
+                    <li><a href="#"><i class="fas fa-chevron-right"></i> API Status</a></li>
+                    <li><a href="#"><i class="fas fa-chevron-right"></i> System Status</a></li>
+                    <li><a href="#"><i class="fas fa-chevron-right"></i> Support Request</a></li>
+                </ul>
+            </div>
+            <div class="footer-col footer-newsletter">
+                <h4>Stay Updated</h4>
+                <p>Subscribe to our newsletter for updates, news, and insights.</p>
+                <form class="newsletter-form" id="newsletterForm">
+                    <input type="email" id="newsletterEmail" placeholder="Your email" required />
+                    <button type="submit"><i class="fas fa-arrow-right"></i></button>
+                </form>
+                <div class="privacy-note">
+                    <i class="fas fa-lock"></i> We respect your privacy. No spam.
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>© 2025 Nelson Mandela Bay Haematology Diagnostic Laboratories. All rights reserved.</span>
+            <div class="legal-links">
+                <a href="@Url.Action("Privacy", "Home")"><i class="fas fa-shield-alt"></i> Privacy Policy</a>
+                <a href="@Url.Action("Terms", "Home")"><i class="fas fa-file-contract"></i> Terms of Service</a>
+                <a href="@Url.Action("CookiePolicy", "Home")"><i class="fas fa-cookie-bite"></i> Cookie Policy</a>
+                <a href="@Url.Action("Legal", "Home")"><i class="fas fa-gavel"></i> Legal</a>
+                <span class="sdg-badge">
+                    <i class="fas fa-heart" style="color:#10B981;"></i> SDG 3: Good Health
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Newsletter Success Modal -->
+    <div class="modal-overlay" id="newsletterModal">
+        <div class="modal-box">
+            <div class="modal-icon"><i class="fas fa-check-circle"></i></div>
+            <h3>Subscribed Successfully!</h3>
+            <p>Thank you for subscribing. You'll receive our latest updates.</p>
+            <button class="modal-btn" id="newsletterModalOkBtn">OK</button>
+            <p class="modal-timer" id="newsletterModalTimer">Closing in 5s...</p>
+        </div>
+    </div>
+</footer>
+
+<style>
+    /* ─── PREMIUM FOOTER ─── */
+    .site-footer {
+        background: var(--primary-dark);
+        color: rgba(255, 255, 255, 0.8);
+        padding: 4rem 0 1.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        position: relative;
+        overflow: hidden;
+    }
+
+        .site-footer::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 30% 0%, rgba(8, 65, 201, 0.08), transparent 60%), radial-gradient(circle at 70% 100%, rgba(29, 151, 241, 0.05), transparent 50%);
+            pointer-events: none;
+        }
+
+    .footer-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1.5fr;
+        gap: 3rem;
+        margin-bottom: 3rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ─── BRAND ─── */
+    .footer-brand .logo {
+        margin-bottom: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        text-decoration: none;
+        transition: transform 0.3s ease;
+    }
+
+        .footer-brand .logo:hover {
+            transform: scale(1.02);
+        }
+
+        .footer-brand .logo .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--primary-bright), var(--primary-light));
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.3rem;
+            box-shadow: 0 4px 16px rgba(8, 65, 201, 0.3);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .footer-brand .logo:hover .logo-icon {
+            box-shadow: 0 8px 28px rgba(8, 65, 201, 0.5);
+        }
+
+        .footer-brand .logo h1 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #FFFFFF 40%, var(--primary-soft));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+        }
+
+        .footer-brand .logo span {
+            font-weight: 400;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.35);
+            -webkit-text-fill-color: rgba(255, 255, 255, 0.35);
+            margin-left: 0.2rem;
+        }
+
+    .footer-brand p {
+        font-size: 0.9rem;
+        line-height: 1.8;
+        color: rgba(255, 255, 255, 0.55);
+        max-width: 340px;
+        margin-bottom: 1.5rem;
+    }
+
+    /* ─── SOCIAL LINKS WITH BRAND COLORS ─── */
+    .social-links {
+        display: flex;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+    }
+
+        .social-links a {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.5);
+            transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            text-decoration: none;
+            font-size: 1.1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+    /* Brand colors on hover */
+    .social-fb:hover {
+        background: #1877F2 !important;
+        color: #fff !important;
+        border-color: #1877F2 !important;
+        box-shadow: 0 8px 28px rgba(24, 119, 242, 0.4) !important;
+    }
+
+    .social-tw:hover {
+        background: #1DA1F2 !important;
+        color: #fff !important;
+        border-color: #1DA1F2 !important;
+        box-shadow: 0 8px 28px rgba(29, 161, 242, 0.4) !important;
+    }
+
+    .social-li:hover {
+        background: #0A66C2 !important;
+        color: #fff !important;
+        border-color: #0A66C2 !important;
+        box-shadow: 0 8px 28px rgba(10, 102, 194, 0.4) !important;
+    }
+
+    .social-yt:hover {
+        background: #FF0000 !important;
+        color: #fff !important;
+        border-color: #FF0000 !important;
+        box-shadow: 0 8px 28px rgba(255, 0, 0, 0.4) !important;
+    }
+
+    .social-ig:hover {
+        background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888) !important;
+        color: #fff !important;
+        border-color: transparent !important;
+        box-shadow: 0 8px 28px rgba(225, 48, 108, 0.4) !important;
+    }
+
+    .social-wa:hover {
+        background: #25D366 !important;
+        color: #fff !important;
+        border-color: #25D366 !important;
+        box-shadow: 0 8px 28px rgba(37, 211, 102, 0.4) !important;
+    }
+
+    .social-tt:hover {
+        background: #000000 !important;
+        color: #69C9D0 !important;
+        border-color: #69C9D0 !important;
+        box-shadow: 0 8px 28px rgba(105, 201, 208, 0.4) !important;
+    }
+
+    /* ─── COLUMNS ─── */
+    .footer-col h4 {
+        color: #fff;
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 1.2rem;
+        letter-spacing: 0.02em;
+        position: relative;
+        display: inline-block;
+    }
+
+        .footer-col h4::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            width: 28px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary-light), transparent);
+            border-radius: 4px;
+        }
+
+    .footer-col ul {
+        list-style: none;
+        margin-top: 0.5rem;
+    }
+
+        .footer-col ul li {
+            margin-bottom: 0.7rem;
+        }
+
+            .footer-col ul li a {
+                color: rgba(255, 255, 255, 0.5);
+                text-decoration: none;
+                font-size: 0.88rem;
+                transition: all 0.3s ease;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.4rem;
+                position: relative;
+            }
+
+                .footer-col ul li a i {
+                    font-size: 0.6rem;
+                    opacity: 0.4;
+                    transition: transform 0.3s ease, opacity 0.3s ease;
+                }
+
+                .footer-col ul li a:hover {
+                    color: #fff;
+                }
+
+                    .footer-col ul li a:hover i {
+                        transform: translateX(4px);
+                        opacity: 1;
+                        color: var(--primary-light);
+                    }
+
+    /* ─── NEWSLETTER ─── */
+    .footer-newsletter p {
+        font-size: 0.88rem;
+        color: rgba(255, 255, 255, 0.5);
+        margin-bottom: 1.2rem;
+        line-height: 1.6;
+    }
+
+    .newsletter-form {
+        display: flex;
+        gap: 0.6rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: var(--radius-element);
+        padding: 4px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+    }
+
+        /* Hover effect on the whole form */
+        .newsletter-form:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .newsletter-form:focus-within {
+            border-color: var(--primary-bright);
+            box-shadow: 0 0 0 4px rgba(8, 65, 201, 0.15);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .newsletter-form input {
+            flex: 1;
+            padding: 0.7rem 1rem;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 0.85rem;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: background 0.3s ease;
+            border-radius: var(--radius-element);
+        }
+
+            /* Input hover glow */
+            .newsletter-form input:hover {
+                background: rgba(255, 255, 255, 0.03);
+            }
+
+            .newsletter-form input::placeholder {
+                color: rgba(255, 255, 255, 0.3);
+            }
+
+        .newsletter-form button {
+            padding: 0.7rem 1.4rem;
+            background: linear-gradient(135deg, var(--primary-bright), var(--primary-light));
+            border: none;
+            border-radius: var(--radius-element);
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            box-shadow: 0 4px 16px rgba(8, 65, 201, 0.2);
+        }
+
+            .newsletter-form button:hover {
+                transform: translateY(-2px) scale(1.02);
+                box-shadow: 0 8px 28px rgba(8, 65, 201, 0.4);
+            }
+
+            .newsletter-form button:active {
+                transform: scale(0.96);
+            }
+
+    .privacy-note {
+        margin-top: 1rem;
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+        .privacy-note i {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.2);
+        }
+
+    /* ─── FOOTER BOTTOM ─── */
+    .footer-bottom {
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        padding-top: 1.8rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1.2rem;
+        font-size: 0.78rem;
+        color: rgba(255, 255, 255, 0.3);
+        position: relative;
+        z-index: 1;
+    }
+
+        .footer-bottom .legal-links {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+            .footer-bottom .legal-links a {
+                color: rgba(255, 255, 255, 0.3);
+                text-decoration: none;
+                transition: color 0.3s ease, transform 0.3s ease;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.3rem;
+                font-size: 0.78rem;
+            }
+
+                .footer-bottom .legal-links a i {
+                    font-size: 0.65rem;
+                    opacity: 0.4;
+                    transition: opacity 0.3s ease;
+                }
+
+                .footer-bottom .legal-links a:hover {
+                    color: rgba(255, 255, 255, 0.8);
+                    transform: translateY(-1px);
+                }
+
+                    .footer-bottom .legal-links a:hover i {
+                        opacity: 1;
+                    }
+
+        .footer-bottom .sdg-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 0.25rem 1rem;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(4px);
+            transition: all 0.3s ease;
+        }
+
+            .footer-bottom .sdg-badge:hover {
+                background: rgba(255, 255, 255, 0.08);
+                border-color: rgba(255, 255, 255, 0.12);
+                color: rgba(255, 255, 255, 0.6);
+            }
+
+            .footer-bottom .sdg-badge i {
+                color: #10B981;
+                font-size: 0.75rem;
+            }
+
+    /* ─── MODAL OVERRIDES (reuse contact modal styles) ─── */
+    /* The modal styles are already defined in the contact section.
+           We reuse the same classes, so no additional CSS is needed here.
+           However, we include them again in case the contact section is not present.
+           We'll add a small note to avoid duplication. */
+    /* The modal styles are already defined in the contact section. */
+    /* No need to duplicate. */
+
+    /* ─── RESPONSIVE ─── */
+    @@media (max-width: 1024px) {
+        .footer-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 2.5rem;
+        }
+    }
+
+    @@media (max-width: 868px) {
+        .footer-grid {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .footer-brand p {
+            max-width: 100%;
+        }
+
+        .footer-bottom {
+            flex-direction: column;
+            text-align: center;
+            gap: 0.8rem;
+        }
+
+            .footer-bottom .legal-links {
+                justify-content: center;
+            }
+    }
+
+    @@media (max-width: 480px) {
+        .newsletter-form {
+            flex-direction: column;
+            background: transparent;
+            border: none;
+            padding: 0;
+        }
+
+            .newsletter-form input {
+                background: rgba(255, 255, 255, 0.04);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: var(--radius-element);
+                padding: 0.8rem 1rem;
+            }
+
+                .newsletter-form input:hover {
+                    background: rgba(255, 255, 255, 0.06);
+                }
+
+            .newsletter-form button {
+                width: 100%;
+                justify-content: center;
+            }
+
+        .footer-bottom .legal-links {
+            gap: 0.8rem;
+        }
+
+        .social-links a {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // ─── NEWSLETTER FORM ───
+        const newsletterForm = document.getElementById('newsletterForm');
+        const newsletterModal = document.getElementById('newsletterModal');
+        const newsletterModalOkBtn = document.getElementById('newsletterModalOkBtn');
+        const newsletterModalTimer = document.getElementById('newsletterModalTimer');
+        let newsletterCountdownInterval = null;
+
+        newsletterForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const emailInput = document.getElementById('newsletterEmail');
+            const email = emailInput.value.trim();
+
+            // Simple validation
+            if (!email) {
+                alert('Please enter your email address.');
+                return;
+            }
+
+            // Simulate subscription
+            const btn = this.querySelector('button[type="submit"]');
+            const originalIcon = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                // Show modal
+                showNewsletterModal();
+                btn.innerHTML = originalIcon;
+                btn.disabled = false;
+                emailInput.value = ''; // Reset form
+            }, 1000);
+        });
+
+        function showNewsletterModal() {
+            newsletterModal.classList.add('show');
+            let countdown = 5;
+            newsletterModalTimer.textContent = `Closing in ${countdown}s...`;
+
+            if (newsletterCountdownInterval) {
+                clearInterval(newsletterCountdownInterval);
+            }
+
+            newsletterCountdownInterval = setInterval(() => {
+                countdown--;
+                if (countdown <= 0) {
+                    clearInterval(newsletterCountdownInterval);
+                    newsletterCountdownInterval = null;
+                    closeNewsletterModal();
+                } else {
+                    newsletterModalTimer.textContent = `Closing in ${countdown}s...`;
+                }
+            }, 1000);
+        }
+
+        function closeNewsletterModal() {
+            newsletterModal.classList.remove('show');
+            if (newsletterCountdownInterval) {
+                clearInterval(newsletterCountdownInterval);
+                newsletterCountdownInterval = null;
+            }
+            newsletterModalTimer.textContent = 'Closing in 5s...';
+        }
+
+        // Close modal on OK button click (immediate)
+        newsletterModalOkBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            closeNewsletterModal();
+        });
+
+        // Close modal when clicking outside
+        newsletterModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeNewsletterModal();
+            }
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && newsletterModal.classList.contains('show')) {
+                closeNewsletterModal();
+            }
+        });
+    });
+</script>

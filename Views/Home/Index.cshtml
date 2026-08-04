@@ -4,12 +4,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NMB-HLabSys | Haematology Lab System</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NMB-HLabSys · Haematology Lab System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
+        /* ─── RESET & VARIABLES ─── */
         * {
             margin: 0;
             padding: 0;
@@ -17,500 +18,587 @@
         }
 
         :root {
+            --primary-dark: #020D2F;
             --primary-deep: #032C7D;
             --primary-bright: #0841C9;
             --primary-light: #1D97F1;
-            --primary-dark: #020D2F;
             --primary-soft: #C4C7F2;
             --bg-soft: #F0F4F8;
             --card-white: #FFFFFF;
-            --text-dark: #1A2C3A;
+            --text-dark: #0B1A2E;
             --text-muted: #5A6E7A;
-            --border-light: #E2E8F0;
-            --success: #10B981;
-            --warning: #F59E0B;
-            --error: #EF4444;
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
-            --radius-card: 24px;
-            --radius-element: 12px;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.12);
+            --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.18);
+            --radius-card: 28px;
+            --radius-element: 14px;
+            --transition: 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        /* ─── GLOBAL SCROLLBAR STYLES ─── */
+        /* WebKit browsers (Chrome, Safari, Edge) */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #EDF2F7;
+            border-radius: 8px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-bright);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: var(--primary-light);
+            }
+
+        /* Firefox */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-bright) #EDF2F7;
+        }
+
+        html {
+            scroll-behavior: smooth;
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-deep) 50%, var(--primary-bright) 100%);
-            min-height: 100vh;
+            background: #FFFFFF;
             color: var(--text-dark);
-        }
-
-        /* Landing Wrapper */
-        .landing-wrapper {
-            min-height: 100vh;
-            position: relative;
             overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
         }
 
-        .landing-bg-pattern {
-            position: absolute;
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* ─── NAVIGATION ─── */
+        .landing-nav {
+            position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            bottom: 0;
-            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.05"><path fill="white" d="M20,20 L30,20 L25,30 Z M70,70 L80,70 L75,80 Z M45,45 L55,45 L50,55 Z"/><circle cx="80" cy="20" r="5"/><circle cx="15" cy="85" r="8"/></svg>');
-            background-repeat: repeat;
-            pointer-events: none;
+            z-index: 1000;
+            background: rgba(2, 13, 47, 0.92);
+            backdrop-filter: blur(18px) saturate(1.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            transition: var(--transition);
         }
 
-        /* Navigation */
-        .landing-nav {
-            background: rgba(2, 13, 47, 0.8);
-            backdrop-filter: blur(12px);
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
+            .landing-nav.scrolled {
+                background: rgba(2, 13, 47, 0.97);
+                box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+            }
 
         .nav-container {
             max-width: 1280px;
             margin: 0 auto;
-            padding: 1rem 2rem;
+            padding: 0.75rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary-bright), var(--primary-light));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 16px rgba(8, 65, 201, 0.35);
         }
 
         .logo h1 {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             font-weight: 700;
-            background: linear-gradient(135deg, #FFFFFF, var(--primary-soft));
+            background: linear-gradient(135deg, #FFFFFF 40%, var(--primary-soft));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            letter-spacing: -0.02em;
         }
 
-        /* Hero Section */
-        .hero-section {
-            flex: 1;
+        .logo span {
+            font-weight: 400;
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.4);
+            -webkit-text-fill-color: rgba(255, 255, 255, 0.4);
+            margin-left: 0.2rem;
+        }
+
+        .nav-links {
             display: flex;
             align-items: center;
-            justify-content: center;
-            padding: 6rem 2rem 3rem;
-            position: relative;
+            gap: 1.8rem;
         }
 
-        .hero-content {
-            max-width: 550px;
-            width: 100%;
-            z-index: 2;
-            margin: 0 auto;
-        }
-
-        .hero-badge {
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(4px);
-            padding: 0.5rem 1.2rem;
-            border-radius: 60px;
-            display: inline-block;
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: var(--primary-soft);
-            margin-bottom: 1.5rem;
-            text-align: center;
-            width: 100%;
-        }
-
-        .hero-content h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #FFFFFF, var(--primary-light));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-
-        .hero-content > p {
-            font-size: 1rem;
-            color: rgba(255,255,255,0.8);
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        /* Login Card */
-        .login-card {
-            background: rgba(255,255,255,0.98);
-            backdrop-filter: blur(12px);
-            border-radius: var(--radius-card);
-            padding: 2rem;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid rgba(255,255,255,0.3);
-        }
-
-            .login-card h3 {
-                color: var(--primary-deep);
-                font-size: 1.4rem;
-                margin-bottom: 0.5rem;
-                text-align: center;
-            }
-
-            .login-card .subtitle {
-                text-align: center;
-                color: var(--text-muted);
-                font-size: 0.85rem;
-                margin-bottom: 1.5rem;
-            }
-
-        .form-group {
-            margin-bottom: 1.2rem;
-        }
-
-            .form-group label {
-                display: block;
-                font-size: 0.8rem;
+            .nav-links a {
+                color: rgba(255, 255, 255, 0.7);
+                text-decoration: none;
+                font-size: 0.82rem;
                 font-weight: 500;
-                margin-bottom: 0.4rem;
-                color: var(--primary-deep);
+                transition: var(--transition);
+                position: relative;
+                padding: 0.2rem 0;
             }
 
-        .input-with-icon {
-            position: relative;
-        }
-
-            .input-with-icon i {
-                position: absolute;
-                left: 12px;
-                top: 50%;
-                transform: translateY(-50%);
-                color: var(--text-muted);
-                font-size: 0.9rem;
-            }
-
-            .input-with-icon input {
-                width: 100%;
-                padding: 0.8rem 0.8rem 0.8rem 2.5rem;
-                border: 1px solid var(--border-light);
-                border-radius: var(--radius-element);
-                font-size: 0.9rem;
-                transition: all 0.2s;
-            }
-
-                .input-with-icon input:focus {
-                    outline: none;
-                    border-color: var(--primary-bright);
-                    box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
+                .nav-links a::after {
+                    content: '';
+                    position: absolute;
+                    bottom: -2px;
+                    left: 0;
+                    width: 0;
+                    height: 2px;
+                    background: var(--primary-light);
+                    border-radius: 4px;
+                    transition: var(--transition);
                 }
 
-        .password-wrapper {
-            position: relative;
+                .nav-links a:hover,
+                .nav-links a.active {
+                    color: #fff;
+                }
+
+                    .nav-links a.active::after,
+                    .nav-links a:hover::after {
+                        width: 100%;
+                    }
+
+        .nav-cta {
+            background: linear-gradient(135deg, var(--primary-bright), var(--primary-light));
+            color: #fff !important;
+            padding: 0.5rem 1.4rem;
+            border-radius: 40px;
+            font-weight: 600 !important;
+            font-size: 0.78rem !important;
+            box-shadow: 0 4px 16px rgba(8, 65, 201, 0.3);
+            transition: var(--transition);
         }
 
-            .password-wrapper input {
-                padding-right: 2.5rem;
+            .nav-cta::after {
+                display: none !important;
             }
 
-        .toggle-password {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
+            .nav-cta:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 28px rgba(8, 65, 201, 0.45);
+                color: #fff !important;
+            }
+
+        .nav-hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
             background: none;
             border: none;
             cursor: pointer;
-            color: var(--text-muted);
+            padding: 4px;
         }
 
-        .login-options {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.2rem;
-            font-size: 0.75rem;
-        }
-
-        .forgot-link {
-            color: var(--primary-bright);
-            text-decoration: none;
-        }
-
-            .forgot-link:hover {
-                text-decoration: underline;
+            .nav-hamburger span {
+                display: block;
+                width: 24px;
+                height: 2px;
+                background: #fff;
+                border-radius: 4px;
+                transition: var(--transition);
             }
 
-        .btn-login {
-            width: 100%;
+        .mobile-nav {
+            display: none;
+            background: rgba(2, 13, 47, 0.98);
+            padding: 1rem 2rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+            .mobile-nav.open {
+                display: block;
+            }
+
+            .mobile-nav a {
+                display: block;
+                color: rgba(255, 255, 255, 0.8);
+                text-decoration: none;
+                padding: 0.6rem 0;
+                font-size: 0.95rem;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+                .mobile-nav a:hover {
+                    color: #fff;
+                }
+
+        /* ─── SECTION COMMON ─── */
+        section {
+            padding: 5rem 0;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 3.5rem;
+        }
+
+            .section-header .tag {
+                display: inline-block;
+                background: rgba(8, 65, 201, 0.08);
+                color: var(--primary-bright);
+                padding: 0.3rem 1.2rem;
+                border-radius: 40px;
+                font-size: 0.7rem;
+                font-weight: 600;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+                margin-bottom: 0.8rem;
+            }
+
+            .section-header h2 {
+                font-size: 2.5rem;
+                font-weight: 800;
+                color: var(--primary-dark);
+                letter-spacing: -0.02em;
+                line-height: 1.2;
+            }
+
+                .section-header h2 .highlight {
+                    background: linear-gradient(135deg, var(--primary-bright), var(--primary-light));
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                }
+
+            .section-header p {
+                color: var(--text-muted);
+                font-size: 1.05rem;
+                margin-top: 0.8rem;
+                line-height: 1.6;
+            }
+
+        .btn-primary {
             background: linear-gradient(135deg, var(--primary-bright), var(--primary-light));
-            color: white;
+            color: #fff;
+            padding: 0.8rem 2rem;
+            border-radius: 40px;
+            font-weight: 600;
             border: none;
-            padding: 0.8rem;
-            border-radius: 40px;
-            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.95rem;
-        }
-
-            .btn-login:hover {
-                transform: translateY(-2px);
-                box-shadow: var(--shadow-md);
-            }
-
-        .error-message {
-            background: #FEE2E2;
-            color: #991B1B;
-            padding: 0.6rem;
-            border-radius: 10px;
-            font-size: 0.75rem;
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-
-        /* Quick Access Section */
-        .quick-access-section {
-            margin-top: 2rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .quick-access-title {
-            text-align: center;
-            color: rgba(255,255,255,0.8);
-            font-size: 0.85rem;
-            margin-bottom: 1rem;
-        }
-
-        .role-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .role-btn {
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(255,255,255,0.2);
-            padding: 0.6rem 1.2rem;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s;
+            transition: var(--transition);
+            text-decoration: none;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            color: white;
-            text-decoration: none;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 20px rgba(8, 65, 201, 0.3);
         }
 
-            .role-btn i {
-                font-size: 1rem;
+            .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 32px rgba(8, 65, 201, 0.45);
             }
 
-            .role-btn:hover {
-                background: rgba(255,255,255,0.25);
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(4px);
+            color: #fff;
+            padding: 0.8rem 2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+            .btn-secondary:hover {
+                background: rgba(255, 255, 255, 0.2);
                 transform: translateY(-2px);
             }
 
-        /* Footer */
-        footer {
-            text-align: center;
-            padding: 1.5rem;
-            color: rgba(255,255,255,0.6);
-            font-size: 0.75rem;
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
         }
 
-        media (max-width: 768px) {
-            .hero-section
+            .fade-in.visible {
+                opacity: 1;
+                transform: translateY(0);
+            }
 
-        {
-            padding: 5rem 1rem 2rem;
+        /* ─── RESPONSIVE ─── */
+        @@media (max-width: 1024px) {
+            .section-header h2 {
+                font-size: 2.2rem;
+            }
         }
 
-        .hero-content h1 {
-            font-size: 1.8rem;
+        @@media (max-width: 868px) {
+            .nav-links a:not(.nav-cta) {
+                display: none;
+            }
+
+            .nav-hamburger {
+                display: flex;
+            }
+
+            .mobile-nav.open {
+                display: block;
+            }
+
+            .section-header h2 {
+                font-size: 2rem;
+            }
+
+            section {
+                padding: 3rem 0;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
         }
 
-        .role-buttons {
-            gap: 0.6rem;
+        @@media (max-width: 480px) {
+            .nav-container {
+                padding: 0.6rem 1rem;
+            }
+
+            .logo h1 {
+                font-size: 1rem;
+            }
+
+            .logo-icon {
+                width: 34px;
+                height: 34px;
+                font-size: 1rem;
+            }
+
+            .section-header h2 {
+                font-size: 1.6rem;
+            }
+
+            .section-header {
+                margin-bottom: 2rem;
+            }
+
+            section {
+                padding: 3rem 0;
+            }
+
+            .btn-primary,
+            .btn-secondary {
+                padding: 0.6rem 1.4rem;
+                font-size: 0.8rem;
+            }
         }
 
-        .role-btn {
-            padding: 0.4rem 0.8rem;
-            font-size: 0.75rem;
-        }
+        @@keyframes shake {
+            0%,
+            100% {
+                transform: translateX(0);
+            }
 
+            20% {
+                transform: translateX(-8px);
+            }
+
+            40% {
+                transform: translateX(8px);
+            }
+
+            60% {
+                transform: translateX(-6px);
+            }
+
+            80% {
+                transform: translateX(6px);
+            }
         }
     </style>
 </head>
 <body>
-    <div class="landing-wrapper">
-        <div class="landing-bg-pattern"></div>
 
-        <!-- Navigation -->
-        <nav class="landing-nav">
-            <div class="nav-container">
-                <div class="logo"><h1><i class="fas fa-microscope"></i> NMB-HLabSys</h1></div>
-            </div>
-        </nav>
+    <!-- ─── NAVIGATION ─── -->
+    <partial name="Sections/_Navbar" />
 
-        <!-- Hero Section -->
-        <div class="hero-section">
-            <div class="hero-content">
-                <div class="hero-badge">
-                    <i class="fas fa-heartbeat"></i> UN SDG 3 · Good Health & Well-Being
-                </div>
-                <h1>Nelson Mandela Bay<br>Haematology Laboratory</h1>
-                <p>Intelligent Test Request Management · Real-time Results · Patient Empowerment</p>
+    <!-- ─── SECTIONS ─── -->
+    <partial name="Sections/_Hero" />
+    <partial name="Sections/_About" />
+    <partial name="Sections/_Impact" />
+    <partial name="Sections/_Services" />
+    <partial name="Sections/_Features" />
+    <partial name="Sections/_Auth" />
+    <partial name="Sections/_Testimonials" />
+    <partial name="Sections/_CTA" />
+    <partial name="Sections/_Contact" />
 
-                <!-- Login Card -->
-                <div class="login-card">
-                    <h3><i class="fas fa-lock"></i> Secure Access</h3>
-                    <div class="subtitle">Enter your credentials to access the laboratory system</div>
+    <!-- ─── FOOTER ─── -->
+    <partial name="Sections/_Footer" />
 
-                    <!-- Error Message Display -->
-                    <div id="errorMessage" class="error-message" style="display: none;"></div>
-
-                    <form id="loginForm" onsubmit="return handleLogin(event)">
-                        <div class="form-group">
-                            <label>Email Address (Username)</label>
-                            <div class="input-with-icon">
-                                <i class="fas fa-envelope"></i>
-                                <input type="email" id="loginEmail" placeholder="doctor@nmblab.com" value="doctor@nmblab.com" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Password</label>
-                            <div class="input-with-icon password-wrapper">
-                                <i class="fas fa-lock"></i>
-                                <input type="password" id="loginPassword" placeholder="Enter your password" value="password123" required>
-                                <button type="button" class="toggle-password" onclick="togglePassword()">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="login-options">
-                            <label style="display: flex; align-items: center; gap: 0.3rem;">
-                                <input type="checkbox"> Remember me
-                            </label>
-                            <a href="#" class="forgot-link" onclick="alert('📧 Password reset link would be sent to your email. Demo: Use any password to login.')">Forgot password?</a>
-                        </div>
-                        <button type="submit" class="btn-login">
-                            <i class="fas fa-sign-in-alt"></i> Login
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Quick Access Section (Buttons at bottom) -->
-                <div class="quick-access-section">
-                    <div class="quick-access-title">
-                        <i class="fas fa-bolt"></i> Quick Demo Access (No login required)
-                    </div>
-                    <div class="role-buttons">
-                        <a href="@Url.Action("Dashboard", "Doctor")" class="role-btn">
-                            <i class="fas fa-user-md"></i> Doctor
-                        </a>
-                        <a href="@Url.Action("Dashboard", "Technician")" class="role-btn">
-                            <i class="fas fa-flask"></i> Technician
-                        </a>
-                        <a href="@Url.Action("Dashboard", "Manager")" class="role-btn">
-                            <i class="fas fa-chart-line"></i> Manager
-                        </a>
-                        <a href="@Url.Action("Dashboard", "Patient")" class="role-btn">
-                            <i class="fas fa-user-injured"></i> Patient
-                        </a>
-                        <a href="@Url.Action("Dashboard", "Admin")" class="role-btn">
-                            <i class="fas fa-cogs"></i> Admin
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <footer>
-            <p>© 2025 Nelson Mandela Bay Haematology Diagnostic Laboratories | Aligned with UN SDG 3: Good Health and Well-Being</p>
-        </footer>
-    </div>
-
+    <!-- ─── JAVASCRIPT ─── -->
     <script>
-        // Mock user database for login
+        // ── Mock Users ──
         const mockUsers = [
-            { email: "doctor@nmblab.com", role: "Doctor", name: "Dr. Sarah Johnson" },
-            { email: "technician@nmblab.com", role: "Technician", name: "Michael Peters" },
-            { email: "manager@nmblab.com", role: "Manager", name: "Amanda Adams" },
-            { email: "patient@nmblab.com", role: "Patient", name: "Thabo Mbeki" },
-            { email: "admin@nmblab.com", role: "Admin", name: "Admin User" }
+            { email: 'doctor@nmblab.com', role: 'Doctor', name: 'Dr. Sarah Johnson' },
+            { email: 'technician@nmblab.com', role: 'Technician', name: 'Michael Peters' },
+            { email: 'manager@nmblab.com', role: 'Manager', name: 'Amanda Adams' },
+            { email: 'patient@nmblab.com', role: 'Patient', name: 'Thabo Mbeki' },
+            { email: 'admin@nmblab.com', role: 'Admin', name: 'Admin User' }
         ];
 
-        function togglePassword() {
-            var passwordInput = document.getElementById('loginPassword');
-            var toggleIcon = document.querySelector('.toggle-password i');
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                toggleIcon.classList.remove('fa-eye');
-                toggleIcon.classList.add('fa-eye-slash');
-            } else {
-                passwordInput.type = 'password';
-                toggleIcon.classList.remove('fa-eye-slash');
-                toggleIcon.classList.add('fa-eye');
-            }
-        }
+        // ── Auth Login ──
+        function handleAuthLogin() {
+            const email = document.getElementById('authLoginEmail').value.trim();
+            const password = document.getElementById('authLoginPassword').value;
+            const errorDiv = document.getElementById('authLoginError');
+            const errorText = document.getElementById('authLoginErrorText');
 
-        function handleLogin(event) {
-            event.preventDefault();
-
-            var email = document.getElementById('loginEmail').value.trim();
-            var password = document.getElementById('loginPassword').value;
-            var errorDiv = document.getElementById('errorMessage');
-
-            // Find user by email
-            var user = mockUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
-
+            const user = mockUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
             if (user) {
-                // Successful login - redirect to appropriate dashboard
-                var redirectUrl = '';
-                switch(user.role) {
-                    case 'Doctor':
-                        redirectUrl = '@Url.Action("Dashboard", "Doctor")';
-                        break;
-                    case 'Technician':
-                        redirectUrl = '@Url.Action("Dashboard", "Technician")';
-                        break;
-                    case 'Manager':
-                        redirectUrl = '@Url.Action("Dashboard", "Manager")';
-                        break;
-                    case 'Patient':
-                        redirectUrl = '@Url.Action("Dashboard", "Patient")';
-                        break;
-                    case 'Admin':
-                        redirectUrl = '@Url.Action("Dashboard", "Admin")';
-                        break;
-                    default:
-                        redirectUrl = '@Url.Action("Dashboard", "Doctor")';
-                }
-
-                // Store user info in sessionStorage for demo
                 sessionStorage.setItem('userEmail', user.email);
                 sessionStorage.setItem('userRole', user.role);
                 sessionStorage.setItem('userName', user.name);
-
-                // Redirect
-                window.location.href = redirectUrl;
+                const roleMap = {
+                    Doctor: '@Url.Action("Dashboard", "Doctor")',
+                    Technician: '@Url.Action("Dashboard", "Technician")',
+                    Manager: '@Url.Action("Dashboard", "Manager")',
+                    Patient: '@Url.Action("Dashboard", "Patient")',
+                    Admin: '@Url.Action("Dashboard", "Admin")'
+                };
+                window.location.href = roleMap[user.role] || '@Url.Action("Dashboard", "Doctor")';
             } else {
-                // Show error
-                errorDiv.style.display = 'block';
-                errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Invalid email or password. Use doctor@nmblab.com, technician@nmblab.com, manager@nmblab.com, patient@nmblab.com, or admin@nmblab.com';
+                errorDiv.style.display = 'flex';
+                errorText.textContent = 'Incorrect details, please try again.';
+                errorDiv.style.animation = 'none';
+                setTimeout(() => errorDiv.style.animation = 'shake 0.4s ease', 10);
             }
-
-            return false;
         }
 
-        // Demo credentials hint on page load
-        console.log('Demo Credentials: doctor@nmblab.com, technician@nmblab.com, manager@nmblab.com, patient@nmblab.com, admin@nmblab.com');
+        // ── Forgot Password Hint ──
+        function showForgotHint(e) {
+            e.preventDefault();
+            alert(
+                '\u{1F4E7} Password reset link would be sent to your email.\n\n' +
+                'Demo credentials:\n' +
+                '• doctor@nmblab.com\n' +
+                '• technician@nmblab.com\n' +
+                '• manager@nmblab.com\n' +
+                '• patient@nmblab.com\n' +
+                '• admin@nmblab.com\n\n' +
+                'Any password works in this demo.'
+            );
+        }
+
+        // ── Auth Slider Toggle ──
+        let authState = 'login';
+        const slider = document.getElementById('authSlider');
+        const sliderTitle = document.getElementById('sliderTitle');
+        const sliderDesc = document.getElementById('sliderDesc');
+        const sliderBtn = document.getElementById('sliderBtn');
+
+        function toggleAuth() {
+            slider.classList.add('updating');
+            setTimeout(() => {
+                if (authState === 'login') {
+                    authState = 'register';
+                    slider.classList.remove('cover-right');
+                    slider.classList.add('cover-left');
+                    sliderTitle.textContent = 'Welcome Back!';
+                    sliderDesc.textContent = 'Enter your personal details to use all of site features';
+                    sliderBtn.textContent = 'SIGN IN';
+                    document.getElementById('loginHalf').classList.remove('active-mobile');
+                    document.getElementById('registerHalf').classList.add('active-mobile');
+                } else {
+                    authState = 'login';
+                    slider.classList.remove('cover-left');
+                    slider.classList.add('cover-right');
+                    sliderTitle.textContent = 'Hello, Friend!';
+                    sliderDesc.textContent = 'Register with your personal details to use all of site features';
+                    sliderBtn.textContent = 'SIGN UP';
+                    document.getElementById('registerHalf').classList.remove('active-mobile');
+                    document.getElementById('loginHalf').classList.add('active-mobile');
+                }
+                setTimeout(() => { slider.classList.remove('updating'); }, 300);
+            }, 250);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('loginHalf').classList.add('active-mobile');
+            const s = document.getElementById('authSlider');
+            if (s) { s.classList.add('cover-right'); s.classList.remove('cover-left'); }
+            authState = 'login';
+        });
+
+        // ── Nav scroll effect ──
+        window.addEventListener('scroll', function() {
+            const nav = document.getElementById('mainNav');
+            if (nav) {
+                if (window.scrollY > 20) nav.classList.add('scrolled');
+                else nav.classList.remove('scrolled');
+            }
+        });
+
+        // ── Mobile hamburger ──
+        document.getElementById('hamburger')?.addEventListener('click', function() {
+            document.getElementById('mobileNav')?.classList.toggle('open');
+        });
+        document.querySelectorAll('#mobileNav a').forEach(link => {
+            link.addEventListener('click', () => document.getElementById('mobileNav')?.classList.remove('open'));
+        });
+
+        // ── Fade-in on scroll ──
+        const fadeElements = document.querySelectorAll('.fade-in');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('visible');
+            });
+        }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+        fadeElements.forEach(el => observer.observe(el));
+
+        // ── Nav highlight on scroll ──
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-links a[data-section]');
+
+        function updateNav() {
+            let current = '';
+            sections.forEach(section => {
+                const rect = section.getBoundingClientRect();
+                if (rect.top <= 120) { current = section.getAttribute('id'); }
+            });
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('data-section') === current) { link.classList.add('active'); }
+            });
+        }
+
+        window.addEventListener('scroll', updateNav);
+        window.addEventListener('load', updateNav);
+
+        console.log('🔬 NMB-HLabSys — Modular Partial Views Structure');
+        console.log('📧 Demo: doctor@nmblab.com, technician@nmblab.com, manager@nmblab.com, patient@nmblab.com, admin@nmblab.com');
     </script>
 </body>
 </html>

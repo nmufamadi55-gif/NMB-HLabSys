@@ -24,6 +24,8 @@ builder.Services.AddScoped<IStockManagementService, StockManagementService>();
 builder.Services.AddScoped<ITestManagementService, TestManagementService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IDoctorService, DoctorService>();
+builder.Services.AddScoped<IBarcodeService, BarcodeService>();
 
 var app = builder.Build();
 

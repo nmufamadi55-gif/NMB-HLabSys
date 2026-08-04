@@ -19,7 +19,9 @@
     <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
+<!-- ========== STYLES (dashboard + modal) ========== -->
 <style>
+    /* ─── DASHBOARD STYLES ─── */
     .welcome-banner {
         background: linear-gradient(135deg, #032C7D 0%, #0841C9 100%);
         border-radius: 20px;
@@ -90,6 +92,7 @@
         cursor: pointer;
         border: 1px solid #E2E8F0;
         font-size: 0.8rem;
+        transition: background 0.2s, color 0.2s;
     }
 
         .action-chip:hover {
@@ -139,7 +142,40 @@
         border-radius: 30px;
         cursor: pointer;
         font-size: 0.65rem;
+        transition: background 0.2s;
     }
+
+        .btn-sm:hover {
+            background: #032C7D;
+        }
+
+    .btn-success {
+        background: #10B981;
+        color: white;
+        border: none;
+        padding: 0.4rem 1rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.8rem;
+    }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+    .btn-outline-sm {
+        background: transparent;
+        border: 1px solid #E2E8F0;
+        padding: 0.4rem 1rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        color: #5A6E7A;
+    }
+
+        .btn-outline-sm:hover {
+            background: #F1F5F9;
+        }
 
     .status-badge {
         display: inline-block;
@@ -164,23 +200,531 @@
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 1rem;
     }
+
+    /* ─── MODAL & FORM STYLES (needed for the popups) ─── */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        backdrop-filter: blur(4px);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        padding: 1rem;
+    }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+    .modal-container {
+        background: white;
+        border-radius: 24px;
+        max-width: 720px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+        animation: modalFadeIn 0.3s ease;
+        padding: 0;
+    }
+
+    @@keyframes modalFadeIn {
+        0% {
+            opacity: 0;
+            transform: scale(0.96);
+        }
+
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .modal-header {
+        padding: 1.2rem 1.5rem;
+        border-bottom: 1px solid #E2E8F0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #032C7D;
+        }
+
+    .close-modal {
+        background: none;
+        border: none;
+        font-size: 1.8rem;
+        line-height: 1;
+        cursor: pointer;
+        color: #94A3B8;
+        padding: 0 0.2rem;
+        transition: color 0.2s;
+    }
+
+        .close-modal:hover {
+            color: #1A2C3A;
+        }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .modal-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid #E2E8F0;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #1A2C3A;
+            margin-bottom: 0.2rem;
+        }
+
+    .form-control {
+        width: 100%;
+        padding: 0.5rem 0.8rem;
+        border: 1px solid #E2E8F0;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        transition: border 0.2s;
+        background: white;
+    }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #0841C9;
+            box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
+        }
+
+        .form-control.error {
+            border-color: #EF4444;
+        }
+
+    .error-message {
+        color: #EF4444;
+        font-size: 0.75rem;
+        margin-top: 0.2rem;
+    }
+
+    .required {
+        color: #DC2626;
+    }
+
+    .row-2col, .row-3col {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .row-2col {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .row-3col {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .patient-info-card {
+        background: #F0F7FF;
+        border-left: 4px solid #0841C9;
+        padding: 0.8rem 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        font-size: 0.85rem;
+    }
+
+    .template-tag {
+        background: #EFF6FF;
+        color: #0841C9;
+        padding: 0.1rem 0.6rem;
+        border-radius: 30px;
+        font-size: 0.7rem;
+        cursor: pointer;
+        border: 1px solid #CDE8FF;
+        transition: background 0.2s;
+    }
+
+        .template-tag:hover {
+            background: #CDE8FF;
+        }
+
+    .category-group {
+        margin-bottom: 0.8rem;
+        border: 1px solid #E2E8F0;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .category-header {
+        background: #F8FAFE;
+        padding: 0.4rem 0.8rem;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.85rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        .category-header:hover {
+            background: #EFF6FF;
+        }
+
+    .test-list {
+        display: none;
+        padding: 0.6rem 0.8rem;
+        background: white;
+        flex-wrap: wrap;
+        gap: 0.3rem 0.8rem;
+    }
+
+        .test-list.show {
+            display: flex;
+        }
+
+        .test-list label {
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+            cursor: pointer;
+        }
+
+    .selected-tests-summary {
+        background: #F0F7FF;
+        padding: 0.6rem 0.8rem;
+        border-radius: 8px;
+        margin: 0.5rem 0;
+    }
+
+    .selected-test-tag {
+        background: #CDE8FF;
+        color: #004085;
+        padding: 0.1rem 0.5rem;
+        border-radius: 30px;
+        font-size: 0.7rem;
+        display: inline-block;
+        margin: 0.1rem 0.2rem;
+    }
+
+    .sample-requirements {
+        background: #FAFAFA;
+        border-radius: 10px;
+        padding: 0.8rem;
+        margin-top: 0.8rem;
+        border: 1px solid #E2E8F0;
+    }
+
+    .sample-item {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        padding: 0.2rem 0;
+        border-bottom: 1px dashed #E2E8F0;
+    }
+
+        .sample-item:last-child {
+            border-bottom: none;
+        }
+
+    .sample-icon {
+        font-size: 1.4rem;
+    }
+
+    .sample-details .sample-name {
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+
+    .sample-details .sample-instruction {
+        font-size: 0.7rem;
+        color: #5A6E7A;
+    }
+
+    .barcode-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.2rem 0;
+        font-size: 0.8rem;
+        border-bottom: 1px dashed #E2E8F0;
+    }
+
+        .barcode-item:last-child {
+            border-bottom: none;
+        }
+
+        .barcode-item strong {
+            font-family: monospace;
+            letter-spacing: 2px;
+            background: #1A2C3A;
+            color: white;
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+        }
+
+    .searchable-dropdown {
+        position: relative;
+    }
+
+    .dropdown-input {
+        width: 100%;
+        padding: 0.4rem 0.8rem;
+        border: 1px solid #E2E8F0;
+        border-radius: 10px;
+        font-size: 0.85rem;
+    }
+
+    .dropdown-results {
+        display: none;
+        position: absolute;
+        background: white;
+        border: 1px solid #E2E8F0;
+        border-radius: 10px;
+        max-height: 150px;
+        overflow-y: auto;
+        width: 100%;
+        z-index: 10;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+        .dropdown-results.show {
+            display: block;
+        }
+
+    .dropdown-item {
+        padding: 0.4rem 0.8rem;
+        cursor: pointer;
+        font-size: 0.8rem;
+    }
+
+        .dropdown-item:hover {
+            background: #F0F7FF;
+        }
+
+    .selected-items {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+        margin-top: 0.3rem;
+    }
+
+    .selected-tag {
+        background: #CDE8FF;
+        color: #004085;
+        padding: 0.1rem 0.5rem;
+        border-radius: 30px;
+        font-size: 0.7rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+    }
+
+        .selected-tag .remove-tag {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            color: #004085;
+            padding: 0 0.1rem;
+            font-size: 0.8rem;
+        }
+
+            .selected-tag .remove-tag:hover {
+                color: #DC2626;
+            }
+
+    /* ─── TOAST STYLES (keep only once) ─── */
+    .toast-container {
+        position: fixed;
+        top: 80px;
+        right: 24px;
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 380px;
+        width: 100%;
+        pointer-events: none;
+    }
+
+    .toast {
+        background: #fff;
+        border-radius: 14px;
+        padding: 1rem 1.2rem;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        border-left: 5px solid #0841C9;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.8rem;
+        pointer-events: auto;
+        animation: slideInRight 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        overflow: hidden;
+    }
+
+        .toast.hiding {
+            opacity: 0;
+            transform: translateX(40px);
+        }
+
+    .toast-icon {
+        font-size: 1.4rem;
+        flex-shrink: 0;
+        line-height: 1;
+        margin-top: 2px;
+    }
+
+    .toast-content {
+        flex: 1;
+        font-size: 0.9rem;
+        color: #1A2C3A;
+    }
+
+        .toast-content strong {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .toast-content small {
+            font-size: 0.75rem;
+            color: #5A6E7A;
+        }
+
+    .toast-close {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        color: #94A3B8;
+        padding: 0 0.2rem;
+        transition: color 0.2s;
+        flex-shrink: 0;
+        margin-top: -2px;
+    }
+
+        .toast-close:hover {
+            color: #1A2C3A;
+        }
+
+    .toast-success {
+        border-left-color: #10B981;
+    }
+
+        .toast-success .toast-icon {
+            color: #10B981;
+        }
+
+    .toast-error {
+        border-left-color: #EF4444;
+    }
+
+        .toast-error .toast-icon {
+            color: #EF4444;
+        }
+
+    .toast-warning {
+        border-left-color: #F59E0B;
+    }
+
+        .toast-warning .toast-icon {
+            color: #F59E0B;
+        }
+
+    .toast-info {
+        border-left-color: #1D97F1;
+    }
+
+        .toast-info .toast-icon {
+            color: #1D97F1;
+        }
+
+    @@keyframes slideInRight {
+        0% {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .toast-container {
+            top: 70px;
+            right: 12px;
+            left: 12px;
+            max-width: 100%;
+        }
+
+        .toast {
+            padding: 0.8rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .row-2col, .row-3col {
+            grid-template-columns: 1fr;
+        }
+
+        .modal-container {
+            max-width: 100%;
+            margin: 0.5rem;
+        }
+    }
 </style>
 
+<!-- ========== TOAST CONTAINER (single) ========== -->
+<div id="toastContainer" class="toast-container"></div>
+
+<!-- ========== DASHBOARD CONTENT ========== -->
 <div class="welcome-banner">
     <div><h2 style="font-size: 1.3rem;"><i class="fas fa-stethoscope"></i> Good day, Dr. Johnson</h2><p style="font-size: 0.8rem;">You have <strong id="urgentCount">0</strong> urgent matters</p></div>
     <div style="background: rgba(255,255,255,0.2); padding: 0.3rem 0.8rem; border-radius: 40px;"><i class="far fa-calendar-alt"></i> <span id="currentDate"></span></div>
 </div>
 
 <div class="stats-grid">
-    <div class="stat-card" onclick="location.href='@Url.Action("TestRequests", "Doctor")'"><div class="stat-info"><h3 id="activeCount">0</h3><p>Active Requests</p></div><div class="stat-icon"><i class="fas fa-clipboard-list"></i></div></div>
-    <div class="stat-card" onclick="location.href='@Url.Action("Alerts", "Doctor")'"><div class="stat-info"><h3 id="alertCount">0</h3><p>Active Alerts</p></div><div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div></div>
-    <div class="stat-card" onclick="location.href='@Url.Action("Results", "Doctor")'"><div class="stat-info"><h3 id="pendingCount">0</h3><p>Pending Release</p></div><div class="stat-icon"><i class="fas fa-envelope"></i></div></div>
-    <div class="stat-card" onclick="location.href='@Url.Action("Patients", "Doctor")'"><div class="stat-info"><h3>124</h3><p>My Patients</p></div><div class="stat-icon"><i class="fas fa-users"></i></div></div>
+    <div class="stat-card" onclick="location.href='@Url.Action("TestRequests", "Doctor")'">
+        <div class="stat-info"><h3 id="activeCount">0</h3><p>Active Requests</p></div>
+        <div class="stat-icon"><i class="fas fa-clipboard-list"></i></div>
+    </div>
+    <div class="stat-card" onclick="location.href='@Url.Action("Alerts", "Doctor")'">
+        <div class="stat-info"><h3 id="alertCount">0</h3><p>Active Alerts</p></div>
+        <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+    </div>
+    <div class="stat-card" onclick="location.href='@Url.Action("Results", "Doctor")'">
+        <div class="stat-info"><h3 id="pendingCount">0</h3><p>Pending Release</p></div>
+        <div class="stat-icon"><i class="fas fa-envelope"></i></div>
+    </div>
+    <div class="stat-card" onclick="location.href='@Url.Action("Patients", "Doctor")'">
+        <div class="stat-info"><h3 id="patientCount">124</h3><p>My Patients</p></div>
+        <div class="stat-icon"><i class="fas fa-users"></i></div>
+    </div>
 </div>
 
 <div class="quick-actions">
-    <div class="action-chip" onclick="location.href='@Url.Action("TestRequests", "Doctor")'"><i class="fas fa-plus-circle"></i> New Request</div>
-    <div class="action-chip" onclick="location.href='@Url.Action("Patients", "Doctor")'"><i class="fas fa-user-plus"></i> Register Patient</div>
+    <!-- Open modals via functions defined in partials -->
+    <div class="action-chip" onclick="openNewRequestModal()"><i class="fas fa-plus-circle"></i> New Request</div>
+    <div class="action-chip" onclick="openRegisterModal()"><i class="fas fa-user-plus"></i> Register Patient</div>
     <div class="action-chip" onclick="location.href='@Url.Action("Reports", "Doctor")'"><i class="fas fa-file-pdf"></i> Generate Report</div>
 </div>
 
@@ -194,20 +738,127 @@
     <div class="card"><h3><i class="fas fa-chart-line"></i> Quick Stats</h3><div style="font-size:0.75rem;" id="quickStats"></div><button class="btn-sm" onclick="location.href='@Url.Action("Reports", "Doctor")'" style="margin-top:0.5rem;">Generate Full Report →</button></div>
 </div>
 
+<!-- ========== INCLUDE THE MODAL PARTIALS ========== -->
+@await Html.PartialAsync("_NewRequestModal")
+@await Html.PartialAsync("_RegisterPatientModal")
+
+<!-- ========== DASHBOARD SCRIPT (callbacks & init) ========== -->
 <script>
-    const recentRequests = [
-        { reqNo: "REQ-006", patient: "Maria Santos", date: "2025-04-10", status: "In Progress", urgency: "stat" },
-        { reqNo: "REQ-005", patient: "David Ngema", date: "2025-04-09", status: "Submitted", urgency: "routine" },
-        { reqNo: "REQ-004", patient: "Thabo Mbeki", date: "2025-04-08", status: "Completed", urgency: "urgent" },
-        { reqNo: "REQ-003", patient: "John Smith", date: "2025-04-07", status: "Verified", urgency: "urgent" },
-        { reqNo: "REQ-002", patient: "Lerato Dlamini", date: "2025-04-06", status: "Completed", urgency: "routine" }
-    ];
-    document.getElementById('recentRequestsBody').innerHTML = recentRequests.map(r => `<tr><td><strong>${r.reqNo}</strong></td><td>${r.patient}</td><td>${r.date}</td><td><span class="status-badge status-progress">${r.status}</span></td><td><span class="status-badge priority-stat">${r.urgency.toUpperCase()}</span></td></tr>`).join('');
-    document.getElementById('activeCount').innerText = '8';
-    document.getElementById('alertCount').innerText = '3';
-    document.getElementById('pendingCount').innerText = '4';
-    document.getElementById('urgentCount').innerText = '2';
-    document.getElementById('currentDate').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-    document.getElementById('notificationsSummary').innerHTML = '<div>• 3 abnormal results pending review</div><div>• 2 requests completed yesterday</div><div>• REQ-003 results verified</div>';
-    document.getElementById('quickStats').innerHTML = '<p>📊 This month: <strong>47</strong> requests</p><p>✅ Completed: <strong>32</strong> (68%)</p><p>⚠️ Abnormal: <strong>5</strong> requiring attention</p>';
+    (function() {
+        // ─── Ensure shared data is available ──────────────────────
+        if (typeof window.patientDatabase === 'undefined') {
+            window.patientDatabase = {
+                "8001015009087": { name:"Thabo", surname:"Mbeki", dob:"1980-01-01", phone:"0821234567", conditions:["Hypertension"], allergies:["Penicillin"], medications:["Lisinopril 10mg"] },
+                "8505155009088": { name:"Lerato", surname:"Dlamini", dob:"1985-05-15", phone:"0832345678", conditions:["Type 2 Diabetes"], allergies:[], medications:["Metformin 500mg"] },
+                "9001015009089": { name:"John", surname:"Smith", dob:"1990-01-01", phone:"0843456789", conditions:[], allergies:["Sulfa"], medications:[] }
+            };
+        }
+        if (typeof window.testDatabase === 'undefined') {
+            window.testDatabase = [
+                { name: "Haemoglobin (Hb)", category: "Full Blood Count (FBC)", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Gently invert 8-10 times to mix", equipment: "Vacutainer system" },
+                { name: "White Cell Count (WCC)", category: "Full Blood Count (FBC)", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Gently invert 8-10 times to mix", equipment: "Vacutainer system" },
+                { name: "Platelet Count", category: "Full Blood Count (FBC)", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Gently invert 8-10 times to mix", equipment: "Vacutainer system" },
+                { name: "Red Cell Count (RCC)", category: "Full Blood Count (FBC)", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Gently invert 8-10 times to mix", equipment: "Vacutainer system" },
+                { name: "PT/INR", category: "Coagulation Studies", sampleType: "Plasma", tube: "Citrate Tube", tubeColor: "Light blue top", volume: "2.7 mL", instructions: "Fill completely, invert gently 3-4 times", equipment: "Sodium citrate anticoagulant" },
+                { name: "APTT", category: "Coagulation Studies", sampleType: "Plasma", tube: "Citrate Tube", tubeColor: "Light blue top", volume: "2.7 mL", instructions: "Fill completely, invert gently 3-4 times", equipment: "Sodium citrate anticoagulant" },
+                { name: "Fibrinogen", category: "Coagulation Studies", sampleType: "Plasma", tube: "Citrate Tube", tubeColor: "Light blue top", volume: "2.7 mL", instructions: "Fill completely, invert gently 3-4 times", equipment: "Sodium citrate anticoagulant" },
+                { name: "Neutrophils", category: "Differential Count", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Blood smear required", equipment: "Microscope slides, stain" },
+                { name: "Lymphocytes", category: "Differential Count", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Blood smear required", equipment: "Microscope slides, stain" },
+                { name: "Monocytes", category: "Differential Count", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Blood smear required", equipment: "Microscope slides, stain" },
+                { name: "Film Comment", category: "Peripheral Blood Film", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Prepare thin blood smear", equipment: "Microscope, staining kit" },
+                { name: "Blast Cells", category: "Peripheral Blood Film", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Prepare thin blood smear", equipment: "Microscope, staining kit" }
+            ];
+            window.categories = Array.from(new Set(window.testDatabase.map(function(t) { return t.category; })));
+        }
+
+        // ─── Dashboard data ──────────────────────────────────────
+        var recentRequests = [
+            { reqNo: "REQ-006", patient: "Maria Santos", date: "2025-04-10", status: "In Progress", urgency: "stat" },
+            { reqNo: "REQ-005", patient: "David Ngema", date: "2025-04-09", status: "Submitted", urgency: "routine" },
+            { reqNo: "REQ-004", patient: "Thabo Mbeki", date: "2025-04-08", status: "Completed", urgency: "urgent" },
+            { reqNo: "REQ-003", patient: "John Smith", date: "2025-04-07", status: "Verified", urgency: "urgent" },
+            { reqNo: "REQ-002", patient: "Lerato Dlamini", date: "2025-04-06", status: "Completed", urgency: "routine" }
+        ];
+
+        function updateDashboard() {
+            var active = recentRequests.filter(function(r) { return r.status !== "Completed" && r.status !== "Verified"; }).length;
+            document.getElementById('activeCount').innerText = active;
+
+            var urgent = recentRequests.filter(function(r) { return r.urgency === "stat" || r.urgency === "urgent"; }).length;
+            document.getElementById('urgentCount').innerText = urgent;
+
+            var pending = recentRequests.filter(function(r) { return r.status === "Submitted" || r.status === "In Progress"; }).length;
+            document.getElementById('pendingCount').innerText = pending;
+
+            document.getElementById('alertCount').innerText = '3';
+
+            var tbody = document.getElementById('recentRequestsBody');
+            var latest = recentRequests.slice(0, 5);
+            tbody.innerHTML = latest.map(function(r) {
+                return `<tr>
+                    <td><strong>${r.reqNo}</strong></td>
+                    <td>${r.patient}</td>
+                    <td>${r.date}</td>
+                    <td><span class="status-badge status-progress">${r.status}</span></td>
+                    <td><span class="status-badge priority-stat">${r.urgency.toUpperCase()}</span></td>
+                </tr>`;
+            }).join('');
+        }
+
+        // ─── Callbacks for modals ──────────────────────────────
+        function onNewRequest(newReq) {
+            recentRequests.unshift(newReq);
+            if (recentRequests.length > 10) recentRequests.pop();
+            updateDashboard();
+        }
+
+        function onRegisterPatient(patient) {
+            var countEl = document.getElementById('patientCount');
+            var current = parseInt(countEl.innerText, 10);
+            if (!isNaN(current)) {
+                countEl.innerText = current + 1;
+            }
+            if (patient.idNumber) {
+                window.patientDatabase[patient.idNumber] = {
+                    name: patient.name,
+                    surname: patient.surname,
+                    dob: patient.dob,
+                    phone: patient.phone,
+                    conditions: patient.conditions,
+                    allergies: patient.allergies,
+                    medications: patient.medications
+                };
+            }
+        }
+
+        // ─── Override modal open functions to inject callbacks ──
+        var origNew = window.openNewRequestModal;
+        window.openNewRequestModal = function() {
+            origNew(onNewRequest);
+        };
+
+        var origRegister = window.openRegisterModal;
+        window.openRegisterModal = function() {
+            origRegister(onRegisterPatient);
+        };
+
+        // ─── Initialise dashboard ──────────────────────────────
+        document.getElementById('currentDate').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+        document.getElementById('notificationsSummary').innerHTML = '<div>• 3 abnormal results pending review</div><div>• 2 requests completed yesterday</div><div>• REQ-003 results verified</div>';
+        document.getElementById('quickStats').innerHTML = '<p>📊 This month: <strong>47</strong> requests</p><p>✅ Completed: <strong>32</strong> (68%)</p><p>⚠️ Abnormal: <strong>5</strong> requiring attention</p>';
+        updateDashboard();
+
+        // ─── Close modals on overlay click ─────────────────────
+        document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    if (this.id === 'newRequestModal') {
+                        if (typeof closeNewRequestModal === 'function') closeNewRequestModal();
+                    } else if (this.id === 'registerModal') {
+                        if (typeof closeRegisterModal === 'function') closeRegisterModal();
+                    }
+                }
+            });
+        });
+    })();
 </script>

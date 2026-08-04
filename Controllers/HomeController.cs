@@ -11,5 +11,9 @@ namespace NMB_HLabSys.Controllers
         {
             return View();
         }
+        public IActionResult Privacy() => View();
+        public IActionResult Terms() => View();
+        public IActionResult CookiePolicy() => View();
+        public IActionResult Legal() => View();
     }
 }

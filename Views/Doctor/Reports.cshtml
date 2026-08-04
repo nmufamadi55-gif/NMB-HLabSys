@@ -5,214 +5,1421 @@
     ViewData["UserGreeting"] = "Generate and download reports";
     ViewData["UserInitials"] = "SJ";
     ViewData["UserName"] = "Sarah Johnson";
-
-    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Doctor")" class="active"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+    <li><a href="@Url.Action("Dashboard", "Doctor")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
     <li><a href="@Url.Action("TestRequests", "Doctor")"><i class="fas fa-notes-medical"></i> <span>Test Requests</span></a></li>
     <li><a href="@Url.Action("Patients", "Doctor")"><i class="fas fa-users"></i> <span>My Patients</span></a></li>
     <li><a href="@Url.Action("Alerts", "Doctor")"><i class="fas fa-bell"></i> <span>Alerts</span></a></li>
     <li><a href="@Url.Action("Results", "Doctor")"><i class="fas fa-chart-line"></i> <span>Results</span></a></li>
-    <li><a href="@Url.Action("Reports", "Doctor")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
-    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+    <li><a href="@Url.Action("Reports", "Doctor")" class="active"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+    <li><a href="@Url.Action("Profile", "Doctor")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
 <style>
-    .card {
+    /* ─── KPI CARDS ─── */
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .kpi-card {
         background: white;
-        border-radius: 16px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        border: 1px solid #E2E8F0;
+        border-radius: var(--radius-card);
+        padding: 1rem 1.2rem;
+        border: 1px solid #E8EDF5;
+        box-shadow: var(--shadow-sm);
+        transition: transform 0.2s, box-shadow 0.2s;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
-    .form-group {
-        margin-bottom: 1rem;
-    }
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
 
-        .form-group label {
-            font-size: 0.8rem;
+        .kpi-card .kpi-left .kpi-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-bright);
+            line-height: 1.2;
+        }
+
+        .kpi-card .kpi-left .kpi-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
             font-weight: 500;
+            margin-top: 0.1rem;
+        }
+
+        .kpi-card .kpi-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+
+            .kpi-card .kpi-icon.blue {
+                background: rgba(8,65,201,0.08);
+                color: var(--primary-bright);
+            }
+
+            .kpi-card .kpi-icon.green {
+                background: rgba(16,185,129,0.08);
+                color: #10B981;
+            }
+
+            .kpi-card .kpi-icon.red {
+                background: rgba(239,68,68,0.08);
+                color: #EF4444;
+            }
+
+            .kpi-card .kpi-icon.orange {
+                background: rgba(217,119,6,0.08);
+                color: #D97706;
+            }
+
+    /* ─── REPORT PARAMETERS ─── */
+    .report-params {
+        background: white;
+        border-radius: var(--radius-card);
+        padding: 1.2rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #E8EDF5;
+        box-shadow: var(--shadow-sm);
+    }
+
+        .report-params .param-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem 1.5rem;
+            align-items: flex-end;
+        }
+
+        .report-params .param-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            flex: 1 0 auto;
+            min-width: 120px;
+        }
+
+            .report-params .param-item .form-label {
+                font-size: 0.7rem;
+                font-weight: 600;
+                color: var(--text-muted);
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                margin: 0;
+            }
+
+            .report-params .param-item .form-control,
+            .report-params .param-item .form-select {
+                border-radius: var(--radius-element);
+                border: 1.5px solid #E8EDF5;
+                font-size: 0.85rem;
+                padding: 0.45rem 0.8rem;
+                background: #F8FAFE;
+                transition: all 0.2s;
+                font-family: 'Inter', sans-serif;
+                min-width: 0;
+                width: 100%;
+            }
+
+                .report-params .param-item .form-control:focus,
+                .report-params .param-item .form-select:focus {
+                    border-color: var(--primary-bright);
+                    box-shadow: 0 0 0 3px rgba(8,65,201,0.08);
+                    background: white;
+                    outline: none;
+                }
+
+            .report-params .param-item .form-check {
+                padding-top: 0.3rem;
+            }
+
+                .report-params .param-item .form-check .form-check-input {
+                    width: 2.2rem;
+                    height: 1.2rem;
+                    cursor: pointer;
+                    margin-top: 0.1rem;
+                }
+
+                    .report-params .param-item .form-check .form-check-input:checked {
+                        background-color: var(--primary-bright);
+                        border-color: var(--primary-bright);
+                    }
+
+        .report-params .param-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+            flex: 0 0 auto;
+        }
+
+    .btn-action {
+        padding: 0.45rem 1.2rem;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: 'Inter', sans-serif;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        white-space: nowrap;
+    }
+
+        .btn-action.primary {
+            background: var(--primary-bright);
+            color: white;
+            box-shadow: 0 2px 8px rgba(8,65,201,0.2);
+        }
+
+            .btn-action.primary:hover {
+                background: var(--primary-deep);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 16px rgba(8,65,201,0.3);
+            }
+
+        .btn-action.success {
+            background: #10B981;
+            color: white;
+        }
+
+            .btn-action.success:hover {
+                background: #059669;
+                transform: translateY(-1px);
+            }
+
+        .btn-action.danger {
+            background: #EF4444;
+            color: white;
+        }
+
+            .btn-action.danger:hover {
+                background: #DC2626;
+                transform: translateY(-1px);
+            }
+
+        .btn-action.outline {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1.5px solid #E8EDF5;
+        }
+
+            .btn-action.outline:hover {
+                border-color: var(--primary-bright);
+                color: var(--primary-bright);
+                background: rgba(8,65,201,0.02);
+            }
+
+    /* ─── TABS ─── */
+    .report-tabs {
+        display: flex;
+        gap: 0.2rem;
+        background: var(--bg-soft);
+        border-radius: var(--radius-card);
+        padding: 0.3rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #E8EDF5;
+    }
+
+    .report-tab {
+        padding: 0.6rem 1.4rem;
+        border-radius: var(--radius-element);
+        border: none;
+        background: transparent;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-family: 'Inter', sans-serif;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .report-tab:hover {
+            background: rgba(8,65,201,0.04);
+            color: var(--text-dark);
+        }
+
+        .report-tab.active {
+            background: white;
+            color: var(--primary-bright);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .report-tab i {
+            font-size: 0.9rem;
+        }
+
+    .tab-content {
+        display: none;
+        animation: fadeUp 0.4s ease both;
+    }
+
+        .tab-content.active {
             display: block;
+        }
+
+    @@keyframes fadeUp {
+        0% {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* ─── REPORT PREVIEW ─── */
+    .report-preview-card {
+        background: white;
+        border-radius: var(--radius-card);
+        border: 1px solid #E8EDF5;
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+        .report-preview-card .card-header {
+            background: var(--bg-soft);
+            padding: 0.8rem 1.5rem;
+            border-bottom: 1px solid #E8EDF5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+            .report-preview-card .card-header h5 {
+                margin: 0;
+                font-weight: 600;
+                font-size: 1rem;
+                color: var(--text-dark);
+            }
+
+            .report-preview-card .card-header .badge {
+                font-size: 0.7rem;
+                background: var(--primary-bright);
+                color: white;
+                padding: 0.25rem 0.8rem;
+                border-radius: 40px;
+                font-weight: 500;
+            }
+
+        .report-preview-card .card-body {
+            padding: 0;
+        }
+
+    .report-placeholder {
+        padding: 3rem 1.5rem;
+        text-align: center;
+        color: var(--text-muted);
+    }
+
+        .report-placeholder i {
+            font-size: 3rem;
+            opacity: 0.3;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .report-placeholder h5 {
+            font-size: 1.1rem;
+            color: var(--text-dark);
             margin-bottom: 0.2rem;
         }
 
-    .form-control {
-        width: 100%;
-        padding: 0.4rem;
-        border: 1px solid #E2E8F0;
-        border-radius: 8px;
+    /* ─── GROUP TABLES ─── */
+    .group-section {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #F1F5F9;
     }
 
-    .btn-primary {
-        background: #0841C9;
-        color: white;
-        border: none;
-        padding: 0.4rem 1rem;
-        border-radius: 30px;
-        cursor: pointer;
-    }
-
-    .btn-sm {
-        background: #0841C9;
-        color: white;
-        border: none;
-        padding: 0.2rem 0.6rem;
-        border-radius: 30px;
-        cursor: pointer;
-        font-size: 0.7rem;
-    }
-
-    .stat-box {
-        background: #F8FAFE;
-        border-radius: 12px;
-        padding: 0.5rem;
-        text-align: center;
-        margin-bottom: 0.5rem;
-    }
-
-        .stat-box h3 {
-            font-size: 1.3rem;
-            color: #032C7D;
-            margin: 0;
+        .group-section:last-child {
+            border-bottom: none;
         }
 
-        .stat-box p {
-            margin: 0;
-            font-size: 0.7rem;
-            color: #5A6E7A;
+        .group-section .group-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-    .grid-2col {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 1rem;
-    }
+            .group-section .group-title .badge {
+                font-size: 0.7rem;
+                background: var(--primary-bright);
+                color: white;
+                padding: 0.15rem 0.6rem;
+                border-radius: 40px;
+                font-weight: 500;
+            }
 
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
+        .group-section .table {
+            font-size: 0.82rem;
+            margin-bottom: 0;
+        }
 
-    th, td {
-        padding: 0.6rem;
-        text-align: left;
-        border-bottom: 1px solid #E2E8F0;
-        font-size: 0.75rem;
-    }
+            .group-section .table th {
+                background: var(--bg-soft);
+                font-weight: 600;
+                color: var(--text-muted);
+                border-top: none;
+                font-size: 0.7rem;
+                text-transform: uppercase;
+                letter-spacing: 0.03em;
+                padding: 0.4rem 0.5rem;
+            }
 
-    th {
-        background: #F8FAFE;
+            .group-section .table td {
+                padding: 0.35rem 0.5rem;
+                vertical-align: middle;
+            }
+
+            .group-section .table tfoot td {
+                font-weight: 600;
+                background: var(--bg-soft);
+                border-top: 2px solid #E8EDF5;
+                padding: 0.4rem 0.5rem;
+            }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.1rem 0.5rem;
+        border-radius: 30px;
+        font-size: 0.6rem;
         font-weight: 600;
-        color: #5A6E7A;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+
+        .status-badge.completed {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .status-badge.pending {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .status-badge.abnormal {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .status-badge.verified {
+            background: #E0E7FF;
+            color: #3730A3;
+        }
+
+    .urgency-tag {
+        font-size: 0.65rem;
+        font-weight: 600;
+        padding: 0.1rem 0.4rem;
+        border-radius: 30px;
+    }
+
+        .urgency-tag.stat {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .urgency-tag.urgent {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .urgency-tag.routine {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+    /* ─── GRAND TOTAL FOOTER ─── */
+    .report-footer {
+        padding: 1rem 1.5rem;
+        background: var(--bg-soft);
+        border-top: 1px solid #E8EDF5;
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+        .report-footer .footer-item {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+            .report-footer .footer-item strong {
+                color: var(--text-dark);
+            }
+
+    /* ─── CHARTS SECTION ─── */
+    .charts-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        padding: 1.5rem;
+    }
+
+    .chart-card {
+        background: white;
+        border-radius: var(--radius-card);
+        border: 1px solid #E8EDF5;
+        padding: 1.2rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+        .chart-card .chart-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.8rem;
+            text-align: center;
+        }
+
+        .chart-card .chart-wrapper {
+            position: relative;
+            height: 200px;
+        }
+
+            .chart-card .chart-wrapper.pie-chart {
+                height: 220px;
+            }
+
+            .chart-card .chart-wrapper canvas {
+                max-height: 100%;
+                max-width: 100%;
+            }
+
+    .chart-stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 0.5rem;
+        margin-top: 0.8rem;
+        padding-top: 0.8rem;
+        border-top: 1px solid #F1F5F9;
+    }
+
+    .chart-stat-item {
+        text-align: center;
+    }
+
+        .chart-stat-item .cs-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .chart-stat-item .cs-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+    /* ─── PRINT STYLES ─── */
+    @@media print {
+        .no-print {
+            display: none !important;
+        }
+
+        .main-panel {
+            margin: 0 !important;
+            padding: 0.5rem !important;
+        }
+
+        .header-glass {
+            display: none !important;
+        }
+
+        .sidebar-lab {
+            display: none !important;
+        }
+
+        .report-preview-card .card-header {
+            background: #f0f0f0 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .group-section .table th {
+            background: #f0f0f0 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .group-section .table tfoot td {
+            background: #f8f8f8 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .status-badge, .urgency-tag {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .kpi-card {
+            border: 1px solid #ddd !important;
+        }
+
+        .charts-grid {
+            grid-template-columns: 1fr 1fr !important;
+        }
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @@media (max-width: 992px) {
+        .kpi-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .report-params .param-group {
+            gap: 0.6rem;
+        }
+
+        .report-params .param-item {
+            min-width: 100px;
+            flex: 1 0 auto;
+        }
+
+        .report-params .param-actions {
+            flex: 1 0 100%;
+            justify-content: flex-end;
+            margin-top: 0.3rem;
+        }
+
+        .charts-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .kpi-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 0.6rem;
+        }
+
+        .kpi-card {
+            padding: 0.8rem;
+        }
+
+            .kpi-card .kpi-left .kpi-value {
+                font-size: 1.4rem;
+            }
+
+            .kpi-card .kpi-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1.1rem;
+            }
+
+        .report-params {
+            padding: 1rem;
+        }
+
+            .report-params .param-item {
+                min-width: 80px;
+                flex: 1 0 auto;
+            }
+
+                .report-params .param-item .form-control,
+                .report-params .param-item .form-select {
+                    font-size: 0.8rem;
+                    padding: 0.35rem 0.6rem;
+                }
+
+        .group-section {
+            padding: 0.8rem 1rem;
+        }
+
+            .group-section .table {
+                font-size: 0.7rem;
+            }
+
+                .group-section .table th, .group-section .table td {
+                    padding: 0.25rem 0.3rem;
+                }
+
+        .report-preview-card .card-header {
+            padding: 0.6rem 1rem;
+        }
+
+            .report-preview-card .card-header h5 {
+                font-size: 0.9rem;
+            }
+
+        .report-footer {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 0.8rem;
+        }
+
+        .report-tabs {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .report-tab {
+            padding: 0.4rem 1rem;
+            font-size: 0.75rem;
+        }
+
+        .charts-grid {
+            padding: 1rem;
+            gap: 1rem;
+        }
+
+        .chart-card .chart-wrapper {
+            height: 160px;
+        }
+
+            .chart-card .chart-wrapper.pie-chart {
+                height: 180px;
+            }
+    }
+
+    @@media (max-width: 480px) {
+        .kpi-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .kpi-card .kpi-left .kpi-value {
+            font-size: 1.2rem;
+        }
+
+        .kpi-card .kpi-left .kpi-label {
+            font-size: 0.65rem;
+        }
+
+        .report-params .param-group {
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .report-params .param-item {
+            min-width: 100%;
+        }
+
+        .report-params .param-actions {
+            justify-content: stretch;
+        }
+
+            .report-params .param-actions .btn-action {
+                flex: 1;
+                justify-content: center;
+                font-size: 0.7rem;
+                padding: 0.35rem 0.8rem;
+            }
+
+        .btn-action {
+            font-size: 0.7rem;
+            padding: 0.35rem 0.8rem;
+        }
+
+        .charts-grid {
+            padding: 0.5rem;
+            gap: 0.8rem;
+        }
+
+        .chart-card {
+            padding: 0.8rem;
+        }
+
+            .chart-card .chart-wrapper {
+                height: 140px;
+            }
+
+                .chart-card .chart-wrapper.pie-chart {
+                    height: 160px;
+                }
     }
 </style>
 
-<div class="grid-2col">
-    <div class="card">
-        <h3><i class="fas fa-chart-simple"></i> Generate Report</h3>
-        <div class="form-group">
-            <label>Start Date</label>
-            <input type="date" id="reportStart" class="form-control">
+<!-- ─── KPI CARDS ─── -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-left">
+            <div class="kpi-value" id="kpiTotal">0</div>
+            <div class="kpi-label">Total Tests</div>
         </div>
-        <div class="form-group">
-            <label>End Date</label>
-            <input type="date" id="reportEnd" class="form-control">
-        </div>
-        <div class="form-group">
-            <label>Report Type</label>
-            <select id="reportType" class="form-control">
-                <option value="all">All Test Requests</option>
-                <option value="completed">Completed Tests Only</option>
-                <option value="abnormal">Abnormal Results Only</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Format</label>
-            <select id="reportFormat" class="form-control">
-                <option value="pdf">PDF Document</option>
-                <option value="excel">Excel (CSV)</option>
-            </select>
-        </div>
-        <button class="btn-primary" onclick="generateReport()"><i class="fas fa-file-pdf"></i> Generate PDF Report</button>
+        <div class="kpi-icon blue"><i class="fas fa-flask"></i></div>
     </div>
-
-    <div class="card">
-        <h3><i class="fas fa-chart-pie"></i> Quick Statistics</h3>
-        <div class="stat-box">
-            <h3 id="statTotal">47</h3>
-            <p>Total Requests (This Month)</p>
+    <div class="kpi-card">
+        <div class="kpi-left">
+            <div class="kpi-value" id="kpiCompleted">0</div>
+            <div class="kpi-label">Completed</div>
         </div>
-        <div class="stat-box">
-            <h3 id="statCompleted">32</h3>
-            <p>Completed</p>
+        <div class="kpi-icon green"><i class="fas fa-check-circle"></i></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-left">
+            <div class="kpi-value" id="kpiAbnormal">0</div>
+            <div class="kpi-label">Abnormal</div>
         </div>
-        <div class="stat-box">
-            <h3 id="statAbnormal">8</h3>
-            <p>Abnormal Results</p>
+        <div class="kpi-icon red"><i class="fas fa-exclamation-triangle"></i></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-left">
+            <div class="kpi-value" id="kpiPending">0</div>
+            <div class="kpi-label">Pending</div>
         </div>
-        <div class="stat-box">
-            <h3 id="statPending">7</h3>
-            <p>Pending Release</p>
-        </div>
-        <button class="btn-primary" onclick="location.href='@Url.Action("Results", "Doctor")'" style="background:#6B7280; margin-top:0.5rem;">View Detailed Analytics →</button>
+        <div class="kpi-icon orange"><i class="fas fa-clock"></i></div>
     </div>
 </div>
 
-<div class="card">
-    <h3><i class="fas fa-download"></i> Saved Reports</h3>
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Report Name</th>
-                    <th>Date Generated</th>
-                    <th>Type</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Monthly Summary - April 2025</td>
-                    <td>2025-04-30</td>
-                    <td>PDF</td>
-                    <td><button class="btn-sm" onclick="downloadReport('Monthly Summary - April 2025')">Download</button></td>
-                </tr>
-                <tr>
-                    <td>Abnormal Results Q1 2025</td>
-                    <td>2025-03-31</td>
-                    <td>PDF</td>
-                    <td><button class="btn-sm" onclick="downloadReport('Abnormal Results Q1 2025')">Download</button></td>
-                </tr>
-                <tr>
-                    <td>Patient Test History - Thabo Mbeki</td>
-                    <td>2025-03-28</td>
-                    <td>PDF</td>
-                    <td><button class="btn-sm" onclick="downloadReport('Patient Test History - Thabo Mbeki')">Download</button></td>
-                </tr>
-            </tbody>
-        </table>
+<!-- ─── REPORT PARAMETERS ─── -->
+<div class="report-params no-print">
+    <div class="param-group">
+        <div class="param-item" style="min-width:140px;">
+            <span class="form-label">Date From</span>
+            <input type="date" class="form-control" id="dateFrom" value="@DateTime.Now.AddDays(-30).ToString("yyyy-MM-dd")">
+        </div>
+        <div class="param-item" style="min-width:140px;">
+            <span class="form-label">Date To</span>
+            <input type="date" class="form-control" id="dateTo" value="@DateTime.Now.ToString("yyyy-MM-dd")">
+        </div>
+        <div class="param-item" style="min-width:130px;">
+            <span class="form-label">Group By</span>
+            <select class="form-select" id="groupBy">
+                <option value="patient">Patient</option>
+                <option value="test">Test Type</option>
+                <option value="status">Status</option>
+            </select>
+        </div>
+        <div class="param-item" style="min-width:130px;">
+            <span class="form-label">Sort By</span>
+            <select class="form-select" id="sortBy">
+                <option value="date">Date</option>
+                <option value="patient">Patient</option>
+                <option value="test">Test</option>
+                <option value="status">Status</option>
+            </select>
+        </div>
+        <div class="param-item" style="min-width:120px;">
+            <span class="form-label">Status Filter</span>
+            <select class="form-select" id="statusFilter">
+                <option value="all">All</option>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+                <option value="abnormal">Abnormal</option>
+                <option value="verified">Verified</option>
+            </select>
+        </div>
+        <div class="param-item" style="min-width:110px;">
+            <span class="form-label">Urgency</span>
+            <select class="form-select" id="urgencyFilter">
+                <option value="all">All</option>
+                <option value="stat">STAT</option>
+                <option value="urgent">Urgent</option>
+                <option value="routine">Routine</option>
+            </select>
+        </div>
+        <div class="param-item" style="min-width:80px; flex:0 0 auto;">
+            <div class="form-check" style="padding-top:0.2rem;">
+                <input class="form-check-input" type="checkbox" id="includeDetails" checked>
+                <label class="form-check-label" for="includeDetails" style="font-size:0.7rem;font-weight:500;color:var(--text-muted);">Details</label>
+            </div>
+        </div>
+        <div class="param-item param-actions" style="flex:0 0 auto;">
+            <button class="btn-action primary" id="refreshReport"><i class="fas fa-sync-alt"></i> Refresh</button>
+            <button class="btn-action success" id="printReport"><i class="fas fa-print"></i> Print</button>
+            <button class="btn-action danger" id="downloadPdf"><i class="fas fa-file-pdf"></i> PDF</button>
+        </div>
     </div>
 </div>
 
+<!-- ─── TABS ─── -->
+<div class="report-tabs no-print" id="reportTabs">
+    <button class="report-tab active" data-tab="data"><i class="fas fa-table"></i> Data Table</button>
+    <button class="report-tab" data-tab="charts"><i class="fas fa-chart-pie"></i> Charts</button>
+</div>
+
+<!-- ─── TAB 1: DATA TABLE ─── -->
+<div class="tab-content active" id="tab-data">
+    <div class="report-preview-card">
+        <div class="card-header">
+            <h5><i class="fas fa-table me-2" style="color:var(--primary-bright);"></i> Report Preview</h5>
+            <span class="badge" id="reportTitle">Loading...</span>
+        </div>
+        <div class="card-body" id="reportPreview">
+            <div class="report-placeholder">
+                <i class="fas fa-chart-bar"></i>
+                <h5>No report generated yet</h5>
+                <p>Select filters and click <strong>"Refresh"</strong> to see the data</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ─── TAB 2: CHARTS ─── -->
+<div class="tab-content" id="tab-charts">
+    <div class="report-preview-card">
+        <div class="card-header">
+            <h5><i class="fas fa-chart-pie me-2" style="color:var(--primary-bright);"></i> Visual Summary</h5>
+            <span class="badge" id="chartTitle">Updated with filters</span>
+        </div>
+        <div class="charts-grid" id="chartsContainer">
+            <!-- Status Distribution -->
+            <div class="chart-card">
+                <div class="chart-title">Tests by Status</div>
+                <div class="chart-wrapper"><canvas id="statusChart"></canvas></div>
+                <div class="chart-stats-row" id="statusStats"></div>
+            </div>
+
+            <!-- Urgency Distribution -->
+            <div class="chart-card">
+                <div class="chart-title">Tests by Urgency</div>
+                <div class="chart-wrapper pie-chart"><canvas id="urgencyChart"></canvas></div>
+                <div class="chart-stats-row" id="urgencyStats"></div>
+            </div>
+
+            <!-- Top Patients -->
+            <div class="chart-card">
+                <div class="chart-title">Top Patients by Tests</div>
+                <div class="chart-wrapper"><canvas id="patientChart"></canvas></div>
+            </div>
+
+            <!-- Test Types -->
+            <div class="chart-card">
+                <div class="chart-title">Test Types Distribution</div>
+                <div class="chart-wrapper"><canvas id="testTypeChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
+</script>
 <script>
-    function generateReport() {
-        var start = document.getElementById('reportStart').value;
-        var end = document.getElementById('reportEnd').value;
-        var type = document.getElementById('reportType').value;
-        var format = document.getElementById('reportFormat').value;
+    (function() {
+        // ─── MOCK DATA (with recent dates) ─────────────────────
+        var today = new Date();
+        var formatDate = function(d) {
+            return d.getFullYear() + '-' +
+                String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                String(d.getDate()).padStart(2, '0');
+        };
 
-        var typeText = '';
-        if (type === 'all') typeText = 'All Test Requests';
-        else if (type === 'completed') typeText = 'Completed Tests Only';
-        else typeText = 'Abnormal Results Only';
+        var dates = [];
+        for (var i = 0; i < 12; i++) {
+            var d = new Date(today);
+            d.setDate(d.getDate() - i);
+            dates.push(formatDate(d));
+        }
 
-        alert('📄 Report Generated Successfully!\n\n📅 Period: ' + (start || 'All') + ' to ' + (end || 'All') + '\n📊 Type: ' + typeText + '\n📁 Format: ' + format.toUpperCase() + '\n\nDownload will start shortly.');
-    }
+        var mockData = [
+            { id: 1, reqNo: "REQ-001", patient: "Thabo Mbeki", date: dates[0], test: "Haemoglobin", result: "7.2",
+                normal: "12-16", status: "completed", abnormal: true, urgency: "stat",
+                notes: "Severe anaemia. Patient requires urgent intervention." },
+            { id: 2, reqNo: "REQ-001", patient: "Thabo Mbeki", date: dates[0], test: "White Cell Count", result: "8.5",
+                normal: "4-11", status: "completed", abnormal: false, urgency: "stat", notes: "" },
+            { id: 3, reqNo: "REQ-001", patient: "Thabo Mbeki", date: dates[0], test: "Platelet Count", result: "220",
+                normal: "150-450", status: "completed", abnormal: false, urgency: "stat", notes: "" },
+            { id: 4, reqNo: "REQ-002", patient: "Lerato Dlamini", date: dates[1], test: "PT/INR", result: "12.5",
+                normal: "11-13.5", status: "pending", abnormal: false, urgency: "routine", notes: "" },
+            { id: 5, reqNo: "REQ-002", patient: "Lerato Dlamini", date: dates[1], test: "APTT", result: "32",
+                normal: "25-35", status: "pending", abnormal: false, urgency: "routine", notes: "" },
+            { id: 6, reqNo: "REQ-003", patient: "John Smith", date: dates[2], test: "Platelets", result: "45",
+                normal: "150-450", status: "completed", abnormal: true, urgency: "urgent",
+                notes: "Thrombocytopenia. Monitor for bleeding risk." },
+            { id: 7, reqNo: "REQ-003", patient: "John Smith", date: dates[2], test: "PT/INR", result: "14.2",
+                normal: "11-13.5", status: "verified", abnormal: true, urgency: "urgent",
+                notes: "Elevated INR. Review warfarin dosage." },
+            { id: 8, reqNo: "REQ-004", patient: "Maria Santos", date: dates[3], test: "WBC", result: "18.5",
+                normal: "4-11", status: "completed", abnormal: true, urgency: "urgent",
+                notes: "Leukocytosis. Consider infection or inflammation." },
+            { id: 9, reqNo: "REQ-005", patient: "James Wilson", date: dates[4], test: "D-Dimer", result: "1.8",
+                normal: "<0.5", status: "pending", abnormal: true, urgency: "stat",
+                notes: "Elevated D-Dimer. Possible DVT or PE." },
+            { id: 10, reqNo: "REQ-006", patient: "Sarah Williams", date: dates[5], test: "Sodium", result: "125",
+                normal: "135-145", status: "pending", abnormal: true, urgency: "urgent",
+                notes: "Hyponatremia. Monitor for confusion/seizures." },
+            { id: 11, reqNo: "REQ-007", patient: "David Ngema", date: dates[6], test: "Potassium", result: "3.1",
+                normal: "3.5-5.0", status: "completed", abnormal: true, urgency: "stat",
+                notes: "Hypokalemia. ECG monitoring recommended." },
+            { id: 12, reqNo: "REQ-007", patient: "David Ngema", date: dates[6], test: "Magnesium", result: "0.6",
+                normal: "0.7-1.1", status: "completed", abnormal: true, urgency: "stat", notes: "Hypomagnesemia." },
+            { id: 13, reqNo: "REQ-008", patient: "Zanele Mkhize", date: dates[7], test: "Fasting Glucose", result: "8.2",
+                normal: "3.9-5.6", status: "verified", abnormal: true, urgency: "routine",
+                notes: "Diabetes. HbA1c recommended." },
+            { id: 14, reqNo: "REQ-008", patient: "Zanele Mkhize", date: dates[7], test: "Cholesterol", result: "6.5",
+                normal: "<5.2", status: "verified", abnormal: true, urgency: "routine",
+                notes: "Hypercholesterolemia." },
+            { id: 15, reqNo: "REQ-009", patient: "Peter Mokoena", date: dates[8], test: "Haemoglobin", result: "14.2",
+                normal: "12-16", status: "completed", abnormal: false, urgency: "routine", notes: "" },
+            { id: 16, reqNo: "REQ-009", patient: "Peter Mokoena", date: dates[8], test: "WBC", result: "6.3",
+                normal: "4-11", status: "completed", abnormal: false, urgency: "routine", notes: "" },
+            { id: 17, reqNo: "REQ-010", patient: "Nomsa Mkhize", date: dates[9], test: "Platelet Count", result: "180",
+                normal: "150-450", status: "pending", abnormal: false, urgency: "routine", notes: "" },
+            { id: 18, reqNo: "REQ-010", patient: "Nomsa Mkhize", date: dates[9], test: "PT/INR", result: "11.8",
+                normal: "11-13.5", status: "pending", abnormal: false, urgency: "routine", notes: "" },
+            { id: 19, reqNo: "REQ-011", patient: "Sipho Dube", date: dates[10], test: "CRP", result: "45", normal: "<5",
+                status: "completed", abnormal: true, urgency: "urgent", notes: "Elevated CRP. Indicates inflammation." },
+            { id: 20, reqNo: "REQ-012", patient: "Grace Mokoena", date: dates[11], test: "Ferritin", result: "12",
+                normal: "20-500", status: "verified", abnormal: true, urgency: "routine",
+                notes: "Iron deficiency anaemia." }
+        ];
 
-    function downloadReport(reportName) {
-        alert('📥 Downloading "' + reportName + '"...\n\nThe report would be downloaded as PDF.');
-    }
+        // ─── DOM REFS ──────────────────────────────────────────
+        var dateFrom = document.getElementById('dateFrom');
+        var dateTo = document.getElementById('dateTo');
+        var groupBySelect = document.getElementById('groupBy');
+        var sortBySelect = document.getElementById('sortBy');
+        var statusFilter = document.getElementById('statusFilter');
+        var urgencyFilter = document.getElementById('urgencyFilter');
+        var includeDetails = document.getElementById('includeDetails');
+        var refreshBtn = document.getElementById('refreshReport');
+        var printBtn = document.getElementById('printReport');
+        var pdfBtn = document.getElementById('downloadPdf');
+        var preview = document.getElementById('reportPreview');
+        var titleSpan = document.getElementById('reportTitle');
+
+        // ─── CHART INSTANCES ──────────────────────────────────
+        var chartInstances = {};
+
+        // ─── FILTER & GROUP DATA ───────────────────────────────
+        function getFilteredData() {
+            var from = dateFrom.value;
+            var to = dateTo.value;
+            var status = statusFilter.value;
+            var urgency = urgencyFilter.value;
+
+            var filtered = mockData.filter(function(item) {
+                var dateOk = (!from || item.date >= from) && (!to || item.date <= to);
+                var statusOk = status === 'all' || item.status === status;
+                var urgencyOk = urgency === 'all' || item.urgency === urgency;
+                return dateOk && statusOk && urgencyOk;
+            });
+
+            var sortField = sortBySelect.value;
+            filtered.sort(function(a, b) {
+                var valA = a[sortField] || '';
+                var valB = b[sortField] || '';
+                if (sortField === 'date') { valA = new Date(valA);
+                    valB = new Date(valB); }
+                if (typeof valA === 'string') valA = valA.toLowerCase();
+                if (typeof valB === 'string') valB = valB.toLowerCase();
+                if (valA < valB) return -1;
+                if (valA > valB) return 1;
+                return 0;
+            });
+
+            return filtered;
+        }
+
+        // ─── RENDER REPORT (Data Table) ────────────────────────
+        function renderReport() {
+            var data = getFilteredData();
+
+            var total = data.length;
+            var completed = data.filter(function(d) { return d.status === 'completed'; }).length;
+            var abnormal = data.filter(function(d) { return d.abnormal; }).length;
+            var pending = data.filter(function(d) { return d.status === 'pending'; }).length;
+            document.getElementById('kpiTotal').textContent = total;
+            document.getElementById('kpiCompleted').textContent = completed;
+            document.getElementById('kpiAbnormal').textContent = abnormal;
+            document.getElementById('kpiPending').textContent = pending;
+
+            if (data.length === 0) {
+                preview.innerHTML = `
+                        <div class="report-placeholder">
+                            <i class="fas fa-search"></i>
+                            <h5>No data found</h5>
+                            <p>No test requests match your current filters. Try adjusting the date range or filters.</p>
+                        </div>
+                    `;
+                titleSpan.textContent = 'No Data';
+                return;
+            }
+
+            var groupBy = groupBySelect.value;
+            var groups = {};
+            data.forEach(function(item) {
+                var key;
+                if (groupBy === 'patient') key = item.patient;
+                else if (groupBy === 'test') key = item.test;
+                else if (groupBy === 'status') key = item.status;
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(item);
+            });
+
+            var titleMap = { 'patient': 'by Patient', 'test': 'by Test Type', 'status': 'by Status' };
+            titleSpan.textContent = 'Test Requests ' + (titleMap[groupBy] || '');
+
+            var html = '';
+            var grandTotal = 0;
+            var groupKeys = Object.keys(groups).sort();
+
+            groupKeys.forEach(function(key) {
+                var items = groups[key];
+                var subTotal = items.length;
+
+                var badgeClass = 'secondary';
+                if (groupBy === 'status') {
+                    if (key === 'completed') badgeClass = 'success';
+                    else if (key === 'pending') badgeClass = 'warning';
+                    else if (key === 'abnormal') badgeClass = 'danger';
+                    else if (key === 'verified') badgeClass = 'info';
+                }
+
+                html += `
+                        <div class="group-section">
+                            <div class="group-title">
+                                ${key}
+                                <span class="badge bg-${badgeClass}">${items.length}</span>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Request</th>
+                                            ${groupBy === 'patient' ? '<th>Test</th>' : ''}
+                                            ${groupBy === 'test' ? '<th>Patient</th>' : ''}
+                                            <th>Result</th>
+                                            <th>Normal</th>
+                                            <th>Status</th>
+                                            <th>Urgency</th>
+                                            ${includeDetails.checked ? '<th>Notes</th>' : ''}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                    `;
+
+                items.forEach(function(item) {
+                    var statusClass = item.status === 'completed' ? 'completed' : (item.status ===
+                        'pending' ? 'pending' : (item.status === 'abnormal' ? 'abnormal' :
+                        'verified'));
+                    var urgencyClass = item.urgency === 'stat' ? 'stat' : (item.urgency === 'urgent' ?
+                        'urgent' : 'routine');
+                    html += `
+                            <tr>
+                                <td>${item.date}</td>
+                                <td>${item.reqNo}</td>
+                                ${groupBy === 'patient' ? `<td>${item.test}</td>` : ''}
+                                ${groupBy === 'test' ? `<td>${item.patient}</td>` : ''}
+                                <td>${item.result} ${item.abnormal ? '⚠️' : ''}</td>
+                                <td>${item.normal}</td>
+                                <td><span class="status-badge ${statusClass}">${item.status}</span></td>
+                                <td><span class="urgency-tag ${urgencyClass}">${item.urgency.toUpperCase()}</span></td>
+                                ${includeDetails.checked ? `<td>${item.notes || '-'}</td>` : ''}
+                            </tr>
+                        `;
+                });
+
+                html += `
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="${includeDetails.checked ? 8 : 7}" class="text-end"><strong>Sub-total:</strong> ${subTotal} tests</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                grandTotal += subTotal;
+            });
+
+            html += `
+                    <div class="report-footer">
+                        <div class="footer-item"><strong>Date Range:</strong> ${dateFrom.value} to ${dateTo.value}</div>
+                        <div class="footer-item"><strong>Groups:</strong> ${groupKeys.length}</div>
+                        <div class="footer-item"><strong>Total Tests:</strong> ${grandTotal}</div>
+                    </div>
+                `;
+
+            preview.innerHTML = html;
+        }
+
+        // ─── RENDER CHARTS ──────────────────────────────────────
+        function renderCharts() {
+            var data = getFilteredData();
+
+            // Status distribution
+            var statusCounts = { completed: 0, pending: 0, abnormal: 0, verified: 0 };
+            data.forEach(function(d) {
+                if (statusCounts[d.status] !== undefined) statusCounts[d.status]++;
+            });
+            var statusLabels = ['Completed', 'Pending', 'Abnormal', 'Verified'];
+            var statusValues = [statusCounts.completed, statusCounts.pending, statusCounts.abnormal, statusCounts
+                .verified];
+            var statusColors = ['#10B981', '#F59E0B', '#EF4444', '#6366F1'];
+
+            // Urgency distribution
+            var urgencyCounts = { stat: 0, urgent: 0, routine: 0 };
+            data.forEach(function(d) {
+                if (urgencyCounts[d.urgency] !== undefined) urgencyCounts[d.urgency]++;
+            });
+            var urgencyLabels = ['STAT', 'Urgent', 'Routine'];
+            var urgencyValues = [urgencyCounts.stat, urgencyCounts.urgent, urgencyCounts.routine];
+            var urgencyColors = ['#EF4444', '#F59E0B', '#10B981'];
+
+            // Top patients
+            var patientCounts = {};
+            data.forEach(function(d) {
+                if (!patientCounts[d.patient]) patientCounts[d.patient] = 0;
+                patientCounts[d.patient]++;
+            });
+            var patientEntries = Object.entries(patientCounts).sort(function(a, b) { return b[1] - a[1]; });
+            var topPatients = patientEntries.slice(0, 6);
+            var patientLabels = topPatients.map(function(e) { return e[0]; });
+            var patientValues = topPatients.map(function(e) { return e[1]; });
+
+            // Test types
+            var testCounts = {};
+            data.forEach(function(d) {
+                if (!testCounts[d.test]) testCounts[d.test] = 0;
+                testCounts[d.test]++;
+            });
+            var testEntries = Object.entries(testCounts).sort(function(a, b) { return b[1] - a[1]; });
+            var topTests = testEntries.slice(0, 8);
+            var testLabels = topTests.map(function(e) { return e[0]; });
+            var testValues = topTests.map(function(e) { return e[1]; });
+
+            // Destroy existing charts
+            Object.keys(chartInstances).forEach(function(key) {
+                if (chartInstances[key]) {
+                    chartInstances[key].destroy();
+                    delete chartInstances[key];
+                }
+            });
+
+            // Status Bar Chart
+            var statusCtx = document.getElementById('statusChart').getContext('2d');
+            chartInstances.status = new Chart(statusCtx, {
+                type: 'bar',
+                data: {
+                    labels: statusLabels,
+                    datasets: [{
+                        label: 'Tests',
+                        data: statusValues,
+                        backgroundColor: statusColors,
+                        borderColor: statusColors.map(function(c) { return c; }),
+                        borderWidth: 0,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.04)' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+
+            // Status stats
+            document.getElementById('statusStats').innerHTML = statusLabels.map(function(label, idx) {
+                return '<div class="chart-stat-item"><div class="cs-value">' + statusValues[idx] +
+                    '</div><div class="cs-label">' + label + '</div></div>';
+            }).join('');
+
+            // Urgency Doughnut Chart
+            var urgencyCtx = document.getElementById('urgencyChart').getContext('2d');
+            chartInstances.urgency = new Chart(urgencyCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: urgencyLabels,
+                    datasets: [{
+                        data: urgencyValues,
+                        backgroundColor: urgencyColors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 12, padding: 8, font: { size: 11 } }
+                        }
+                    },
+                    cutout: '55%'
+                }
+            });
+
+            // Urgency stats
+            document.getElementById('urgencyStats').innerHTML = urgencyLabels.map(function(label, idx) {
+                return '<div class="chart-stat-item"><div class="cs-value">' + urgencyValues[idx] +
+                    '</div><div class="cs-label">' + label + '</div></div>';
+            }).join('');
+
+            // Patient Bar Chart
+            var patientCtx = document.getElementById('patientChart').getContext('2d');
+            var colors = ['#0841C9', '#1D97F1', '#60A5FA', '#93C5FD', '#BFDBFE', '#DBEAFE'];
+            chartInstances.patient = new Chart(patientCtx, {
+                type: 'bar',
+                data: {
+                    labels: patientLabels,
+                    datasets: [{
+                        label: 'Tests',
+                        data: patientValues,
+                        backgroundColor: colors.slice(0, patientLabels.length),
+                        borderRadius: 4,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.04)' }
+                        },
+                        y: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+
+            // Test Type Bar Chart
+            var testCtx = document.getElementById('testTypeChart').getContext('2d');
+            var testColors = ['#7C3AED', '#8B5CF6', '#A78BFA', '#C4B5FD', '#DDD6FE', '#EDE9FE', '#F5F3FF', '#F9F9FF'];
+            chartInstances.test = new Chart(testCtx, {
+                type: 'bar',
+                data: {
+                    labels: testLabels,
+                    datasets: [{
+                        label: 'Tests',
+                        data: testValues,
+                        backgroundColor: testColors.slice(0, testLabels.length),
+                        borderRadius: 4,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.04)' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+
+            // Update chart title badge
+            document.getElementById('chartTitle').textContent = data.length + ' tests displayed';
+        }
+
+        // ─── PRINT ──────────────────────────────────────────────
+        function printReport() { window.print(); }
+
+        // ─── PDF DOWNLOAD (demo) ───────────────────────────────
+        function downloadPdf() {
+            var data = getFilteredData();
+            alert('📄 PDF Report Generation\n\n' +
+                'Report would be downloaded with the following data:\n' +
+                '• Total Tests: ' + data.length + '\n' +
+                '• Date Range: ' + dateFrom.value + ' to ' + dateTo.value + '\n' +
+                '• Grouped By: ' + groupBySelect.options[groupBySelect.selectedIndex].text + '\n\n' +
+                'This feature can be implemented with a server-side PDF generator.');
+        }
+
+        // ─── TAB SWITCHING ──────────────────────────────────────
+        var tabs = document.querySelectorAll('.report-tab');
+        var tabContents = {
+            data: document.getElementById('tab-data'),
+            charts: document.getElementById('tab-charts')
+        };
+
+        tabs.forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                tabs.forEach(function(t) { t.classList.remove('active'); });
+                tab.classList.add('active');
+
+                var target = tab.getAttribute('data-tab');
+                Object.keys(tabContents).forEach(function(key) {
+                    tabContents[key].classList.toggle('active', key === target);
+                });
+
+                // Refresh charts when switching to charts tab
+                if (target === 'charts') {
+                    renderCharts();
+                }
+            });
+        });
+
+        // ─── EVENT LISTENERS ────────────────────────────────────
+        refreshBtn.addEventListener('click', function() {
+            renderReport();
+            // Also update charts if charts tab is active
+            if (document.querySelector('.report-tab[data-tab="charts"].active')) {
+                renderCharts();
+            }
+        });
+        printBtn.addEventListener('click', printReport);
+        pdfBtn.addEventListener('click', downloadPdf);
+
+        // Re-render on filter changes
+        document.querySelectorAll('#dateFrom, #dateTo, #groupBy, #sortBy, #statusFilter, #urgencyFilter, #includeDetails')
+            .forEach(function(el) {
+                el.addEventListener('change', function() {
+                    renderReport();
+                    // Update charts if visible
+                    if (document.querySelector('.report-tab[data-tab="charts"].active')) {
+                        renderCharts();
+                    }
+                });
+            });
+
+        // ─── INIT ──────────────────────────────────────────────
+        renderReport();
+        // Pre-render charts for when user switches to charts tab
+        renderCharts();
+
+        console.log('📊 Doctor Reports page with tabs and charts loaded.');
+        console.log('💡 ' + mockData.length + ' mock test results available.');
+    })();
 </script>

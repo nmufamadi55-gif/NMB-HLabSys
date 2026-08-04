@@ -1,0 +1,623 @@
+﻿@* Views/Shared/_RegisterPatientModal.cshtml *@
+
+<style>
+    /* ─── TOAST NOTIFICATIONS (shared) ─── */
+    .toast-container {
+        position: fixed;
+        top: 80px;
+        right: 24px;
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 380px;
+        width: 100%;
+        pointer-events: none;
+    }
+
+    .toast {
+        background: #fff;
+        border-radius: 14px;
+        padding: 1rem 1.2rem;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        border-left: 5px solid var(--primary-bright, #0841C9);
+        display: flex;
+        align-items: flex-start;
+        gap: 0.8rem;
+        pointer-events: auto;
+        animation: slideInRight 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .toast.hiding {
+            opacity: 0;
+            transform: translateX(40px);
+        }
+
+    .toast-icon {
+        font-size: 1.4rem;
+        flex-shrink: 0;
+        line-height: 1;
+        margin-top: 2px;
+    }
+
+    .toast-content {
+        flex: 1;
+        font-size: 0.9rem;
+        color: #1A2C3A;
+    }
+
+        .toast-content strong {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .toast-content small {
+            font-size: 0.75rem;
+            color: #5A6E7A;
+        }
+
+    .toast-close {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        color: #94A3B8;
+        padding: 0 0.2rem;
+        transition: color 0.2s;
+        flex-shrink: 0;
+        margin-top: -2px;
+    }
+
+        .toast-close:hover {
+            color: #1A2C3A;
+        }
+
+    .toast-success {
+        border-left-color: #10B981;
+    }
+
+        .toast-success .toast-icon {
+            color: #10B981;
+        }
+
+    .toast-error {
+        border-left-color: #EF4444;
+    }
+
+        .toast-error .toast-icon {
+            color: #EF4444;
+        }
+
+    .toast-warning {
+        border-left-color: #F59E0B;
+    }
+
+        .toast-warning .toast-icon {
+            color: #F59E0B;
+        }
+
+    .toast-info {
+        border-left-color: #1D97F1;
+    }
+
+        .toast-info .toast-icon {
+            color: #1D97F1;
+        }
+
+    @@keyframes slideInRight {
+        0% {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .toast-container {
+            top: 70px;
+            right: 12px;
+            left: 12px;
+            max-width: 100%;
+        }
+
+        .toast {
+            padding: 0.8rem 1rem;
+            font-size: 0.85rem;
+        }
+    }
+</style>
+
+<!-- ─── TOAST CONTAINER ─── -->
+<div id="toastContainer" class="toast-container"></div>
+
+<!-- ─── REGISTER PATIENT MODAL ─── -->
+<div id="registerModal" class="modal-overlay">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3>Register New Patient</h3>
+            <button class="close-modal" onclick="closeRegisterModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="row-3col">
+                <div class="form-group">
+                    <label>First Name <span class="required">*</span></label>
+                    <input type="text" id="regName" class="form-control">
+                    <div id="nameError" class="error-message"></div>
+                </div>
+                <div class="form-group">
+                    <label>Last Name <span class="required">*</span></label>
+                    <input type="text" id="regSurname" class="form-control">
+                    <div id="surnameError" class="error-message"></div>
+                </div>
+                <div class="form-group">
+                    <label>Gender</label>
+                    <select id="regGender" class="form-control">
+                        <option value="">Select...</option>
+                        <option>Male</option>
+                        <option>Female</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row-2col">
+                <div class="form-group">
+                    <label>SA ID Number <span class="required">*</span></label>
+                    <input type="text" id="regID" class="form-control" maxlength="13" placeholder="13-digit ID number" oninput="validateID()">
+                    <div id="idError" class="error-message"></div>
+                </div>
+                <div class="form-group">
+                    <label>Date of Birth <span class="required">*</span></label>
+                    <input type="date" id="regDOB" class="form-control" onchange="validateDOB()">
+                    <div id="dobError" class="error-message"></div>
+                </div>
+            </div>
+            <div class="row-2col">
+                <div class="form-group">
+                    <label>Cellphone Number</label>
+                    <input type="tel" id="regPhone" class="form-control" placeholder="082 123 4567">
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="regEmail" class="form-control" placeholder="patient@example.com">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Home Address</label>
+                <textarea id="regAddress" rows="2" class="form-control" placeholder="Street address, city, postal code"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Medical Conditions</label>
+                <div class="searchable-dropdown">
+                    <input type="text" id="conditionSearch" class="dropdown-input" placeholder="Type to search..." oninput="filterConditions()">
+                    <div id="conditionResults" class="dropdown-results"></div>
+                </div>
+                <div id="selectedConditions" class="selected-items"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Allergies</label>
+                <div class="searchable-dropdown">
+                    <input type="text" id="allergySearch" class="dropdown-input" placeholder="Type to search..." oninput="filterAllergies()">
+                    <div id="allergyResults" class="dropdown-results"></div>
+                </div>
+                <div id="selectedAllergies" class="selected-items"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Medications</label>
+                <div class="searchable-dropdown">
+                    <input type="text" id="medicationSearch" class="dropdown-input" placeholder="Type to search..." oninput="filterMedications()">
+                    <div id="medicationResults" class="dropdown-results"></div>
+                </div>
+                <div id="selectedMedications" class="selected-items"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-outline-sm" onclick="closeRegisterModal()">Cancel</button>
+            <button class="btn-success" onclick="registerPatient()">Register Patient</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ─── DATABASES (shared) ──────────────────────────────
+        // Use global if available, else fallback
+        var conditionsDB = window.conditionsDB || [
+            "Alzheimer's", "Anaemia", "Anxiety", "Asthma", "Chronic Kidney Disease", "COPD", "Coronary Artery Disease",
+            "Depression", "Epilepsy", "Gout", "Heart Failure", "Hepatitis B", "Hepatitis C", "HIV/AIDS", "Hyperlipidaemia",
+            "Hypertension", "Hyperthyroidism", "Hypothyroidism", "Leukemia", "Lymphoma", "Migraine", "Osteoarthritis",
+            "Osteoporosis", "Parkinson's Disease", "Psoriasis", "Rheumatoid Arthritis", "Thrombocytopenia", "Tuberculosis",
+            "Type 1 Diabetes", "Type 2 Diabetes"
+        ];
+
+        var allergiesDB = window.allergiesDB || [
+            "Animal Dander", "Aspirin", "Bee Venom", "Cephalosporins", "Codeine", "Dust Mites", "Eggs", "Fragrance",
+            "Ibuprofen", "Latex", "Milk", "Morphine", "Mould", "Naproxen", "Nickel", "Peanuts", "Penicillin", "Pollen",
+            "Shellfish", "Soy", "Sulfa Drugs", "Sunscreen", "Tetracycline", "Tree Nuts", "Wasp Venom", "Wheat"
+        ];
+
+        var medicationsDB = window.medicationsDB || [
+            "Amlodipine (10mg)", "Amlodipine (5mg)", "Apixaban (2.5mg)", "Apixaban (5mg)", "Aspirin (100mg)", "Aspirin (75mg)",
+            "Atorvastatin (10mg)", "Atorvastatin (20mg)", "Atorvastatin (40mg)", "Carbamazepine (200mg)", "Clopidogrel (75mg)",
+            "Escitalopram (10mg)", "Escitalopram (20mg)", "Gabapentin (300mg)", "Gliclazide (30mg)", "Gliclazide (60mg)",
+            "Hydroxyurea (500mg)", "Ibuprofen (400mg)", "Imatinib (400mg)", "Insulin Aspart", "Insulin Glargine (100 units/mL)",
+            "Levothyroxine (100mcg)", "Levothyroxine (25mcg)", "Levothyroxine (50mcg)", "Lisinopril (10mg)", "Lisinopril (20mg)",
+            "Lisinopril (5mg)", "Metformin (1000mg)", "Metformin (500mg)", "Metformin (850mg)", "Omeprazole (20mg)",
+            "Pantoprazole (40mg)", "Paracetamol (500mg)", "Prednisone (10mg)", "Prednisone (5mg)", "Sertraline (100mg)",
+            "Sertraline (50mg)", "Warfarin (2mg)", "Warfarin (5mg)"
+        ];
+
+        // ─── STATE ──────────────────────────────────────────────
+        var selectedConditions = [];
+        var selectedAllergies = [];
+        var selectedMedications = [];
+        var registerCallback = null;
+        var redirectUrl = null;
+
+        // ─── TOAST SYSTEM ────────────────────────────────────────
+        function showToast(message, type, duration) {
+            type = type || 'success';
+            duration = duration || 4000;
+            var container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            var iconMap = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+            var icon = iconMap[type] || 'ℹ️';
+
+            var toast = document.createElement('div');
+            toast.className = 'toast toast-' + type;
+            toast.innerHTML = `
+                <div class="toast-icon">${icon}</div>
+                <div class="toast-content">
+                    <strong>${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
+                    ${message}
+                    <small>${new Date().toLocaleTimeString()}</small>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+            `;
+            container.appendChild(toast);
+
+            setTimeout(function() {
+                toast.classList.add('hiding');
+                setTimeout(function() {
+                    if (toast.parentElement) toast.remove();
+                }, 300);
+            }, duration);
+
+            toast.addEventListener('click', function(e) {
+                if (e.target.tagName !== 'BUTTON') {
+                    toast.classList.add('hiding');
+                    setTimeout(function() {
+                        if (toast.parentElement) toast.remove();
+                    }, 300);
+                }
+            });
+        }
+
+        window.showToast = showToast;
+
+        // ─── OPEN / CLOSE ────────────────────────────────────────
+        window.openRegisterModal = function(callback, options) {
+            if (callback) registerCallback = callback;
+            if (options && options.redirectUrl) redirectUrl = options.redirectUrl;
+            else redirectUrl = null;
+
+            // Reset form
+            selectedConditions = [];
+            selectedAllergies = [];
+            selectedMedications = [];
+            renderSelectedConditions();
+            renderSelectedAllergies();
+            renderSelectedMedications();
+            document.getElementById('regName').value = '';
+            document.getElementById('regSurname').value = '';
+            document.getElementById('regID').value = '';
+            document.getElementById('regDOB').value = '';
+            document.getElementById('regPhone').value = '';
+            document.getElementById('regEmail').value = '';
+            document.getElementById('regAddress').value = '';
+            document.getElementById('regGender').value = '';
+            document.getElementById('nameError').textContent = '';
+            document.getElementById('surnameError').textContent = '';
+            document.getElementById('idError').textContent = '';
+            document.getElementById('dobError').textContent = '';
+
+            document.getElementById('registerModal').classList.add('active');
+        };
+
+        window.closeRegisterModal = function() {
+            document.getElementById('registerModal').classList.remove('active');
+            registerCallback = null;
+            redirectUrl = null;
+        };
+
+        // ─── VALIDATION ──────────────────────────────────────────
+        window.validateID = function() {
+            var idInput = document.getElementById('regID');
+            var idError = document.getElementById('idError');
+            var id = idInput.value.replace(/\D/g, '');
+            idInput.value = id;
+
+            if (id.length === 13) {
+                var yy = parseInt(id.substring(0, 2));
+                var mm = parseInt(id.substring(2, 4));
+                var dd = parseInt(id.substring(4, 6));
+                var year = (yy >= 0 && yy <= 24) ? 2000 + yy : 1900 + yy;
+                var date = new Date(year, mm - 1, dd);
+                var isValid = date.getFullYear() === year && date.getMonth() === mm - 1 && date.getDate() === dd;
+                var today = new Date(); today.setHours(0,0,0,0);
+
+                if (isValid && mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31 && date <= today) {
+                    idError.textContent = '';
+                    idInput.classList.remove('error');
+                    var dobInput = document.getElementById('regDOB');
+                    var formatted = year + '-' + String(mm).padStart(2,'0') + '-' + String(dd).padStart(2,'0');
+                    if (!dobInput.value || dobInput.value === formatted) {
+                        dobInput.value = formatted;
+                        validateDOB();
+                    } else {
+                        validateDOB();
+                    }
+                    return true;
+                } else {
+                    idError.textContent = 'Invalid ID number (YYMMDD format)';
+                    idInput.classList.add('error');
+                    return false;
+                }
+            } else if (id.length > 0) {
+                idError.textContent = 'ID must be exactly 13 digits';
+                idInput.classList.add('error');
+                return false;
+            } else {
+                idError.textContent = '';
+                idInput.classList.remove('error');
+                return false;
+            }
+        };
+
+        window.validateDOB = function() {
+            var dobInput = document.getElementById('regDOB');
+            var dobError = document.getElementById('dobError');
+            if (!dobInput.value) {
+                dobError.textContent = 'Please select date of birth';
+                dobInput.classList.add('error');
+                return false;
+            }
+            var dobDate = new Date(dobInput.value);
+            var today = new Date(); today.setHours(0,0,0,0);
+            if (dobDate > today) {
+                dobError.textContent = 'Date of birth cannot be in the future';
+                dobInput.classList.add('error');
+                return false;
+            }
+            var id = document.getElementById('regID').value;
+            if (id.length === 13) {
+                var yy = parseInt(id.substring(0,2));
+                var mm = parseInt(id.substring(2,4));
+                var dd = parseInt(id.substring(4,6));
+                var year = (yy >= 0 && yy <= 24) ? 2000 + yy : 1900 + yy;
+                var idDateStr = year + '-' + String(mm).padStart(2,'0') + '-' + String(dd).padStart(2,'0');
+                if (idDateStr !== dobInput.value) {
+                    dobError.textContent = 'DOB does not match ID number';
+                    dobInput.classList.add('error');
+                    return false;
+                }
+            }
+            dobError.textContent = '';
+            dobInput.classList.remove('error');
+            return true;
+        };
+
+        // ─── SEARCHABLE DROPDOWNS ──────────────────────────────
+        window.filterConditions = function() {
+            var search = document.getElementById('conditionSearch').value.toLowerCase();
+            var results = conditionsDB.filter(function(c) { return c.toLowerCase().includes(search); });
+            var container = document.getElementById('conditionResults');
+            if (search && results.length > 0) {
+                container.innerHTML = results.map(function(r) {
+                    return '<div class="dropdown-item" onclick="addCondition(\'' + r.replace(/'/g, "\\'") + '\')">' + r + '</div>';
+                }).join('');
+                container.classList.add('show');
+            } else {
+                container.classList.remove('show');
+            }
+        };
+
+        window.addCondition = function(c) {
+            if (selectedConditions.indexOf(c) === -1) {
+                selectedConditions.push(c);
+                renderSelectedConditions();
+            }
+            document.getElementById('conditionSearch').value = '';
+            document.getElementById('conditionResults').classList.remove('show');
+        };
+
+        window.removeCondition = function(c) {
+            selectedConditions = selectedConditions.filter(function(x) { return x !== c; });
+            renderSelectedConditions();
+        };
+
+        function renderSelectedConditions() {
+            var container = document.getElementById('selectedConditions');
+            container.innerHTML = selectedConditions.map(function(c) {
+                return '<div class="selected-tag">' + c + ' <button class="remove-tag" onclick="removeCondition(\'' + c.replace(/'/g, "\\'") + '\')">&times;</button></div>';
+            }).join('');
+        }
+
+        window.filterAllergies = function() {
+            var search = document.getElementById('allergySearch').value.toLowerCase();
+            var results = allergiesDB.filter(function(a) { return a.toLowerCase().includes(search); });
+            var container = document.getElementById('allergyResults');
+            if (search && results.length > 0) {
+                container.innerHTML = results.map(function(r) {
+                    return '<div class="dropdown-item" onclick="addAllergy(\'' + r.replace(/'/g, "\\'") + '\')">' + r + '</div>';
+                }).join('');
+                container.classList.add('show');
+            } else {
+                container.classList.remove('show');
+            }
+        };
+
+        window.addAllergy = function(a) {
+            if (selectedAllergies.indexOf(a) === -1) {
+                selectedAllergies.push(a);
+                renderSelectedAllergies();
+            }
+            document.getElementById('allergySearch').value = '';
+            document.getElementById('allergyResults').classList.remove('show');
+        };
+
+        window.removeAllergy = function(a) {
+            selectedAllergies = selectedAllergies.filter(function(x) { return x !== a; });
+            renderSelectedAllergies();
+        };
+
+        function renderSelectedAllergies() {
+            var container = document.getElementById('selectedAllergies');
+            container.innerHTML = selectedAllergies.map(function(a) {
+                return '<div class="selected-tag">' + a + ' <button class="remove-tag" onclick="removeAllergy(\'' + a.replace(/'/g, "\\'") + '\')">&times;</button></div>';
+            }).join('');
+        }
+
+        window.filterMedications = function() {
+            var search = document.getElementById('medicationSearch').value.toLowerCase();
+            var results = medicationsDB.filter(function(m) { return m.toLowerCase().includes(search); });
+            var container = document.getElementById('medicationResults');
+            if (search && results.length > 0) {
+                container.innerHTML = results.map(function(r) {
+                    return '<div class="dropdown-item" onclick="addMedication(\'' + r.replace(/'/g, "\\'") + '\')">💊 ' + r + '</div>';
+                }).join('');
+                container.classList.add('show');
+            } else {
+                container.classList.remove('show');
+            }
+        };
+
+        window.addMedication = function(m) {
+            if (selectedMedications.indexOf(m) === -1) {
+                selectedMedications.push(m);
+                renderSelectedMedications();
+            }
+            document.getElementById('medicationSearch').value = '';
+            document.getElementById('medicationResults').classList.remove('show');
+        };
+
+        window.removeMedication = function(m) {
+            selectedMedications = selectedMedications.filter(function(x) { return x !== m; });
+            renderSelectedMedications();
+        };
+
+        function renderSelectedMedications() {
+            var container = document.getElementById('selectedMedications');
+            container.innerHTML = selectedMedications.map(function(m) {
+                return '<div class="selected-tag">💊 ' + m + ' <button class="remove-tag" onclick="removeMedication(\'' + m.replace(/'/g, "\\'") + '\')">&times;</button></div>';
+            }).join('');
+        }
+
+        // ─── SUBMIT ──────────────────────────────────────────────
+        window.registerPatient = function() {
+            var name = document.getElementById('regName').value.trim();
+            var surname = document.getElementById('regSurname').value.trim();
+            var idNumber = document.getElementById('regID').value;
+            var dob = document.getElementById('regDOB').value;
+            var isValid = true;
+
+            if (!name) {
+                document.getElementById('nameError').textContent = 'First name is required';
+                isValid = false;
+            } else {
+                document.getElementById('nameError').textContent = '';
+            }
+            if (!surname) {
+                document.getElementById('surnameError').textContent = 'Last name is required';
+                isValid = false;
+            } else {
+                document.getElementById('surnameError').textContent = '';
+            }
+            if (idNumber.length !== 13) {
+                document.getElementById('idError').textContent = 'ID must be 13 digits';
+                isValid = false;
+            }
+            if (!dob) {
+                document.getElementById('dobError').textContent = 'Date of birth is required';
+                isValid = false;
+            }
+            if (!validateID()) isValid = false;
+            if (!validateDOB()) isValid = false;
+
+            if (!isValid) {
+                showToast('Please correct the errors before submitting.', 'error');
+                return;
+            }
+
+            var newPatient = {
+                id: Date.now(), // temporary; page will assign proper ID
+                name: name,
+                surname: surname,
+                idNumber: idNumber,
+                dob: dob,
+                phone: document.getElementById('regPhone').value,
+                email: document.getElementById('regEmail').value,
+                address: document.getElementById('regAddress').value,
+                gender: document.getElementById('regGender').value,
+                conditions: selectedConditions.slice(),
+                allergies: selectedAllergies.slice(),
+                medications: selectedMedications.slice(),
+                active: true,
+                hasAbnormal: false,
+                hasPending: false,
+                lastVisit: new Date().toISOString().split('T')[0]
+            };
+
+            // Call the callback if provided
+            if (typeof registerCallback === 'function') {
+                registerCallback(newPatient);
+            }
+
+            showToast(
+                `<strong>${name} ${surname}</strong> registered successfully.<br><small>ID: ${idNumber}</small>`,
+                'success',
+                5000
+            );
+
+            // Close modal after delay
+            setTimeout(function() {
+                closeRegisterModal();
+                // Redirect if set
+                if (redirectUrl) {
+                    setTimeout(function() {
+                        window.location.href = redirectUrl;
+                    }, 800);
+                }
+            }, 1000);
+        };
+
+        // ─── CLOSE ON OVERLAY CLICK ─────────────────────────────
+        document.addEventListener('DOMContentLoaded', function() {
+            var overlay = document.getElementById('registerModal');
+            if (overlay) {
+                overlay.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeRegisterModal();
+                    }
+                });
+            }
+        });
+
+    })();
+</script>
