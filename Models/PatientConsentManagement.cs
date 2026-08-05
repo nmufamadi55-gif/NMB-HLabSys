@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NMB_HLabSys.Models
 {
-    public class PatientConsent
+    public class PatientConsentManagement
     {
         [Key]
         public int ConsentID { get; set; }
@@ -46,6 +46,6 @@ namespace NMB_HLabSys.Models
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
         [ForeignKey("ConsentID")]
-        public virtual PatientConsent Consent { get; set; }
+        public virtual PatientConsentManagement Consent { get; set; }
     }
 }

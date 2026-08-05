@@ -1,9 +1,12 @@
-﻿@{
+﻿@using NMB_HLabSys.ViewModels.PatientViewModels
+@model PatientTrendsViewModel
+
+@{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Health Trends";
     ViewData["RoleSubtitle"] = "Patient Portal";
-    ViewData["UserGreeting"] = $"🩺 {@ViewBag.PatientName} (ID: {@ViewBag.PatientID})";
-    ViewData["UserInitials"] = "TM";
+    ViewData["UserGreeting"] = $"🩺 {Model.FullName} (ID: {Model.PatientID})";
+    ViewData["UserInitials"] = Model.FullName.Substring(0, 1);
 }
 
 @section SidebarMenu {
@@ -60,199 +63,319 @@
         color: #166534;
         font-weight: 600;
     }
+
+    .test-selector {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+
+        .test-selector select {
+            padding: 8px 16px;
+            border-radius: 16px;
+            border: 1px solid #CBD5E1;
+            background: white;
+            font-size: 0.9rem;
+            min-width: 180px;
+        }
 </style>
 
+<!-- Test Type Selector -->
 <div class="card-modern">
     <div class="card-header-flex">
-        <h3>📈 Haemoglobin Trend</h3>
+        <h3>📊 Select Test to Track</h3>
+        <div class="test-selector">
+            <select id="testTypeSelect" onchange="changeTestType()">
+                @if (Model.AvailableTestTypes != null && Model.AvailableTestTypes.Any())
+                {
+                    @foreach (var testType in Model.AvailableTestTypes)
+                    {
+                        <option value="@testType" selected="@(testType == Model.SelectedTestType ? "selected" : null)">
+                            @testType
+                        </option>
+                    }
+                }
+                else
+                {
+                    <option value="Cholesterol">Cholesterol</option>
+                    <option value="Haemoglobin">Haemoglobin</option>
+                    <option value="Platelets">Platelets</option>
+                }
+            </select>
+
+            <div>
+                <label>Months: </label>
+                <select id="monthsSelect" onchange="changeTestType()">
+                    <option value="3">3 Months</option>
+                    <option value="6" selected>6 Months</option>
+                    <option value="12">12 Months</option>
+                    <option value="24">24 Months</option>
+                </select>
+            </div>
+
+            <button class="btn-outline-lab" onclick="applyDateFilter('@Model.SelectedTestType')">
+                Apply
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Haemoglobin Trend -->
+<div class="card-modern">
+    <div class="card-header-flex">
+        <h3>📈 @Model.SelectedTestType Trend</h3>
 
         <div class="date-filter">
             <div>
                 <label>From Date</label><br />
-                <input type="date" id="haemoFrom" value="2024-04-01" />
+                <input type="date" id="trendFrom" value="@DateTime.Now.AddMonths(-6).ToString("yyyy-MM-dd")" />
             </div>
 
             <div>
                 <label>To Date</label><br />
-                <input type="date" id="haemoTo" value="2025-04-30" />
+                <input type="date" id="trendTo" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
             </div>
 
-            <button class="btn-outline-lab" onclick="applyDateFilter('Haemoglobin')">
+            <button class="btn-outline-lab" onclick="applyDateFilter('@Model.SelectedTestType')">
                 Apply
             </button>
         </div>
     </div>
 
     <div class="chart-box">
-        <canvas id="haemoglobinChart"></canvas>
+        <canvas id="trendChart"></canvas>
     </div>
 
-    <p><strong>Normal Range:</strong> 12 - 16 g/dL</p>
-    <span class="insight-badge">✅ Haemoglobin is stable within normal range</span>
+    @if (Model.TrendData != null && Model.TrendData.Any())
+    {
+        var lastValue = Model.TrendData.Last().Value;
+        var firstValue = Model.TrendData.First().Value;
+        var trend = lastValue > firstValue ? "📈 Increasing" : "📉 Decreasing";
+        var trendColor = lastValue > firstValue ? "#E11D48" : "#16A34A";
+
+        <p>
+            <strong>@Model.SelectedTestType Trend:</strong>
+            @string.Join(" → ", Model.TrendData.Select(d => d.Value.ToString("F1")))
+            <span style="color: @trendColor; font-weight: 600;">(@trend)</span>
+        </p>
+
+        if (Model.TrendData.First().UpperLimit.HasValue)
+        {
+            <p><strong>Normal Range:</strong> @Model.TrendData.First().LowerLimit?.ToString("F1") - @Model.TrendData.First().UpperLimit?.ToString("F1")</p>
+        }
+    }
+    else
+    {
+        <p><strong>Normal Range:</strong> Varies by test type</p>
+    }
+
+    <span class="insight-badge">📊 Tracking @Model.SelectedTestType over @Model.Months months</span>
 </div>
 
-<div class="card-modern">
-    <div class="card-header-flex">
-        <h3>🩸 Cholesterol Trend</h3>
-
-        <div class="date-filter">
-            <div>
-                <label>From Date</label><br />
-                <input type="date" id="cholFrom" value="2022-01-01" />
-            </div>
-
-            <div>
-                <label>To Date</label><br />
-                <input type="date" id="cholTo" value="2025-12-31" />
-            </div>
-
-            <button class="btn-outline-lab" onclick="applyDateFilter('Cholesterol')">
-                Apply
-            </button>
-        </div>
-    </div>
-
-    <div class="chart-box">
-        <canvas id="cholesterolChart"></canvas>
-    </div>
-
-    <p>
-        Showing decreasing trend:
-        <strong>6.2 → 5.8 → 5.5 → 5.2 mmol/L</strong>
-        (Goal: &lt;5.0)
-    </p>
-
-    <span class="insight-badge">📉 Lifestyle changes showing positive results</span>
-
-    <br /><br />
-
-    <button class="btn-outline-lab" onclick="showDemoAlert('Download trend report PDF')">
-        Download Trend Report (PDF)
-    </button>
-</div>
-
+<!-- Quick Stats -->
 <div class="grid-2col">
-
     <div class="card-modern">
         <div class="card-header-flex">
-            <h3>📊 Platelet Count History</h3>
-
-            <div class="date-filter">
-                <div>
-                    <label>From</label><br />
-                    <input type="date" id="plateletFrom" value="2024-04-01" />
-                </div>
-
-                <div>
-                    <label>To</label><br />
-                    <input type="date" id="plateletTo" value="2025-01-31" />
-                </div>
-
-                <button class="btn-outline-lab" onclick="applyDateFilter('Platelet Count')">
-                    Apply
-                </button>
-            </div>
+            <h3>📊 Test History</h3>
         </div>
 
         <div class="chart-box-small">
-            <canvas id="plateletChart"></canvas>
+            <canvas id="historyChart"></canvas>
         </div>
 
-        <p><strong>Status:</strong> Normal platelet range</p>
+        <p>
+            <strong>Status:</strong>
+            @if (Model.TrendData != null && Model.TrendData.Any())
+            {
+                var last = Model.TrendData.Last();
+                if (last.UpperLimit.HasValue && last.Value > last.UpperLimit.Value)
+                {
+                    <span style="color: #DC2626; font-weight: 600;">⚠️ Above normal range</span>
+                }
+                else if (last.LowerLimit.HasValue && last.Value < last.LowerLimit.Value)
+                {
+                    <span style="color: #DC2626; font-weight: 600;">⚠️ Below normal range</span>
+                }
+                else
+                {
+                    <span style="color: #16A34A; font-weight: 600;">✅ Within normal range</span>
+                }
+            }
+            else
+            {
+                <span style="color: #6B7280;">No data available</span>
+            }
+        </p>
     </div>
 
     <div class="card-modern">
         <h3>📋 Health Insights</h3>
 
         <ul style="margin-top:1rem;">
-            <li>✅ Haemoglobin stable within normal range</li>
-            <li>⚠️ Cholesterol trending downward - continue lifestyle changes</li>
-            <li>✅ Blood pressure controlled with medication</li>
-            <li>📊 Platelet count remains stable</li>
+            @if (Model.TrendData != null && Model.TrendData.Any())
+            {
+                var last = Model.TrendData.Last();
+                if (last.UpperLimit.HasValue && last.Value > last.UpperLimit.Value)
+                {
+                    <li style="color: #DC2626;">⚠️ @Model.SelectedTestType is above normal range</li>
+                }
+                else if (last.LowerLimit.HasValue && last.Value < last.LowerLimit.Value)
+                {
+                    <li style="color: #DC2626;">⚠️ @Model.SelectedTestType is below normal range</li>
+                }
+                else
+                {
+                    <li style="color: #16A34A;">✅ @Model.SelectedTestType is within normal range</li>
+                }
+
+                var trend = last.Value > Model.TrendData.First().Value ? "increasing" : "decreasing";
+                <li>📊 @Model.SelectedTestType is @trend over the last @Model.Months months</li>
+            }
+            else
+            {
+                <li>📊 Select a test to see insights</li>
+            }
+            <li>🩺 Regular monitoring recommended</li>
         </ul>
 
         <button class="btn-outline-lab" style="margin-top:1rem;" onclick="showDemoAlert('Share insights with doctor')">
             Share with Doctor
         </button>
+        <button class="btn-outline-lab" style="margin-top:1rem; margin-left:0.5rem;" onclick="showDemoAlert('Download trend report PDF')">
+            Download Report
+        </button>
     </div>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    new Chart(document.getElementById('haemoglobinChart'), {
-        type: 'line',
-        data: {
-            labels: ['Apr 2024', 'Jul 2024', 'Oct 2024', 'Jan 2025', 'Apr 2025'],
-            datasets: [{
-                label: 'Haemoglobin (g/dL)',
-                data: [13.8, 13.2, 12.9, 13.1, 13.2],
-                borderColor: '#2C8C6E',
-                backgroundColor: 'rgba(44, 140, 110, 0.15)',
+    // Data from server
+    var trendData = @Html.Raw(Json.Serialize(Model.TrendData));
+    var testType = '@Model.SelectedTestType';
+    var months = @Model.Months;
+
+    function initCharts() {
+        // Main Trend Chart
+        if (trendData && trendData.length > 0) {
+            var labels = trendData.map(d => new Date(d.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }));
+            var values = trendData.map(d => d.value);
+            var lowerLimits = trendData.map(d => d.lowerLimit);
+            var upperLimits = trendData.map(d => d.upperLimit);
+
+            var datasets = [{
+                label: testType + ' Value',
+                data: values,
+                borderColor: '#4F46E5',
+                backgroundColor: 'rgba(79, 70, 229, 0.15)',
                 borderWidth: 3,
                 pointRadius: 5,
                 tension: 0.4,
                 fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false
-        }
-    });
+            }];
 
-    new Chart(document.getElementById('cholesterolChart'), {
-        type: 'line',
-        data: {
-            labels: ['2022', '2023', '2024', '2025'],
-            datasets: [{
-                label: 'Total Cholesterol (mmol/L)',
-                data: [6.2, 5.8, 5.5, 5.2],
-                borderColor: '#E11D48',
-                backgroundColor: 'rgba(225, 29, 72, 0.12)',
-                borderWidth: 3,
-                pointRadius: 5,
-                tension: 0.4,
-                fill: true
-            },
-            {
-                label: 'Goal (<5.0 mmol/L)',
-                data: [5.0, 5.0, 5.0, 5.0],
-                borderColor: '#F59E0B',
-                borderDash: [6, 6],
-                borderWidth: 2,
-                pointRadius: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false
-        }
-    });
+            // Add upper limit line if available
+            if (upperLimits.some(v => v !== null)) {
+                datasets.push({
+                    label: 'Upper Limit',
+                    data: upperLimits,
+                    borderColor: '#DC2626',
+                    borderDash: [6, 6],
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    fill: false
+                });
+            }
 
-    new Chart(document.getElementById('plateletChart'), {
-        type: 'bar',
-        data: {
-            labels: ['Apr', 'Jul', 'Oct', 'Jan'],
-            datasets: [{
-                label: 'Platelet Count',
-                data: [220, 245, 238, 250],
-                backgroundColor: '#2563EB',
-                borderRadius: 8
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false
+            // Add lower limit line if available
+            if (lowerLimits.some(v => v !== null)) {
+                datasets.push({
+                    label: 'Lower Limit',
+                    data: lowerLimits,
+                    borderColor: '#DC2626',
+                    borderDash: [6, 6],
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    fill: false
+                });
+            }
+
+            new Chart(document.getElementById('trendChart'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+
+            // History Chart (Bar chart showing last few values)
+            var lastValues = values.slice(-6);
+            var lastLabels = labels.slice(-6);
+
+            new Chart(document.getElementById('historyChart'), {
+                type: 'bar',
+                data: {
+                    labels: lastLabels,
+                    datasets: [{
+                        label: testType,
+                        data: lastValues,
+                        backgroundColor: lastValues.map(v => {
+                            // Color based on limits
+                            var idx = values.indexOf(v);
+                            var upper = upperLimits[idx];
+                            var lower = lowerLimits[idx];
+                            if (upper && v > upper) return '#DC2626';
+                            if (lower && v < lower) return '#DC2626';
+                            return '#4F46E5';
+                        }),
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        } else {
+            // Fallback if no data
+            document.getElementById('trendChart').innerHTML = '<p style="text-align:center; padding:3rem; color:#9CA3AF;">No data available for ' + testType + '</p>';
         }
-    });
+    }
+
+    function changeTestType() {
+        var testType = document.getElementById('testTypeSelect').value;
+        var months = document.getElementById('monthsSelect').value;
+        window.location.href = '@Url.Action("Trends", "Patient")?testType=' + testType + '&months=' + months;
+    }
 
     function applyDateFilter(testName) {
-        alert('📈 ' + testName + ' report generated successfully.');
+        var fromDate = document.getElementById('trendFrom').value;
+        var toDate = document.getElementById('trendTo').value;
+        alert('📈 ' + testName + ' report generated from ' + fromDate + ' to ' + toDate);
     }
 
     function showDemoAlert(msg) {
-        alert('✅ Action completed successfully.');
+        alert('✅ ' + msg);
     }
+
+    // Initialize charts when page loads
+    document.addEventListener('DOMContentLoaded', function () {
+        initCharts();
+    });
 </script>

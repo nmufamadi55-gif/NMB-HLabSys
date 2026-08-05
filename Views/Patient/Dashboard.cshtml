@@ -1,4 +1,255 @@
-﻿@{
+﻿@using NMB_HLabSys.ViewModels.PatientViewModels
+@model PatientDashboardViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "My Health Portal";
+    ViewData["RoleSubtitle"] = "Patient Portal";
+    ViewData["UserGreeting"] = $"🩺 {Model.FullName} (ID: {Model.SAIDNumber})";
+    ViewData["UserInitials"] = Model.FirstName.Substring(0, 1) + Model.LastName.Substring(0, 1);
+}
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Patient")" class="active">📋 My Results</a></li>
+    <li><a href="@Url.Action("MedicalHistory", "Patient")">📝 Medical History</a></li>
+    <li><a href="@Url.Action("Consent", "Patient")">🔐 Consent Management</a></li>
+    <li><a href="@Url.Action("Trends", "Patient")">📈 Track Trends</a></li>
+    <li>
+        <a href="@Url.Action("Index", "Profile")">
+            <i class="fas fa-user-circle"></i>
+            <span>My Profile</span>
+        </a>
+    </li>
+}
+
+<style>
+    .dashboard-card {
+        transition: 0.25s;
+    }
+
+        .dashboard-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        }
+
+    .health-score {
+        background: linear-gradient(135deg, #2C8C6E, #4ADE80);
+        color: white;
+        border-radius: 20px;
+        padding: 20px;
+        margin-top: 1rem;
+    }
+
+    .mini-chart {
+        height: 120px;
+        background: #F4F7FC;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 1rem 0;
+        flex-direction: column;
+    }
+
+    .progress-container {
+        background: #E2E8F0;
+        border-radius: 20px;
+        height: 10px;
+        overflow: hidden;
+        margin-top: 10px;
+    }
+
+    .progress-bar-green {
+        height: 10px;
+        background: #22C55E;
+    }
+
+    .progress-bar-orange {
+        height: 10px;
+        background: #F59E0B;
+    }
+
+    .abnormal-row {
+        background: #FEF2F2;
+    }
+
+    .status-pill {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-normal {
+        background: #DCFCE7;
+        color: #166534;
+    }
+
+    .status-warning {
+        background: #FEF3C7;
+        color: #92400E;
+    }
+
+    .status-pending {
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+</style>
+
+<!-- Stats -->
+<div class="stat-cards">
+    <div class="stat-item dashboard-card">
+        <div class="stat-icon-lg">📋</div>
+        <div>
+            <h3>@Model.TotalTestRequests</h3>
+            <p>Total Tests</p>
+        </div>
+    </div>
+    <div class="stat-item dashboard-card">
+        <div class="stat-icon-lg">⚠️</div>
+        <div>
+            <h3>@Model.AbnormalResultsCount</h3>
+            <p>Abnormal Results</p>
+        </div>
+    </div>
+    <div class="stat-item dashboard-card">
+        <div class="stat-icon-lg">📄</div>
+        <div>
+            <h3>@Model.ReportsAvailable</h3>
+            <p>Reports Available</p>
+        </div>
+    </div>
+</div>
+
+<!-- Health Score -->
+<div class="health-score">
+    <h3>💚 Overall Health Status</h3>
+    <h1 style="margin-top:10px;">@Model.HealthScore%</h1>
+    <p>@Model.HealthStatusMessage</p>
+    <div class="progress-container">
+        <div class="progress-bar-green" style="width: @Model.HealthScore%;"></div>
+    </div>
+</div>
+
+<!-- Test Results -->
+<div class="card-modern">
+    <div class="card-header-flex">
+        <h3>📋 Recent Test Results</h3>
+        <button class="btn-outline-lab" onclick="showDemoAlert('All reports downloaded successfully')">
+            Download All
+        </button>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Test Name</th>
+                    <th>Result</th>
+                    <th>Normal Range</th>
+                    <th>Status</th>
+                    <th>Doctor</th>
+                    <th>Report</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.RecentTestResults != null && Model.RecentTestResults.Any())
+                {
+                    @foreach (var test in Model.RecentTestResults)
+                    {
+                        <tr class="@(test.IsAbnormal ? "abnormal-row" : "")">
+                            <td>@test.RequestDate.ToString("yyyy-MM-dd")</td>
+                            <td>@test.TestName</td>
+                            <td>
+                                <strong>@test.ResultValue</strong>
+                            </td>
+                            <td>@test.NormalRange</td>
+                            <td>
+                                @{
+                                    var statusClass = test.Status.ToLower().Contains("normal") ? "status-normal" :
+                                    test.Status.ToLower().Contains("abnormal") ? "status-warning" :
+                                    test.Status.ToLower().Contains("elevated") ? "status-warning" :
+                                    test.Status.ToLower().Contains("pending") ? "status-pending" :
+                                    "status-normal";
+                                }
+                                <span class="status-pill @statusClass">@test.Status</span>
+                            </td>
+                            <td>@test.DoctorName</td>
+                            <td>
+                                <button class="btn-sm-lab" onclick="showDemoAlert('PDF report downloaded successfully')">
+                                    PDF
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" style="text-align:center; padding:2rem; color:#9CA3AF;">
+                            No test results found
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Bottom Cards -->
+<div class="grid-2col">
+    <!-- Trends -->
+    <div class="card-modern dashboard-card">
+        <h3>📊 Health Summary</h3>
+        <div class="mini-chart">
+            <div style="font-size:2rem;">📈</div>
+            <p>
+                Cholesterol Trend:
+                <strong>@Model.CholesterolTrend</strong>
+            </p>
+            <div class="progress-container" style="width:80%;">
+                <div class="progress-bar-orange" style="width:75%;"></div>
+            </div>
+        </div>
+        <button class="btn-outline-lab" onclick="window.location.href='@Url.Action("Trends", "Patient")'">
+            View Full Trends
+        </button>
+    </div>
+
+    <!-- Pending -->
+    <div class="card-modern dashboard-card">
+        <h3>📅 Upcoming / Pending Tests</h3>
+        <ul style="margin-top:1rem;">
+            @if (Model.UpcomingTests != null && Model.UpcomingTests.Any())
+            {
+                @foreach (var test in Model.UpcomingTests)
+                {
+                    <li>
+                        🔬 @test.TestName
+                        <br />
+                        <small>@test.RequestDate.ToString("MMM dd, yyyy")</small>
+                    </li>
+                    <br />
+                }
+            }
+            else
+            {
+                <li style="color:#9CA3AF;">No upcoming tests</li>
+            }
+        </ul>
+        <button class="btn-outline-lab" style="margin-top:1rem;" onclick="showDemoAlert('New test request submitted successfully')">
+            Request New Test
+        </button>
+    </div>
+</div>
+
+<script>
+    function showDemoAlert(msg) {
+        alert('✅ ' + msg);
+    }
+</script>
+@* @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "My Health Portal";
     ViewData["RoleSubtitle"] = "Patient Portal";
@@ -354,4 +605,4 @@
 
     }
 
-</script>
+</script> *@

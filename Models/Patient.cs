@@ -47,6 +47,6 @@ namespace NMB_HLabSys.Models
         public virtual ICollection<PatientCondition> PatientConditions { get; set; }
         public virtual ICollection<PatientAllergy> PatientAllergies { get; set; }
         public virtual ICollection<PatientMedication> PatientMedications { get; set; }
-        public virtual ICollection<PatientConsent> PatientConsents { get; set; }
+        public virtual ICollection<PatientConsentManagement> PatientConsents { get; set; }
     }
 }

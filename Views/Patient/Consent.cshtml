@@ -1,9 +1,12 @@
-﻿@{
+﻿@using NMB_HLabSys.ViewModels.PatientViewModels
+@model PatientConsentManagementViewModel
+
+@{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Consent Management";
     ViewData["RoleSubtitle"] = "Patient Portal";
-    ViewData["UserGreeting"] = $"🩺 {@ViewBag.PatientName} (ID: {@ViewBag.PatientID})";
-    ViewData["UserInitials"] = "TM";
+    ViewData["UserGreeting"] = $"🩺 {Model.FullName} (ID: {Model.PatientID})";
+    ViewData["UserInitials"] = Model.FullName.Substring(0, 1);
 }
 
 @section SidebarMenu {
@@ -11,16 +14,10 @@
     <li><a href="@Url.Action("MedicalHistory", "Patient")">📝 Medical History</a></li>
     <li><a href="@Url.Action("Consent", "Patient")" class="active">🔐 Consent Management</a></li>
     <li><a href="@Url.Action("Trends", "Patient")">📈 Track Trends</a></li>
-    <li>
-        <a href="@Url.Action("Index", "Profile")">
-            <i class="fas fa-user-circle"></i>
-            <span>My Profile</span>
-        </a>
-    </li>
+    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
 <style>
-
     .security-badge {
         display: inline-block;
         padding: 5px 12px;
@@ -53,9 +50,9 @@
         color: #166534;
     }
 
-    .status-limited {
-        background: #FEF3C7;
-        color: #92400E;
+    .status-revoked {
+        background: #FEE2E2;
+        color: #991B1B;
     }
 
     .info-box {
@@ -64,331 +61,177 @@
         border-radius: 16px;
         margin-bottom: 1.5rem;
     }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            color: #374151;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #D1D5DB;
+            border-radius: 12px;
+            font-size: 0.875rem;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #D1D5DB;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-family: inherit;
+        }
 </style>
 
 <!-- Info -->
-
 <div class="info-box">
-
     <strong>🔐 About Consent Management</strong>
-
     <p style="margin-top:10px;">
         You control which healthcare professionals can access your laboratory records.
         Access can be granted, modified, or revoked at any time.
     </p>
-
     <div style="margin-top:10px;">
-
         <span class="security-badge">POPIA Compliant</span>
-
         <span class="security-badge">Secure Sharing</span>
-
         <span class="security-badge">Encrypted Access</span>
-
     </div>
-
 </div>
 
 <!-- Access Tables -->
-
 <div class="grid-2col">
-
     <!-- Doctors With Access -->
-
     <div class="card-modern doctor-card">
-
         <div class="card-header-flex">
-
             <h3>✅ Doctors with Access</h3>
-
-            <button class="btn-sm-lab"
-                    onclick="showDemoAlert('Doctor access invitation sent successfully')">
+            <button class="btn-sm-lab" onclick="showDemoAlert('Doctor access invitation sent successfully')">
                 + Grant Access
             </button>
-
         </div>
 
         <div class="table-container">
-
             <table>
-
                 <thead>
                     <tr>
                         <th>Doctor</th>
-                        <th>HPCSA #</th>
+                        <th>Email</th>
                         <th>Status</th>
-                        <th>Expiry</th>
+                        <th>Granted</th>
                         <th>Action</th>
                     </tr>
                 </thead>
-
                 <tbody>
-
-                    <tr>
-
-                        <td>
-                            <strong>Dr. Sarah Johnson</strong>
-                            <br />
-                            <small>Haematologist</small>
-                        </td>
-
-                        <td>MP1234567</td>
-
-                        <td>
-                            <span class="status-pill status-active">
-                                Full Access
-                            </span>
-                        </td>
-
-                        <td>2026-12-31</td>
-
-                        <td>
-
-                            <button class="btn-outline-lab"
-                                    onclick="showDemoAlert('Doctor access updated successfully')">
-                                Edit
-                            </button>
-
-                            <button class="btn-outline-lab"
-                                    style="color:red; border-color:red;"
-                                    onclick="confirmRevoke('Dr. Sarah Johnson')">
-                                Revoke
-                            </button>
-
-                        </td>
-
-                    </tr>
-
-                    <tr>
-
-                        <td>
-                            <strong>Dr. Michael Brown</strong>
-                            <br />
-                            <small>Internal Medicine</small>
-                        </td>
-
-                        <td>MP1234568</td>
-
-                        <td>
-                            <span class="status-pill status-limited">
-                                Limited Access
-                            </span>
-                        </td>
-
-                        <td>2025-10-30</td>
-
-                        <td>
-
-                            <button class="btn-outline-lab"
-                                    onclick="showDemoAlert('Doctor access updated successfully')">
-                                Edit
-                            </button>
-
-                            <button class="btn-outline-lab"
-                                    style="color:red; border-color:red;"
-                                    onclick="confirmRevoke('Dr. Michael Brown')">
-                                Revoke
-                            </button>
-
-                        </td>
-
-                    </tr>
-
+                    @if (Model.ActiveConsents != null && Model.ActiveConsents.Any())
+                    {
+                        @foreach (var consent in Model.ActiveConsents)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@consent.DoctorName</strong>
+                                </td>
+                                <td>@consent.DoctorEmail</td>
+                                <td>
+                                    <span class="status-pill @(consent.IsActive ? "status-active" : "status-revoked")">
+                                        @(consent.IsActive ? "Active" : "Revoked")
+                                    </span>
+                                </td>
+                                <td>@consent.GrantedDate.ToString("dd MMM yyyy")</td>
+                                <td>
+                                    <button class="btn-outline-lab" style="color:red; border-color:red;"
+                                            onclick="confirmRevoke('@consent.DoctorName', @consent.ConsentID)">
+                                        Revoke
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" style="text-align:center; padding:1rem; color:#9CA3AF;">
+                                No active consents
+                            </td>
+                        </tr>
+                    }
                 </tbody>
-
             </table>
-
         </div>
-
     </div>
 
     <!-- Grant Access -->
-
     <div class="card-modern doctor-card">
-
         <h3>🔐 Grant New Access</h3>
 
         <div class="form-group">
-
             <label><strong>Select Doctor</strong></label>
-
-            <select style="width:100%; padding:10px; border-radius:12px; border:1px solid #E2E8F0;">
-
-                <option>Dr. Lisa Ndlovu (MP1234569)</option>
-
-                <option>Dr. Peter Khumalo (MP1234570)</option>
-
-                <option>Dr. Thabo Cele (MP1234571)</option>
-
+            <select id="doctorSelect">
+                @if (Model.AvailableDoctors != null && Model.AvailableDoctors.Any())
+                {
+                    @foreach (var doctor in Model.AvailableDoctors)
+                    {
+                        <option value="@doctor.DoctorID">@doctor.FullName - @doctor.Email</option>
+                    }
+                }
+                else
+                {
+                    <option value="">No doctors available</option>
+                }
             </select>
-
         </div>
 
         <div class="form-group">
-
-            <label><strong>Access Expiry Date</strong></label>
-
-            <input type="date"
-                   value="2026-12-31"
-                   style="width:100%; padding:10px; border-radius:12px; border:1px solid #E2E8F0;" />
-
-        </div>
-
-        <div class="form-group">
-
             <label><strong>Select Test Requests to Share</strong></label>
-
-            <div style="border:1px solid #E2E8F0; border-radius:12px; padding:10px;">
-
-                <label>
-                    <input type="checkbox">
-                    REQ-001 - Full Blood Count
-                </label>
-
-                <br>
-
-                <label>
-                    <input type="checkbox">
-                    REQ-002 - Coagulation Studies
-                </label>
-
-                <br>
-
-                <label>
-                    <input type="checkbox">
-                    REQ-004 - Lipid Profile
-                </label>
-
-                <br>
-
-                <label>
-                    <input type="checkbox" checked>
-                    REQ-005 - FBC Follow-up
-                </label>
-
+            <div style="border:1px solid #E2E8F0; border-radius:12px; padding:10px; max-height:150px; overflow-y:auto;">
+                @if (Model.AvailableTestRequests != null && Model.AvailableTestRequests.Any())
+                {
+                    @foreach (var request in Model.AvailableTestRequests)
+                    {
+                        <label style="display:block; padding:4px 0;">
+                            <input type="checkbox" name="testRequests" value="@request.TestRequestID">
+                            REQ-@request.TestRequestID - @request.RequestDate.ToString("dd MMM yyyy") (@request.Status)
+                        </label>
+                    }
+                }
+                else
+                {
+                    <span style="color:#9CA3AF;">No test requests available</span>
+                }
             </div>
-
         </div>
 
-        <button class="btn-sm-lab"
-                onclick="showDemoAlert('Access granted successfully')">
+        <div class="form-group">
+            <label><strong>Notes (Optional)</strong></label>
+            <textarea id="consentNotes" rows="2" placeholder="Add any notes..."></textarea>
+        </div>
 
-            Grant Access
-
-        </button>
-
+        <button class="btn-sm-lab" onclick="grantConsent()">Grant Access</button>
     </div>
-
-</div>
-
-<!-- Consent History -->
-
-<div class="card-modern">
-
-    <div class="card-header-flex">
-
-        <h3>📜 Consent History</h3>
-
-        <button class="btn-outline-lab"
-                onclick="showDemoAlert('Consent history exported successfully')">
-
-            Export Log
-
-        </button>
-
-    </div>
-
-    <div class="table-container">
-
-        <table>
-
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Action</th>
-                    <th>Doctor</th>
-                    <th>Details</th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-                <tr>
-                    <td>2024-01-15</td>
-
-                    <td>
-                        <span class="status-pill status-active">
-                            Granted
-                        </span>
-                    </td>
-
-                    <td>Dr. Sarah Johnson</td>
-
-                    <td>
-                        Access to all past and future results
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>2024-06-20</td>
-
-                    <td>
-                        <span class="status-pill status-active">
-                            Granted
-                        </span>
-                    </td>
-
-                    <td>Dr. Michael Brown</td>
-
-                    <td>
-                        Access to test results from 2024 onwards
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>2025-02-10</td>
-
-                    <td>
-                        <span class="status-pill status-limited">
-                            Modified
-                        </span>
-                    </td>
-
-                    <td>Dr. Sarah Johnson</td>
-
-                    <td>
-                        Restricted access to REQ-001 only
-                    </td>
-                </tr>
-
-            </tbody>
-
-        </table>
-
-    </div>
-
 </div>
 
 <script>
+    function grantConsent() {
+        var doctorId = document.getElementById('doctorSelect').value;
+        if (!doctorId) {
+            alert('Please select a doctor');
+            return;
+        }
+        alert('✅ Access granted successfully');
+    }
+
+    function confirmRevoke(doctorName, consentId) {
+        if (confirm('Are you sure you want to revoke access from ' + doctorName + '?')) {
+            alert('🚫 Access revoked successfully');
+        }
+    }
 
     function showDemoAlert(msg) {
-
         alert('✅ ' + msg);
-
     }
-
-    function confirmRevoke(doctorName) {
-
-        let confirmAction = confirm(
-            'Are you sure you want to revoke access from ' + doctorName + '?'
-        );
-
-        if (confirmAction) {
-
-            alert('🚫 Access revoked successfully.');
-
-        }
-
-    }
-
 </script>
