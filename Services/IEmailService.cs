@@ -244,6 +244,27 @@ namespace NMB_HLabSys.Services
             }
         }
 
+        public async Task SendPasswordResetEmailAsync(string toEmail, string userName, string resetLink)
+        {
+            var subject = "Password Reset - NMB-HLabSys";
+            var body = $@"
+                <html>
+                <body style='font-family: Arial, sans-serif;'>
+                    <h2>Password Reset Request</h2>
+                    <p>Dear {userName},</p>
+                    <p>We received a request to reset your password for the NMB Haematology Laboratory Test Request Management System.</p>
+                    <p>Click the link below to reset your password (valid for 24 hours):</p>
+                    <p><a href='{resetLink}' style='background: #0d6efd; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Reset Password</a></p>
+                    <p>If you did not request this, please ignore this email.</p>
+                    <hr />
+                    <p style='color: #6c757d; font-size: 12px;'>Nelson Mandela Bay Haematology Diagnostic Laboratories</p>
+                    <p style='color: #6c757d; font-size: 12px;'>UN SDG 3: Good Health and Well-Being</p>
+                </body>
+                </html>";
+
+            await SendEmailAsync(toEmail, subject, body);
+        }
+
         private string GetBaseUrl()
         {
             return _configuration["AppSettings:BaseUrl"] ?? "https://localhost:5001";

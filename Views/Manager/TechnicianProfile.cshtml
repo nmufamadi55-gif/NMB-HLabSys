@@ -1,0 +1,399 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Technician Profile";
+    ViewData["RoleSubtitle"] = "Manager Portal";
+
+    var mgrName = ViewBag.ManagerName as string;
+    var initials = "AA";
+    if (!string.IsNullOrEmpty(mgrName))
+    {
+        var parts = mgrName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        initials = string.Concat(parts.Select(p => p[0]));
+    }
+    ViewData["UserGreeting"] = $"Manager: {mgrName ?? "Amanda Adams"}";
+    ViewData["UserInitials"] = initials;
+}
+
+@model NMB_HLabSys.Models.ViewModels.TechnicianProfileViewModel
+@using NMB_HLabSys.Models.ViewModels
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Manager")">Overview</a></li>
+    <li><a href="@Url.Action("TestCatalogue", "Manager")">Test Catalogue</a></li>
+    <li><a href="@Url.Action("StockManagement", "Manager")">Stock and Orders</a></li>
+    <li><a href="@Url.Action("Suppliers", "Manager")">Suppliers</a></li>
+    <li><a href="@Url.Action("StaffManagement", "Manager")" class="active">Staff Management</a></li>
+    <li><a href="@Url.Action("Reports", "Manager")">Reports</a></li>
+    <li><a href="@Url.Action("Settings", "Manager")">Settings</a></li>
+}
+
+<div class="profile-container">
+    <div class="card-modern">
+        <div class="card-header-flex">
+            <h3>Technician Profile</h3>
+            <div>
+                <a href="@Url.Action("EditTechnician", "Manager", new { id = Model.TechnicianID })" class="btn-sm-lab">Edit Profile</a>
+                <a href="@Url.Action("StaffManagement", "Manager")" class="btn-outline-lab" style="margin-left:0.5rem;">Back to Staff</a>
+            </div>
+        </div>
+
+        <div class="profile-header">
+            <div class="profile-avatar">
+                <span>@Model.FullName?.Substring(0, 1)</span>
+            </div>
+            <div class="profile-name">
+                <h2>@Model.FullName</h2>
+                <p>@Model.EmployeeNumber</p>
+                <span class="badge @(Model.IsActive ? "badge-completed" : "badge-critical")">
+                    @(Model.IsActive ? "Active" : "Inactive")
+                </span>
+            </div>
+        </div>
+
+        <div class="profile-grid">
+            <div class="profile-section">
+                <h4>Personal Information</h4>
+                <div class="profile-field">
+                    <span class="field-label">SA ID Number</span>
+                    <span class="field-value">@Model.SAIDNumber</span>
+                </div>
+                <div class="profile-field">
+                    <span class="field-label">Email Address</span>
+                    <span class="field-value">@Model.Email</span>
+                </div>
+                <div class="profile-field">
+                    <span class="field-label">Contact Number</span>
+                    <span class="field-value">@Model.ContactNumber</span>
+                </div>
+                <div class="profile-field">
+                    <span class="field-label">Hire Date</span>
+                    <span class="field-value">@Model.HireDate.ToString("dd/MM/yyyy")</span>
+                </div>
+            </div>
+
+            <div class="profile-section">
+                <h4>Professional Information</h4>
+                <div class="profile-field">
+                    <span class="field-label">Qualification</span>
+                    <span class="field-value">@Model.Qualification</span>
+                </div>
+                <div class="profile-field">
+                    <span class="field-label">Specialization</span>
+                    <span class="field-value">@Model.Specialization</span>
+                </div>
+                <div class="profile-field">
+                    <span class="field-label">Years of Experience</span>
+                    <span class="field-value">@Model.YearsOfExperience years</span>
+                </div>
+                <div class="profile-field">
+                    <span class="field-label">Assigned Tests</span>
+                    <span class="field-value">@Model.AssignedTests?.Count ?? 0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assigned Tests -->
+    <div class="card-modern">
+        <div class="card-header-flex">
+            <h3>Assigned Test Types</h3>
+            <a href="@Url.Action("EditTechnician", "Manager", new { id = Model.TechnicianID })" class="btn-outline-lab">Manage Assignments</a>
+        </div>
+        @if (Model.AssignedTests != null && Model.AssignedTests.Any())
+        {
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Test Name</th>
+                            <th>Category</th>
+                            <th>Assigned Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var test in Model.AssignedTests)
+                        {
+                            <tr>
+                                <td>@test.TestName</td>
+                                <td>@test.CategoryName</td>
+                                <td>@test.AssignedDate.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    <span class="badge @(test.IsActive ? "badge-completed" : "badge-critical")">
+                                        @(test.IsActive ? "Active" : "Inactive")
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <p style="color: #5A6E7A;">No tests assigned to this technician.</p>
+        }
+    </div>
+
+    <!-- Performance -->
+    <div class="card-modern">
+        <div class="card-header-flex">
+            <h3>Performance Statistics</h3>
+            <a href="@Url.Action("TechnicianPerformanceDetails", "Manager", new { id = Model.TechnicianID })" class="btn-outline-lab">View Details</a>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-box">
+                <span class="stat-number">@Model.Performance.TotalTestsAssigned</span>
+                <span class="stat-label">Tests Assigned</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-number">@Model.Performance.TotalTestsCompleted</span>
+                <span class="stat-label">Tests Completed</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-number">@Model.Performance.TestsThisMonth</span>
+                <span class="stat-label">This Month</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-number">@Model.Performance.VerificationAccuracy%</span>
+                <span class="stat-label">Verification Accuracy</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .profile-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .card-modern {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #E2E8F0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .card-header-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 1px solid #E2E8F0;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+        .card-header-flex h3 {
+            color: #032C7D;
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+    .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #E2E8F0;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #0841C9, #1D97F1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+        font-weight: 700;
+    }
+
+    .profile-name h2 {
+        color: #032C7D;
+        margin: 0;
+        font-size: 1.5rem;
+    }
+
+    .profile-name p {
+        color: #5A6E7A;
+        margin: 0.2rem 0;
+    }
+
+    .profile-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    .profile-section h4 {
+        color: #032C7D;
+        font-size: 0.9rem;
+        margin-bottom: 0.8rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 1px solid #E2E8F0;
+    }
+
+    .profile-field {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.4rem 0;
+        border-bottom: 1px solid #F0F4F8;
+        font-size: 0.85rem;
+    }
+
+    .field-label {
+        color: #5A6E7A;
+    }
+
+    .field-value {
+        color: #032C7D;
+        font-weight: 500;
+        text-align: right;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+
+    .stat-box {
+        background: #F8FAFE;
+        border-radius: 12px;
+        padding: 1rem;
+        text-align: center;
+        border: 1px solid #E2E8F0;
+    }
+
+    .stat-number {
+        display: block;
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #032C7D;
+    }
+
+    .stat-label {
+        display: block;
+        font-size: 0.75rem;
+        color: #5A6E7A;
+        margin-top: 0.2rem;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .data-table th, .data-table td {
+            padding: 0.6rem 0.4rem;
+            text-align: left;
+            border-bottom: 1px solid #E2E8F0;
+            font-size: 0.8rem;
+        }
+
+        .data-table th {
+            background: #F8FAFE;
+            font-weight: 600;
+            color: #5A6E7A;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+    .badge-completed {
+        background: #2C8C6E;
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 600;
+    }
+
+    .badge-critical {
+        background: #E26D5C;
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 600;
+    }
+
+    .btn-sm-lab {
+        background: linear-gradient(135deg, #0841C9, #1D97F1);
+        color: white;
+        border: none;
+        padding: 0.4rem 1rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .btn-sm-lab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(8,65,201,0.3);
+            color: white;
+        }
+
+    .btn-outline-lab {
+        background: transparent;
+        color: #032C7D;
+        border: 1px solid #E2E8F0;
+        padding: 0.4rem 1rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .btn-outline-lab:hover {
+            background: #F8FAFE;
+            text-decoration: none;
+            color: #032C7D;
+        }
+
+    @@media (max-width: 768px) {
+        .profile-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .profile-header {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .card-header-flex {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

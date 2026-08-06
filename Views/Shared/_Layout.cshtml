@@ -10,298 +10,322 @@
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
-    <div class="app-grid">
-        <!-- Sidebar -->
-        <aside class="sidebar-lab">
-            <div class="logo-area">
-                <h2><i class="fas fa-flask"></i> NMB-HLabSys</h2>
-                <span>@ViewData["RoleSubtitle"]</span>
-            </div>
-            <ul class="nav-links" id="navLinks">
-                @await RenderSectionAsync("SidebarMenu", required: true)
-            </ul>
-        </aside>
 
-        <!-- Main Content -->
-        <main class="main-panel">
-            <div class="header-glass">
-                <div class="flex-between" style="width:100%;">
-                    <div>
-                        <button class="menu-toggle" id="menuToggleBtn" aria-label="Toggle navigation"><i class="fas fa-bars"></i></button>
-                        <span class="user-greeting">@ViewData["UserGreeting"]</span>
-                    </div>
-                    <div class="user-tag">
-                        <div class="avatar">@ViewData["UserInitials"]</div>
-                        <div class="logout-pill" id="logoutBtn">Logout</div>
-                    </div>
-                </div>
-            </div>
+    @{
+        // Determine if this is an authentication page (no sidebar needed)
+        var isAuthPage = ViewContext.RouteData.Values["action"]?.ToString()?.ToLower() == "index" ||
+        ViewContext.RouteData.Values["action"]?.ToString()?.ToLower() == "forgotpassword" ||
+        ViewContext.RouteData.Values["action"]?.ToString()?.ToLower() == "resetpassword";
+    }
+
+    @if (isAuthPage)
+    {
+        // Authentication pages - full width, no sidebar
+        <div class="auth-container">
             @RenderBody()
-        </main>
-    </div>
+        </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="~/js/site.js"></script>
-    <script>
-        $(document).ready(function() {
-            // ========== ACTIVE LINK HIGHLIGHTING ==========
-            var currentUrl = window.location.pathname.toLowerCase();
-
-            $('.nav-links a').each(function() {
-                var linkUrl = $(this).attr('href');
-                if (linkUrl) {
-                    // Compare the full path
-                    var linkPath = linkUrl.split('?')[0].toLowerCase();
-
-                    // Check if current URL matches the link
-                    if (currentUrl === linkPath ||
-                        (currentUrl !== '/' && linkPath !== '/' && currentUrl.indexOf(linkPath) === 0 && linkPath !== '')) {
-                        $(this).addClass('active');
-                    }
-
-                    // Special case for exact match on dashboard
-                    if (linkPath === currentUrl) {
-                        $(this).addClass('active');
-                    }
-                }
-            });
-
-            // ========== MOBILE MENU TOGGLE ==========
-            $('#menuToggleBtn').on('click', function() {
-                $('.sidebar-lab').toggleClass('mobile-open');
-            });
-
-            // Close mobile menu when clicking outside
-            $(document).on('click', function(event) {
-                if (!$(event.target).closest('.sidebar-lab').length && !$(event.target).closest('#menuToggleBtn').length) {
-                    $('.sidebar-lab').removeClass('mobile-open');
-                }
-            });
-
-            // ========== LOGOUT ==========
-            $('#logoutBtn').on('click', function() {
-                window.location.href = '@Url.Action("Index", "Home")';
-            });
-        });
-    </script>
-
-    <style>
-        /* ========== LAYOUT ========== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #F0F4F8;
-            color: #1A2C3A;
-        }
-
-        .app-grid {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* ========== SIDEBAR STYLES ========== */
-        .sidebar-lab {
-            width: 280px;
-            background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFE 100%);
-            border-right: 1px solid #E2E8F0;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-            z-index: 100;
-            box-shadow: 2px 0 12px rgba(0,0,0,0.02);
-        }
-
-        .logo-area {
-            padding: 1.5rem 1.2rem;
-            border-bottom: 1px solid #E2E8F0;
-        }
-
-            .logo-area h2 {
-                font-size: 1.2rem;
-                font-weight: 700;
-                color: #032C7D;
-                margin: 0;
-            }
-
-            .logo-area span {
-                font-size: 0.7rem;
-                color: #5A6E7A;
-                display: block;
-                margin-top: 4px;
-            }
-
-        /* Navigation Links */
-        .nav-links {
-            list-style: none;
-            padding: 1rem 0;
-        }
-
-            .nav-links li {
-                margin-bottom: 0.2rem;
-            }
-
-            .nav-links a {
+        <style>
+            .auth-container {
+                min-height: 100vh;
                 display: flex;
                 align-items: center;
-                gap: 12px;
-                padding: 0.7rem 1.2rem;
-                margin: 0 0.8rem;
-                color: #1A2C3A;
-                text-decoration: none;
-                font-weight: 500;
-                font-size: 0.85rem;
-                transition: all 0.2s ease;
-                border-radius: 12px;
+                justify-content: center;
+                background: linear-gradient(135deg, #020D2F 0%, #032C7D 50%, #0841C9 100%);
+                padding: 20px;
+            }
+        </style>
+    }
+    else
+    {
+        // Authenticated pages - with sidebar
+        <div class="app-grid">
+            <!-- Sidebar -->
+            <aside class="sidebar-lab">
+                <div class="logo-area">
+                    <h2><i class="fas fa-flask"></i> NMB-HLabSys</h2>
+                    <span>@ViewData["RoleSubtitle"]</span>
+                </div>
+                <ul class="nav-links" id="navLinks">
+                    @await RenderSectionAsync("SidebarMenu", required: false)
+                </ul>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-panel">
+                <div class="header-glass">
+                    <div class="flex-between" style="width:100%;">
+                        <div>
+                            <button class="menu-toggle" id="menuToggleBtn" aria-label="Toggle navigation"><i class="fas fa-bars"></i></button>
+                            <span class="user-greeting">@ViewData["UserGreeting"]</span>
+                        </div>
+                        <div class="user-tag">
+                            <div class="avatar">@ViewData["UserInitials"]</div>
+                            <div class="logout-pill" id="logoutBtn">Logout</div>
+                        </div>
+                    </div>
+                </div>
+                @RenderBody()
+            </main>
+        </div>
+
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="~/js/site.js"></script>
+        <script>
+            $(document).ready(function() {
+                // ========== ACTIVE LINK HIGHLIGHTING ==========
+                var currentUrl = window.location.pathname.toLowerCase();
+
+                $('.nav-links a').each(function() {
+                    var linkUrl = $(this).attr('href');
+                    if (linkUrl) {
+                        var linkPath = linkUrl.split('?')[0].toLowerCase();
+
+                        if (currentUrl === linkPath ||
+                            (currentUrl !== '/' && linkPath !== '/' && currentUrl.indexOf(linkPath) === 0 && linkPath !== '')) {
+                            $(this).addClass('active');
+                        }
+
+                        if (linkPath === currentUrl) {
+                            $(this).addClass('active');
+                        }
+                    }
+                });
+
+                // ========== MOBILE MENU TOGGLE ==========
+                $('#menuToggleBtn').on('click', function() {
+                    $('.sidebar-lab').toggleClass('mobile-open');
+                });
+
+                $(document).on('click', function(event) {
+                    if (!$(event.target).closest('.sidebar-lab').length && !$(event.target).closest('#menuToggleBtn').length) {
+                        $('.sidebar-lab').removeClass('mobile-open');
+                    }
+                });
+
+                // ========== LOGOUT ==========
+                $('#logoutBtn').on('click', function() {
+                    window.location.href = '@Url.Action("Logout", "Home")';
+                });
+            });
+        </script>
+
+        <style>
+            /* ========== LAYOUT ========== */
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
             }
 
-                .nav-links a i {
-                    width: 22px;
-                    font-size: 1rem;
+            body {
+                font-family: 'Inter', sans-serif;
+                background: #F0F4F8;
+                color: #1A2C3A;
+            }
+
+            .app-grid {
+                display: flex;
+                min-height: 100vh;
+            }
+
+            /* ========== SIDEBAR STYLES ========== */
+            .sidebar-lab {
+                width: 280px;
+                background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFE 100%);
+                border-right: 1px solid #E2E8F0;
+                position: fixed;
+                height: 100vh;
+                overflow-y: auto;
+                z-index: 100;
+                box-shadow: 2px 0 12px rgba(0,0,0,0.02);
+            }
+
+            .logo-area {
+                padding: 1.5rem 1.2rem;
+                border-bottom: 1px solid #E2E8F0;
+            }
+
+                .logo-area h2 {
+                    font-size: 1.2rem;
+                    font-weight: 700;
+                    color: #032C7D;
+                    margin: 0;
+                }
+
+                .logo-area span {
+                    font-size: 0.7rem;
                     color: #5A6E7A;
+                    display: block;
+                    margin-top: 4px;
                 }
 
-                .nav-links a:hover {
-                    background: #F1F5F9;
-                    color: #0841C9;
+            /* Navigation Links */
+            .nav-links {
+                list-style: none;
+                padding: 1rem 0;
+            }
+
+                .nav-links li {
+                    margin-bottom: 0.2rem;
                 }
 
-                    .nav-links a:hover i {
+                .nav-links a {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    padding: 0.7rem 1.2rem;
+                    margin: 0 0.8rem;
+                    color: #1A2C3A;
+                    text-decoration: none;
+                    font-weight: 500;
+                    font-size: 0.85rem;
+                    transition: all 0.2s ease;
+                    border-radius: 12px;
+                }
+
+                    .nav-links a i {
+                        width: 22px;
+                        font-size: 1rem;
+                        color: #5A6E7A;
+                    }
+
+                    .nav-links a:hover {
+                        background: #F1F5F9;
                         color: #0841C9;
                     }
 
-                /* ACTIVE LINK HIGHLIGHTING */
-                .nav-links a.active {
-                    background: linear-gradient(135deg, #0841C9, #1D97F1);
-                    color: white;
-                    box-shadow: 0 2px 8px rgba(8,65,201,0.25);
-                }
+                        .nav-links a:hover i {
+                            color: #0841C9;
+                        }
 
-                    .nav-links a.active i {
+                    .nav-links a.active {
+                        background: linear-gradient(135deg, #0841C9, #1D97F1);
                         color: white;
+                        box-shadow: 0 2px 8px rgba(8,65,201,0.25);
                     }
 
-        /* ========== MAIN CONTENT ========== */
-        .main-panel {
-            flex: 1;
-            margin-left: 280px;
-            padding: 1.2rem;
-        }
+                        .nav-links a.active i {
+                            color: white;
+                        }
 
-        /* Header Glass */
-        .header-glass {
-            background: white;
-            border-radius: 16px;
-            padding: 0.8rem 1.2rem;
-            margin-bottom: 1.2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            border: 1px solid #E2E8F0;
-        }
-
-        .flex-between {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-        }
-
-        .menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.2rem;
-            cursor: pointer;
-            color: #032C7D;
-            margin-right: 0.8rem;
-        }
-
-        .user-greeting {
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: #1A2C3A;
-        }
-
-        .user-tag {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-        }
-
-        .avatar {
-            width: 36px;
-            height: 36px;
-            background: linear-gradient(135deg, #0841C9, #1D97F1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 0.8rem;
-        }
-
-        .logout-pill {
-            background: #F1F5F9;
-            padding: 0.4rem 1rem;
-            border-radius: 40px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: #1A2C3A;
-        }
-
-            .logout-pill:hover {
-                background: #FEE2E2;
-                color: #DC2626;
+            /* ========== MAIN CONTENT ========== */
+            .main-panel {
+                flex: 1;
+                margin-left: 280px;
+                padding: 1.2rem;
             }
 
-        /* ========== MOBILE RESPONSIVE ========== */
-        @@media (max-width: 768px) {
-            .sidebar-lab {
-            transform: translateX(-100%);
-            position: fixed;
-            transition: transform 0.3s ease;
-            z-index: 1000;
-        }
+            /* Header Glass */
+            .header-glass {
+                background: white;
+                border-radius: 16px;
+                padding: 0.8rem 1.2rem;
+                margin-bottom: 1.2rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+                border: 1px solid #E2E8F0;
+            }
 
-        .sidebar-lab.mobile-open {
-            transform: translateX(0);
-        }
+            .flex-between {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
+            }
 
-        .main-panel {
-            margin-left: 0;
-        }
+            .menu-toggle {
+                display: none;
+                background: none;
+                border: none;
+                font-size: 1.2rem;
+                cursor: pointer;
+                color: #032C7D;
+                margin-right: 0.8rem;
+            }
 
-        .menu-toggle {
-            display: block;
-        }
+            .user-greeting {
+                font-size: 0.85rem;
+                font-weight: 500;
+                color: #1A2C3A;
+            }
 
-        }
+            .user-tag {
+                display: flex;
+                align-items: center;
+                gap: 0.8rem;
+            }
 
-        /* ========== SCROLLBAR STYLING ========== */
-        .sidebar-lab::-webkit-scrollbar {
-            width: 4px;
-        }
+            .avatar {
+                width: 36px;
+                height: 36px;
+                background: linear-gradient(135deg, #0841C9, #1D97F1);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-weight: bold;
+                font-size: 0.8rem;
+            }
 
-        .sidebar-lab::-webkit-scrollbar-track {
-            background: #E2E8F0;
-            border-radius: 4px;
-        }
+            .logout-pill {
+                background: #F1F5F9;
+                padding: 0.4rem 1rem;
+                border-radius: 40px;
+                font-size: 0.75rem;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s;
+                color: #1A2C3A;
+            }
 
-        .sidebar-lab::-webkit-scrollbar-thumb {
-            background: #0841C9;
-            border-radius: 4px;
-        }
-    </style>
+                .logout-pill:hover {
+                    background: #FEE2E2;
+                    color: #DC2626;
+                }
+
+            /* ========== MOBILE RESPONSIVE ========== */
+            @@media (max-width: 768px) {
+                .sidebar-lab {
+                    transform: translateX(-100%);
+                    position: fixed;
+                    transition: transform 0.3s ease;
+                    z-index: 1000;
+                }
+
+                    .sidebar-lab.mobile-open {
+                        transform: translateX(0);
+                    }
+
+                .main-panel {
+                    margin-left: 0;
+                }
+
+                .menu-toggle {
+                    display: block;
+                }
+            }
+
+            /* ========== SCROLLBAR STYLING ========== */
+            .sidebar-lab::-webkit-scrollbar {
+                width: 4px;
+            }
+
+            .sidebar-lab::-webkit-scrollbar-track {
+                background: #E2E8F0;
+                border-radius: 4px;
+            }
+
+            .sidebar-lab::-webkit-scrollbar-thumb {
+                background: #0841C9;
+                border-radius: 4px;
+            }
+        </style>
+    }
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
-

@@ -1,33 +1,590 @@
 ﻿@{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Test Verification";
+    ViewData["RoleSubtitle"] = "Manager Portal";
+
+    var mgrName = ViewBag.ManagerName as string;
+    var initials = "AA";
+    if (!string.IsNullOrEmpty(mgrName))
+    {
+        var parts = mgrName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        initials = string.Concat(parts.Select(p => p[0]));
+    }
+    ViewData["UserGreeting"] = $"Manager: {mgrName ?? "Amanda Adams"}";
+    ViewData["UserInitials"] = initials;
 }
+
+@model NMB_HLabSys.Models.ViewModels.TestVerificationIndexViewModel
+@using NMB_HLabSys.Models.ViewModels
+
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Manager")">📈 Overview</a></li>
-    <li><a href="@Url.Action("TestCatalogue", "Manager")">📚 Test Catalogue</a></li>
-    <li><a href="@Url.Action("StockManagement", "Manager")" class="active">📦 Stock & Orders</a></li>
-    <li><a href="@Url.Action("StaffManagement", "Manager")">👥 Staff Management</a></li>
+    <li><a href="@Url.Action("Dashboard", "Manager")">Overview</a></li>
+    <li><a href="@Url.Action("TestCatalogue", "Manager")">Test Catalogue</a></li>
+    <li><a href="@Url.Action("StockManagement", "Manager")">Stock and Orders</a></li>
+    <li><a href="@Url.Action("StaffManagement", "Manager")">Staff Management</a></li>
+    <li><a href="@Url.Action("TestVerification", "Manager")" class="active">Test Verification</a></li>
+    <li><a href="@Url.Action("Reports", "Manager")">Reports</a></li>
+    <li><a href="@Url.Action("Settings", "Manager")">Settings</a></li>
 }
-<div class="card-modern">
-    <h3>🧪 Pending Test Verification</h3>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Patient</th>
-                <th>Test</th>
-                <th>Status</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            <tr>
-                <td>John Doe</td>
-                <td>Full Blood Count</td>
-                <td><span class="badge badge-progress">Pending</span></td>
-                <td><button class="btn-sm-lab">Verify</button></td>
-            </tr>
-        </tbody>
-    </table>
+<!-- Verification Modal -->
+<div id="verificationModal" class="modal-overlay" style="display:none;">
+    <div class="modal-card" style="max-width:600px;">
+        <h3 id="verificationModalTitle">Verify Test Result</h3>
+        <form id="verificationForm">
+            <div class="form-group">
+                <label>Patient</label>
+                <input type="text" id="verifyPatient" class="form-control" readonly />
+            </div>
+            <div class="form-group">
+                <label>Test Name</label>
+                <input type="text" id="verifyTest" class="form-control" readonly />
+            </div>
+            <div class="form-group">
+                <label>Result Value</label>
+                <input type="text" id="verifyResult" class="form-control" readonly />
+            </div>
+            <div class="form-group">
+                <label>Normal Range</label>
+                <input type="text" id="verifyRange" class="form-control" readonly />
+            </div>
+            <div class="form-group">
+                <label>Verification Notes</label>
+                <textarea id="verifyNotes" class="form-control" rows="3" placeholder="Enter verification notes..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="verifyApprove" checked /> Approve Result
+                </label>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-outline-lab" onclick="closeVerificationModal()">Cancel</button>
+                <button type="button" class="btn-sm-lab" onclick="saveVerification()">Submit Verification</button>
+            </div>
+        </form>
+    </div>
 </div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
+
+<div class="stat-cards">
+    <div class="stat-item">
+        <div>
+            <h3>@Model.Statistics.TotalPending</h3>
+            <p>Total Pending</p>
+        </div>
+    </div>
+    <div class="stat-item">
+        <div>
+            <h3>@Model.Statistics.PendingAbnormal</h3>
+            <p>Abnormal Results</p>
+        </div>
+    </div>
+    <div class="stat-item">
+        <div>
+            <h3>@Model.Statistics.VerifiedToday</h3>
+            <p>Verified Today</p>
+        </div>
+    </div>
+    <div class="stat-item">
+        <div>
+            <h3>@Model.Statistics.VerificationRate%</h3>
+            <p>Verification Rate</p>
+        </div>
+    </div>
+</div>
+
+<div class="card-modern">
+    <div class="card-header-flex">
+        <h3>Pending Test Verification</h3>
+        <div>
+            <button class="btn-outline-lab" onclick="applyFilter()">Filter</button>
+            <button class="btn-outline-lab" onclick="clearFilter()" style="margin-left:0.5rem;">Clear Filter</button>
+        </div>
+    </div>
+
+    @if (Model.Filter != null)
+    {
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label>Start Date</label>
+                <input type="date" id="filterStartDate" class="form-control" value="@Model.Filter.StartDate?.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="filter-group">
+                <label>End Date</label>
+                <input type="date" id="filterEndDate" class="form-control" value="@Model.Filter.EndDate?.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="filter-group">
+                <label>Category</label>
+                <select id="filterCategory" class="form-control">
+                    <option value="">All Categories</option>
+                    @if (Model.Filter.Categories != null)
+                    {
+                        foreach (var cat in Model.Filter.Categories)
+                        {
+                            <option value="@cat.Value">@cat.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>
+                    <input type="checkbox" id="filterAbnormalOnly" @(Model.Filter.ShowAbnormalOnly ? "checked" : "") /> Abnormal Only
+                </label>
+            </div>
+        </div>
+    }
+
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Patient</th>
+                    <th>Test Name</th>
+                    <th>Result Value</th>
+                    <th>Normal Range</th>
+                    <th>Technician</th>
+                    <th>Completed</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.PendingVerifications != null && Model.PendingVerifications.Any())
+                {
+                    foreach (var item in Model.PendingVerifications)
+                    {
+                        <tr>
+                            <td><strong>@item.PatientName</strong></td>
+                            <td>@item.TestName</td>
+                            <td class="@(item.IsAbnormal ? "abnormal-result" : "")">@item.ResultValue</td>
+                            <td>@item.NormalRange</td>
+                            <td>@item.TechnicianName</td>
+                            <td>@item.CompletionDate.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                <span class="badge @(item.IsAbnormal ? "badge-critical" : "badge-progress")">
+                                    @(item.IsAbnormal ? "Abnormal" : "Pending")
+                                </span>
+                            </td>
+                            <td>
+                                <div class="action-group">
+                                    <button class="btn-sm-lab" onclick="openVerificationModal(@item.TestResultID)">Verify</button>
+                                    <button class="btn-outline-lab" onclick="viewDetails(@item.TestResultID)" style="margin-left:0.3rem;">Details</button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8" style="text-align:center; color:#5A6E7A;">No pending verifications found</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card-modern">
+    <div class="card-header-flex">
+        <h3>Recent Verifications</h3>
+    </div>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Patient</th>
+                    <th>Test Name</th>
+                    <th>Result Value</th>
+                    <th>Verified By</th>
+                    <th>Verified Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.RecentVerifications != null && Model.RecentVerifications.Any())
+                {
+                    foreach (var item in Model.RecentVerifications)
+                    {
+                        <tr>
+                            <td><strong>@item.PatientName</strong></td>
+                            <td>@item.TestName</td>
+                            <td>@item.ResultValue</td>
+                            <td>@item.VerifiedBy</td>
+                            <td>@item.VerificationDate.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                <span class="badge @(item.Status == "Approved" ? "badge-completed" : "badge-progress")">
+                                    @item.Status
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn-outline-lab" onclick="viewVerificationDetails(@item.TestResultID)">View</button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" style="text-align:center; color:#5A6E7A;">No recent verifications</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .stat-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-item {
+        background: white;
+        border-radius: 16px;
+        padding: 1.2rem;
+        border: 1px solid #E2E8F0;
+        text-align: center;
+    }
+
+        .stat-item h3 {
+            font-size: 1.8rem;
+            color: #032C7D;
+            margin: 0;
+        }
+
+        .stat-item p {
+            font-size: 0.8rem;
+            color: #5A6E7A;
+            margin: 0.2rem 0 0;
+        }
+
+    .card-modern {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #E2E8F0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .card-header-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+        .card-header-flex h3 {
+            color: #032C7D;
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+    .filter-bar {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: #F8FAFE;
+        border-radius: 12px;
+        border: 1px solid #E2E8F0;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+
+        .filter-group label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #5A6E7A;
+        }
+
+        .filter-group .form-control {
+            min-width: 150px;
+        }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .data-table th, .data-table td {
+            padding: 0.6rem 0.4rem;
+            text-align: left;
+            border-bottom: 1px solid #E2E8F0;
+            font-size: 0.8rem;
+        }
+
+        .data-table th {
+            background: #F8FAFE;
+            font-weight: 600;
+            color: #5A6E7A;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+    .action-group {
+        display: flex;
+        gap: 0.3rem;
+        flex-wrap: wrap;
+    }
+
+    .badge-completed {
+        background: #2C8C6E;
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 600;
+    }
+
+    .badge-progress {
+        background: #E8A845;
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 600;
+    }
+
+    .badge-critical {
+        background: #E26D5C;
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 600;
+    }
+
+    .abnormal-result {
+        color: #E26D5C;
+        font-weight: 600;
+    }
+
+    .form-group {
+        margin-bottom: 0.8rem;
+    }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #032C7D;
+            margin-bottom: 0.3rem;
+        }
+
+    .form-control {
+        width: 100%;
+        padding: 0.6rem 0.8rem;
+        border: 1px solid #E2E8F0;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
+        background: white;
+    }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #0841C9;
+            box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
+        }
+
+        .form-control[readonly] {
+            background: #F8FAFE;
+        }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        width: 90%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid #E2E8F0;
+    }
+
+    .btn-sm-lab {
+        background: linear-gradient(135deg, #0841C9, #1D97F1);
+        color: white;
+        border: none;
+        padding: 0.4rem 1rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
+    }
+
+        .btn-sm-lab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(8,65,201,0.3);
+        }
+
+    .btn-outline-lab {
+        background: transparent;
+        color: #032C7D;
+        border: 1px solid #E2E8F0;
+        padding: 0.4rem 1rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
+    }
+
+        .btn-outline-lab:hover {
+            background: #F8FAFE;
+        }
+
+    .alert {
+        padding: 0.8rem 1rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .alert-success {
+        background: #D1FAE5;
+        color: #065F46;
+        border-left: 4px solid #10B981;
+    }
+
+    .alert-danger {
+        background: #FEE2E2;
+        color: #991B1B;
+        border-left: 4px solid #EF4444;
+    }
+
+    @@media (max-width: 768px) {
+        .filter-bar {
+            flex-direction: column;
+        }
+
+        .filter-group .form-control {
+            min-width: 100%;
+        }
+
+        .stat-cards {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .card-header-flex {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .stat-cards {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script>
+    let currentVerificationId = null;
+
+    function openVerificationModal(resultId) {
+        currentVerificationId = resultId;
+        document.getElementById('verificationModalTitle').innerText = 'Verify Test Result';
+        document.getElementById('verifyPatient').value = 'John Doe'; // Would fetch from server
+        document.getElementById('verifyTest').value = 'Full Blood Count'; // Would fetch from server
+        document.getElementById('verifyResult').value = '14.2 g/dL'; // Would fetch from server
+        document.getElementById('verifyRange').value = '13.5 - 17.5 g/dL'; // Would fetch from server
+        document.getElementById('verifyNotes').value = '';
+        document.getElementById('verifyApprove').checked = true;
+        document.getElementById('verificationModal').style.display = 'flex';
+    }
+
+    function closeVerificationModal() {
+        document.getElementById('verificationModal').style.display = 'none';
+    }
+
+    function saveVerification() {
+        var notes = document.getElementById('verifyNotes').value;
+        var approved = document.getElementById('verifyApprove').checked;
+
+        alert('Verification submitted successfully\n\nApproved: ' + (approved ? 'Yes' : 'No') + '\nNotes: ' + (notes || 'No notes provided'));
+        closeVerificationModal();
+        location.reload();
+    }
+
+    function viewDetails(resultId) {
+        alert('Viewing details for verification ID: ' + resultId);
+    }
+
+    function viewVerificationDetails(resultId) {
+        alert('Viewing verification details for ID: ' + resultId);
+    }
+
+    function applyFilter() {
+        alert('Filter applied');
+    }
+
+    function clearFilter() {
+        document.getElementById('filterStartDate').value = '';
+        document.getElementById('filterEndDate').value = '';
+        document.getElementById('filterCategory').value = '';
+        document.getElementById('filterAbnormalOnly').checked = false;
+        alert('Filters cleared');
+    }
+
+    // Close modal on outside click
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('modal-overlay')) {
+            event.target.style.display = 'none';
+        }
+    });
+</script>

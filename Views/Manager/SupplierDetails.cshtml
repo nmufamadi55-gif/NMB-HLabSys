@@ -1,0 +1,309 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Supplier Details";
+    ViewData["RoleSubtitle"] = "Manager Portal";
+
+    var mgrName = ViewBag.ManagerName as string;
+    var initials = "AA";
+    if (!string.IsNullOrEmpty(mgrName))
+    {
+        var parts = mgrName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        initials = string.Concat(parts.Select(p => p[0]));
+    }
+    ViewData["UserGreeting"] = $"Manager: {mgrName ?? "Amanda Adams"}";
+    ViewData["UserInitials"] = initials;
+}
+
+@model NMB_HLabSys.Models.ViewModels.SupplierDetailsViewModel
+@using NMB_HLabSys.Models.ViewModels
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Manager")">Overview</a></li>
+    <li><a href="@Url.Action("TestCatalogue", "Manager")">Test Catalogue</a></li>
+    <li><a href="@Url.Action("StockManagement", "Manager")" class="active">Stock and Orders</a></li>
+    <li><a href="@Url.Action("StaffManagement", "Manager")">Staff Management</a></li>
+    <li><a href="@Url.Action("Reports", "Manager")">Reports</a></li>
+    <li><a href="@Url.Action("Settings", "Manager")">Settings</a></li>
+}
+
+<div class="supplier-details-container">
+    <div class="card-modern">
+        <div class="card-header-flex">
+            <h3>Supplier Details</h3>
+            <div>
+                <a href="@Url.Action("EditSupplier", "Manager", new { id = Model.SupplierID })" class="btn-sm-lab" style="margin-right:0.5rem;">Edit Supplier</a>
+                <a href="@Url.Action("Suppliers", "Manager")" class="btn-outline-lab">Back to Suppliers</a>
+            </div>
+        </div>
+
+        <div class="supplier-info-grid">
+            <div class="info-item">
+                <span class="info-label">Supplier Name</span>
+                <span class="info-value">@Model.SupplierName</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Contact Person</span>
+                <span class="info-value">@Model.ContactPerson</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Email Address</span>
+                <span class="info-value">@Model.EmailAddress</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Phone Number</span>
+                <span class="info-value">@(string.IsNullOrEmpty(Model.PhoneNumber) ? "Not specified" : Model.PhoneNumber)</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Address</span>
+                <span class="info-value">@(string.IsNullOrEmpty(Model.Address) ? "Not specified" : Model.Address)</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Status</span>
+                <span class="info-value">
+                    <span class="badge @(Model.IsActive ? "badge-completed" : "badge-critical")">
+                        @(Model.IsActive ? "Active" : "Inactive")
+                    </span>
+                    @if (Model.IsPreferred)
+                    {
+                        <span class="badge badge-preferred">Preferred Supplier</span>
+                    }
+                </span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Registered Date</span>
+                <span class="info-value">@Model.CreatedAt.ToString("dd/MM/yyyy")</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Total Items Supplied</span>
+                <span class="info-value">@Model.ConsumableCount</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-modern">
+        <div class="card-header-flex">
+            <h3>Items Supplied by @Model.SupplierName</h3>
+            <a href="@Url.Action("StockManagement", "Manager")" class="btn-outline-lab">View All Stock</a>
+        </div>
+
+        @if (Model.Consumables != null && Model.Consumables.Any())
+        {
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Quantity On Hand</th>
+                            <th>Reorder Level</th>
+                            <th>Unit of Measure</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Consumables)
+                        {
+                            <tr>
+                                <td><strong>@item.ConsumableName</strong></td>
+                                <td>@item.QuantityOnHand</td>
+                                <td>@item.ReorderLevel</td>
+                                <td>@item.UnitOfMeasure</td>
+                                <td>
+                                    <span class="badge @(item.QuantityOnHand <= 0 ? "badge-critical" : item.QuantityOnHand <= item.ReorderLevel ? "badge-progress" : "badge-completed")">
+                                        @(item.QuantityOnHand <= 0 ? "Critical" : item.QuantityOnHand <= item.ReorderLevel ? "Low" : "Normal")
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="@Url.Action("AdjustStock", "Manager", new { id = item.ConsumableID })" class="btn-outline-lab">Adjust Stock</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <p style="color: #5A6E7A; text-align:center; padding: 1rem;">No items currently supplied by this supplier.</p>
+        }
+    </div>
+</div>
+
+<style>
+    .supplier-details-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .card-modern {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #E2E8F0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .card-header-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 1px solid #E2E8F0;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+        .card-header-flex h3 {
+            color: #032C7D;
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+    .supplier-info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 0.8rem;
+    }
+
+    .info-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #F0F4F8;
+    }
+
+    .info-label {
+        display: block;
+        font-size: 0.7rem;
+        color: #5A6E7A;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .info-value {
+        display: block;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #032C7D;
+        margin-top: 0.1rem;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .data-table th, .data-table td {
+            padding: 0.6rem 0.4rem;
+            text-align: left;
+            border-bottom: 1px solid #E2E8F0;
+            font-size: 0.8rem;
+        }
+
+        .data-table th {
+            background: #F8FAFE;
+            font-weight: 600;
+            color: #5A6E7A;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+    .badge-completed {
+        background: #2C8C6E;
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 600;
+    }
+
+    .badge-progress {
+        background: #E8A845;
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 600;
+    }
+
+    .badge-critical {
+        background: #E26D5C;
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 600;
+    }
+
+    .badge-preferred {
+        background: #E8A845;
+        color: white;
+        padding: 0.15rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.6rem;
+        font-weight: 600;
+        margin-left: 0.3rem;
+    }
+
+    .btn-sm-lab {
+        background: linear-gradient(135deg, #0841C9, #1D97F1);
+        color: white;
+        border: none;
+        padding: 0.4rem 1rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .btn-sm-lab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(8,65,201,0.3);
+            color: white;
+        }
+
+    .btn-outline-lab {
+        background: transparent;
+        color: #032C7D;
+        border: 1px solid #E2E8F0;
+        padding: 0.4rem 1rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .btn-outline-lab:hover {
+            background: #F8FAFE;
+            text-decoration: none;
+            color: #032C7D;
+        }
+
+    @@media (max-width: 768px) {
+        .supplier-info-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .card-header-flex {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .supplier-info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

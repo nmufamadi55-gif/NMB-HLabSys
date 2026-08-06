@@ -2,57 +2,86 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Staff Management";
     ViewData["RoleSubtitle"] = "Manager Portal";
-    ViewData["UserGreeting"] = "📊 Amanda Adams (Lab Manager)";
-    ViewData["UserInitials"] = "AA";
+
+    var mgrName = ViewBag.ManagerName as string;
+    var initials = "AA";
+    if (!string.IsNullOrEmpty(mgrName))
+    {
+        var parts = mgrName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        initials = string.Concat(parts.Select(p => p[0]));
+    }
+    ViewData["UserGreeting"] = $"📊 {mgrName ?? "Amanda Adams"} (Lab Manager)";
+    ViewData["UserInitials"] = initials;
 }
 
+@model NMB_HLabSys.Models.ViewModels.StaffManagementIndexViewModel
+
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Manager")">📈 Overview</a></li>
-    <li><a href="@Url.Action("TestCatalogue", "Manager")">📚 Test Catalogue</a></li>
-    <li><a href="@Url.Action("StockManagement", "Manager")">📦 Stock & Orders</a></li>
-    <li><a href="@Url.Action("StaffManagement", "Manager")" class="active">👥 Staff Management</a></li>
-    <li><a href="@Url.Action("Reports", "Manager")">📑 Reports</a></li>
+    <li><a href="@Url.Action("Dashboard", "Manager")"><i class="fas fa-chart-pie"></i> <span>Overview</span></a></li>
+    <li><a href="@Url.Action("TestCatalogue", "Manager")"><i class="fas fa-flask"></i> <span>Test Catalogue</span></a></li>
+    <li><a href="@Url.Action("StockManagement", "Manager")"><i class="fas fa-boxes"></i> <span>Stock & Orders</span></a></li>
+    <li><a href="@Url.Action("Suppliers", "Manager")">Suppliers</a></li>
+    <li><a href="@Url.Action("StaffManagement", "Manager")" class="active"><i class="fas fa-users-cog"></i> <span>Staff Management</span></a></li>
+    <li><a href="@Url.Action("Reports", "Manager")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+    <li><a href="@Url.Action("Settings", "Manager")"><i class="fas fa-cog"></i> <span>Settings</span></a></li>
 }
 
 <div class="stat-cards">
     <div class="stat-item">
         <div class="stat-icon-lg">👥</div>
         <div>
-            <h3>8</h3>
+            <h3>@Model.Statistics.TotalTechnicians + @Model.Statistics.TotalDoctors</h3>
             <p>Total Staff</p>
         </div>
     </div>
     <div class="stat-item">
         <div class="stat-icon-lg">🔬</div>
         <div>
-            <h3>4</h3>
+            <h3>@Model.Statistics.ActiveTechnicians</h3>
             <p>Lab Technicians</p>
         </div>
     </div>
     <div class="stat-item">
         <div class="stat-icon-lg">👨‍⚕️</div>
         <div>
-            <h3>3</h3>
+            <h3>@Model.Statistics.ActiveDoctors</h3>
             <p>Doctors Registered</p>
         </div>
     </div>
     <div class="stat-item">
         <div class="stat-icon-lg">📋</div>
         <div>
-            <h3>1</h3>
-            <p>Admin Staff</p>
+            <h3>@Model.Statistics.PendingVerificationDoctors</h3>
+            <p>Pending Verification</p>
         </div>
     </div>
 </div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i> @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
+    </div>
+}
 
 <!-- Lab Technicians Section -->
 <div class="card-modern">
     <div class="card-header-flex">
         <h3>🔬 Lab Technicians</h3>
         <div>
-            <a href="@Url.Action("AddTechnician", "Manager")" class="btn-sm-lab" style="margin-right:0.5rem;">+ Add Technician</a>
-            <button class="btn-outline-lab" onclick="bulkImportTechnicians()">Import CSV</button>
-            <button class="btn-outline-lab" onclick="manageAssignments()">Manage Assignments</button>
+            <a href="@Url.Action("AddTechnician", "Manager")" class="btn-sm-lab" style="margin-right:0.5rem;">
+                <i class="fas fa-user-plus"></i> Add Technician
+            </a>
+            <button class="btn-outline-lab" onclick="bulkImportTechnicians()">
+                <i class="fas fa-file-import"></i> Import CSV
+            </button>
         </div>
     </div>
     <div class="table-container">
@@ -70,65 +99,54 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td><strong>Michael Peters</strong></td>
-                    <td>T2024001</td>
-                    <td>8001015009088</td>
-                    <td>0821234567</td>
-                    <td>michael.p@@nmblab.com</td>
-                    <td><span class="badge badge-completed">Active</span></td>
-                    <td>FBC, Differential Count</td>
-                    <td>
-                        <button class="btn-outline-lab" onclick="editTechnician('Michael Peters')" style="margin-right:0.3rem;">✏️ Edit</button>
-                        <button class="btn-outline-lab" onclick="viewTechnicianProfile('Michael Peters')" style="margin-right:0.3rem;">👤 Profile</button>
-                        <button class="btn-outline-lab" onclick="resetPassword('Michael Peters')">🔑 Reset</button>
-                        <button class="btn-outline-lab" onclick="deactivateTechnician('Michael Peters')">🔴 Deactivate</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td><strong>Tech Smith</strong></td>
-                    <td>T2024002</td>
-                    <td>8505155009099</td>
-                    <td>0832345678</td>
-                    <td>tech.smith@@nmblab.com</td>
-                    <td><span class="badge badge-completed">Active</span></td>
-                    <td>Coagulation Studies, Peripheral Film</td>
-                    <td>
-                        <button class="btn-outline-lab" onclick="editTechnician('Tech Smith')" style="margin-right:0.3rem;">✏️ Edit</button>
-                        <button class="btn-outline-lab" onclick="viewTechnicianProfile('Tech Smith')" style="margin-right:0.3rem;">👤 Profile</button>
-                        <button class="btn-outline-lab" onclick="resetPassword('Tech Smith')">🔑 Reset</button>
-                        <button class="btn-outline-lab" onclick="deactivateTechnician('Tech Smith')">🔴 Deactivate</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td><strong>Jane Williams</strong></td>
-                    <td>T2024003</td>
-                    <td>8703205009100</td>
-                    <td>0843456789</td>
-                    <td>jane.w@@nmblab.com</td>
-                    <td><span class="badge badge-completed">Active</span></td>
-                    <td>Flow Cytometry, Haematology</td>
-                    <td>
-                        <button class="btn-outline-lab" onclick="editTechnician('Jane Williams')" style="margin-right:0.3rem;">✏️ Edit</button>
-                        <button class="btn-outline-lab" onclick="viewTechnicianProfile('Jane Williams')" style="margin-right:0.3rem;">👤 Profile</button>
-                        <button class="btn-outline-lab" onclick="resetPassword('Jane Williams')">🔑 Reset</button>
-                        <button class="btn-outline-lab" onclick="deactivateTechnician('Jane Williams')">🔴 Deactivate</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td><strong>David Ngema</strong></td>
-                    <td>T2024004</td>
-                    <td>9001015009111</td>
-                    <td>0829876543</td>
-                    <td>david.n@@nmblab.com</td>
-                    <td><span class="badge badge-progress">On Leave</span></td>
-                    <td>Morphology, Special Stains</td>
-                    <td>
-                        <button class="btn-outline-lab" onclick="editTechnician('David Ngema')" style="margin-right:0.3rem;">✏️ Edit</button>
-                        <button class="btn-outline-lab" onclick="viewTechnicianProfile('David Ngema')" style="margin-right:0.3rem;">👤 Profile</button>
-                        <button class="btn-outline-lab" onclick="activateTechnician('David Ngema')">✅ Activate</button>
-                    </td>
-                </tr>
+                @if (Model.Technicians != null && Model.Technicians.Any())
+                {
+                    foreach (var tech in Model.Technicians)
+                    {
+                        <tr>
+                            <td><strong>@tech.FullName</strong></td>
+                            <td>@tech.EmployeeNumber</td>
+                            <td>@tech.SAIDNumber</td>
+                            <td>@tech.ContactNumber</td>
+                            <td>@tech.Email</td>
+                            <td>
+                                <span class="badge @(tech.IsActive ? "badge-completed" : "badge-progress")">
+                                    @tech.Status
+                                </span>
+                            </td>
+                            <td>@tech.AssignedTestsCount assigned</td>
+                            <td>
+                                <a href="@Url.Action("EditTechnician", "Manager", new { id = tech.TechnicianID })" class="btn-outline-lab" style="margin-right:0.3rem;">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="@Url.Action("TechnicianProfile", "Manager", new { id = tech.TechnicianID })" class="btn-outline-lab" style="margin-right:0.3rem;">
+                                    <i class="fas fa-user"></i>
+                                </a>
+                                <button class="btn-outline-lab" onclick="resetPassword('@tech.FullName', '@tech.Email')">
+                                    <i class="fas fa-key"></i>
+                                </button>
+                                @if (tech.IsActive)
+                                {
+                                    <button class="btn-outline-lab" onclick="deactivateTechnician('@tech.FullName', @tech.TechnicianID)">
+                                        <i class="fas fa-user-slash"></i>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="btn-sm-lab" onclick="activateTechnician('@tech.FullName', @tech.TechnicianID)">
+                                        <i class="fas fa-user-check"></i>
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8" style="text-align:center; color:#5A6E7A;">No technicians registered</td>
+                    </tr>
+                }
             </tbody>
         </table>
     </div>
@@ -139,8 +157,12 @@
     <div class="card-header-flex">
         <h3>👨‍⚕️ Registered Doctors</h3>
         <div>
-            <a href="@Url.Action("RegisterDoctor", "Manager")" class="btn-sm-lab" style="margin-right:0.5rem;">+ Register Doctor</a>
-            <button class="btn-outline-lab" onclick="sendBulkEmail()">📧 Email All</button>
+            <a href="@Url.Action("RegisterDoctor", "Manager")" class="btn-sm-lab" style="margin-right:0.5rem;">
+                <i class="fas fa-user-plus"></i> Register Doctor
+            </a>
+            <button class="btn-outline-lab" onclick="sendBulkEmail()">
+                <i class="fas fa-envelope"></i> Email All
+            </button>
         </div>
     </div>
     <div class="table-container">
@@ -150,244 +172,52 @@
                     <th>Name</th>
                     <th>HPCSA #</th>
                     <th>Email</th>
-                    <th>Contact</th>
                     <th>Practice</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td><strong>Dr. Sarah Johnson</strong></td>
-                    <td>MP1234567</td>
-                    <td>sarah.j@@nmblab.com</td>
-                    <td>0829876543</td>
-                    <td>Gqeberha Medical Centre</td>
-                    <td><span class="badge badge-completed">Active</span></td>
-                    <td>
-                        <button class="btn-outline-lab" onclick="editDoctor('Dr. Sarah Johnson')" style="margin-right:0.3rem;">✏️ Edit</button>
-                        <button class="btn-outline-lab" onclick="resetDoctorPassword('Dr. Sarah Johnson')">🔑 Reset</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td><strong>Dr. Michael Brown</strong></td>
-                    <td>MP1234568</td>
-                    <td>michael.b@@nmblab.com</td>
-                    <td>0839876543</td>
-                    <td>Summerstrand Clinic</td>
-                    <td><span class="badge badge-completed">Active</span></td>
-                    <td>
-                        <button class="btn-outline-lab" onclick="editDoctor('Dr. Michael Brown')" style="margin-right:0.3rem;">✏️ Edit</button>
-                        <button class="btn-outline-lab" onclick="resetDoctorPassword('Dr. Michael Brown')">🔑 Reset</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td><strong>Dr. Lisa Ndlovu</strong></td>
-                    <td>MP1234569</td>
-                    <td>lisa.n@@nmblab.com</td>
-                    <td>0849876543</td>
-                    <td>Newton Park Practice</td>
-                    <td><span class="badge badge-progress">Pending</span></td>
-                    <td>
-                        <button class="btn-sm-lab" onclick="approveDoctor('Dr. Lisa Ndlovu')" style="margin-right:0.3rem;">✅ Approve</button>
-                        <button class="btn-outline-lab" onclick="rejectDoctor('Dr. Lisa Ndlovu')">❌ Reject</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td><strong>Dr. Peter Khumalo</strong></td>
-                    <td>MP1234570</td>
-                    <td>peter.k@@nmblab.com</td>
-                    <td>0824567890</td>
-                    <td>Walmer Heights Surgery</td>
-                    <td><span class="badge badge-completed">Active</span></td>
-                    <td>
-                        <button class="btn-outline-lab" onclick="editDoctor('Dr. Peter Khumalo')" style="margin-right:0.3rem;">✏️ Edit</button>
-                        <button class="btn-outline-lab" onclick="resetDoctorPassword('Dr. Peter Khumalo')">🔑 Reset</button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<!-- Test Type - Technician Assignments -->
-<div class="card-modern">
-    <div class="card-header-flex">
-        <h3>📋 Test Type - Technician Assignments</h3>
-        <button class="btn-sm-lab" onclick="manageAssignments()">+ Manage Assignments</button>
-    </div>
-    <div class="table-container">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Test Category</th>
-                    <th>Test Type</th>
-                    <th>Qualified Technicians</th>
-                    <th># Qualified</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td rowspan="3"><strong>Full Blood Count</strong></td>
-                    <td>Haemoglobin (Hb)</td>
-                    <td>Tech Peters, Tech Smith</td>
-                    <td>2</td>
-                    <td><button class="btn-outline-lab" onclick="assignTechniciansToTest('Haemoglobin')">Assign</button></td>
-                </tr>
-                <tr>
-                    <td>White Cell Count (WCC)</td>
-                    <td>Tech Peters, Tech Smith</td>
-                    <td>2</td>
-                    <td><button class="btn-outline-lab" onclick="assignTechniciansToTest('White Cell Count')">Assign</button></td>
-                </tr>
-                <tr>
-                    <td>Platelet Count</td>
-                    <td>Tech Peters, Tech Williams</td>
-                    <td>2</td>
-                    <td><button class="btn-outline-lab" onclick="assignTechniciansToTest('Platelet Count')">Assign</button></td>
-                </tr>
-                <tr>
-                    <td rowspan="2"><strong>Coagulation Studies</strong></td>
-                    <td>PT/INR</td>
-                    <td>Tech Smith, Tech Williams</td>
-                    <td>2</td>
-                    <td><button class="btn-outline-lab" onclick="assignTechniciansToTest('PT/INR')">Assign</button></td>
-                </tr>
-                <tr>
-                    <td>APTT</td>
-                    <td>Tech Smith, Tech Williams</td>
-                    <td>2</td>
-                    <td><button class="btn-outline-lab" onclick="assignTechniciansToTest('APTT')">Assign</button></td>
-                </tr>
-                <tr>
-                    <td><strong>Differential Count</strong></td>
-                    <td>Differential</td>
-                    <td>Tech Peters</td>
-                    <td>1</td>
-                    <td><button class="btn-outline-lab" onclick="assignTechniciansToTest('Differential')">Assign</button></td>
-                </tr>
-                <tr>
-                    <td><strong>Peripheral Blood Film</strong></td>
-                    <td>Film Interpretation</td>
-                    <td>Tech Smith, Tech Williams</td>
-                    <td>2</td>
-                    <td><button class="btn-outline-lab" onclick="assignTechniciansToTest('Film Interpretation')">Assign</button></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    <div class="alert alert-info" style="background:#EFF6FF; padding:1rem; border-radius:12px; margin-top:1rem;">
-        <strong>📌 Note:</strong> Each technician must be assigned to at least one test type. Multiple technicians can perform the same test type.
-    </div>
-</div>
-
-<!-- Staff Performance Summary -->
-<div class="grid-2col">
-    <div class="card-modern">
-        <h3>📊 Technician Performance (April 2025)</h3>
-        <div class="table-container">
-            <table class="data-table">
-                <thead>
-                    <tr><th>Technician</th><th>Tests Completed</th><th>Avg Turnaround</th><th>Verification Rate</th><th>Performance</th></tr>
-                </thead>
-                <tbody>
+                @if (Model.Doctors != null && Model.Doctors.Any())
+                {
+                    foreach (var doc in Model.Doctors)
+                    {
+                        <tr>
+                            <td><strong>@doc.FullName</strong></td>
+                            <td>@doc.HPCSANumber</td>
+                            <td>@doc.Email</td>
+                            <td>@doc.PracticeName</td>
+                            <td>
+                                <span class="badge @(doc.IsVerified ? "badge-completed" : "badge-progress")">
+                                    @doc.Status
+                                </span>
+                            </td>
+                            <td>
+                                <a href="@Url.Action("EditDoctor", "Manager", new { id = doc.DoctorID })" class="btn-outline-lab" style="margin-right:0.3rem;">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button class="btn-outline-lab" onclick="resetDoctorPassword('@doc.FullName', '@doc.Email')">
+                                    <i class="fas fa-key"></i>
+                                </button>
+                                @if (!doc.IsVerified)
+                                {
+                                    <button class="btn-sm-lab" onclick="approveDoctor('@doc.FullName', @doc.DoctorID)">
+                                        <i class="fas fa-check"></i> Approve
+                                    </button>
+                                    <button class="btn-outline-lab" onclick="rejectDoctor('@doc.FullName', @doc.DoctorID)">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
                     <tr>
-                        <td><a href="javascript:void(0)" onclick="viewTechnicianDetails('Tech Peters')">Tech Peters</a></td>
-                        <td>142</td>
-                        <td>38 min</td>
-                        <td>98%</td>
-                        <td><span class="badge badge-completed">Excellent</span></td>
+                        <td colspan="6" style="text-align:center; color:#5A6E7A;">No doctors registered</td>
                     </tr>
-                    <tr>
-                        <td><a href="javascript:void(0)" onclick="viewTechnicianDetails('Tech Smith')">Tech Smith</a></td>
-                        <td>98</td>
-                        <td>52 min</td>
-                        <td>95%</td>
-                        <td><span class="badge badge-completed">Good</span></td>
-                    </tr>
-                    <tr>
-                        <td><a href="javascript:void(0)" onclick="viewTechnicianDetails('Tech Williams')">Tech Williams</a></td>
-                        <td>67</td>
-                        <td>44 min</td>
-                        <td>97%</td>
-                        <td><span class="badge badge-completed">Excellent</span></td>
-                    </tr>
-                    <tr>
-                        <td><a href="javascript:void(0)" onclick="viewTechnicianDetails('David Ngema')">David Ngema</a></td>
-                        <td>34</td>
-                        <td>41 min</td>
-                        <td>96%</td>
-                        <td><span class="badge badge-progress">On Leave</span></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <div style="margin-top:1rem;">
-            <button class="btn-outline-lab" onclick="downloadPerformanceReport()">📄 Download Performance Report</button>
-            <a href="@Url.Action("TestVerification", "Manager")" class="btn-sm-lab" style="margin-left:0.5rem;">✅ Test Verification</a>
-        </div>
-    </div>
-
-    <div class="card-modern">
-        <h3>👥 Doctor Activity Summary</h3>
-        <div class="table-container">
-            <table class="data-table">
-                <thead>
-                    <tr><th>Doctor</th><th>Requests (Apr)</th><th>Active</th><th>Completed</th><th>Action</th></tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><a href="javascript:void(0)" onclick="viewDoctorDetails('Dr. Sarah Johnson')">Dr. Sarah Johnson</a></td>
-                        <td>28</td>
-                        <td>5</td>
-                        <td>23</td>
-                        <td><button class="btn-outline-lab" onclick="viewDoctorDetails('Dr. Sarah Johnson')">View</button></td>
-                    </tr>
-                    <tr>
-                        <td><a href="javascript:void(0)" onclick="viewDoctorDetails('Dr. Michael Brown')">Dr. Michael Brown</a></td>
-                        <td>19</td>
-                        <td>3</td>
-                        <td>16</td>
-                        <td><button class="btn-outline-lab" onclick="viewDoctorDetails('Dr. Michael Brown')">View</button></td>
-                    </tr>
-                    <tr>
-                        <td><a href="javascript:void(0)" onclick="viewDoctorDetails('Dr. Peter Khumalo')">Dr. Peter Khumalo</a></td>
-                        <td>15</td>
-                        <td>2</td>
-                        <td>13</td>
-                        <td><button class="btn-outline-lab" onclick="viewDoctorDetails('Dr. Peter Khumalo')">View</button></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <button class="btn-outline-lab" style="margin-top:1rem;" onclick="generateDoctorReport()">📄 Download Doctor Report</button>
-    </div>
-</div>
-
-<!-- Pending Leave Requests -->
-<div class="card-modern">
-    <div class="card-header-flex">
-        <h3>⏳ Pending Leave Requests</h3>
-        <button class="btn-outline-lab" onclick="viewAllLeaveRequests()">View All</button>
-    </div>
-    <div class="table-container">
-        <table class="data-table">
-            <thead>
-                <tr><th>Technician</th><th>Leave Type</th><th>Start Date</th><th>End Date</th><th>Status</th><th>Actions</th></tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>David Ngema</td>
-                    <td>Annual Leave</td>
-                    <td>2025-04-20</td>
-                    <td>2025-05-05</td>
-                    <td><span class="badge badge-progress">Pending Approval</span></td>
-                    <td>
-                        <button class="btn-sm-lab" onclick="approveLeave('David Ngema')">✅ Approve</button>
-                        <button class="btn-outline-lab" onclick="rejectLeave('David Ngema')">❌ Reject</button>
-                    </td>
-                </tr>
+                }
             </tbody>
         </table>
     </div>
@@ -397,97 +227,119 @@
 <div class="card-modern">
     <div class="card-header-flex">
         <h3>➕ Quick Add: New Lab Technician</h3>
-        <button class="btn-outline-lab" onclick="toggleAddForm()">Show/Hide Form</button>
+        <button class="btn-outline-lab" onclick="toggleAddForm()">
+            <i class="fas fa-chevron-down"></i> Show/Hide
+        </button>
     </div>
     <div id="addTechnicianForm" style="display:none; margin-top:1rem;">
-        <div class="grid-2col">
-            <div class="form-group">
-                <label>First Name</label>
-                <input type="text" class="form-control" placeholder="Enter first name">
+        <form method="post" action="@Url.Action("AddTechnician", "Manager")">
+            @Html.AntiForgeryToken()
+            <div class="grid-2col">
+                <div class="form-group">
+                    <label>First Name <span class="required">*</span></label>
+                    <input type="text" name="Name" class="form-control" placeholder="Enter first name" required />
+                </div>
+                <div class="form-group">
+                    <label>Surname <span class="required">*</span></label>
+                    <input type="text" name="Surname" class="form-control" placeholder="Enter surname" required />
+                </div>
+            </div>
+            <div class="grid-2col">
+                <div class="form-group">
+                    <label>SA ID Number <span class="required">*</span></label>
+                    <input type="text" name="SAIDNumber" class="form-control" placeholder="13-digit ID" required maxlength="13" pattern="\d{13}" />
+                </div>
+                <div class="form-group">
+                    <label>Employee Number <span class="required">*</span></label>
+                    <input type="text" name="EmployeeNumber" class="form-control" placeholder="Employee number" required />
+                </div>
+            </div>
+            <div class="grid-2col">
+                <div class="form-group">
+                    <label>Email Address <span class="required">*</span></label>
+                    <input type="email" name="Email" class="form-control" placeholder="technician@nmblab.com" required />
+                </div>
+                <div class="form-group">
+                    <label>Contact Number <span class="required">*</span></label>
+                    <input type="text" name="ContactNumber" class="form-control" placeholder="0821234567" required />
+                </div>
+            </div>
+            <div class="grid-2col">
+                <div class="form-group">
+                    <label>Specialization</label>
+                    <input type="text" name="Specialization" class="form-control" placeholder="e.g., Haematology" />
+                </div>
+                <div class="form-group">
+                    <label>Qualification</label>
+                    <input type="text" name="Qualification" class="form-control" placeholder="e.g., BSc Medical Lab Science" />
+                </div>
             </div>
             <div class="form-group">
-                <label>Surname</label>
-                <input type="text" class="form-control" placeholder="Enter surname">
+                <label>Assign Test Types</label>
+                <select name="SelectedTestTypeIDs" multiple style="width:100%; padding:10px; border-radius:12px; border:1px solid #E2E8F0; height:100px;">
+                    @if (ViewBag.AvailableTestTypes != null)
+                    {
+                        foreach (var test in ViewBag.AvailableTestTypes as List<SelectListItem>)
+                        {
+                            <option value="@test.Value">@test.Text</option>
+                        }
+                    }
+                </select>
+                <small class="text-muted">Hold Ctrl to select multiple</small>
             </div>
-        </div>
-        <div class="grid-2col">
-            <div class="form-group">
-                <label>SA ID Number</label>
-                <input type="text" class="form-control" placeholder="13-digit ID">
+            <div class="form-group" style="margin-top:1rem;">
+                <label>
+                    <input type="checkbox" checked /> Send auto-generated password via email
+                </label>
             </div>
-            <div class="form-group">
-                <label>Employee Number</label>
-                <input type="text" class="form-control" placeholder="Auto-generated or manual">
-            </div>
-        </div>
-        <div class="grid-2col">
-            <div class="form-group">
-                <label>Email Address</label>
-                <input type="email" class="form-control" placeholder="technician@@nmblab.com">
-            </div>
-            <div class="form-group">
-                <label>Contact Number</label>
-                <input type="text" class="form-control" placeholder="0821234567">
-            </div>
-        </div>
-        <div class="form-group">
-            <label>Assign Test Types</label>
-            <select multiple style="width:100%; padding:10px; border-radius:12px; border:1px solid #E2E8F0; height:100px;">
-                <option>Full Blood Count</option>
-                <option>Coagulation Studies</option>
-                <option>Differential Count</option>
-                <option>Peripheral Blood Film</option>
-                <option>Flow Cytometry</option>
-            </select>
-            <small style="color:#5A6E7A;">Hold Ctrl to select multiple</small>
-        </div>
-        <div class="form-group">
-            <label><input type="checkbox"> Send auto-generated password via email</label>
-        </div>
-        <button class="btn-sm-lab" onclick="registerTechnician()">Register Technician</button>
+            <button type="submit" class="btn-sm-lab">
+                <i class="fas fa-save"></i> Register Technician
+            </button>
+        </form>
     </div>
 </div>
 
 <style>
-    .data-table th {
-        background: #F8FAFE;
-        font-weight: 600;
-        font-size: 0.8rem;
-    }
-
-    .form-control:focus {
-        outline: none;
-        border-color: var(--medical-teal);
-        box-shadow: 0 0 0 2px rgba(26,109,115,0.1);
-    }
-
     .stat-cards {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 1rem;
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
     }
 
     .stat-item {
         background: white;
-        padding: 1rem;
         border-radius: 16px;
+        padding: 1.2rem;
         display: flex;
         align-items: center;
         gap: 1rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border: 1px solid #E2E8F0;
     }
 
     .stat-icon-lg {
         font-size: 2rem;
     }
 
+    .stat-item h3 {
+        font-size: 1.5rem;
+        color: #032C7D;
+        margin: 0;
+    }
+
+    .stat-item p {
+        font-size: 0.8rem;
+        color: #5A6E7A;
+        margin: 0;
+    }
+
     .card-modern {
         background: white;
-        border-radius: 20px;
+        border-radius: 16px;
         padding: 1.5rem;
         margin-bottom: 1.5rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border: 1px solid #E2E8F0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
 
     .card-header-flex {
@@ -495,49 +347,15 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
     }
 
-    .btn-sm-lab {
-        background: #2C8C6E;
-        color: white;
-        padding: 0.5rem 1rem;
-        border: none;
-        border-radius: 12px;
-        cursor: pointer;
-        font-size: 0.8rem;
-    }
-
-    .btn-outline-lab {
-        background: transparent;
-        border: 1px solid #2C8C6E;
-        color: #2C8C6E;
-        padding: 0.5rem 1rem;
-        border-radius: 12px;
-        cursor: pointer;
-        font-size: 0.8rem;
-    }
-
-    .badge-completed {
-        background: #2C8C6E;
-        color: white;
-        padding: 0.2rem 0.6rem;
-        border-radius: 20px;
-        font-size: 0.7rem;
-    }
-
-    .badge-progress {
-        background: #E8A845;
-        color: white;
-        padding: 0.2rem 0.6rem;
-        border-radius: 20px;
-        font-size: 0.7rem;
-    }
-
-    .grid-2col {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1.5rem;
-    }
+        .card-header-flex h3 {
+            color: #032C7D;
+            margin: 0;
+            font-size: 1.1rem;
+        }
 
     .table-container {
         overflow-x: auto;
@@ -549,152 +367,242 @@
     }
 
         .data-table th, .data-table td {
-            padding: 0.75rem;
+            padding: 0.6rem 0.4rem;
             text-align: left;
             border-bottom: 1px solid #E2E8F0;
+            font-size: 0.8rem;
         }
 
+        .data-table th {
+            background: #F8FAFE;
+            font-weight: 600;
+            color: #5A6E7A;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+    .badge-completed {
+        background: #2C8C6E;
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 600;
+    }
+
+    .badge-progress {
+        background: #E8A845;
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 600;
+    }
+
     .grid-2col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 0.8rem;
+    }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #032C7D;
+            margin-bottom: 0.3rem;
+        }
+
+    .required {
+        color: #E26D5C;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.6rem 0.8rem;
+        border: 1px solid #E2E8F0;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
+    }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #0841C9;
+            box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
+        }
+
+    .text-muted {
+        color: #5A6E7A;
+        font-size: 0.7rem;
+        display: block;
+        margin-top: 0.2rem;
+    }
+
+    .btn-sm-lab {
+        background: linear-gradient(135deg, #0841C9, #1D97F1);
+        color: white;
+        border: none;
+        padding: 0.4rem 1rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        text-decoration: none;
+    }
+
+        .btn-sm-lab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(8,65,201,0.3);
+            text-decoration: none;
+            color: white;
+        }
+
+    .btn-outline-lab {
+        background: transparent;
+        color: #032C7D;
+        border: 1px solid #E2E8F0;
+        padding: 0.4rem 1rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        text-decoration: none;
+    }
+
+        .btn-outline-lab:hover {
+            background: #F8FAFE;
+            text-decoration: none;
+            color: #032C7D;
+        }
+
+    .alert {
+        padding: 0.8rem 1rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        margin-bottom: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .alert-success {
+        background: #D1FAE5;
+        color: #065F46;
+        border-left: 4px solid #10B981;
+    }
+
+    .alert-danger {
+        background: #FEE2E2;
+        color: #991B1B;
+        border-left: 4px solid #EF4444;
+    }
+
+    @@media (max-width: 768px) {
+        .grid-2col
+
+    {
         grid-template-columns: 1fr;
     }
 
+    .stat-cards {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    }
+
+    @@media (max-width: 480px) {
+        .stat-cards
+
+    {
+        grid-template-columns: 1fr;
+    }
+
+    .card-header-flex {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    }
 </style>
 
 <script>
-    let currentTechnician = null;
-    let currentDoctor = null;
-    let currentLeaveRequest = null;
-
     // ========== TECHNICIAN FUNCTIONS ==========
-    function editTechnician(name) {
-        alert("✏️ Edit Technician: " + name + "\n\nForm would open with:\n- Name: " + name + "\n- Employee #: T2024001\n- SA ID: 8001015009088\n- Email: " + name.toLowerCase().replace(' ', '.') + "@@nmblab.com\n- Contact: 0821234567\n- Assigned Tests: FBC, Differential Count");
-    }
-
-    function viewTechnicianProfile(name) {
-        alert("👤 Technician Profile: " + name + "\n\n📋 Details:\n- Employee #: T2024001\n- SA ID: 8001015009088\n- Email: " + name.toLowerCase().replace(' ', '.') + "@@nmblab.com\n- Contact: 0821234567\n- Status: Active\n- Assigned Tests: FBC, Differential Count, Coagulation Studies\n- Joined: January 2024\n- Tests Completed: 342\n- Avg Turnaround: 38 min");
-    }
-
-    function resetPassword(name) {
-        if(confirm("Reset password for " + name + "? A new auto-generated password will be emailed to the user.")) {
-            alert("🔑 Password reset email sent to " + name.toLowerCase().replace(' ', '.') + "@@nmblab.com\n\nNew password: Temp123!# (User must change on first login)");
+    function resetPassword(name, email) {
+        if (confirm(`Reset password for ${name}? A new auto-generated password will be emailed to ${email}.`)) {
+            alert(`🔑 Password reset email sent to ${email}\n\nUser must change password at first login.`);
         }
     }
 
-    function activateTechnician(name) {
-        if(confirm("Activate technician: " + name + "?")) {
-            alert("✅ Technician \"" + name + "\" has been activated.\nThey can now log in and perform tests.");
+    function activateTechnician(name, id) {
+        if (confirm(`Activate technician: ${name}?`)) {
+            alert(`✅ Technician "${name}" has been activated.`);
+            location.reload();
         }
     }
 
-    function deactivateTechnician(name) {
-        if(confirm("Deactivate technician: " + name + "? This will prevent them from logging in.")) {
-            alert("🔴 Technician \"" + name + "\" has been deactivated.");
+    function deactivateTechnician(name, id) {
+        if (confirm(`Deactivate technician: ${name}? This will prevent them from logging in.`)) {
+            alert(`🔴 Technician "${name}" has been deactivated.`);
+            location.reload();
         }
     }
 
     function bulkImportTechnicians() {
-        alert("📂 Bulk Import Technicians\n\nPlease select a CSV file with the following columns:\n- First Name\n- Surname\n- SA ID Number\n- Employee Number\n- Email\n- Contact Number\n- Test Types (comma-separated)");
-    }
-
-    function manageAssignments() {
-        alert("👥 Manage Test Type Assignments\n\nAll technicians must be assigned to at least one test type.\n\nCurrent assignments:\n- Michael Peters: FBC, Differential\n- Tech Smith: Coagulation, Peripheral Film\n- Jane Williams: Flow Cytometry, Haematology\n- David Ngema: Morphology, Special Stains\n\nClick OK to open assignment manager.");
-    }
-
-    function registerTechnician() {
-        let firstName = document.querySelector('#addTechnicianForm input[placeholder="Enter first name"]')?.value || 'John';
-        let surname = document.querySelector('#addTechnicianForm input[placeholder="Enter surname"]')?.value || 'Doe';
-
-        alert("✅ New technician registered: " + firstName + " " + surname + "\n\n📧 Email sent with auto-generated password.\n🔑 Temporary password: Temp" + Math.floor(Math.random() * 10000) + "\n⚠️ User must change password at first login.");
-
-        document.querySelectorAll('#addTechnicianForm input').forEach(inp => inp.value = '');
-        toggleAddForm();
+        alert(`📂 Bulk Import Technicians\n\nPlease select a CSV file with the following columns:\n- First Name\n- Surname\n- SA ID Number\n- Employee Number\n- Email\n- Contact Number\n- Test Types (comma-separated)`);
     }
 
     // ========== DOCTOR FUNCTIONS ==========
-    function editDoctor(name) {
-        alert("✏️ Edit Doctor: " + name + "\n\nForm would open with:\n- Name: " + name + "\n- HPCSA #: MP1234567\n- Email: " + name.toLowerCase().replace('dr. ', '').replace(' ', '.') + "@@nmblab.com\n- Contact: 0829876543\n- Practice: Gqeberha Medical Centre");
-    }
-
-    function resetDoctorPassword(name) {
-        if(confirm("Reset password for " + name + "? A new auto-generated password will be emailed.")) {
-            alert("🔑 Password reset email sent to " + name.toLowerCase().replace('dr. ', '').replace(' ', '.') + "@@nmblab.com\n\nUser must change password at first login.");
+    function resetDoctorPassword(name, email) {
+        if (confirm(`Reset password for ${name}? A new auto-generated password will be emailed to ${email}.`)) {
+            alert(`🔑 Password reset email sent to ${email}\n\nUser must change password at first login.`);
         }
     }
 
-    function approveDoctor(name) {
-        if(confirm("Approve doctor registration: " + name + "?")) {
-            alert("✅ Doctor \"" + name + "\" has been approved.\n📧 Approval email sent with login credentials.");
+    function approveDoctor(name, id) {
+        if (confirm(`Approve doctor registration: ${name}?`)) {
+            alert(`✅ Doctor "${name}" has been approved.\n📧 Approval email sent with login credentials.`);
+            location.reload();
         }
     }
 
-    function rejectDoctor(name) {
-        if(confirm("Reject doctor registration: " + name + "? Please provide a reason.")) {
+    function rejectDoctor(name, id) {
+        if (confirm(`Reject doctor registration: ${name}?`)) {
             let reason = prompt('Please provide rejection reason:');
-            if(reason) {
-                alert("❌ Doctor \"" + name + "\" registration rejected.\n📧 Notification email sent with reason: " + reason);
+            if (reason) {
+                alert(`❌ Doctor "${name}" registration rejected.\n📧 Notification email sent with reason: ${reason}`);
+                location.reload();
             }
         }
-    }
-
-    function viewDoctorDetails(name) {
-        alert("👨‍⚕️ Doctor Details: " + name + "\n\n📋 Information:\n- HPCSA #: MP1234567\n- Email: " + name.toLowerCase().replace('dr. ', '').replace(' ', '.') + "@@nmblab.com\n- Contact: 0829876543\n- Practice: Gqeberha Medical Centre\n- Registration Date: 2024-03-15\n- Status: Active\n- Total Requests: 156\n- Completed Tests: 142\n- Pending Results: 14");
     }
 
     function sendBulkEmail() {
         let subject = prompt('Email Subject:');
         let message = prompt('Email Message:');
-        if(subject && message) {
-            alert("📧 Bulk email sent to " + document.querySelectorAll('.data-table tbody tr').length + " doctors.\n\nSubject: " + subject + "\nMessage: " + message.substring(0, 100) + "...");
+        if (subject && message) {
+            alert(`📧 Bulk email sent to all doctors.\n\nSubject: ${subject}`);
         }
-    }
-
-    function generateDoctorReport() {
-        alert("📄 Generating Doctor Activity Report (PDF)\n\nDate Range: April 2025\n\nTop Requesting Doctors:\n1. Dr. Sarah Johnson - 28 requests\n2. Dr. Michael Brown - 19 requests\n3. Dr. Peter Khumalo - 15 requests\n\nReport will download shortly.");
-    }
-
-    // ========== ASSIGNMENT FUNCTIONS ==========
-    function assignTechniciansToTest(testName) {
-        alert("👥 Assign Technicians to: " + testName + "\n\nCurrent assigned technicians:\n- Michael Peters\n- Tech Smith\n\nSelect from available technicians:\n☐ Jane Williams\n☐ David Ngema\n\nClick OK to manage assignments.");
-    }
-
-    // ========== LEAVE FUNCTIONS ==========
-    function viewAllLeaveRequests() {
-        alert("📋 All Leave Requests\n\nPending:\n1. David Ngema - Annual Leave (Apr 20 - May 5)\n\nApproved:\n- Jane Williams - Sick Leave (Mar 10-12)\n\nDeclined:\n- Tech Smith - Personal Leave (Jan 5-6) - Reason: Staff shortage");
-    }
-
-    function approveLeave(name) {
-        if(confirm("Approve leave request for " + name + "?")) {
-            alert("✅ Leave approved for " + name + "\n📅 Start: 2025-04-20\n📅 End: 2025-05-05\n📧 Notification email sent.");
-        }
-    }
-
-    function rejectLeave(name) {
-        if(confirm("Reject leave request for " + name + "?")) {
-            let reason = prompt('Please provide rejection reason:');
-            if(reason) {
-                alert("❌ Leave rejected for " + name + "\n📧 Notification email sent with reason: " + reason);
-            }
-        }
-    }
-
-    // ========== PERFORMANCE FUNCTIONS ==========
-    function viewTechnicianDetails(name) {
-        alert("🔍 Technician Performance: " + name + "\n\n📊 April 2025 Statistics:\n- Tests Completed: 142\n- Avg Turnaround: 38 min\n- Verification Rate: 98%\n- On-Time Completion: 94.9%\n- Quality Score: 96/100\n\n📈 Trend: +12% from last month");
-    }
-
-    function downloadPerformanceReport() {
-        alert("📄 Downloading Technician Performance Report (PDF)\n\nDate Range: April 2025\n\nSummary:\n- Top Performer: Michael Peters (142 tests, 98% verification)\n- Most Improved: Tech Smith (+8%)\n- Total Tests: 342\n- Avg Turnaround: 44 min\n\nReport generated successfully.");
     }
 
     // ========== UI HELPERS ==========
     function toggleAddForm() {
         var form = document.getElementById('addTechnicianForm');
-        if(form) {
+        if (form) {
             form.style.display = form.style.display === 'none' ? 'block' : 'none';
         }
-    }
-
-    function showDemoAlert(message) {
-        alert('🔔 ' + message);
     }
 </script>

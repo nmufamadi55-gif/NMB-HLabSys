@@ -1,0 +1,520 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Orders";
+    ViewData["RoleSubtitle"] = "Manager Portal";
+
+    var mgrName = ViewBag.ManagerName as string;
+    var initials = "AA";
+    if (!string.IsNullOrEmpty(mgrName))
+    {
+        var parts = mgrName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        initials = string.Concat(parts.Select(p => p[0]));
+    }
+    ViewData["UserGreeting"] = $"Manager: {mgrName ?? "Amanda Adams"}";
+    ViewData["UserInitials"] = initials;
+}
+
+@model NMB_HLabSys.Models.ViewModels.OrderIndexViewModel
+@using NMB_HLabSys.Models.ViewModels
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Manager")">Overview</a></li>
+    <li><a href="@Url.Action("TestCatalogue", "Manager")">Test Catalogue</a></li>
+    <li><a href="@Url.Action("StockManagement", "Manager")" class="active">Stock and Orders</a></li>
+    <li><a href="@Url.Action("Suppliers", "Manager")">Suppliers</a></li>
+    <li><a href="@Url.Action("StaffManagement", "Manager")">Staff Management</a></li>
+    <li><a href="@Url.Action("Reports", "Manager")">Reports</a></li>
+    <li><a href="@Url.Action("Settings", "Manager")">Settings</a></li>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
+
+<div class="stat-cards">
+    <div class="stat-item">
+        <div>
+            <h3>@Model.Statistics.TotalOrders</h3>
+            <p>Total Orders</p>
+        </div>
+    </div>
+    <div class="stat-item">
+        <div>
+            <h3>@Model.Statistics.PendingOrders</h3>
+            <p>Pending</p>
+        </div>
+    </div>
+    <div class="stat-item">
+        <div>
+            <h3>@Model.Statistics.CompletedOrders</h3>
+            <p>Completed</p>
+        </div>
+    </div>
+    <div class="stat-item">
+        <div>
+            <h3>@Model.Statistics.CancelledOrders</h3>
+            <p>Cancelled</p>
+        </div>
+    </div>
+</div>
+
+<div class="card-modern">
+    <div class="card-header-flex">
+        <h3>All Orders</h3>
+        <a href="@Url.Action("CreateOrder", "Manager")" class="btn-sm-lab">Create Order</a>
+    </div>
+
+    <ul class="tab-nav">
+        <li class="tab-item active" onclick="showTab('all')">All Orders</li>
+        <li class="tab-item" onclick="showTab('pending')">Pending</li>
+        <li class="tab-item" onclick="showTab('completed')">Completed</li>
+        <li class="tab-item" onclick="showTab('cancelled')">Cancelled</li>
+    </ul>
+
+    <div id="tab-all" class="tab-content">
+        @if (Model.Orders != null && Model.Orders.Any())
+        {
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Order Number</th>
+                            <th>Supplier</th>
+                            <th>Order Date</th>
+                            <th>Total Items</th>
+                            <th>Received</th>
+                            <th>Total Amount</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.Orders)
+                        {
+                            <tr>
+                                <td><strong>@order.OrderNumber</strong></td>
+                                <td>@order.SupplierName</td>
+                                <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
+                                <td>@order.TotalItems</td>
+                                <td>@order.ItemsReceived / @order.TotalItems</td>
+                                <td>R@(order.TotalAmount?.ToString("N2") ?? "0.00")</td>
+                                <td>
+                                    <span class="badge @(order.StatusColor == "success" ? "badge-completed" : order.StatusColor == "warning" ? "badge-progress" : order.StatusColor == "danger" ? "badge-critical" : "badge-ordered")">
+                                        @order.Status
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="@Url.Action("OrderDetails", "Manager", new { id = order.OrderID })" class="btn-outline-lab">View</a>
+                                    @if (order.Status == "Ordered" || order.Status == "PartiallyComplete")
+                                    {
+                                        <a href="@Url.Action("ReceiveOrder", "Manager", new { id = order.OrderID })" class="btn-sm-lab" style="margin-left:0.3rem;">Receive</a>
+                                        <button class="btn-outline-lab" onclick="cancelOrder('@order.OrderNumber', @order.OrderID)" style="margin-left:0.3rem;">Cancel</button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <p style="color: #5A6E7A; text-align:center; padding: 1rem;">No orders found</p>
+        }
+    </div>
+
+    <div id="tab-pending" class="tab-content" style="display:none;">
+        @if (Model.PendingOrders != null && Model.PendingOrders.Any())
+        {
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Order Number</th>
+                            <th>Supplier</th>
+                            <th>Order Date</th>
+                            <th>Total Items</th>
+                            <th>Received</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.PendingOrders)
+                        {
+                            <tr>
+                                <td><strong>@order.OrderNumber</strong></td>
+                                <td>@order.SupplierName</td>
+                                <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
+                                <td>@order.TotalItems</td>
+                                <td>@order.ItemsReceived / @order.TotalItems</td>
+                                <td>
+                                    <span class="badge @(order.StatusColor == "warning" ? "badge-progress" : "badge-ordered")">
+                                        @order.Status
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="@Url.Action("OrderDetails", "Manager", new { id = order.OrderID })" class="btn-outline-lab">View</a>
+                                    <a href="@Url.Action("ReceiveOrder", "Manager", new { id = order.OrderID })" class="btn-sm-lab" style="margin-left:0.3rem;">Receive</a>
+                                    <button class="btn-outline-lab" onclick="cancelOrder('@order.OrderNumber', @order.OrderID)" style="margin-left:0.3rem;">Cancel</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <p style="color: #5A6E7A; text-align:center; padding: 1rem;">No pending orders</p>
+        }
+    </div>
+
+    <div id="tab-completed" class="tab-content" style="display:none;">
+        @if (Model.CompletedOrders != null && Model.CompletedOrders.Any())
+        {
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Order Number</th>
+                            <th>Supplier</th>
+                            <th>Order Date</th>
+                            <th>Total Items</th>
+                            <th>Total Amount</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.CompletedOrders.Where(o => o.Status == "Complete"))
+                        {
+                            <tr>
+                                <td><strong>@order.OrderNumber</strong></td>
+                                <td>@order.SupplierName</td>
+                                <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
+                                <td>@order.TotalItems</td>
+                                <td>R@(order.TotalAmount?.ToString("N2") ?? "0.00")</td>
+                                <td>
+                                    <span class="badge badge-completed">Complete</span>
+                                </td>
+                                <td>
+                                    <a href="@Url.Action("OrderDetails", "Manager", new { id = order.OrderID })" class="btn-outline-lab">View</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <p style="color: #5A6E7A; text-align:center; padding: 1rem;">No completed orders</p>
+        }
+    </div>
+
+    <div id="tab-cancelled" class="tab-content" style="display:none;">
+        @if (Model.CompletedOrders != null && Model.CompletedOrders.Any())
+        {
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Order Number</th>
+                            <th>Supplier</th>
+                            <th>Order Date</th>
+                            <th>Total Items</th>
+                            <th>Total Amount</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.CompletedOrders.Where(o => o.Status == "Cancelled"))
+                        {
+                            <tr>
+                                <td><strong>@order.OrderNumber</strong></td>
+                                <td>@order.SupplierName</td>
+                                <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
+                                <td>@order.TotalItems</td>
+                                <td>R@(order.TotalAmount?.ToString("N2") ?? "0.00")</td>
+                                <td>
+                                    <span class="badge badge-critical">Cancelled</span>
+                                </td>
+                                <td>
+                                    <a href="@Url.Action("OrderDetails", "Manager", new { id = order.OrderID })" class="btn-outline-lab">View</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <p style="color: #5A6E7A; text-align:center; padding: 1rem;">No cancelled orders</p>
+        }
+    </div>
+</div>
+
+<script>
+    function showTab(tab) {
+        // Hide all tabs
+        document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+        // Show selected tab
+        document.getElementById('tab-' + tab).style.display = 'block';
+        // Update active tab
+        document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
+        document.querySelector('.tab-item[onclick="showTab(\'' + tab + '\')"]').classList.add('active');
+    }
+
+    function cancelOrder(orderNumber, orderId) {
+        if (confirm('Are you sure you want to cancel order ' + orderNumber + '?')) {
+            var reason = prompt('Please provide reason for cancellation:');
+            if (reason) {
+                alert('Order ' + orderNumber + ' cancelled.\nReason: ' + reason);
+                location.reload();
+            }
+        }
+    }
+</script>
+
+<style>
+    .stat-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-item {
+        background: white;
+        border-radius: 16px;
+        padding: 1.2rem;
+        border: 1px solid #E2E8F0;
+        text-align: center;
+    }
+
+        .stat-item h3 {
+            font-size: 1.8rem;
+            color: #032C7D;
+            margin: 0;
+        }
+
+        .stat-item p {
+            font-size: 0.8rem;
+            color: #5A6E7A;
+            margin: 0.2rem 0 0;
+        }
+
+    .card-modern {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #E2E8F0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .card-header-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+        .card-header-flex h3 {
+            color: #032C7D;
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+    .tab-nav {
+        display: flex;
+        gap: 0.5rem;
+        border-bottom: 1px solid #E2E8F0;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .tab-item {
+        padding: 0.4rem 1rem;
+        cursor: pointer;
+        border-radius: 30px;
+        font-size: 0.8rem;
+        color: #5A6E7A;
+        transition: all 0.2s;
+    }
+
+        .tab-item:hover {
+            background: #F8FAFE;
+        }
+
+        .tab-item.active {
+            background: linear-gradient(135deg, #0841C9, #1D97F1);
+            color: white;
+        }
+
+    .tab-content {
+        min-height: 100px;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .data-table th, .data-table td {
+            padding: 0.6rem 0.4rem;
+            text-align: left;
+            border-bottom: 1px solid #E2E8F0;
+            font-size: 0.8rem;
+        }
+
+        .data-table th {
+            background: #F8FAFE;
+            font-weight: 600;
+            color: #5A6E7A;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+    .badge-completed {
+        background: #2C8C6E;
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 600;
+    }
+
+    .badge-progress {
+        background: #E8A845;
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 600;
+    }
+
+    .badge-critical {
+        background: #E26D5C;
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 600;
+    }
+
+    .badge-ordered {
+        background: #5A6E7A;
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 600;
+    }
+
+    .btn-sm-lab {
+        background: linear-gradient(135deg, #0841C9, #1D97F1);
+        color: white;
+        border: none;
+        padding: 0.4rem 1rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .btn-sm-lab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(8,65,201,0.3);
+            color: white;
+        }
+
+    .btn-outline-lab {
+        background: transparent;
+        color: #032C7D;
+        border: 1px solid #E2E8F0;
+        padding: 0.4rem 1rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .btn-outline-lab:hover {
+            background: #F8FAFE;
+            text-decoration: none;
+            color: #032C7D;
+        }
+
+    .alert {
+        padding: 0.8rem 1rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .alert-success {
+        background: #D1FAE5;
+        color: #065F46;
+        border-left: 4px solid #10B981;
+    }
+
+    .alert-danger {
+        background: #FEE2E2;
+        color: #991B1B;
+        border-left: 4px solid #EF4444;
+    }
+
+    @@media (max-width: 768px) {
+        .stat-cards {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .card-header-flex {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .tab-nav {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .tab-item {
+            text-align: center;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .stat-cards {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

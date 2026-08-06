@@ -1,8 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using NMB_HLabSys.Models;
-using System.Collections.Generic;
-using System.Reflection.Emit;
 
 namespace NMB_HLabSys.Data
 {
@@ -17,6 +14,7 @@ namespace NMB_HLabSys.Data
         public DbSet<User> Users { get; set; }
         public DbSet<LabTechnician> LabTechnicians { get; set; }
         public DbSet<Doctor> Doctors { get; set; }
+        public DbSet<Patient> Patients { get; set; }
 
         // Test management
         public DbSet<TestCategory> TestCategories { get; set; }
@@ -38,7 +36,9 @@ namespace NMB_HLabSys.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Composite unique keys
+            // =========================
+            // COMPOSITE UNIQUE KEYS
+            // =========================
             modelBuilder.Entity<TechnicianTestAssignment>()
                 .HasIndex(t => new { t.TechnicianID, t.TestID })
                 .IsUnique()
@@ -49,7 +49,9 @@ namespace NMB_HLabSys.Data
                 .IsUnique()
                 .HasDatabaseName("IX_TestConsumable_Unique");
 
-            // Unique constraints
+            // =========================
+            // UNIQUE CONSTRAINTS
+            // =========================
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Email)
                 .IsUnique()
@@ -105,7 +107,115 @@ namespace NMB_HLabSys.Data
                 .IsUnique()
                 .HasDatabaseName("IX_PurchaseOrder_Number_Unique");
 
-            // Configure decimal precision
+            // =========================
+            // RELATIONSHIPS WITH CASCADE BEHAVIOR
+            // =========================
+
+            // -------- ORDER MANAGEMENT --------
+            // PurchaseOrder → OrderItem: Use Restrict (no cascade delete)
+            modelBuilder.Entity<OrderItem>()
+                .HasOne(oi => oi.Order)
+                .WithMany(p => p.OrderItems)
+                .HasForeignKey(oi => oi.OrderID)
+                .OnDelete(DeleteBehavior.Restrict);  // Changed from Cascade
+
+            // OrderItem → Consumable: Use Restrict (no cascade delete)
+            modelBuilder.Entity<OrderItem>()
+                .HasOne(oi => oi.Consumable)
+                .WithMany(c => c.OrderItems)
+                .HasForeignKey(oi => oi.ConsumableID)
+                .OnDelete(DeleteBehavior.Restrict);  // Changed from Cascade
+
+            // PurchaseOrder → Supplier: Use Restrict
+            modelBuilder.Entity<PurchaseOrder>()
+                .HasOne(p => p.Supplier)
+                .WithMany(s => s.PurchaseOrders)
+                .HasForeignKey(p => p.SupplierID)
+                .OnDelete(DeleteBehavior.Restrict);  // Changed from Cascade
+
+            // PurchaseOrder → CreatedBy User: Use Restrict
+            modelBuilder.Entity<PurchaseOrder>()
+                .HasOne(p => p.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(p => p.CreatedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // -------- TEST MANAGEMENT --------
+            // TestType → TestCategory: Cascade delete is fine
+            modelBuilder.Entity<TestType>()
+                .HasOne(t => t.Category)
+                .WithMany(c => c.TestTypes)
+                .HasForeignKey(t => t.CategoryID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // TestType → SampleType: Cascade delete is fine
+            modelBuilder.Entity<TestType>()
+                .HasOne(t => t.SampleType)
+                .WithMany(s => s.TestTypes)
+                .HasForeignKey(t => t.SampleTypeID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // TestType → TechnicianTestAssignment: Cascade delete
+            modelBuilder.Entity<TechnicianTestAssignment>()
+                .HasOne(tta => tta.TestType)
+                .WithMany(t => t.TechnicianTestAssignments)
+                .HasForeignKey(tta => tta.TestID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // LabTechnician → TechnicianTestAssignment: Cascade delete
+            modelBuilder.Entity<TechnicianTestAssignment>()
+                .HasOne(tta => tta.Technician)
+                .WithMany(t => t.TestAssignments)
+                .HasForeignKey(tta => tta.TechnicianID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // -------- INVENTORY MANAGEMENT --------
+            // Consumable → Supplier: Restrict (don't delete supplier with consumables)
+            modelBuilder.Entity<Consumable>()
+                .HasOne(c => c.Supplier)
+                .WithMany(s => s.Consumables)
+                .HasForeignKey(c => c.SupplierID)
+                .OnDelete(DeleteBehavior.Restrict);  // Changed from Cascade
+
+            // TestConsumable → TestType: Cascade delete
+            modelBuilder.Entity<TestConsumable>()
+                .HasOne(tc => tc.TestType)
+                .WithMany(t => t.TestConsumables)
+                .HasForeignKey(tc => tc.TestID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // TestConsumable → Consumable: Restrict (don't delete consumable if used in tests)
+            modelBuilder.Entity<TestConsumable>()
+                .HasOne(tc => tc.Consumable)
+                .WithMany(c => c.TestConsumables)
+                .HasForeignKey(tc => tc.ConsumableID)
+                .OnDelete(DeleteBehavior.Restrict);  // Changed from Cascade
+
+            // -------- USER RELATIONSHIPS --------
+            // User → LabTechnician: Cascade delete
+            modelBuilder.Entity<LabTechnician>()
+                .HasOne(lt => lt.User)
+                .WithOne(u => u.LabTechnician)
+                .HasForeignKey<LabTechnician>(lt => lt.UserID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // User → Doctor: Cascade delete
+            modelBuilder.Entity<Doctor>()
+                .HasOne(d => d.User)
+                .WithOne(u => u.Doctor)
+                .HasForeignKey<Doctor>(d => d.UserID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // User → Patient: Cascade delete
+            modelBuilder.Entity<Patient>()
+                .HasOne(p => p.User)
+                .WithOne(u => u.Patient)
+                .HasForeignKey<Patient>(p => p.UserID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // =========================
+            // DECIMAL PRECISION
+            // =========================
             modelBuilder.Entity<TestType>()
                 .Property(t => t.NormalRangeMin)
                 .HasPrecision(18, 4);
@@ -126,7 +236,9 @@ namespace NMB_HLabSys.Data
                 .Property(o => o.UnitPrice)
                 .HasPrecision(18, 2);
 
-
+            // =========================
+            // DEFAULT VALUES
+            // =========================
             modelBuilder.Entity<TestCategory>()
                 .Property(t => t.CreatedAt)
                 .HasDefaultValueSql("GETDATE()");
@@ -155,7 +267,9 @@ namespace NMB_HLabSys.Data
                 .Property(t => t.AssignedDate)
                 .HasDefaultValueSql("GETDATE()");
 
-            // Set default boolean values
+            // =========================
+            // BOOLEAN DEFAULTS
+            // =========================
             modelBuilder.Entity<User>()
                 .Property(u => u.IsActive)
                 .HasDefaultValue(true);

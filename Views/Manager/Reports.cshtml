@@ -1,42 +1,611 @@
 ﻿@{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "Reports & Analytics";
+    ViewData["Title"] = "Reports and Analytics";
     ViewData["RoleSubtitle"] = "Manager Portal";
-    ViewData["UserGreeting"] = "📊 Amanda Adams";
-    ViewData["UserInitials"] = "AA";
+
+    var mgrName = ViewBag.ManagerName as string;
+    var initials = "AA";
+    if (!string.IsNullOrEmpty(mgrName))
+    {
+        var parts = mgrName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        initials = string.Concat(parts.Select(p => p[0]));
+    }
+    ViewData["UserGreeting"] = $"Manager: {mgrName ?? "Amanda Adams"}";
+    ViewData["UserInitials"] = initials;
 }
 
+@model NMB_HLabSys.Models.ViewModels.ReportIndexViewModel
+@using NMB_HLabSys.Models.ViewModels
+
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Manager")">📈 Overview</a></li>
-    <li><a href="@Url.Action("TestCatalogue", "Manager")">📚 Test Catalogue</a></li>
-    <li><a href="@Url.Action("StockManagement", "Manager")">📦 Stock & Orders</a></li>
-    <li><a href="@Url.Action("StaffManagement", "Manager")">👥 Staff Management</a></li>
-    <li><a href="@Url.Action("Reports", "Manager")" class="active">📑 Reports</a></li>
+    <li><a href="@Url.Action("Dashboard", "Manager")">Overview</a></li>
+    <li><a href="@Url.Action("TestCatalogue", "Manager")">Test Catalogue</a></li>
+    <li><a href="@Url.Action("StockManagement", "Manager")">Stock and Orders</a></li>
+    <li><a href="@Url.Action("Suppliers", "Manager")">Suppliers</a></li>
+    <li><a href="@Url.Action("StaffManagement", "Manager")">Staff Management</a></li>
+    <li><a href="@Url.Action("Reports", "Manager")" class="active">Reports</a></li>
+    <li><a href="@Url.Action("Settings", "Manager")">Settings</a></li>
+}
+
+<!-- Report Generation Modal -->
+<div id="reportModal" class="modal-overlay" style="display:none;">
+    <div class="modal-card" style="max-width:550px;">
+        <h3 id="reportModalTitle">Generate Report</h3>
+        <form id="reportForm" method="post" action="@Url.Action("GenerateReport", "Manager")">
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label>Report Type <span class="required">*</span></label>
+                <select name="ReportType" id="reportType" class="form-control" required>
+                    <option value="">-- Select Report Type --</option>
+                    @if (Model.ReportTypes != null)
+                    {
+                        foreach (var type in Model.ReportTypes)
+                        {
+                            <option value="@type.ReportType">@type.Description</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="grid-2col">
+                <div class="form-group">
+                    <label>Start Date <span class="required">*</span></label>
+                    <input type="date" name="StartDate" id="reportStartDate" class="form-control" value="@Model.Filter.StartDate.ToString("yyyy-MM-dd")" required />
+                </div>
+                <div class="form-group">
+                    <label>End Date <span class="required">*</span></label>
+                    <input type="date" name="EndDate" id="reportEndDate" class="form-control" value="@Model.Filter.EndDate.ToString("yyyy-MM-dd")" required />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Group By</label>
+                <select name="GroupBy" id="reportGroupBy" class="form-control">
+                    <option value="">None</option>
+                    <option value="Category">Category</option>
+                    <option value="Technician">Technician</option>
+                    <option value="Doctor">Doctor</option>
+                    <option value="Daily">Daily</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" name="IncludeInactive" value="true" /> Include Inactive Items
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label>Format</label>
+                <select name="Format" id="reportFormat" class="form-control">
+                    <option value="PDF">PDF</option>
+                    <option value="CSV">CSV</option>
+                    <option value="Excel">Excel</option>
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-outline-lab" onclick="closeReportModal()">Cancel</button>
+                <button type="submit" class="btn-sm-lab">Generate Report</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
 }
 
 <div class="stat-cards">
-    <div class="stat-item"><div class="stat-icon-lg">🧪</div><div><h3>1,240</h3><p>Total Tests</p></div></div>
-    <div class="stat-item"><div class="stat-icon-lg">⏱️</div><div><h3>42 min</h3><p>Avg Turnaround</p></div></div>
-    <div class="stat-item"><div class="stat-icon-lg">📉</div><div><h3>12%</h3><p>Stock Usage Increase</p></div></div>
+    <div class="stat-item">
+        <div>
+            <h3>1,240</h3>
+            <p>Total Tests</p>
+        </div>
+    </div>
+    <div class="stat-item">
+        <div>
+            <h3>42 min</h3>
+            <p>Average Turnaround</p>
+        </div>
+    </div>
+    <div class="stat-item">
+        <div>
+            <h3>12%</h3>
+            <p>Stock Usage Increase</p>
+        </div>
+    </div>
 </div>
 
 <div class="grid-2col">
     <div class="card-modern">
-        <h3>📊 Monthly Test Summary</h3>
-        <div style="height:220px; background:#F4F7FC; border-radius:16px; display:flex; align-items:center; justify-content:center; margin-top:1rem;">
-            📈 [Analytics Graph Placeholder]
+        <div class="card-header-flex">
+            <h3>Monthly Test Summary</h3>
+            <button class="btn-outline-lab" onclick="openReportModal()">Generate Report</button>
+        </div>
+        <div class="chart-placeholder">
+            <div class="chart-bars">
+                <div class="chart-bar" style="height: 120px; background: #0841C9;"></div>
+                <div class="chart-bar" style="height: 90px; background: #1D97F1;"></div>
+                <div class="chart-bar" style="height: 150px; background: #0841C9;"></div>
+                <div class="chart-bar" style="height: 110px; background: #1D97F1;"></div>
+                <div class="chart-bar" style="height: 170px; background: #0841C9;"></div>
+                <div class="chart-bar" style="height: 130px; background: #1D97F1;"></div>
+                <div class="chart-bar" style="height: 100px; background: #0841C9;"></div>
+                <div class="chart-bar" style="height: 160px; background: #1D97F1;"></div>
+                <div class="chart-bar" style="height: 140px; background: #0841C9;"></div>
+                <div class="chart-bar" style="height: 180px; background: #1D97F1;"></div>
+                <div class="chart-bar" style="height: 120px; background: #0841C9;"></div>
+                <div class="chart-bar" style="height: 150px; background: #1D97F1;"></div>
+            </div>
+            <div class="chart-labels">
+                <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span>
+                <span>May</span><span>Jun</span><span>Jul</span><span>Aug</span>
+                <span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
+            </div>
+        </div>
+        <div class="chart-legend">
+            <span><span class="legend-color" style="background:#0841C9;"></span> Tests Performed</span>
+            <span><span class="legend-color" style="background:#1D97F1;"></span> Verified Tests</span>
         </div>
     </div>
 
     <div class="card-modern">
-        <h3>📄 Export Reports</h3>
-        <ul style="margin-top:1rem;">
-            <li>Monthly Test Report</li>
-            <li>Technician Performance Report</li>
-            <li>Inventory Usage Report</li>
-            <li>Doctor Activity Report</li>
+        <div class="card-header-flex">
+            <h3>Available Reports</h3>
+            <button class="btn-sm-lab" onclick="openReportModal()">Generate New</button>
+        </div>
+        <ul class="report-list">
+            @if (Model.ReportTypes != null)
+            {
+                foreach (var type in Model.ReportTypes)
+                {
+                    <li>
+                        <div class="report-item">
+                            <div>
+                                <strong>@type.Description</strong>
+                                <span class="report-type">@type.ReportType</span>
+                            </div>
+                            <button class="btn-outline-lab" onclick="downloadReport('@type.ReportType')">Download</button>
+                        </div>
+                    </li>
+                }
+            }
+            else
+            {
+                <li style="color:#5A6E7A;">No report types available</li>
+            }
         </ul>
-
-        <button class="btn-sm-lab" style="margin-top:1rem;">Download PDF</button>
     </div>
 </div>
+
+<div class="card-modern">
+    <div class="card-header-flex">
+        <h3>Recent Reports</h3>
+        <button class="btn-outline-lab" onclick="viewAllReports()">View All</button>
+    </div>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Report Name</th>
+                    <th>Type</th>
+                    <th>Generated Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Monthly Test Report - April 2025</td>
+                    <td>Tests Performed</td>
+                    <td>2025-04-30 14:30</td>
+                    <td><span class="badge badge-completed">Completed</span></td>
+                    <td>
+                        <button class="btn-sm-lab" onclick="downloadReport('TestsPerformed')">Download</button>
+                        <button class="btn-outline-lab" onclick="viewReport('Monthly Test Report')" style="margin-left:0.3rem;">View</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Stock Report - April 2025</td>
+                    <td>Stock Report</td>
+                    <td>2025-04-29 09:15</td>
+                    <td><span class="badge badge-completed">Completed</span></td>
+                    <td>
+                        <button class="btn-sm-lab" onclick="downloadReport('StockReport')">Download</button>
+                        <button class="btn-outline-lab" onclick="viewReport('Stock Report')" style="margin-left:0.3rem;">View</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Technician Performance - March 2025</td>
+                    <td>Technician Performance</td>
+                    <td>2025-03-31 16:45</td>
+                    <td><span class="badge badge-progress">Processing</span></td>
+                    <td>
+                        <button class="btn-outline-lab" onclick="viewReport('Technician Performance')">View</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .stat-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-item {
+        background: white;
+        border-radius: 16px;
+        padding: 1.2rem;
+        border: 1px solid #E2E8F0;
+        text-align: center;
+    }
+
+        .stat-item h3 {
+            font-size: 1.8rem;
+            color: #032C7D;
+            margin: 0;
+        }
+
+        .stat-item p {
+            font-size: 0.8rem;
+            color: #5A6E7A;
+            margin: 0.2rem 0 0;
+        }
+
+    .card-modern {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #E2E8F0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .card-header-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+        .card-header-flex h3 {
+            color: #032C7D;
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+    .grid-2col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .chart-placeholder {
+        background: #F8FAFE;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-top: 0.5rem;
+        border: 1px solid #E2E8F0;
+    }
+
+    .chart-bars {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        height: 180px;
+        padding: 0 0.2rem;
+    }
+
+    .chart-bar {
+        width: 22px;
+        border-radius: 4px 4px 0 0;
+        transition: height 0.3s ease;
+    }
+
+    .chart-labels {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 0.5rem;
+        font-size: 0.6rem;
+        color: #5A6E7A;
+        padding: 0 0.2rem;
+    }
+
+    .chart-legend {
+        display: flex;
+        gap: 1.5rem;
+        margin-top: 0.8rem;
+        font-size: 0.7rem;
+        color: #5A6E7A;
+    }
+
+    .legend-color {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border-radius: 4px;
+        margin-right: 4px;
+        vertical-align: middle;
+    }
+
+    .report-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+        .report-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #E2E8F0;
+        }
+
+            .report-list li:last-child {
+                border-bottom: none;
+            }
+
+    .report-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+        .report-item strong {
+            font-size: 0.85rem;
+            color: #032C7D;
+        }
+
+    .report-type {
+        font-size: 0.7rem;
+        color: #5A6E7A;
+        margin-left: 0.5rem;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .data-table th, .data-table td {
+            padding: 0.6rem 0.4rem;
+            text-align: left;
+            border-bottom: 1px solid #E2E8F0;
+            font-size: 0.8rem;
+        }
+
+        .data-table th {
+            background: #F8FAFE;
+            font-weight: 600;
+            color: #5A6E7A;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+    .badge-completed {
+        background: #2C8C6E;
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 600;
+    }
+
+    .badge-progress {
+        background: #E8A845;
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 600;
+    }
+
+    .form-group {
+        margin-bottom: 0.8rem;
+    }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #032C7D;
+            margin-bottom: 0.3rem;
+        }
+
+    .required {
+        color: #E26D5C;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.6rem 0.8rem;
+        border: 1px solid #E2E8F0;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
+        background: white;
+    }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #0841C9;
+            box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
+        }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        width: 90%;
+        max-width: 550px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid #E2E8F0;
+    }
+
+    .btn-sm-lab {
+        background: linear-gradient(135deg, #0841C9, #1D97F1);
+        color: white;
+        border: none;
+        padding: 0.4rem 1rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
+    }
+
+        .btn-sm-lab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(8,65,201,0.3);
+        }
+
+    .btn-outline-lab {
+        background: transparent;
+        color: #032C7D;
+        border: 1px solid #E2E8F0;
+        padding: 0.4rem 1rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .btn-outline-lab:hover {
+            background: #F8FAFE;
+            text-decoration: none;
+            color: #032C7D;
+        }
+
+    .alert {
+        padding: 0.8rem 1rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .alert-success {
+        background: #D1FAE5;
+        color: #065F46;
+        border-left: 4px solid #10B981;
+    }
+
+    .alert-danger {
+        background: #FEE2E2;
+        color: #991B1B;
+        border-left: 4px solid #EF4444;
+    }
+
+    @@media (max-width: 768px) {
+        .grid-2col {
+            grid-template-columns: 1fr;
+        }
+
+        .stat-cards {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .card-header-flex {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .chart-bars {
+            height: 120px;
+        }
+
+        .chart-bar {
+            width: 16px;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .stat-cards {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script>
+    function openReportModal() {
+        document.getElementById('reportModalTitle').innerText = 'Generate Report';
+        document.getElementById('reportType').value = '';
+        document.getElementById('reportStartDate').value = '';
+        document.getElementById('reportEndDate').value = '';
+        document.getElementById('reportGroupBy').value = '';
+        document.getElementById('reportFormat').value = 'PDF';
+        document.getElementById('reportModal').style.display = 'flex';
+    }
+
+    function closeReportModal() {
+        document.getElementById('reportModal').style.display = 'none';
+    }
+
+    function downloadReport(reportType) {
+        alert('Downloading ' + reportType + ' report...');
+    }
+
+    function viewReport(reportName) {
+        alert('Viewing report: ' + reportName);
+    }
+
+    function viewAllReports() {
+        alert('Viewing all reports...');
+    }
+
+    // Close modal on outside click
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('modal-overlay')) {
+            event.target.style.display = 'none';
+        }
+    });
+</script>

@@ -353,7 +353,7 @@ namespace LabManager_UI.Controllers
                     TestID = testType.TestID,
                     TestName = testType.TestName,
                     CategoryID = testType.CategoryID,
-                    SampleTypeID = testType.SampleTypeId,
+                    SampleTypeID = testType.SampleTypeID,
                     UnitOfMeasurement = testType.UnitOfMeasurement,
                     NormalRangeMin = testType.NormalRangeMin,
                     NormalRangeMax = testType.NormalRangeMax,
@@ -488,6 +488,283 @@ namespace LabManager_UI.Controllers
             }
         }
 
+        // =========================
+        // SUPPLIER MANAGEMENT
+        // =========================
+
+        // GET: List of Suppliers
+        public async Task<IActionResult> Suppliers()
+        {
+            try
+            {
+                var suppliers = await _context.Suppliers
+                    .Include(s => s.Consumables)
+                    .Select(s => new SupplierViewModel
+                    {
+                        SupplierID = s.SupplierID,
+                        SupplierName = s.SupplierName,
+                        ContactPerson = s.ContactPerson,
+                        EmailAddress = s.EmailAddress,
+                        PhoneNumber = s.PhoneNumber,
+                        Address = s.Address,
+                        ConsumableCount = s.Consumables.Count,
+                        IsPreferred = s.IsPreferred,
+                        IsActive = s.IsActive
+                    })
+                    .OrderBy(s => s.SupplierName)
+                    .ToListAsync();
+
+                ViewBag.ManagerName = await _userService.GetCurrentUserNameAsync(User);
+                return View(suppliers);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading suppliers");
+                TempData["Error"] = "An error occurred loading suppliers.";
+                return View(new List<SupplierViewModel>());
+            }
+        }
+
+        // GET: Create Supplier
+        public IActionResult CreateSupplier()
+        {
+            ViewBag.ManagerName = GetCurrentUserName();
+            return View(new CreateSupplierViewModel());
+        }
+
+        // POST: Create Supplier
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateSupplier(CreateSupplierViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    // Check if supplier name already exists
+                    if (await _context.Suppliers.AnyAsync(s => s.SupplierName == model.SupplierName))
+                    {
+                        ModelState.AddModelError("SupplierName", "A supplier with this name already exists.");
+                        ViewBag.ManagerName = await _userService.GetCurrentUserNameAsync(User);
+                        return View(model);
+                    }
+
+                    var supplier = new Supplier
+                    {
+                        SupplierName = model.SupplierName,
+                        ContactPerson = model.ContactPerson,
+                        EmailAddress = model.EmailAddress,
+                        PhoneNumber = model.PhoneNumber,
+                        Address = model.Address,
+                        IsPreferred = model.IsPreferred,
+                        IsActive = true,
+                        CreatedAt = DateTime.Now
+                    };
+
+                    _context.Suppliers.Add(supplier);
+                    await _context.SaveChangesAsync();
+
+                    _logger.LogInformation($"User {await _userService.GetCurrentUserNameAsync(User)} created supplier: {supplier.SupplierName}");
+                    TempData["Success"] = $"Supplier '{supplier.SupplierName}' created successfully!";
+                    return RedirectToAction(nameof(Suppliers));
+                }
+                catch (DbUpdateException ex)
+                {
+                    if (ex.InnerException?.Message.Contains("IX_Supplier_Name_Unique") == true)
+                    {
+                        ModelState.AddModelError("SupplierName", "A supplier with this name already exists.");
+                    }
+                    else
+                    {
+                        _logger.LogError(ex, "Database error creating supplier");
+                        TempData["Error"] = "An error occurred while saving. Please try again.";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error creating supplier");
+                    TempData["Error"] = "An unexpected error occurred. Please try again.";
+                }
+            }
+
+            ViewBag.ManagerName = await _userService.GetCurrentUserNameAsync(User);
+            return View(model);
+        }
+
+        // GET: Edit Supplier
+        public async Task<IActionResult> EditSupplier(int id)
+        {
+            try
+            {
+                var supplier = await _context.Suppliers.FindAsync(id);
+                if (supplier == null)
+                    return NotFound();
+
+                var model = new EditSupplierViewModel
+                {
+                    SupplierID = supplier.SupplierID,
+                    SupplierName = supplier.SupplierName,
+                    ContactPerson = supplier.ContactPerson,
+                    EmailAddress = supplier.EmailAddress,
+                    PhoneNumber = supplier.PhoneNumber,
+                    Address = supplier.Address,
+                    IsPreferred = supplier.IsPreferred,
+                    IsActive = supplier.IsActive
+                };
+
+                ViewBag.ManagerName = await _userService.GetCurrentUserNameAsync(User);
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error loading edit supplier {id}");
+                TempData["Error"] = "An error occurred loading the supplier.";
+                return RedirectToAction(nameof(Suppliers));
+            }
+        }
+
+        // POST: Edit Supplier
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditSupplier(EditSupplierViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var supplier = await _context.Suppliers.FindAsync(model.SupplierID);
+                    if (supplier == null)
+                        return NotFound();
+
+                    // Check unique constraint
+                    if (await _context.Suppliers.AnyAsync(s => s.SupplierName == model.SupplierName && s.SupplierID != model.SupplierID))
+                    {
+                        ModelState.AddModelError("SupplierName", "A supplier with this name already exists.");
+                        ViewBag.ManagerName = await _userService.GetCurrentUserNameAsync(User);
+                        return View(model);
+                    }
+
+                    supplier.SupplierName = model.SupplierName;
+                    supplier.ContactPerson = model.ContactPerson;
+                    supplier.EmailAddress = model.EmailAddress;
+                    supplier.PhoneNumber = model.PhoneNumber;
+                    supplier.Address = model.Address;
+                    supplier.IsPreferred = model.IsPreferred;
+                    supplier.IsActive = model.IsActive;
+
+                    await _context.SaveChangesAsync();
+
+                    _logger.LogInformation($"User {await _userService.GetCurrentUserNameAsync(User)} updated supplier: {supplier.SupplierName}");
+                    TempData["Success"] = $"Supplier '{supplier.SupplierName}' updated successfully!";
+                    return RedirectToAction(nameof(Suppliers));
+                }
+                catch (DbUpdateException ex)
+                {
+                    if (ex.InnerException?.Message.Contains("IX_Supplier_Name_Unique") == true)
+                    {
+                        ModelState.AddModelError("SupplierName", "A supplier with this name already exists.");
+                    }
+                    else
+                    {
+                        _logger.LogError(ex, "Database error updating supplier");
+                        TempData["Error"] = "An error occurred while saving. Please try again.";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error updating supplier");
+                    TempData["Error"] = "An unexpected error occurred. Please try again.";
+                }
+            }
+
+            ViewBag.ManagerName = await _userService.GetCurrentUserNameAsync(User);
+            return View(model);
+        }
+
+        // GET: Supplier Details
+        public async Task<IActionResult> SupplierDetails(int id)
+        {
+            try
+            {
+                var supplier = await _context.Suppliers
+                    .Include(s => s.Consumables)
+                    .FirstOrDefaultAsync(s => s.SupplierID == id);
+
+                if (supplier == null)
+                    return NotFound();
+
+                var model = new SupplierDetailsViewModel
+                {
+                    SupplierID = supplier.SupplierID,
+                    SupplierName = supplier.SupplierName,
+                    ContactPerson = supplier.ContactPerson,
+                    EmailAddress = supplier.EmailAddress,
+                    PhoneNumber = supplier.PhoneNumber,
+                    Address = supplier.Address,
+                    IsPreferred = supplier.IsPreferred,
+                    IsActive = supplier.IsActive,
+                    CreatedAt = supplier.CreatedAt,
+                    ConsumableCount = supplier.Consumables.Count,
+                    Consumables = supplier.Consumables.Select(c => new ConsumableSummaryViewModel
+                    {
+                        ConsumableID = c.ConsumableID,
+                        ConsumableName = c.ConsumableName,
+                        QuantityOnHand = c.QuantityOnHand,
+                        ReorderLevel = c.ReorderLevel,
+                        UnitOfMeasure = c.UnitOfMeasure
+                    }).ToList()
+                };
+
+                ViewBag.ManagerName = await _userService.GetCurrentUserNameAsync(User);
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error loading supplier details {id}");
+                TempData["Error"] = "An error occurred loading supplier details.";
+                return RedirectToAction(nameof(Suppliers));
+            }
+        }
+
+        // POST: Delete/Deactivate Supplier
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteSupplier(int id)
+        {
+            try
+            {
+                var supplier = await _context.Suppliers
+                    .Include(s => s.Consumables)
+                    .FirstOrDefaultAsync(s => s.SupplierID == id);
+
+                if (supplier == null)
+                    return NotFound();
+
+                // Check if supplier has consumables
+                if (supplier.Consumables.Any())
+                {
+                    // Soft delete - deactivate instead
+                    supplier.IsActive = false;
+                    await _context.SaveChangesAsync();
+                    TempData["Success"] = $"Supplier '{supplier.SupplierName}' has been deactivated. It has existing consumables that cannot be deleted.";
+                }
+                else
+                {
+                    _context.Suppliers.Remove(supplier);
+                    await _context.SaveChangesAsync();
+                    TempData["Success"] = $"Supplier '{supplier.SupplierName}' deleted successfully!";
+                }
+
+                _logger.LogInformation($"User {await _userService.GetCurrentUserNameAsync(User)} deleted/deactivated supplier: {supplier.SupplierName}");
+                return RedirectToAction(nameof(Suppliers));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error deleting supplier {id}");
+                TempData["Error"] = "An error occurred deleting the supplier.";
+                return RedirectToAction(nameof(Suppliers));
+            }
+        }
         #region Consumable CRUD
         public async Task<IActionResult> CreateConsumable()
         {

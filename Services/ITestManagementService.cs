@@ -33,7 +33,7 @@ namespace NMB_HLabSys.Services
                 {
                     TestName = model.TestName,
                     CategoryID = model.CategoryID,
-                    SampleTypeId = model.SampleTypeID,
+                    SampleTypeID = model.SampleTypeID,
                     UnitOfMeasurement = model.UnitOfMeasurement,
                     NormalRangeMin = model.NormalRangeMin,
                     NormalRangeMax = model.NormalRangeMax,
@@ -107,7 +107,7 @@ namespace NMB_HLabSys.Services
                 // Update basic info
                 testType.TestName = model.TestName;
                 testType.CategoryID = model.CategoryID;
-                testType.SampleTypeId = model.SampleTypeID;
+                testType.SampleTypeID = model.SampleTypeID;
                 testType.UnitOfMeasurement = model.UnitOfMeasurement;
                 testType.NormalRangeMin = model.NormalRangeMin;
                 testType.NormalRangeMax = model.NormalRangeMax;

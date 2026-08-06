@@ -35,7 +35,7 @@ namespace NMB_HLabSys.Models
 
         public int? RelatedOrderID { get; set; }
 
-        public int? RelatedTestId { get; set; }
+        public int? RelatedTestID { get; set; }
 
         // Navigation properties
         [ForeignKey("ConsumableID")]

@@ -2,37 +2,551 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "System Settings";
     ViewData["RoleSubtitle"] = "Manager Portal";
-    ViewData["UserGreeting"] = "📊 Amanda Adams";
-    ViewData["UserInitials"] = "AA";
+
+    var mgrName = ViewBag.ManagerName as string;
+    var initials = "AA";
+    if (!string.IsNullOrEmpty(mgrName))
+    {
+        var parts = mgrName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        initials = string.Concat(parts.Select(p => p[0]));
+    }
+    ViewData["UserGreeting"] = $"Manager: {mgrName ?? "Amanda Adams"}";
+    ViewData["UserInitials"] = initials;
 }
+
+@model NMB_HLabSys.Models.ViewModels.SettingsIndexViewModel
+@using NMB_HLabSys.Models.ViewModels
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Manager")">📈 Overview</a></li>
-    <li><a href="@Url.Action("Settings", "Manager")" class="active">⚙️ Settings</a></li>
+    <li><a href="@Url.Action("Dashboard", "Manager")">Overview</a></li>
+    <li><a href="@Url.Action("TestCatalogue", "Manager")">Test Catalogue</a></li>
+    <li><a href="@Url.Action("StockManagement", "Manager")">Stock and Orders</a></li>
+    <li><a href="@Url.Action("Suppliers", "Manager")">Suppliers</a></li>
+    <li><a href="@Url.Action("StaffManagement", "Manager")">Staff Management</a></li>
+    <li><a href="@Url.Action("Reports", "Manager")">Reports</a></li>
+    <li><a href="@Url.Action("Settings", "Manager")" class="active">Settings</a></li>
 }
 
-<div class="card-modern">
-    <h3>⚙️ Laboratory Settings</h3>
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
 
-    <div class="grid-2col" style="margin-top:1rem;">
-        <div class="form-group">
-            <label>Default Reorder Threshold</label>
-            <input type="number" class="form-control" value="50">
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
+
+<div class="settings-container">
+    <!-- Profile Settings -->
+    <div class="card-modern">
+        <div class="card-header-flex">
+            <h3>Profile Settings</h3>
         </div>
+        <form method="post" action="@Url.Action("UpdateProfile", "Manager")">
+            @Html.AntiForgeryToken()
 
-        <div class="form-group">
-            <label>Notification Email</label>
-            <input type="email" class="form-control" value="admin@nmblab.com">
+            <div class="grid-2col">
+                <div class="form-group">
+                    <label asp-for="Profile.Name">First Name <span class="required">*</span></label>
+                    <input asp-for="Profile.Name" class="form-control" placeholder="Enter first name" />
+                    <span asp-validation-for="Profile.Name" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Profile.Surname">Surname <span class="required">*</span></label>
+                    <input asp-for="Profile.Surname" class="form-control" placeholder="Enter surname" />
+                    <span asp-validation-for="Profile.Surname" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="grid-2col">
+                <div class="form-group">
+                    <label asp-for="Profile.Email">Email Address <span class="required">*</span></label>
+                    <input asp-for="Profile.Email" class="form-control" placeholder="Enter email" type="email" />
+                    <span asp-validation-for="Profile.Email" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Profile.ContactNumber">Contact Number</label>
+                    <input asp-for="Profile.ContactNumber" class="form-control" placeholder="Enter contact number" />
+                    <span asp-validation-for="Profile.ContactNumber" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-sm-lab">Update Profile</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Security Settings -->
+    <div class="card-modern">
+        <div class="card-header-flex">
+            <h3>Security Settings</h3>
+        </div>
+        <form method="post" action="@Url.Action("ChangePassword", "Manager")">
+            @Html.AntiForgeryToken()
+
+            <div class="grid-2col">
+                <div class="form-group">
+                    <label asp-for="Security.ChangePassword.CurrentPassword">Current Password <span class="required">*</span></label>
+                    <input asp-for="Security.ChangePassword.CurrentPassword" class="form-control" placeholder="Enter current password" type="password" />
+                    <span asp-validation-for="Security.ChangePassword.CurrentPassword" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="grid-2col">
+                <div class="form-group">
+                    <label asp-for="Security.ChangePassword.NewPassword">New Password <span class="required">*</span></label>
+                    <input asp-for="Security.ChangePassword.NewPassword" class="form-control" placeholder="Enter new password" type="password" />
+                    <span asp-validation-for="Security.ChangePassword.NewPassword" class="text-danger"></span>
+                    <small class="text-muted">Min 8 characters, 1 uppercase, 1 number, 1 special character</small>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Security.ChangePassword.ConfirmNewPassword">Confirm New Password <span class="required">*</span></label>
+                    <input asp-for="Security.ChangePassword.ConfirmNewPassword" class="form-control" placeholder="Confirm new password" type="password" />
+                    <span asp-validation-for="Security.ChangePassword.ConfirmNewPassword" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="grid-2col">
+                <div class="form-group">
+                    <label>
+                        <input asp-for="Security.TwoFactorEnabled" /> Two-Factor Authentication
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input asp-for="Security.NotifyOnNewLogin" /> Notify on New Login
+                    </label>
+                </div>
+            </div>
+
+            <div class="grid-2col">
+                <div class="form-group">
+                    <label asp-for="Security.SessionTimeout">Session Timeout (minutes)</label>
+                    <input asp-for="Security.SessionTimeout" class="form-control" type="number" min="5" max="120" />
+                    <span asp-validation-for="Security.SessionTimeout" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Security.PasswordExpiryDays">Password Expiry (days)</label>
+                    <input asp-for="Security.PasswordExpiryDays" class="form-control" type="number" min="0" max="365" />
+                    <span asp-validation-for="Security.PasswordExpiryDays" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-sm-lab">Update Security Settings</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Notification Settings -->
+    <div class="card-modern">
+        <div class="card-header-flex">
+            <h3>Notification Settings</h3>
+        </div>
+        <form method="post" action="@Url.Action("UpdateNotifications", "Manager")">
+            @Html.AntiForgeryToken()
+
+            <div class="grid-2col">
+                <div class="form-group">
+                    <label>
+                        <input asp-for="Notifications.EmailNotifications" /> Email Notifications
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input asp-for="Notifications.LowStockAlerts" /> Low Stock Alerts
+                    </label>
+                </div>
+            </div>
+
+            <div class="grid-2col">
+                <div class="form-group">
+                    <label>
+                        <input asp-for="Notifications.OrderStatusUpdates" /> Order Status Updates
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input asp-for="Notifications.TestVerificationAlerts" /> Test Verification Alerts
+                    </label>
+                </div>
+            </div>
+
+            <div class="grid-2col">
+                <div class="form-group">
+                    <label asp-for="Notifications.AlertThresholdDays">Alert Threshold (days)</label>
+                    <input asp-for="Notifications.AlertThresholdDays" class="form-control" type="number" min="1" max="30" />
+                    <span asp-validation-for="Notifications.AlertThresholdDays" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Notifications.AlertFrequency">Alert Frequency</label>
+                    <select asp-for="Notifications.AlertFrequency" class="form-control">
+                        <option value="Daily">Daily</option>
+                        <option value="Weekly">Weekly</option>
+                        <option value="Immediate">Immediate</option>
+                    </select>
+                    <span asp-validation-for="Notifications.AlertFrequency" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-sm-lab">Update Notification Settings</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- System Settings -->
+    <div class="card-modern">
+        <div class="card-header-flex">
+            <h3>System Settings</h3>
+        </div>
+        <form method="post" action="@Url.Action("UpdateSystemSettings", "Manager")">
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label asp-for="System.LaboratoryName">Laboratory Name</label>
+                <input asp-for="System.LaboratoryName" class="form-control" placeholder="Enter laboratory name" />
+                <span asp-validation-for="System.LaboratoryName" class="text-danger"></span>
+            </div>
+
+            <div class="grid-2col">
+                <div class="form-group">
+                    <label asp-for="System.DefaultTurnaroundTime">Default Turnaround Time (hours)</label>
+                    <input asp-for="System.DefaultTurnaroundTime" class="form-control" type="number" min="1" max="72" />
+                    <span asp-validation-for="System.DefaultTurnaroundTime" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="System.ResultsRetentionPeriod">Results Retention Period (years)</label>
+                    <input asp-for="System.ResultsRetentionPeriod" class="form-control" type="number" min="1" max="10" />
+                    <span asp-validation-for="System.ResultsRetentionPeriod" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="grid-2col">
+                <div class="form-group">
+                    <label asp-for="System.MaxFailedLoginAttempts">Maximum Failed Login Attempts</label>
+                    <input asp-for="System.MaxFailedLoginAttempts" class="form-control" type="number" min="3" max="10" />
+                    <span asp-validation-for="System.MaxFailedLoginAttempts" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="System.AccountLockoutDuration">Account Lockout Duration (minutes)</label>
+                    <input asp-for="System.AccountLockoutDuration" class="form-control" type="number" min="5" max="60" />
+                    <span asp-validation-for="System.AccountLockoutDuration" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="grid-2col">
+                <div class="form-group">
+                    <label>
+                        <input asp-for="System.AutoVerifyNormalResults" /> Auto-Verify Normal Results
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input asp-for="System.EnableAuditLogging" /> Enable Audit Logging
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-sm-lab">Save System Settings</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Recent Audit Logs -->
+    <div class="card-modern">
+        <div class="card-header-flex">
+            <h3>Recent Audit Logs</h3>
+            <button class="btn-outline-lab" onclick="viewAllAuditLogs()">View All</button>
+        </div>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Description</th>
+                        <th>Timestamp</th>
+                        <th>IP Address</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.RecentAuditLogs != null && Model.RecentAuditLogs.Any())
+                    {
+                        foreach (var log in Model.RecentAuditLogs)
+                        {
+                            <tr>
+                                <td>@log.UserName</td>
+                                <td>@log.Action</td>
+                                <td>@log.Description</td>
+                                <td>@log.Timestamp.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@log.IPAddress</td>
+                                <td>
+                                    <span class="badge @(log.Status == "Success" ? "badge-completed" : "badge-critical")">
+                                        @log.Status
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" style="text-align:center; color:#5A6E7A;">No audit logs found</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
-
-    <div class="form-group">
-        <label><input type="checkbox" checked> Enable Low Stock Alerts</label>
-    </div>
-
-    <div class="form-group">
-        <label><input type="checkbox" checked> Enable Email Notifications</label>
-    </div>
-
-    <button class="btn-sm-lab">Save Settings</button>
 </div>
+
+<style>
+    .settings-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .card-modern {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #E2E8F0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .card-header-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 1px solid #E2E8F0;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+        .card-header-flex h3 {
+            color: #032C7D;
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+    .grid-2col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 0.8rem;
+    }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #032C7D;
+            margin-bottom: 0.3rem;
+        }
+
+    .required {
+        color: #E26D5C;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.6rem 0.8rem;
+        border: 1px solid #E2E8F0;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
+        background: white;
+    }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #0841C9;
+            box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
+        }
+
+        .form-control[type="checkbox"] {
+            width: auto;
+            margin-right: 0.5rem;
+        }
+
+    .text-danger {
+        color: #991B1B;
+        font-size: 0.75rem;
+        display: block;
+        margin-top: 0.2rem;
+    }
+
+    .text-muted {
+        color: #5A6E7A;
+        font-size: 0.7rem;
+        display: block;
+        margin-top: 0.2rem;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #E2E8F0;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .data-table th, .data-table td {
+            padding: 0.6rem 0.4rem;
+            text-align: left;
+            border-bottom: 1px solid #E2E8F0;
+            font-size: 0.8rem;
+        }
+
+        .data-table th {
+            background: #F8FAFE;
+            font-weight: 600;
+            color: #5A6E7A;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+    .badge-completed {
+        background: #2C8C6E;
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 600;
+    }
+
+    .badge-critical {
+        background: #E26D5C;
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 600;
+    }
+
+    .btn-sm-lab {
+        background: linear-gradient(135deg, #0841C9, #1D97F1);
+        color: white;
+        border: none;
+        padding: 0.6rem 1.5rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
+    }
+
+        .btn-sm-lab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(8,65,201,0.3);
+        }
+
+    .btn-outline-lab {
+        background: transparent;
+        color: #032C7D;
+        border: 1px solid #E2E8F0;
+        padding: 0.6rem 1.5rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .btn-outline-lab:hover {
+            background: #F8FAFE;
+            text-decoration: none;
+            color: #032C7D;
+        }
+
+    .alert {
+        padding: 0.8rem 1rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .alert-success {
+        background: #D1FAE5;
+        color: #065F46;
+        border-left: 4px solid #10B981;
+    }
+
+    .alert-danger {
+        background: #FEE2E2;
+        color: #991B1B;
+        border-left: 4px solid #EF4444;
+    }
+
+    @@media (max-width: 768px) {
+        .grid-2col {
+            grid-template-columns: 1fr;
+        }
+
+        .card-header-flex {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+            .form-actions button {
+                width: 100%;
+                justify-content: center;
+            }
+    }
+</style>
+
+<script>
+    function viewAllAuditLogs() {
+        alert('Viewing all audit logs...');
+    }
+</script>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

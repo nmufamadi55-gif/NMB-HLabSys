@@ -1,4 +1,6 @@
-﻿@{
+﻿@model NMB_HLabSys.ViewModels.LoginViewModel
+
+@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -6,7 +8,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NMB-HLabSys | Haematology Lab System</title>
+    <title>Login - NMB-HLabSys</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -22,17 +24,8 @@
             --primary-light: #1D97F1;
             --primary-dark: #020D2F;
             --primary-soft: #C4C7F2;
-            --bg-soft: #F0F4F8;
-            --card-white: #FFFFFF;
-            --text-dark: #1A2C3A;
             --text-muted: #5A6E7A;
             --border-light: #E2E8F0;
-            --success: #10B981;
-            --warning: #F59E0B;
-            --error: #EF4444;
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
             --radius-card: 24px;
             --radius-element: 12px;
         }
@@ -41,129 +34,80 @@
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-deep) 50%, var(--primary-bright) 100%);
             min-height: 100vh;
-            color: var(--text-dark);
-        }
-
-        /* Landing Wrapper */
-        .landing-wrapper {
-            min-height: 100vh;
-            position: relative;
-            overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .landing-bg-pattern {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.05"><path fill="white" d="M20,20 L30,20 L25,30 Z M70,70 L80,70 L75,80 Z M45,45 L55,45 L50,55 Z"/><circle cx="80" cy="20" r="5"/><circle cx="15" cy="85" r="8"/></svg>');
-            background-repeat: repeat;
-            pointer-events: none;
-        }
-
-        /* Navigation */
-        .landing-nav {
-            background: rgba(2, 13, 47, 0.8);
-            backdrop-filter: blur(12px);
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .nav-container {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #FFFFFF, var(--primary-soft));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        /* Hero Section */
-        .hero-section {
-            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 6rem 2rem 3rem;
-            position: relative;
+            padding: 20px;
         }
 
-        .hero-content {
-            max-width: 550px;
+        .login-wrapper {
             width: 100%;
-            z-index: 2;
-            margin: 0 auto;
+            max-width: 440px;
         }
 
-        .hero-badge {
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(4px);
-            padding: 0.5rem 1.2rem;
-            border-radius: 60px;
-            display: inline-block;
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: var(--primary-soft);
-            margin-bottom: 1.5rem;
-            text-align: center;
-            width: 100%;
+        .login-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: var(--radius-card);
+            padding: 2.5rem 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 0.6s ease-out;
         }
 
-        .hero-content h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #FFFFFF, var(--primary-light));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 1rem;
-            text-align: center;
+        keyframes fadeInUp {
+            from
+
+        {
+            opacity: 0;
+            transform: translateY(30px);
         }
 
-        .hero-content > p {
-            font-size: 1rem;
-            color: rgba(255,255,255,0.8);
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        }
+
+        .login-header {
             text-align: center;
             margin-bottom: 2rem;
         }
 
-        /* Login Card */
-        .login-card {
-            background: rgba(255,255,255,0.98);
-            backdrop-filter: blur(12px);
-            border-radius: var(--radius-card);
-            padding: 2rem;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid rgba(255,255,255,0.3);
-        }
-
-            .login-card h3 {
-                color: var(--primary-deep);
-                font-size: 1.4rem;
-                margin-bottom: 0.5rem;
-                text-align: center;
+            .login-header .logo-icon {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 64px;
+                height: 64px;
+                background: linear-gradient(135deg, var(--primary-deep), var(--primary-bright));
+                border-radius: 50%;
+                color: white;
+                font-size: 1.8rem;
+                margin-bottom: 0.8rem;
             }
 
-            .login-card .subtitle {
-                text-align: center;
+            .login-header h1 {
+                font-size: 1.4rem;
+                font-weight: 700;
+                color: var(--primary-deep);
+            }
+
+            .login-header p {
                 color: var(--text-muted);
                 font-size: 0.85rem;
-                margin-bottom: 1.5rem;
+                margin-top: 0.2rem;
             }
+
+        .login-badge {
+            background: rgba(8, 65, 201, 0.08);
+            padding: 0.3rem 1rem;
+            border-radius: 60px;
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--primary-bright);
+            margin-bottom: 0.5rem;
+        }
 
         .form-group {
             margin-bottom: 1.2rem;
@@ -173,8 +117,8 @@
                 display: block;
                 font-size: 0.8rem;
                 font-weight: 500;
-                margin-bottom: 0.4rem;
                 color: var(--primary-deep);
+                margin-bottom: 0.3rem;
             }
 
         .input-with-icon {
@@ -183,7 +127,7 @@
 
             .input-with-icon i {
                 position: absolute;
-                left: 12px;
+                left: 14px;
                 top: 50%;
                 transform: translateY(-50%);
                 color: var(--text-muted);
@@ -192,17 +136,19 @@
 
             .input-with-icon input {
                 width: 100%;
-                padding: 0.8rem 0.8rem 0.8rem 2.5rem;
+                padding: 0.75rem 0.75rem 0.75rem 2.8rem;
                 border: 1px solid var(--border-light);
                 border-radius: var(--radius-element);
                 font-size: 0.9rem;
+                font-family: 'Inter', sans-serif;
                 transition: all 0.2s;
+                background: white;
             }
 
                 .input-with-icon input:focus {
                     outline: none;
                     border-color: var(--primary-bright);
-                    box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
+                    box-shadow: 0 0 0 3px rgba(8, 65, 201, 0.1);
                 }
 
         .password-wrapper {
@@ -210,31 +156,51 @@
         }
 
             .password-wrapper input {
-                padding-right: 2.5rem;
+                padding-right: 2.8rem;
             }
 
         .toggle-password {
             position: absolute;
-            right: 12px;
+            right: 14px;
             top: 50%;
             transform: translateY(-50%);
             background: none;
             border: none;
             cursor: pointer;
             color: var(--text-muted);
+            font-size: 1rem;
         }
+
+            .toggle-password:hover {
+                color: var(--primary-bright);
+            }
 
         .login-options {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.2rem;
-            font-size: 0.75rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.8rem;
         }
+
+            .login-options label {
+                display: flex;
+                align-items: center;
+                gap: 0.4rem;
+                color: var(--text-muted);
+                cursor: pointer;
+            }
+
+            .login-options input[type="checkbox"] {
+                accent-color: var(--primary-bright);
+                width: 16px;
+                height: 16px;
+            }
 
         .forgot-link {
             color: var(--primary-bright);
             text-decoration: none;
+            font-weight: 500;
         }
 
             .forgot-link:hover {
@@ -252,200 +218,170 @@
             cursor: pointer;
             transition: all 0.2s;
             font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
         }
 
             .btn-login:hover {
                 transform: translateY(-2px);
-                box-shadow: var(--shadow-md);
+                box-shadow: 0 4px 16px rgba(8, 65, 201, 0.35);
             }
 
-        .error-message {
-            background: #FEE2E2;
-            color: #991B1B;
-            padding: 0.6rem;
-            border-radius: 10px;
-            font-size: 0.75rem;
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-
-        /* Quick Access Section */
-        .quick-access-section {
-            margin-top: 2rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .quick-access-title {
-            text-align: center;
-            color: rgba(255,255,255,0.8);
+        .alert {
+            padding: 0.7rem 1rem;
+            border-radius: var(--radius-element);
             font-size: 0.85rem;
-            margin-bottom: 1rem;
-        }
-
-        .role-buttons {
+            margin-bottom: 1.2rem;
             display: flex;
-            justify-content: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .role-btn {
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(255,255,255,0.2);
-            padding: 0.6rem 1.2rem;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            color: white;
-            text-decoration: none;
         }
 
-            .role-btn i {
-                font-size: 1rem;
-            }
+        .alert-success {
+            background: #D1FAE5;
+            color: #065F46;
+            border-left: 4px solid #10B981;
+        }
 
-            .role-btn:hover {
-                background: rgba(255,255,255,0.25);
-                transform: translateY(-2px);
-            }
+        .alert-danger {
+            background: #FEE2E2;
+            color: #991B1B;
+            border-left: 4px solid #EF4444;
+        }
 
-        /* Footer */
-        footer {
-            text-align: center;
-            padding: 1.5rem;
-            color: rgba(255,255,255,0.6);
+        .text-danger {
+            color: #991B1B;
             font-size: 0.75rem;
+            display: block;
+            margin-top: 0.2rem;
         }
 
-        media (max-width: 768px) {
-            .hero-section
+        .login-footer {
+            margin-top: 1.5rem;
+            padding-top: 1.2rem;
+            border-top: 1px solid var(--border-light);
+            text-align: center;
+        }
+
+            .login-footer p {
+                font-size: 0.75rem;
+                color: var(--text-muted);
+            }
+
+            .login-footer a {
+                color: var(--primary-bright);
+                text-decoration: none;
+            }
+
+                .login-footer a:hover {
+                    text-decoration: underline;
+                }
+
+        .demo-hint {
+            background: #F8FAFE;
+            padding: 0.5rem;
+            border-radius: var(--radius-element);
+            margin-top: 0.5rem;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+            .demo-hint code {
+                background: white;
+                padding: 0.1rem 0.4rem;
+                border-radius: 4px;
+                font-size: 0.65rem;
+                color: var(--primary-deep);
+            }
+
+        media (max-width: 480px) {
+            .login-card
 
         {
-            padding: 5rem 1rem 2rem;
-        }
-
-        .hero-content h1 {
-            font-size: 1.8rem;
-        }
-
-        .role-buttons {
-            gap: 0.6rem;
-        }
-
-        .role-btn {
-            padding: 0.4rem 0.8rem;
-            font-size: 0.75rem;
+            padding: 1.5rem;
         }
 
         }
     </style>
 </head>
 <body>
-    <div class="landing-wrapper">
-        <div class="landing-bg-pattern"></div>
-
-        <!-- Navigation -->
-        <nav class="landing-nav">
-            <div class="nav-container">
-                <div class="logo"><h1><i class="fas fa-microscope"></i> NMB-HLabSys</h1></div>
+    <div class="login-wrapper">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo-icon">
+                    <i class="fas fa-microscope"></i>
+                </div>
+                <span class="login-badge">
+                    <i class="fas fa-heartbeat"></i> UN SDG 3
+                </span>
+                <h1>NMB-HLabSys</h1>
+                <p>Haematology Laboratory System</p>
             </div>
-        </nav>
 
-        <!-- Hero Section -->
-        <div class="hero-section">
-            <div class="hero-content">
-                <div class="hero-badge">
-                    <i class="fas fa-heartbeat"></i> UN SDG 3 · Good Health & Well-Being
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> @TempData["Success"]
                 </div>
-                <h1>Nelson Mandela Bay<br>Haematology Laboratory</h1>
-                <p>Intelligent Test Request Management · Real-time Results · Patient Empowerment</p>
+            }
 
-                <!-- Login Card -->
-                <div class="login-card">
-                    <h3><i class="fas fa-lock"></i> Secure Access</h3>
-                    <div class="subtitle">Enter your credentials to access the laboratory system</div>
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
+                </div>
+            }
 
-                    <!-- Error Message Display -->
-                    <div id="errorMessage" class="error-message" style="display: none;"></div>
+            <form asp-action="Index" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="ReturnUrl" value="@ViewData["ReturnUrl"]" />
 
-                    <form id="loginForm" onsubmit="return handleLogin(event)">
-                        <div class="form-group">
-                            <label>Email Address (Username)</label>
-                            <div class="input-with-icon">
-                                <i class="fas fa-envelope"></i>
-                                <input type="email" id="loginEmail" placeholder="doctor@nmblab.com" value="doctor@nmblab.com" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Password</label>
-                            <div class="input-with-icon password-wrapper">
-                                <i class="fas fa-lock"></i>
-                                <input type="password" id="loginPassword" placeholder="Enter your password" value="password123" required>
-                                <button type="button" class="toggle-password" onclick="togglePassword()">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="login-options">
-                            <label style="display: flex; align-items: center; gap: 0.3rem;">
-                                <input type="checkbox"> Remember me
-                            </label>
-                            <a href="#" class="forgot-link" onclick="alert('📧 Password reset link would be sent to your email. Demo: Use any password to login.')">Forgot password?</a>
-                        </div>
-                        <button type="submit" class="btn-login">
-                            <i class="fas fa-sign-in-alt"></i> Login
+                <div class="form-group">
+                    <label asp-for="Email">Email Address</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-envelope"></i>
+                        <input asp-for="Email" placeholder="Enter your email" autofocus />
+                    </div>
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Password">Password</label>
+                    <div class="input-with-icon password-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input asp-for="Password" placeholder="Enter your password" id="loginPassword" />
+                        <button type="button" class="toggle-password" onclick="togglePassword()">
+                            <i class="fas fa-eye"></i>
                         </button>
-                    </form>
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger"></span>
                 </div>
 
-                <!-- Quick Access Section (Buttons at bottom) -->
-                <div class="quick-access-section">
-                    <div class="quick-access-title">
-                        <i class="fas fa-bolt"></i> Quick Demo Access (No login required)
-                    </div>
-                    <div class="role-buttons">
-                        <a href="@Url.Action("Dashboard", "Doctor")" class="role-btn">
-                            <i class="fas fa-user-md"></i> Doctor
-                        </a>
-                        <a href="@Url.Action("Dashboard", "Technician")" class="role-btn">
-                            <i class="fas fa-flask"></i> Technician
-                        </a>
-                        <a href="@Url.Action("Dashboard", "Manager")" class="role-btn">
-                            <i class="fas fa-chart-line"></i> Manager
-                        </a>
-                        <a href="@Url.Action("Dashboard", "Patient")" class="role-btn">
-                            <i class="fas fa-user-injured"></i> Patient
-                        </a>
-                        <a href="@Url.Action("Dashboard", "Admin")" class="role-btn">
-                            <i class="fas fa-cogs"></i> Admin
-                        </a>
-                    </div>
+                <div class="login-options">
+                    <label>
+                        <input asp-for="RememberMe" /> Remember me
+                    </label>
+                    <a asp-action="ForgotPassword" class="forgot-link">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="btn-login">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+            </form>
+
+            <div class="login-footer">
+                <p>
+                    <i class="fas fa-info-circle"></i> Need help?
+                    <a href="mailto:support@nmblab.co.za">support@nmblab.co.za</a>
+                </p>
+                <div class="demo-hint">
+                    <i class="fas fa-flask"></i> Demo:
+                    <code>manager@nmblab.com</code> · <code>doctor@nmblab.com</code> · <code>technician@nmblab.com</code>
                 </div>
             </div>
         </div>
-
-        <footer>
-            <p>© 2025 Nelson Mandela Bay Haematology Diagnostic Laboratories | Aligned with UN SDG 3: Good Health and Well-Being</p>
-        </footer>
     </div>
 
     <script>
-        // Mock user database for login
-        const mockUsers = [
-            { email: "doctor@nmblab.com", role: "Doctor", name: "Dr. Sarah Johnson" },
-            { email: "technician@nmblab.com", role: "Technician", name: "Michael Peters" },
-            { email: "manager@nmblab.com", role: "Manager", name: "Amanda Adams" },
-            { email: "patient@nmblab.com", role: "Patient", name: "Thabo Mbeki" },
-            { email: "admin@nmblab.com", role: "Admin", name: "Admin User" }
-        ];
-
         function togglePassword() {
             var passwordInput = document.getElementById('loginPassword');
             var toggleIcon = document.querySelector('.toggle-password i');
@@ -459,58 +395,10 @@
                 toggleIcon.classList.add('fa-eye');
             }
         }
-
-        function handleLogin(event) {
-            event.preventDefault();
-
-            var email = document.getElementById('loginEmail').value.trim();
-            var password = document.getElementById('loginPassword').value;
-            var errorDiv = document.getElementById('errorMessage');
-
-            // Find user by email
-            var user = mockUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
-
-            if (user) {
-                // Successful login - redirect to appropriate dashboard
-                var redirectUrl = '';
-                switch(user.role) {
-                    case 'Doctor':
-                        redirectUrl = '@Url.Action("Dashboard", "Doctor")';
-                        break;
-                    case 'Technician':
-                        redirectUrl = '@Url.Action("Dashboard", "Technician")';
-                        break;
-                    case 'Manager':
-                        redirectUrl = '@Url.Action("Dashboard", "Manager")';
-                        break;
-                    case 'Patient':
-                        redirectUrl = '@Url.Action("Dashboard", "Patient")';
-                        break;
-                    case 'Admin':
-                        redirectUrl = '@Url.Action("Dashboard", "Admin")';
-                        break;
-                    default:
-                        redirectUrl = '@Url.Action("Dashboard", "Doctor")';
-                }
-
-                // Store user info in sessionStorage for demo
-                sessionStorage.setItem('userEmail', user.email);
-                sessionStorage.setItem('userRole', user.role);
-                sessionStorage.setItem('userName', user.name);
-
-                // Redirect
-                window.location.href = redirectUrl;
-            } else {
-                // Show error
-                errorDiv.style.display = 'block';
-                errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Invalid email or password. Use doctor@nmblab.com, technician@nmblab.com, manager@nmblab.com, patient@nmblab.com, or admin@nmblab.com';
-            }
-
-            return false;
-        }
-
-        // Demo credentials hint on page load
-        console.log('Demo Credentials: doctor@nmblab.com, technician@nmblab.com, manager@nmblab.com, patient@nmblab.com, admin@nmblab.com');
     </script>
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 </body>
 </html>
