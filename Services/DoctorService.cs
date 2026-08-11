@@ -197,7 +197,7 @@ namespace NMB_HLabSys.Services
                     var sample = new Sample
                     {
                         RequestID = testRequest.RequestID,
-                        SampleTypeID = testType.SampleTypeId,
+                        SampleTypeID = testType.SampleTypeID,
                         Barcode = barcodes[i],
                         Status = "Pending"
                     };

@@ -33,7 +33,7 @@ namespace NMB_HLabSys.Data
         public DbSet<StockAdjustmentLog> StockAdjustmentLogs { get; set; }
 
         //Doctor Management
-        public DbSet<Patient> Patients { get; set; }
+        //public DbSet<Patient> Patients { get; set; }
         public DbSet<TestRequest> TestRequests { get; set; }
         public DbSet<RequestTestType> RequestTestTypes { get; set; }
         public DbSet<TestResult> TestResults { get; set; }
