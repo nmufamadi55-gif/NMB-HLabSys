@@ -32,6 +32,21 @@ namespace NMB_HLabSys.Data
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<StockAdjustmentLog> StockAdjustmentLogs { get; set; }
 
+        //Doctor Management
+        public DbSet<Patient> Patients { get; set; }
+        public DbSet<TestRequest> TestRequests { get; set; }
+        public DbSet<RequestTestType> RequestTestTypes { get; set; }
+        public DbSet<TestResult> TestResults { get; set; }
+        public DbSet<TestVerification> TestVerifications { get; set; }
+        public DbSet<Sample> Samples { get; set; }
+        public DbSet<ConsentTestRequestAccess> ConsentTestRequestAccesses { get; set; }
+
+        //Patient management
+        public DbSet<PatientCondition> PatientConditions { get; set; }
+        public DbSet<PatientAllergy> PatientAllergies { get; set; }
+        public DbSet<PatientMedication> PatientMedications { get; set; }
+
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -49,9 +64,7 @@ namespace NMB_HLabSys.Data
                 .IsUnique()
                 .HasDatabaseName("IX_TestConsumable_Unique");
 
-            // =========================
-            // UNIQUE CONSTRAINTS
-            // =========================
+            // Unique constraints
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Email)
                 .IsUnique()
@@ -309,6 +322,24 @@ namespace NMB_HLabSys.Data
             modelBuilder.Entity<TechnicianTestAssignment>()
                 .Property(t => t.IsActive)
                 .HasDefaultValue(true);
+
+            //Doctor related
+
+            modelBuilder.Entity<TestRequest>()
+           .HasIndex(t => t.RequestNumber)
+           .IsUnique();
+
+            modelBuilder.Entity<Sample>()
+                .HasIndex(s => s.Barcode)
+                .IsUnique();
+
+            modelBuilder.Entity<RequestTestType>()
+                .Property(r => r.Status)
+                .HasDefaultValue("Submitted");
+
+            modelBuilder.Entity<TestRequest>()
+                .Property(t => t.RequestDate)
+                .HasDefaultValueSql("GETDATE()");
         }
     }
 }

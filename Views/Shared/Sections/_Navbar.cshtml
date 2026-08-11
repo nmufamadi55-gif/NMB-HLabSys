@@ -1,0 +1,346 @@
+﻿<nav class="landing-nav" id="mainNav">
+    <div class="nav-container">
+        <a href="#" class="logo">
+            <div class="logo-icon"><i class="fas fa-microscope"></i></div>
+            <h1>NMB-HLabSys <span>v2.0</span></h1>
+        </a>
+        <div class="nav-links">
+            <a href="#about" data-section="about">About</a>
+            <a href="#services" data-section="services">Services</a>
+            <a href="#features" data-section="features">Why Us</a>
+            <a href="#contact" data-section="contact">Contact</a>
+            <!-- Login & Register grouped for desktop -->
+            <div class="auth-buttons">
+                <a href="#auth" class="nav-login">Login</a>
+                <a href="#auth" class="nav-register">Register</a>
+            </div>
+        </div>
+        <button class="nav-hamburger" id="hamburger" aria-label="Toggle menu">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+    <div class="mobile-nav" id="mobileNav">
+        <a href="#about">About</a>
+        <a href="#services">Services</a>
+        <a href="#features">Why Us</a>
+        <a href="#contact">Contact</a>
+        <!-- Mobile dropdown with Login & Register as separate items -->
+        <div class="mobile-auth-buttons">
+            <a href="#auth" class="mobile-login">Login</a>
+            <a href="#auth" class="mobile-register">Register</a>
+        </div>
+    </div>
+</nav>
+
+<style>
+    /* ─── NAV LINK BASE ─── */
+    .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+        .nav-links a:not(.nav-login):not(.nav-register) {
+            color: rgba(255, 255, 255, 0.75);
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            padding: 0.5rem 0.8rem;
+            border-radius: 8px;
+            letter-spacing: 0.01em;
+        }
+
+            .nav-links a:not(.nav-login):not(.nav-register)::after {
+                content: '';
+                position: absolute;
+                bottom: 2px;
+                left: 50%;
+                width: 0;
+                height: 2px;
+                background: var(--primary-light);
+                border-radius: 4px;
+                transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                transform: translateX(-50%);
+            }
+
+            .nav-links a:not(.nav-login):not(.nav-register):hover {
+                color: #fff;
+                background: rgba(255, 255, 255, 0.06);
+            }
+
+                .nav-links a:not(.nav-login):not(.nav-register):hover::after {
+                    width: 60%;
+                }
+
+            .nav-links a:not(.nav-login):not(.nav-register).active {
+                color: #fff;
+                background: rgba(255, 255, 255, 0.08);
+            }
+
+                .nav-links a:not(.nav-login):not(.nav-register).active::after {
+                    width: 60%;
+                }
+
+    /* ─── AUTH BUTTONS GROUP ─── */
+    .auth-buttons {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-left: 0.5rem;
+    }
+
+    /* ─── LOGIN BUTTON (Outlined) ─── */
+    .nav-login {
+        background: transparent !important;
+        color: rgba(255, 255, 255, 0.9) !important;
+        padding: 0.5rem 1.4rem !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.3);
+        border-radius: 10px !important;
+        font-weight: 600 !important;
+        font-size: 0.78rem !important;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+        position: relative;
+        overflow: hidden;
+        letter-spacing: 0.02em;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .nav-login::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        .nav-login:hover {
+            border-color: rgba(255, 255, 255, 0.8) !important;
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 32px rgba(255, 255, 255, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            color: #fff !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+        }
+
+            .nav-login:hover::before {
+                opacity: 1;
+            }
+
+        .nav-login::after {
+            display: none !important;
+        }
+
+        .nav-login.active {
+            border-color: rgba(255, 255, 255, 0.6) !important;
+            background: rgba(255, 255, 255, 0.06) !important;
+        }
+
+    /* ─── REGISTER BUTTON (Blue Gradient) ─── */
+    .nav-register {
+        background: linear-gradient(135deg, var(--primary-bright), var(--primary-light)) !important;
+        color: #fff !important;
+        padding: 0.65rem 2rem !important;
+        border-radius: 12px !important;
+        font-weight: 700 !important;
+        font-size: 0.82rem !important;
+        box-shadow: 0 4px 20px rgba(8, 65, 201, 0.35);
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+        position: relative;
+        overflow: hidden;
+        letter-spacing: 0.03em;
+        border: none;
+        text-transform: uppercase;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+    }
+
+        /* Shimmer overlay – but we keep it behind the text using z-index */
+        .nav-register::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary-bright));
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            border-radius: 12px;
+            z-index: -1;
+        }
+
+        /* Ensure text is always on top */
+        .nav-register span,
+        .nav-register i {
+            position: relative;
+            z-index: 2;
+        }
+
+        .nav-register:hover {
+            transform: translateY(-3px) scale(1.04);
+            box-shadow: 0 12px 40px rgba(8, 65, 201, 0.5);
+            color: #fff !important;
+        }
+
+            .nav-register:hover::before {
+                opacity: 1;
+            }
+
+        .nav-register:active {
+            transform: translateY(0) scale(0.98);
+            box-shadow: 0 4px 16px rgba(8, 65, 201, 0.3);
+        }
+
+        .nav-register::after {
+            display: none !important;
+        }
+
+    /* ─── MOBILE NAV ─── */
+    .mobile-nav {
+        display: none;
+        background: rgba(2, 13, 47, 0.98);
+        padding: 1rem 2rem 2rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+        .mobile-nav.open {
+            display: flex;
+        }
+
+        .mobile-nav a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            padding: 0.6rem 0;
+            font-size: 0.95rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: color 0.3s ease;
+        }
+
+            .mobile-nav a:hover {
+                color: #fff;
+            }
+
+    /* Mobile auth buttons group */
+    .mobile-auth-buttons {
+        display: flex;
+        gap: 0.8rem;
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .mobile-login,
+    .mobile-register {
+        flex: 1;
+        text-align: center;
+        padding: 0.7rem 1rem !important;
+        border-radius: 10px !important;
+        font-weight: 600 !important;
+        font-size: 0.85rem !important;
+        text-decoration: none !important;
+        transition: all 0.3s ease;
+        border: none;
+    }
+
+    .mobile-login {
+        background: transparent !important;
+        color: rgba(255, 255, 255, 0.9) !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
+    }
+
+        .mobile-login:hover {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border-color: rgba(255, 255, 255, 0.5) !important;
+            color: #fff !important;
+        }
+
+    .mobile-register {
+        background: linear-gradient(135deg, var(--primary-bright), var(--primary-light)) !important;
+        color: #fff !important;
+        box-shadow: 0 4px 16px rgba(8, 65, 201, 0.3);
+    }
+
+        .mobile-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(8, 65, 201, 0.4);
+            color: #fff !important;
+        }
+
+    /* ─── RESPONSIVE ─── */
+    @@media (max-width: 868px) {
+        .nav-links a:not(.auth-buttons) {
+            display: none;
+        }
+
+        .auth-buttons {
+            margin-left: 0;
+            gap: 0.4rem;
+        }
+
+        .nav-login {
+            padding: 0.4rem 1rem !important;
+            font-size: 0.7rem !important;
+        }
+
+        .nav-register {
+            padding: 0.5rem 1.2rem !important;
+            font-size: 0.72rem !important;
+        }
+
+        .nav-hamburger {
+            display: flex !important;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .auth-buttons {
+            gap: 0.3rem;
+        }
+
+        .nav-login {
+            padding: 0.3rem 0.8rem !important;
+            font-size: 0.65rem !important;
+        }
+
+        .nav-register {
+            padding: 0.4rem 1rem !important;
+            font-size: 0.68rem !important;
+        }
+    }
+
+    /* ─── HAMBURGER MENU ─── */
+    .nav-hamburger {
+        display: none;
+        flex-direction: column;
+        gap: 4px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+    }
+
+        .nav-hamburger span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: #fff;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+    /* Ensure hamburger shows on mobile */
+    @@media (max-width: 868px) {
+        .nav-hamburger {
+            display: flex;
+        }
+    }
+</style>

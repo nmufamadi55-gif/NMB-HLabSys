@@ -1,0 +1,298 @@
+﻿<section id="features">
+    <div class="container">
+        <div class="section-header fade-in">
+            <span class="tag"><i class="fas fa-star"></i> Why Choose Us</span>
+            <h2>Benefits for <span class="highlight">Everyone</span></h2>
+            <p>Designed to improve efficiency, accuracy, and patient care across the entire diagnostic journey.</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-item fade-in">
+                <div class="feature-header">
+                    <span class="feature-number">01</span>
+                    <div class="fi-icon"><i class="fas fa-bolt"></i></div>
+                </div>
+                <div class="fi-content">
+                    <h4>Accelerate Diagnostics</h4>
+                    <p>Submit test requests in seconds, track status in real time, and get results faster — reducing turnaround times significantly.</p>
+                    <a href="#" class="feature-link">Learn More <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="feature-item fade-in">
+                <div class="feature-header">
+                    <span class="feature-number">02</span>
+                    <div class="fi-icon"><i class="fas fa-heartbeat"></i></div>
+                </div>
+                <div class="fi-content">
+                    <h4>Enhance Patient Care</h4>
+                    <p>Secure patient access to results, medical history, and trends empowers patients to take an active role in their health.</p>
+                    <a href="#" class="feature-link">Learn More <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="feature-item fade-in">
+                <div class="feature-header">
+                    <span class="feature-number">03</span>
+                    <div class="fi-icon"><i class="fas fa-chart-pie"></i></div>
+                    <!-- Changed from fa-chart-simple to fa-chart-pie for better visibility -->
+                </div>
+                <div class="fi-content">
+                    <h4>Streamline Operations</h4>
+                    <p>Automated workflows, two-step verification, and inventory management reduce manual errors and save valuable time.</p>
+                    <a href="#" class="feature-link">Learn More <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="feature-item fade-in">
+                <div class="feature-header">
+                    <span class="feature-number">04</span>
+                    <div class="fi-icon"><i class="fas fa-check-double"></i></div>
+                </div>
+                <div class="fi-content">
+                    <h4>Ensure Accuracy</h4>
+                    <p>Built-in validation, abnormal result highlighting, and verification processes guarantee reliable, high-quality test outcomes.</p>
+                    <a href="#" class="feature-link">Learn More <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="feature-item fade-in">
+                <div class="feature-header">
+                    <span class="feature-number">05</span>
+                    <div class="fi-icon"><i class="fas fa-user-shield"></i></div>
+                </div>
+                <div class="fi-content">
+                    <h4>Empower Patients</h4>
+                    <p>Give patients control over their data with consent management, secure access, and easy-to-understand reports.</p>
+                    <a href="#" class="feature-link">Learn More <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="feature-item fade-in">
+                <div class="feature-header">
+                    <span class="feature-number">06</span>
+                    <div class="fi-icon"><i class="fas fa-shield-alt"></i></div>
+                </div>
+                <div class="fi-content">
+                    <h4>Secure & Compliant</h4>
+                    <p>Role-based access, encrypted passwords, and GDPR-aligned privacy protections keep sensitive data safe.</p>
+                    <a href="#" class="feature-link">Learn More <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    /* ─── FEATURES ─── */
+    #features {
+        background: #fff;
+        position: relative;
+        overflow: hidden;
+    }
+
+        /* Subtle background decoration */
+        #features::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle at 10% 20%, rgba(8, 65, 201, 0.02) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(29, 151, 241, 0.02) 0%, transparent 40%);
+            pointer-events: none;
+        }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.8rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ─── FEATURE CARD ─── */
+    .feature-item {
+        display: flex;
+        flex-direction: column;
+        padding: 2rem 1.8rem 2rem;
+        border-radius: var(--radius-card);
+        background: var(--bg-soft);
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        border: 1px solid #E8EDF5;
+        position: relative;
+        overflow: hidden;
+        min-height: 260px;
+    }
+
+        /* Card hover with clean shadow and lift */
+        .feature-item:hover {
+            background: #fff;
+            border-color: var(--primary-bright);
+            transform: translateY(-8px);
+            box-shadow: 0 16px 48px rgba(8, 65, 201, 0.08), 0 4px 16px rgba(0, 0, 0, 0.02);
+        }
+
+    /* ─── FEATURE HEADER (Number + Icon inline) ─── */
+    .feature-header {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        margin-bottom: 1rem;
+    }
+
+    /* ─── FEATURE NUMBER ─── */
+    .feature-number {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--primary-bright);
+        letter-spacing: 0.04em;
+        background: rgba(8, 65, 201, 0.06);
+        padding: 0.15rem 0.7rem;
+        border-radius: 40px;
+        border: 1px solid rgba(8, 65, 201, 0.06);
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .feature-item:hover .feature-number {
+        background: var(--primary-bright);
+        color: #fff;
+        border-color: var(--primary-bright);
+    }
+
+    /* ─── ICON ─── */
+    .feature-item .fi-icon {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        background: linear-gradient(135deg, var(--primary-bright), var(--primary-light));
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.2rem;
+        box-shadow: 0 4px 16px rgba(8, 65, 201, 0.2);
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .feature-item:hover .fi-icon {
+        transform: scale(1.05) rotate(-2deg);
+        box-shadow: 0 8px 28px rgba(8, 65, 201, 0.3);
+    }
+
+    /* ─── CONTENT ─── */
+    .feature-item .fi-content h4 {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 0.4rem;
+        letter-spacing: -0.01em;
+        transition: color 0.3s ease;
+    }
+
+    .feature-item:hover .fi-content h4 {
+        color: var(--primary-bright);
+    }
+
+    .feature-item .fi-content p {
+        color: var(--text-muted);
+        font-size: 0.88rem;
+        line-height: 1.6;
+        margin-bottom: 0.8rem;
+        flex: 1;
+    }
+
+    /* ─── FEATURE LINK ─── */
+    .feature-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--primary-bright);
+        text-decoration: none;
+        transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        opacity: 0.6;
+    }
+
+    .feature-item:hover .feature-link {
+        opacity: 1;
+    }
+
+    .feature-link i {
+        font-size: 0.7rem;
+        transition: transform 0.3s ease;
+    }
+
+    .feature-link:hover {
+        color: var(--primary-light);
+    }
+
+        .feature-link:hover i {
+            transform: translateX(4px);
+        }
+
+    /* ─── RESPONSIVE ─── */
+    @@media (max-width: 1024px) {
+        .features-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 868px) {
+        .features-grid {
+            grid-template-columns: 1fr;
+            gap: 1.2rem;
+        }
+
+        .feature-item {
+            padding: 1.5rem 1.2rem;
+            min-height: auto;
+        }
+
+            .feature-item .fi-icon {
+                width: 38px;
+                height: 38px;
+                min-width: 38px;
+                font-size: 1rem;
+            }
+
+            .feature-item .fi-content h4 {
+                font-size: 0.95rem;
+            }
+
+            .feature-item .fi-content p {
+                font-size: 0.82rem;
+            }
+    }
+
+    @@media (max-width: 480px) {
+        .feature-item {
+            padding: 1.2rem 1rem;
+            border-radius: var(--radius-element);
+        }
+
+        .feature-header {
+            gap: 0.6rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .feature-number {
+            font-size: 0.65rem;
+            padding: 0.1rem 0.6rem;
+        }
+
+        .feature-item .fi-icon {
+            width: 34px;
+            height: 34px;
+            min-width: 34px;
+            font-size: 0.85rem;
+            border-radius: 10px;
+        }
+
+        .feature-item .fi-content h4 {
+            font-size: 0.9rem;
+        }
+
+        .feature-item .fi-content p {
+            font-size: 0.78rem;
+        }
+
+        .feature-link {
+            font-size: 0.7rem;
+        }
+    }
+</style>

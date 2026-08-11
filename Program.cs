@@ -42,9 +42,7 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IStockManagementService, StockManagementService>();
 builder.Services.AddScoped<ITestManagementService, TestManagementService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
-
-// Add Password Hashing
-builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
 

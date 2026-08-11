@@ -10,8 +10,8 @@
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Doctor")" class="active"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
-    <li><a href="@Url.Action("TestRequests", "Doctor")"><i class="fas fa-notes-medical"></i> <span>Test Requests</span></a></li>
+    <li><a href="@Url.Action("Dashboard", "Doctor")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+    <li><a href="@Url.Action("TestRequests", "Doctor")" class="active"><i class="fas fa-notes-medical"></i> <span>Test Requests</span></a></li>
     <li><a href="@Url.Action("Patients", "Doctor")"><i class="fas fa-users"></i> <span>My Patients</span></a></li>
     <li><a href="@Url.Action("Alerts", "Doctor")"><i class="fas fa-bell"></i> <span>Alerts</span></a></li>
     <li><a href="@Url.Action("Results", "Doctor")"><i class="fas fa-chart-line"></i> <span>Results</span></a></li>
@@ -20,6 +20,7 @@
 }
 
 <style>
+    /* ─── PAGE‑SPECIFIC STYLES ────────────────────────────── */
     .card {
         background: white;
         border-radius: 20px;
@@ -145,6 +146,7 @@
             margin: 0;
         }
 
+    /* ─── VIEW REQUEST MODAL (page‑specific) ─────────────────── */
     .modal-overlay {
         display: none;
         position: fixed;
@@ -235,139 +237,6 @@
         resize: vertical;
         min-height: 80px;
         font-family: inherit;
-    }
-
-    .category-group {
-        margin-bottom: 1rem;
-        border: 1px solid #E2E8F0;
-        border-radius: 12px;
-        overflow: hidden;
-    }
-
-    .category-header {
-        background: #F8FAFE;
-        padding: 0.7rem 1rem;
-        cursor: pointer;
-        font-weight: 600;
-        color: #032C7D;
-    }
-
-    .test-list {
-        padding: 0.8rem 1rem;
-        display: none;
-        background: white;
-    }
-
-        .test-list.show {
-            display: block;
-        }
-
-        .test-list label {
-            display: inline-block;
-            width: 48%;
-            margin: 0.3rem 0;
-            font-size: 0.8rem;
-            cursor: pointer;
-        }
-
-    .sample-requirements {
-        background: #EFF6FF;
-        border-radius: 12px;
-        padding: 0.8rem;
-        margin-top: 1rem;
-        border-left: 4px solid #0841C9;
-    }
-
-    .sample-item {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.4rem 0;
-        border-bottom: 1px solid #E2E8F0;
-        font-size: 0.8rem;
-    }
-
-        .sample-item:last-child {
-            border-bottom: none;
-        }
-
-    .sample-icon {
-        font-size: 1.2rem;
-    }
-
-    .sample-details {
-        flex: 1;
-    }
-
-    .sample-name {
-        font-weight: 600;
-        color: #032C7D;
-    }
-
-    .sample-instruction {
-        font-size: 0.7rem;
-        color: #5A6E7A;
-    }
-
-    .selected-tests-summary {
-        background: #F1F5F9;
-        border-radius: 12px;
-        padding: 0.8rem;
-        margin-top: 0.5rem;
-    }
-
-    .selected-test-tag {
-        display: inline-block;
-        background: #0841C9;
-        color: white;
-        padding: 0.2rem 0.6rem;
-        border-radius: 20px;
-        font-size: 0.7rem;
-        margin: 0.2rem;
-    }
-
-    .barcode-item {
-        background: #F1F5F9;
-        padding: 0.4rem 0.8rem;
-        border-radius: 8px;
-        margin-bottom: 0.4rem;
-        display: flex;
-        justify-content: space-between;
-        font-family: monospace;
-        font-size: 0.75rem;
-    }
-
-    .medical-tag {
-        display: inline-block;
-        background: #F1F5F9;
-        padding: 0.2rem 0.5rem;
-        border-radius: 20px;
-        font-size: 0.7rem;
-        margin-right: 0.3rem;
-        margin-bottom: 0.2rem;
-    }
-
-    .tag-condition {
-        background: #FEF3C7;
-        color: #92400E;
-    }
-
-    .tag-allergy {
-        background: #FEE2E2;
-        color: #991B1B;
-    }
-
-    .tag-medication {
-        background: #D1FAE5;
-        color: #065F46;
-    }
-
-    .patient-info-card {
-        background: #F0F9FF;
-        border-radius: 12px;
-        padding: 0.8rem;
-        margin-bottom: 1rem;
-        border-left: 4px solid #0841C9;
     }
 
     .detail-section {
@@ -480,8 +349,34 @@
             font-size: 0.6rem;
             color: #5A6E7A;
         }
+
+    .medical-tag {
+        display: inline-block;
+        background: #F1F5F9;
+        padding: 0.2rem 0.5rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        margin-right: 0.3rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .tag-condition {
+        background: #FEF3C7;
+        color: #92400E;
+    }
+
+    .tag-allergy {
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+
+    .tag-medication {
+        background: #D1FAE5;
+        color: #065F46;
+    }
 </style>
 
+<!-- ========== STATS & FILTER BAR ========== -->
 <div class="stats-mini">
     <div class="stat-mini"><h4 id="totalCount">0</h4><p>Total Requests</p></div>
     <div class="stat-mini"><h4 id="pendingCount">0</h4><p>Pending</p></div>
@@ -492,67 +387,71 @@
 <div class="card">
     <div class="filter-bar">
         <input type="text" id="searchReq" class="filter-input" placeholder="Search by patient or request #" style="width:200px;">
-        <select id="statusFilter" class="filter-select"><option value="all">All Status</option><option>Submitted</option><option>In Progress</option><option>Completed</option><option>Verified</option></select>
-        <select id="urgencyFilter" class="filter-select"><option value="all">All Urgency</option><option>stat</option><option>urgent</option><option>routine</option></select>
+        <select id="statusFilter" class="filter-select">
+            <option value="all">All Status</option>
+            <option>Submitted</option>
+            <option>In Progress</option>
+            <option>Completed</option>
+            <option>Verified</option>
+        </select>
+        <select id="urgencyFilter" class="filter-select">
+            <option value="all">All Urgency</option>
+            <option>stat</option>
+            <option>urgent</option>
+            <option>routine</option>
+        </select>
         <input type="date" id="dateFilter" class="filter-input" style="width:130px;">
         <button class="btn-sm" onclick="applyFilters()">Apply</button>
         <button class="btn-outline-sm" onclick="resetFilters()">Reset</button>
+        <!-- New Request button opens the shared modal -->
         <button class="btn-sm" onclick="openNewRequestModal()" style="background:#10B981;">+ New Request</button>
     </div>
     <div class="table-container">
         <table id="requestsTable">
-            <thead><tr><th>Req #</th><th>Patient</th><th>Date</th><th>Tests</th><th>Status</th><th>Urgency</th><th>Action</th></tr></thead>
+            <thead>
+                <tr><th>Req #</th><th>Patient</th><th>Date</th><th>Tests</th><th>Status</th><th>Urgency</th><th>Action</th></tr>
+            </thead>
             <tbody id="requestsBody"></tbody>
         </table>
     </div>
 </div>
 
-<!-- View Request Modal -->
+<!-- ========== VIEW REQUEST MODAL (page‑specific) ========== -->
 <div id="viewRequestModal" class="modal-overlay">
     <div class="modal-container">
         <div class="modal-header"><h3>Request Details</h3><button class="close-modal" onclick="closeModal('viewRequestModal')">&times;</button></div>
         <div class="modal-body" id="viewRequestContent"></div>
-        <div class="modal-footer"><button class="btn-outline-sm" onclick="closeModal('viewRequestModal')">Close</button><button class="btn-sm" onclick="downloadRequestPDF()" style="background:#10B981;">Download PDF</button></div>
-    </div>
-</div>
-
-<!-- New Request Modal -->
-<div id="newRequestModal" class="modal-overlay">
-    <div class="modal-container">
-        <div class="modal-header"><h3>New Test Request</h3><button class="close-modal" onclick="closeModal('newRequestModal')">&times;</button></div>
-        <div class="modal-body">
-            <div class="form-group"><label>Enter Patient SA ID Number *</label><div style="display:flex; gap:0.5rem;"><input type="text" id="patientIdSearch" class="form-control" placeholder="e.g., 8001015009087"><button type="button" class="btn-sm" onclick="searchPatientById()" style="background:#1D97F1;">Search</button></div></div>
-            <div id="patientMedicalInfo"></div>
-            <div id="requestFormFields" style="display:none;">
-                <div class="form-group">
-                    <label>Urgency *</label>
-                    <div style="display:flex; gap:1rem; align-items:center;">
-                        <label style="display:flex; align-items:center; gap:0.3rem;"><input type="radio" name="urgency" value="routine" checked> <span class="priority-routine">Routine</span></label>
-                        <label style="display:flex; align-items:center; gap:0.3rem;"><input type="radio" name="urgency" value="urgent"> <span class="priority-urgent">Urgent</span></label>
-                        <label style="display:flex; align-items:center; gap:0.3rem;"><input type="radio" name="urgency" value="stat"> <span class="priority-stat">STAT</span></label>
-                    </div>
-                </div>
-                <div class="form-group"><label>Select Test Types *</label><div id="testCategoriesContainer"></div><div id="selectedTestsSummary" class="selected-tests-summary" style="display:none;"><strong>Selected Tests:</strong> <div id="selectedTestsList"></div></div></div>
-                <div class="form-group"><label>Clinical Notes</label><textarea id="newNotes" rows="3" class="form-control" placeholder="Enter relevant clinical information, symptoms, or special instructions for the lab..."></textarea></div>
-                <div id="sampleRequirements" style="display:none;"></div>
-                <div id="barcodeDisplay" style="display:none;"></div>
-            </div>
+        <div class="modal-footer">
+            <button class="btn-outline-sm" onclick="closeModal('viewRequestModal')">Close</button>
+            <button class="btn-sm" onclick="downloadRequestPDF()" style="background:#10B981;">Download PDF</button>
         </div>
-        <div class="modal-footer"><button class="btn-outline-sm" onclick="closeModal('newRequestModal')">Cancel</button><button class="btn-sm" id="submitRequestBtn" onclick="submitNewRequest()" style="background:#10B981; display:none;">Submit Request</button></div>
     </div>
 </div>
 
-<!-- Cancel Modal -->
+<!-- ========== CANCEL REQUEST MODAL (page‑specific) ========== -->
 <div id="cancelModal" class="modal-overlay">
     <div class="modal-container" style="max-width:450px;">
         <div class="modal-header"><h3>Cancel Request</h3><button class="close-modal" onclick="closeModal('cancelModal')">&times;</button></div>
-        <div class="modal-body"><div class="form-group"><label>Reason for cancellation *</label><textarea id="cancelReason" rows="3" class="form-control" placeholder="Please provide a reason..."></textarea></div></div>
-        <div class="modal-footer"><button class="btn-outline-sm" onclick="closeModal('cancelModal')">Close</button><button class="btn-sm" style="background:#DC2626;" onclick="confirmCancel()">Cancel Request</button></div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Reason for cancellation *</label>
+                <textarea id="cancelReason" rows="3" class="form-control" placeholder="Please provide a reason..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-outline-sm" onclick="closeModal('cancelModal')">Close</button>
+            <button class="btn-sm" style="background:#DC2626;" onclick="confirmCancel()">Cancel Request</button>
+        </div>
     </div>
 </div>
 
-<script type="text/javascript">
-    // Mock Data
+<!-- ========== INCLUDE THE SHARED MODAL PARTIALS ========== -->
+@await Html.PartialAsync("_NewRequestModal")
+@await Html.PartialAsync("_RegisterPatientModal")
+
+<!-- ========== PAGE SCRIPT ========== -->
+<script>
+    // ─── Data ──────────────────────────────────────────────────
     var requests = [
         { id:1, reqNo:"REQ-001", patient:"Thabo Mbeki", patientId:"8001015009087", patientInfo:{name:"Thabo", surname:"Mbeki", dob:"1980-01-01", phone:"0821234567", conditions:["Hypertension"], allergies:["Penicillin"], medications:["Lisinopril 10mg"]}, date:"2025-04-09", tests:["Haemoglobin (Hb)", "White Cell Count (WCC)"], status:"In Progress", urgency:"stat", hasAbnormal:true, results:[{name:"Haemoglobin (Hb)", result:"7.2", normal:"12-16", abnormal:true},{name:"White Cell Count (WCC)", result:"8.5", normal:"4-11", abnormal:false}], clinicalNotes:"Patient presents with fatigue and pallor" },
         { id:2, reqNo:"REQ-002", patient:"Lerato Dlamini", patientId:"8505155009088", patientInfo:{name:"Lerato", surname:"Dlamini", dob:"1985-05-15", phone:"0832345678", conditions:["Type 2 Diabetes"], allergies:[], medications:["Metformin 500mg"]}, date:"2025-04-08", tests:["PT/INR"], status:"Completed", urgency:"routine", hasAbnormal:false, results:[{name:"PT/INR", result:"12.5", normal:"11-13.5", abnormal:false}], clinicalNotes:"Routine follow-up" },
@@ -560,32 +459,10 @@
         { id:4, reqNo:"REQ-004", patient:"Thabo Mbeki", patientId:"8001015009087", patientInfo:{name:"Thabo", surname:"Mbeki", dob:"1980-01-01", phone:"0821234567", conditions:["Hypertension"], allergies:["Penicillin"], medications:["Lisinopril 10mg"]}, date:"2025-04-10", tests:["WCC","Neutrophils"], status:"Submitted", urgency:"stat", hasAbnormal:false, results:null, clinicalNotes:"Post-treatment monitoring" }
     ];
 
-    var testDatabase = [
-        { name: "Haemoglobin (Hb)", category: "Full Blood Count (FBC)", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Gently invert 8-10 times to mix", equipment: "Vacutainer system" },
-        { name: "White Cell Count (WCC)", category: "Full Blood Count (FBC)", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Gently invert 8-10 times to mix", equipment: "Vacutainer system" },
-        { name: "Platelet Count", category: "Full Blood Count (FBC)", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Gently invert 8-10 times to mix", equipment: "Vacutainer system" },
-        { name: "Red Cell Count (RCC)", category: "Full Blood Count (FBC)", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Gently invert 8-10 times to mix", equipment: "Vacutainer system" },
-        { name: "PT/INR", category: "Coagulation Studies", sampleType: "Plasma", tube: "Citrate Tube", tubeColor: "Light blue top", volume: "2.7 mL", instructions: "Fill completely, invert gently 3-4 times", equipment: "Sodium citrate anticoagulant" },
-        { name: "APTT", category: "Coagulation Studies", sampleType: "Plasma", tube: "Citrate Tube", tubeColor: "Light blue top", volume: "2.7 mL", instructions: "Fill completely, invert gently 3-4 times", equipment: "Sodium citrate anticoagulant" },
-        { name: "Fibrinogen", category: "Coagulation Studies", sampleType: "Plasma", tube: "Citrate Tube", tubeColor: "Light blue top", volume: "2.7 mL", instructions: "Fill completely, invert gently 3-4 times", equipment: "Sodium citrate anticoagulant" },
-        { name: "Neutrophils", category: "Differential Count", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Blood smear required", equipment: "Microscope slides, stain" },
-        { name: "Lymphocytes", category: "Differential Count", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Blood smear required", equipment: "Microscope slides, stain" },
-        { name: "Monocytes", category: "Differential Count", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Blood smear required", equipment: "Microscope slides, stain" },
-        { name: "Film Comment", category: "Peripheral Blood Film", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Prepare thin blood smear", equipment: "Microscope, staining kit" },
-        { name: "Blast Cells", category: "Peripheral Blood Film", sampleType: "Whole Blood", tube: "EDTA Tube", tubeColor: "Purple top", volume: "3-5 mL", instructions: "Prepare thin blood smear", equipment: "Microscope, staining kit" }
-    ];
-
-    var categories = [...new Set(testDatabase.map(function(t) { return t.category; }))];
-    var currentSelectedPatient = null;
-    var currentSelectedTests = [];
     var currentViewRequest = null;
     var cancelId = null;
-    var patientDatabase = {
-        "8001015009087": { name:"Thabo", surname:"Mbeki", dob:"1980-01-01", phone:"0821234567", conditions:["Hypertension"], allergies:["Penicillin"], medications:["Lisinopril 10mg"] },
-        "8505155009088": { name:"Lerato", surname:"Dlamini", dob:"1985-05-15", phone:"0832345678", conditions:["Type 2 Diabetes"], allergies:[], medications:["Metformin 500mg"] },
-        "9001015009089": { name:"John", surname:"Smith", dob:"1990-01-01", phone:"0843456789", conditions:[], allergies:["Sulfa"], medications:[] }
-    };
 
+    // ─── Render Table ──────────────────────────────────────────
     function renderRequests() {
         var filtered = requests.slice();
         var search = document.getElementById('searchReq') ? document.getElementById('searchReq').value.toLowerCase() : '';
@@ -614,11 +491,13 @@
                 '<td>' + r.tests.join(', ') + '</td>' +
                 '<td><span class="status-badge ' + statusClass + '">' + r.status + '</span></td>' +
                 '<td><span class="' + urgencyClass + '">' + r.urgency.toUpperCase() + '</span></td>' +
-                '<td><button class="btn-sm" onclick="viewRequestDetails(' + r.id + ')">View</button> ' + ((r.status === 'Submitted' || r.status === 'In Progress') ? '<button class="btn-outline-sm" onclick="openCancelModal(' + r.id + ')">Cancel</button>' : '') + '</td>' +
-                '</tr>';
+                '<td><button class="btn-sm" onclick="viewRequestDetails(' + r.id + ')">View</button> ' +
+                ((r.status === 'Submitted' || r.status === 'In Progress') ? '<button class="btn-outline-sm" onclick="openCancelModal(' + r.id + ')">Cancel</button>' : '') +
+                '</td></tr>';
         }).join('');
     }
 
+    // ─── View / Cancel / Filter ────────────────────────────────
     function viewRequestDetails(id) {
         var request = requests.find(function(r) { return r.id === id; });
         if (!request) return;
@@ -662,137 +541,36 @@
 
     function downloadRequestPDF() { alert('Downloading PDF for ' + (currentViewRequest ? currentViewRequest.reqNo : 'request')); }
     function openCancelModal(id) { cancelId = id; document.getElementById('cancelModal').classList.add('active'); }
-    function confirmCancel() { if(cancelId){ var reason = document.getElementById('cancelReason').value; requests = requests.filter(function(r) { return r.id !== cancelId; }); renderRequests(); alert('Request cancelled.\nReason: ' + (reason || 'No reason provided')); } closeModal('cancelModal'); }
+    function confirmCancel() {
+        if(cancelId){ var reason = document.getElementById('cancelReason').value; requests = requests.filter(function(r) { return r.id !== cancelId; }); renderRequests(); alert('Request cancelled.\nReason: ' + (reason || 'No reason provided')); }
+        closeModal('cancelModal');
+    }
     function closeModal(id) { document.getElementById(id).classList.remove('active'); if(document.getElementById('cancelReason')) document.getElementById('cancelReason').value = ''; }
     function applyFilters() { renderRequests(); }
     function resetFilters() {
-        if(document.getElementById('searchReq')) document.getElementById('searchReq').value = '';
-        if(document.getElementById('statusFilter')) document.getElementById('statusFilter').value = 'all';
-        if(document.getElementById('urgencyFilter')) document.getElementById('urgencyFilter').value = 'all';
-        if(document.getElementById('dateFilter')) document.getElementById('dateFilter').value = '';
+        document.getElementById('searchReq').value = '';
+        document.getElementById('statusFilter').value = 'all';
+        document.getElementById('urgencyFilter').value = 'all';
+        document.getElementById('dateFilter').value = '';
         renderRequests();
     }
 
-    function searchPatientById() {
-        var id = document.getElementById('patientIdSearch').value.trim();
-        var patient = patientDatabase[id];
-        var infoDiv = document.getElementById('patientMedicalInfo');
-        var formFields = document.getElementById('requestFormFields');
-        var submitBtn = document.getElementById('submitRequestBtn');
-        if(patient) {
-            currentSelectedPatient = patient;
-            infoDiv.innerHTML = '<div class="patient-info-card"><strong>Patient Found:</strong> ' + patient.name + ' ' + patient.surname + '<br><small>ID: ' + id + ' | DOB: ' + patient.dob + ' | Contact: ' + patient.phone + '</small><br><small><strong>Conditions:</strong> ' + (patient.conditions.join(', ') || 'None') + ' | <strong>Allergies:</strong> ' + (patient.allergies.join(', ') || 'None') + '</small></div>';
-            formFields.style.display = 'block';
-            submitBtn.style.display = 'inline-block';
-            loadTestCategories();
-        } else {
-            infoDiv.innerHTML = '<div class="patient-info-card" style="border-left-color:#DC2626; color:#DC2626;">Patient not found. Please register first.</div>';
-            formFields.style.display = 'none';
-            submitBtn.style.display = 'none';
-        }
-    }
+    // ─── Integrate with Shared New Request Modal ──────────────
+    // Save the original function from the partial, then override it to add our callback.
+    var _origOpenNewRequest = window.openNewRequestModal;
 
-    function loadTestCategories() {
-        var container = document.getElementById('testCategoriesContainer');
-        var html = '';
-        for(var c = 0; c < categories.length; c++) {
-            var cat = categories[c];
-            var testsHtml = '';
-            var categoryTests = testDatabase.filter(function(t) { return t.category === cat; });
-            for(var t = 0; t < categoryTests.length; t++) {
-                testsHtml += '<label><input type="checkbox" value="' + categoryTests[t].name + '" data-test-name="' + categoryTests[t].name + '" onchange="updateSelectedTests()"> ' + categoryTests[t].name + '</label>';
-            }
-            html += '<div class="category-group"><div class="category-header" onclick="toggleCategory(' + c + ')">' + cat + ' <span style="float:right;">▼</span></div><div class="test-list" id="category-' + c + '">' + testsHtml + '</div></div>';
-        }
-        container.innerHTML = html;
-    }
+    window.openNewRequestModal = function() {
+        // Pass a callback that will add the new request to our list and re‑render
+        _origOpenNewRequest(function(newRequest) {
+            // Ensure the request has an id and reqNo (the partial generates them)
+            // We'll assign a new id and adjust reqNo to match our format
+            newRequest.id = requests.length + 1;
+            // reqNo already generated, but we'll keep it
+            requests.unshift(newRequest);
+            renderRequests();
+        });
+    };
 
-    function toggleCategory(idx) {
-        var el = document.getElementById('category-' + idx);
-        if(el) el.classList.toggle('show');
-    }
-
-    function updateSelectedTests() {
-        var checkboxes = document.querySelectorAll('#testCategoriesContainer input:checked');
-        currentSelectedTests = Array.from(checkboxes).map(function(cb) { return cb.value; });
-        var selectedTestDetails = currentSelectedTests.map(function(testName) { return testDatabase.find(function(t) { return t.name === testName; }); }).filter(function(t) { return t; });
-
-        var uniqueSamples = new Map();
-        for(var s = 0; s < selectedTestDetails.length; s++) {
-            var test = selectedTestDetails[s];
-            if(!uniqueSamples.has(test.tube)) {
-                uniqueSamples.set(test.tube, { tube: test.tube, tubeColor: test.tubeColor, instructions: test.instructions, volume: test.volume, equipment: test.equipment });
-            }
-        }
-
-        var summaryDiv = document.getElementById('selectedTestsSummary');
-        var samplesDiv = document.getElementById('sampleRequirements');
-        if(currentSelectedTests.length > 0) {
-            summaryDiv.style.display = 'block';
-            document.getElementById('selectedTestsList').innerHTML = currentSelectedTests.map(function(t) { return '<span class="selected-test-tag">' + t + '</span>'; }).join('');
-            samplesDiv.style.display = 'block';
-            var samplesHtml = '<div class="sample-requirements"><strong>Sample Collection Requirements:</strong><br>';
-            var uniqueArray = Array.from(uniqueSamples.values());
-            for(var u = 0; u < uniqueArray.length; u++) {
-                var samp = uniqueArray[u];
-                samplesHtml += '<div class="sample-item"><div class="sample-icon">🧪</div><div class="sample-details"><div class="sample-name">' + samp.tube + ' (' + samp.tubeColor + ')</div><div class="sample-instruction">Volume: ' + samp.volume + ' | ' + samp.instructions + ' | Equipment: ' + samp.equipment + '</div></div></div>';
-            }
-            samplesHtml += '</div>';
-            samplesDiv.innerHTML = samplesHtml;
-        } else {
-            summaryDiv.style.display = 'none';
-            samplesDiv.style.display = 'none';
-        }
-    }
-
-    function submitNewRequest() {
-        if(!currentSelectedPatient) { alert("Please search and select a patient first."); return; }
-        if(currentSelectedTests.length === 0) { alert("Please select at least one test type."); return; }
-        var urgencyRadio = document.querySelector('input[name="urgency"]:checked');
-        var urgency = urgencyRadio ? urgencyRadio.value : 'routine';
-        var newRequest = {
-            id: requests.length + 1,
-            reqNo: 'REQ-' + String(requests.length + 1).padStart(3,'0'),
-            patient: currentSelectedPatient.name + ' ' + currentSelectedPatient.surname,
-            patientId: document.getElementById('patientIdSearch').value.trim(),
-            patientInfo: currentSelectedPatient,
-            date: new Date().toISOString().split('T')[0],
-            tests: currentSelectedTests.slice(),
-            status: "Submitted",
-            urgency: urgency,
-            hasAbnormal: false,
-            results: null,
-            clinicalNotes: document.getElementById('newNotes').value
-        };
-        requests.unshift(newRequest);
-        var barcodes = currentSelectedTests.map(function() { return 'BAR' + Date.now() + Math.random().toString(36).substring(2,6).toUpperCase(); });
-        var barcodeHtml = '<div class="sample-requirements"><strong>Generated Barcodes:</strong><br>';
-        for(var b = 0; b < currentSelectedTests.length; b++) {
-            barcodeHtml += '<div class="barcode-item"><span>' + currentSelectedTests[b] + '</span><span><strong>' + barcodes[b] + '</strong></span></div>';
-        }
-        barcodeHtml += '</div>';
-        document.getElementById('barcodeDisplay').innerHTML = barcodeHtml;
-        document.getElementById('barcodeDisplay').style.display = 'block';
-        alert('Test request ' + newRequest.reqNo + ' submitted!\nPatient notified.\nTests: ' + currentSelectedTests.join(', '));
-        setTimeout(function() { closeModal('newRequestModal'); renderRequests(); resetNewRequestForm(); }, 2000);
-    }
-
-    function resetNewRequestForm() {
-        document.getElementById('patientIdSearch').value = '';
-        document.getElementById('patientMedicalInfo').innerHTML = '';
-        document.getElementById('requestFormFields').style.display = 'none';
-        document.getElementById('submitRequestBtn').style.display = 'none';
-        document.getElementById('barcodeDisplay').style.display = 'none';
-        document.getElementById('newNotes').value = '';
-        var routineRadio = document.querySelector('input[name="urgency"][value="routine"]');
-        if(routineRadio) routineRadio.checked = true;
-        currentSelectedTests = [];
-    }
-
-    function openNewRequestModal() {
-        document.getElementById('newRequestModal').classList.add('active');
-        resetNewRequestForm();
-    }
-
+    // ─── Initial Render ──────────────────────────────────────
     renderRequests();
 </script>

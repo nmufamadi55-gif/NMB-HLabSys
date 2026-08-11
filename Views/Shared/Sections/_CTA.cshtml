@@ -1,0 +1,388 @@
+﻿<section id="cta">
+    <div class="container">
+        <div class="cta-wrapper fade-in">
+            <div class="cta-badge">
+                <i class="fas fa-rocket"></i> Join 150+ Healthcare Providers
+            </div>
+            <h2>Ready to Transform Your <span>Lab Workflow</span>?</h2>
+            <p>Join NMB-HLabSys today and experience seamless test management, real-time results, and better patient outcomes.</p>
+            <div class="cta-buttons">
+                <a href="#auth" class="btn-primary cta-primary-btn">
+                    <span>Get Started Now</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+                <a href="#about" class="btn-secondary cta-secondary-btn">
+                    <i class="fas fa-play-circle"></i> Learn More
+                </a>
+            </div>
+            <div class="cta-stats">
+                <div class="cta-stat">
+                    <span class="stat-number">120+</span>
+                    <span class="stat-label">Test Types</span>
+                </div>
+                <div class="cta-stat-divider"></div>
+                <div class="cta-stat">
+                    <span class="stat-number">98.7%</span>
+                    <span class="stat-label">On-Time Delivery</span>
+                </div>
+                <div class="cta-stat-divider"></div>
+                <div class="cta-stat">
+                    <span class="stat-number">4.9★</span>
+                    <span class="stat-label">Satisfaction</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating particles -->
+    <div class="cta-particles">
+        <span class="particle" style="top:15%;left:8%;animation-delay:0s;width:8px;height:8px;"></span>
+        <span class="particle" style="top:25%;right:12%;animation-delay:1.2s;width:12px;height:12px;"></span>
+        <span class="particle" style="bottom:30%;left:5%;animation-delay:0.8s;width:6px;height:6px;"></span>
+        <span class="particle" style="top:60%;right:6%;animation-delay:2s;width:10px;height:10px;"></span>
+        <span class="particle" style="top:10%;left:45%;animation-delay:0.5s;width:5px;height:5px;"></span>
+        <span class="particle" style="bottom:20%;right:40%;animation-delay:1.8s;width:7px;height:7px;"></span>
+    </div>
+</section>
+
+<style>
+    /* ─── CTA SECTION ─── */
+    #cta {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-deep) 40%, var(--primary-bright) 100%);
+        color: #fff;
+        text-align: center;
+        padding: 5rem 0 4.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+        /* Subtle glow overlay */
+        #cta::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 20% 30%, rgba(29, 151, 241, 0.08), transparent 50%), radial-gradient(circle at 80% 70%, rgba(8, 65, 201, 0.06), transparent 50%), radial-gradient(circle at 50% 100%, rgba(29, 151, 241, 0.04), transparent 30%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+    /* ─── FLOATING PARTICLES ─── */
+    .cta-particles {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+    }
+
+    .particle {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        animation: particleFloat 8s ease-in-out infinite alternate;
+        backdrop-filter: blur(2px);
+    }
+
+    @@keyframes particleFloat {
+        0% {
+            transform: translate(0, 0) scale(1);
+            opacity: 0.3;
+        }
+
+        33% {
+            transform: translate(30px, -20px) scale(1.2);
+            opacity: 0.6;
+        }
+
+        66% {
+            transform: translate(-20px, 10px) scale(0.9);
+            opacity: 0.4;
+        }
+
+        100% {
+            transform: translate(15px, 25px) scale(1.1);
+            opacity: 0.5;
+        }
+    }
+
+    /* ─── CTA WRAPPER ─── */
+    #cta .cta-wrapper {
+        max-width: 780px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ─── BADGE ─── */
+    .cta-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(4px);
+        padding: 0.4rem 1.2rem 0.4rem 0.9rem;
+        border-radius: 60px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        margin-bottom: 1.2rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        transition: all 0.3s ease;
+    }
+
+        .cta-badge i {
+            font-size: 0.8rem;
+            color: var(--primary-light);
+        }
+
+        .cta-badge:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+    /* ─── HEADING ─── */
+    #cta h2 {
+        font-size: 2.8rem;
+        font-weight: 800;
+        margin-bottom: 0.8rem;
+        letter-spacing: -0.02em;
+        line-height: 1.15;
+    }
+
+        #cta h2 span {
+            background: linear-gradient(135deg, var(--primary-light), #60A5FA);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+    /* ─── PARAGRAPH ─── */
+    #cta p {
+        font-size: 1.1rem;
+        opacity: 0.8;
+        line-height: 1.7;
+        margin-bottom: 2rem;
+        max-width: 580px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* ─── BUTTONS ─── */
+    .cta-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 2.5rem;
+    }
+
+    .cta-primary-btn {
+        background: #fff !important;
+        color: var(--primary-dark) !important;
+        padding: 0.9rem 2.2rem !important;
+        border-radius: 40px !important;
+        font-weight: 700 !important;
+        font-size: 1rem !important;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15) !important;
+        border: none !important;
+        transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+        text-decoration: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.6rem !important;
+        position: relative !important;
+        overflow: hidden !important;
+        cursor: pointer !important;
+    }
+
+        .cta-primary-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--bg-soft), #e8edf5);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            border-radius: 40px;
+        }
+
+        .cta-primary-btn:hover {
+            transform: translateY(-3px) scale(1.02) !important;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25) !important;
+        }
+
+            .cta-primary-btn:hover::before {
+                opacity: 1;
+            }
+
+        .cta-primary-btn span,
+        .cta-primary-btn i {
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-primary-btn i {
+            transition: transform 0.3s ease;
+        }
+
+        .cta-primary-btn:hover i {
+            transform: translateX(4px);
+        }
+
+    .cta-secondary-btn {
+        background: rgba(255, 255, 255, 0.08) !important;
+        color: #fff !important;
+        padding: 0.9rem 2rem !important;
+        border-radius: 40px !important;
+        font-weight: 600 !important;
+        font-size: 0.95rem !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+        transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+        text-decoration: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.6rem !important;
+        backdrop-filter: blur(4px) !important;
+        cursor: pointer !important;
+    }
+
+        .cta-secondary-btn:hover {
+            background: rgba(255, 255, 255, 0.15) !important;
+            transform: translateY(-3px) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+            color: #fff !important;
+        }
+
+        .cta-secondary-btn i {
+            font-size: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .cta-secondary-btn:hover i {
+            transform: scale(1.1);
+        }
+
+    /* ─── STATS ─── */
+    .cta-stats {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 2.5rem;
+        flex-wrap: wrap;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .cta-stat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+        .cta-stat .stat-number {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #fff, var(--primary-soft));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .cta-stat .stat-label {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 500;
+            margin-top: 0.1rem;
+            letter-spacing: 0.02em;
+        }
+
+    .cta-stat-divider {
+        width: 1px;
+        height: 32px;
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @@media (max-width: 1024px) {
+        #cta h2 {
+            font-size: 2.4rem;
+        }
+    }
+
+    @@media (max-width: 868px) {
+        #cta h2 {
+            font-size: 2rem;
+        }
+
+        #cta p {
+            font-size: 1rem;
+        }
+
+        .cta-buttons {
+            flex-direction: column;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .cta-primary-btn,
+        .cta-secondary-btn {
+            width: 100%;
+            max-width: 320px;
+            justify-content: center;
+        }
+
+        .cta-stats {
+            gap: 1.5rem;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        #cta {
+            padding: 3.5rem 0;
+        }
+
+            #cta h2 {
+                font-size: 1.6rem;
+            }
+
+            #cta p {
+                font-size: 0.9rem;
+                margin-bottom: 1.5rem;
+            }
+
+        .cta-primary-btn,
+        .cta-secondary-btn {
+            font-size: 0.9rem !important;
+            padding: 0.7rem 1.6rem !important;
+            max-width: 100%;
+        }
+
+        .cta-stats {
+            gap: 1rem;
+            padding-top: 1.5rem;
+        }
+
+        .cta-stat .stat-number {
+            font-size: 1.2rem;
+        }
+
+        .cta-stat .stat-label {
+            font-size: 0.65rem;
+        }
+
+        .cta-stat-divider {
+            height: 24px;
+        }
+
+        .cta-badge {
+            font-size: 0.6rem;
+            padding: 0.3rem 0.9rem 0.3rem 0.7rem;
+        }
+    }
+</style>
