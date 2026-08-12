@@ -1,0 +1,286 @@
+﻿<section id="services">
+    <div class="container">
+        <div class="section-header fade-in">
+            <span class="tag"><i class="fas fa-concierge-bell"></i> Our Services</span>
+            <h2>Comprehensive <span class="highlight">Diagnostic</span> Solutions</h2>
+            <p>End-to-end laboratory test management for doctors, technicians, and patients.</p>
+        </div>
+        <div class="services-grid">
+            <div class="service-card fade-in">
+                <div class="service-header">
+                    <span class="service-number">01</span>
+                    <div class="icon"><i class="fas fa-file-prescription"></i></div>
+                </div>
+                <h4>Test Request Management</h4>
+                <p>Doctors submit test requests with patient details, urgency levels, and clinical notes — all digital and trackable.</p>
+                <a href="#" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="service-card fade-in">
+                <div class="service-header">
+                    <span class="service-number">02</span>
+                    <div class="icon"><i class="fas fa-vial"></i></div>
+                </div>
+                <h4>Sample Processing</h4>
+                <p>Technicians receive samples, verify barcodes, and process tests with full traceability and status updates.</p>
+                <a href="#" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="service-card fade-in">
+                <div class="service-header">
+                    <span class="service-number">03</span>
+                    <div class="icon"><i class="fas fa-chart-line"></i></div>
+                </div>
+                <h4>Results & Reporting</h4>
+                <p>Capture results, highlight abnormalities, and generate PDF reports. Patients access results securely via portal.</p>
+                <a href="#" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="service-card fade-in">
+                <div class="service-header">
+                    <span class="service-number">04</span>
+                    <div class="icon"><i class="fas fa-user-shield"></i></div>
+                </div>
+                <h4>Consent & Privacy</h4>
+                <p>Patients control who accesses their data, grant consent to doctors, and track their complete medical history.</p>
+                <a href="#" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="service-card fade-in">
+                <div class="service-header">
+                    <span class="service-number">05</span>
+                    <div class="icon"><i class="fas fa-boxes"></i></div>
+                </div>
+                <h4>Inventory Management</h4>
+                <p>Managers track consumables, reorder levels, suppliers, and automate stock adjustments with orders.</p>
+                <a href="#" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="service-card fade-in">
+                <div class="service-header">
+                    <span class="service-number">06</span>
+                    <div class="icon"><i class="fas fa-robot"></i></div>
+                </div>
+                <h4>Automated Alerts</h4>
+                <p>Real-time notifications for abnormal results, overdue tests, and low stock — keeping everyone informed.</p>
+                <a href="#" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    /* ─── SERVICES ─── */
+    #services {
+        background: var(--bg-soft);
+        position: relative;
+        overflow: hidden;
+    }
+
+        /* Subtle background decoration */
+        #services::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle at 20% 80%, rgba(8, 65, 201, 0.02) 0%, transparent 40%), radial-gradient(circle at 80% 20%, rgba(29, 151, 241, 0.02) 0%, transparent 40%);
+            pointer-events: none;
+        }
+
+    .services-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ─── SERVICE CARD ─── */
+    .service-card {
+        background: #fff;
+        padding: 2rem 1.8rem 2rem;
+        border-radius: var(--radius-card);
+        box-shadow: var(--shadow-sm);
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        border: 1px solid #E8EDF5;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        min-height: 260px;
+    }
+
+        .service-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 16px 48px rgba(8, 65, 201, 0.08), 0 4px 16px rgba(0, 0, 0, 0.02);
+            border-color: var(--primary-bright);
+        }
+
+    /* ─── SERVICE HEADER (Number + Icon inline) ─── */
+    .service-header {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        margin-bottom: 1rem;
+    }
+
+    /* ─── SERVICE NUMBER ─── */
+    .service-number {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--primary-bright);
+        letter-spacing: 0.04em;
+        background: rgba(8, 65, 201, 0.06);
+        padding: 0.15rem 0.7rem;
+        border-radius: 40px;
+        border: 1px solid rgba(8, 65, 201, 0.06);
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .service-card:hover .service-number {
+        background: var(--primary-bright);
+        color: #fff;
+        border-color: var(--primary-bright);
+    }
+
+    /* ─── ICON ─── */
+    .service-card .icon {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        background: linear-gradient(135deg, rgba(8, 65, 201, 0.08), rgba(29, 151, 241, 0.08));
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: var(--primary-bright);
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .service-card:hover .icon {
+        background: linear-gradient(135deg, var(--primary-bright), var(--primary-light));
+        color: #fff;
+        transform: scale(1.05) rotate(-2deg);
+        box-shadow: 0 8px 28px rgba(8, 65, 201, 0.25);
+    }
+
+    /* ─── CONTENT ─── */
+    .service-card h4 {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 0.4rem;
+        letter-spacing: -0.01em;
+        transition: color 0.3s ease;
+    }
+
+    .service-card:hover h4 {
+        color: var(--primary-bright);
+    }
+
+    .service-card p {
+        color: var(--text-muted);
+        font-size: 0.88rem;
+        line-height: 1.6;
+        margin-bottom: 0.8rem;
+        flex: 1;
+    }
+
+    /* ─── SERVICE LINK ─── */
+    .service-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--primary-bright);
+        text-decoration: none;
+        transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        opacity: 0.6;
+        margin-top: 0.2rem;
+    }
+
+    .service-card:hover .service-link {
+        opacity: 1;
+    }
+
+    .service-link i {
+        font-size: 0.7rem;
+        transition: transform 0.3s ease;
+    }
+
+    .service-link:hover {
+        color: var(--primary-light);
+    }
+
+        .service-link:hover i {
+            transform: translateX(4px);
+        }
+
+    /* ─── RESPONSIVE ─── */
+    @@media (max-width: 1024px) {
+        .services-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 868px) {
+        .services-grid {
+            grid-template-columns: 1fr;
+            gap: 1.2rem;
+        }
+
+        .service-card {
+            padding: 1.5rem 1.2rem;
+            min-height: auto;
+        }
+
+            .service-card .icon {
+                width: 38px;
+                height: 38px;
+                min-width: 38px;
+                font-size: 1rem;
+            }
+
+            .service-card h4 {
+                font-size: 0.95rem;
+            }
+
+            .service-card p {
+                font-size: 0.82rem;
+            }
+    }
+
+    @@media (max-width: 480px) {
+        .service-card {
+            padding: 1.2rem 1rem;
+            border-radius: var(--radius-element);
+        }
+
+        .service-header {
+            gap: 0.6rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .service-number {
+            font-size: 0.65rem;
+            padding: 0.1rem 0.6rem;
+        }
+
+        .service-card .icon {
+            width: 34px;
+            height: 34px;
+            min-width: 34px;
+            font-size: 0.85rem;
+            border-radius: 10px;
+        }
+
+        .service-card h4 {
+            font-size: 0.9rem;
+        }
+
+        .service-card p {
+            font-size: 0.78rem;
+        }
+
+        .service-link {
+            font-size: 0.7rem;
+        }
+    }
+</style>

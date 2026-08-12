@@ -1,0 +1,157 @@
+﻿@{
+    ViewData["Title"] = "Terms of Service";
+    Layout = "~/Views/Shared/_PublicLayout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .legal-page {
+            padding: 6rem 0 3rem;
+            background: var(--bg-soft);
+        }
+
+        .legal-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+            .legal-header h1 {
+                font-size: 2.8rem;
+                font-weight: 800;
+                color: var(--primary-dark);
+                letter-spacing: -0.02em;
+            }
+
+        .last-updated {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 0.3rem;
+        }
+
+        .legal-body {
+            max-width: 820px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 2.5rem 3rem;
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-md);
+        }
+
+            .legal-body h2 {
+                font-size: 1.4rem;
+                font-weight: 700;
+                color: var(--primary-dark);
+                margin-top: 1.8rem;
+                margin-bottom: 0.8rem;
+                padding-bottom: 0.3rem;
+                border-bottom: 1px solid #E8EDF5;
+            }
+
+            .legal-body p {
+                color: var(--text-muted);
+                line-height: 1.8;
+                margin-bottom: 1rem;
+            }
+
+            .legal-body ul {
+                margin: 0.5rem 0 1.2rem 1.5rem;
+            }
+
+                .legal-body ul li {
+                    color: var(--text-muted);
+                    line-height: 1.7;
+                    margin-bottom: 0.4rem;
+                }
+
+            .legal-body a {
+                color: var(--primary-bright);
+                text-decoration: none;
+            }
+
+                .legal-body a:hover {
+                    text-decoration: underline;
+                }
+
+        @@media (max-width: 768px) {
+            .legal-body {
+                padding: 1.8rem;
+            }
+
+            .legal-header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+}
+
+<div class="legal-page">
+    <div class="container">
+        <div class="legal-header">
+            <h1>Terms of Service</h1>
+            <p class="last-updated">Last Updated: 1 July 2025</p>
+        </div>
+
+        <div class="legal-body">
+            <p>
+                These Terms of Service govern your use of NMB-HLabSys, the web-based Laboratory Test Request Management System provided by Nelson Mandela Bay Haematology Diagnostic Laboratories (NMBHDL). By accessing or using the system, you agree to be bound by these terms.
+            </p>
+
+            <h2>1. Acceptance of Terms</h2>
+            <p>
+                By registering, logging in, or using any part of NMB-HLabSys, you accept these Terms of Service. If you do not agree, you must not use the system.
+            </p>
+
+            <h2>2. User Accounts</h2>
+            <ul>
+                <li><strong>Registration:</strong> You must provide accurate and complete information during registration. You are responsible for maintaining the confidentiality of your login credentials.</li>
+                <li><strong>Eligibility:</strong> You must be at least 18 years old or have parental consent to use the system. Healthcare providers must hold valid professional certifications.</li>
+                <li><strong>Account Termination:</strong> We reserve the right to suspend or terminate accounts that violate these terms or are inactive for extended periods.</li>
+            </ul>
+
+            <h2>3. Acceptable Use</h2>
+            <p>You agree not to:</p>
+            <ul>
+                <li>Use the system for any unlawful purpose or in any way that could damage, disable, or impair the system.</li>
+                <li>Transmit any harmful code, malware, or viruses.</li>
+                <li>Access data you are not authorized to view (e.g., other patients' records).</li>
+                <li>Use automated tools (bots, scrapers) to extract data without permission.</li>
+                <li>Impersonate another user or provide false information.</li>
+            </ul>
+
+            <h2>4. Medical Disclaimer</h2>
+            <p>
+                NMB-HLabSys is a diagnostic support tool and does not replace professional medical judgment. All test results should be interpreted by qualified healthcare providers. We are not liable for any clinical decisions made based on system data.
+            </p>
+
+            <h2>5. Intellectual Property</h2>
+            <p>
+                All content, design, software, and code on NMB-HLabSys are the property of NMBHDL or its licensors. You may not copy, modify, or redistribute any part of the system without prior written consent.
+            </p>
+
+            <h2>6. Limitation of Liability</h2>
+            <p>
+                To the fullest extent permitted by law, NMBHDL shall not be liable for any direct, indirect, incidental, special, or consequential damages arising from your use of the system, including but not limited to data loss, system downtime, or errors in test results.
+            </p>
+
+            <h2>7. Indemnification</h2>
+            <p>
+                You agree to indemnify and hold harmless NMBHDL, its employees, and affiliates from any claims, damages, or expenses arising from your violation of these terms or your misuse of the system.
+            </p>
+
+            <h2>8. Modifications</h2>
+            <p>
+                We may update these Terms from time to time. Continued use of the system after changes constitutes acceptance of the revised terms.
+            </p>
+
+            <h2>9. Governing Law</h2>
+            <p>
+                These Terms are governed by the laws of the Republic of South Africa. Any disputes shall be resolved in the courts of Gqeberha.
+            </p>
+
+            <h2>10. Contact</h2>
+            <p>
+                For questions about these Terms, contact us at <a href="mailto:legal@nmblab.co.za">legal@nmblab.co.za</a>.
+            </p>
+        </div>
+    </div>
+</div>
