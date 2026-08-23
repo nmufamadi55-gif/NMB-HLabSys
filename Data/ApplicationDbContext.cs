@@ -1,8 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using NMB_HLabSys.Models;
-using System.Collections.Generic;
-using System.Reflection.Emit;
 
 namespace NMB_HLabSys.Data
 {
@@ -17,6 +14,7 @@ namespace NMB_HLabSys.Data
         public DbSet<User> Users { get; set; }
         public DbSet<LabTechnician> LabTechnicians { get; set; }
         public DbSet<Doctor> Doctors { get; set; }
+        public DbSet<Patient> Patients { get; set; }
 
         // Test management
         public DbSet<TestCategory> TestCategories { get; set; }
@@ -34,8 +32,7 @@ namespace NMB_HLabSys.Data
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<StockAdjustmentLog> StockAdjustmentLogs { get; set; }
 
-        //Doctor Management
-        public DbSet<Patient> Patients { get; set; }
+        // Doctor Management
         public DbSet<TestRequest> TestRequests { get; set; }
         public DbSet<RequestTestType> RequestTestTypes { get; set; }
         public DbSet<TestResult> TestResults { get; set; }
@@ -43,17 +40,18 @@ namespace NMB_HLabSys.Data
         public DbSet<Sample> Samples { get; set; }
         public DbSet<ConsentTestRequestAccess> ConsentTestRequestAccesses { get; set; }
 
-        //Patient management
+        // Patient management
         public DbSet<PatientCondition> PatientConditions { get; set; }
         public DbSet<PatientAllergy> PatientAllergies { get; set; }
         public DbSet<PatientMedication> PatientMedications { get; set; }
-
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Composite unique keys
+            // =========================
+            // COMPOSITE UNIQUE KEYS
+            // =========================
             modelBuilder.Entity<TechnicianTestAssignment>()
                 .HasIndex(t => new { t.TechnicianID, t.TestID })
                 .IsUnique()
@@ -64,17 +62,19 @@ namespace NMB_HLabSys.Data
                 .IsUnique()
                 .HasDatabaseName("IX_TestConsumable_Unique");
 
-
-            // Unique constraints
+            // =========================
+            // UNIQUE CONSTRAINTS
+            // =========================
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Email)
                 .IsUnique()
                 .HasDatabaseName("IX_User_Email_Unique");
 
-            modelBuilder.Entity<User>()
-                .HasIndex(u => u.AspNetUserID)
-                .IsUnique()
-                .HasDatabaseName("IX_User_AspNetUserId_Unique");
+            // COMMENTED OUT - User model doesn't have AspNetUserID
+            // modelBuilder.Entity<User>()
+            //     .HasIndex(u => u.AspNetUserID)
+            //     .IsUnique()
+            //     .HasDatabaseName("IX_User_AspNetUserId_Unique");
 
             modelBuilder.Entity<LabTechnician>()
                 .HasIndex(l => l.EmployeeNumber)
@@ -121,7 +121,104 @@ namespace NMB_HLabSys.Data
                 .IsUnique()
                 .HasDatabaseName("IX_PurchaseOrder_Number_Unique");
 
-            // Configure decimal precision
+            // =========================
+            // RELATIONSHIPS WITH CASCADE BEHAVIOR
+            // =========================
+
+            // -------- ORDER MANAGEMENT --------
+            modelBuilder.Entity<OrderItem>()
+                .HasOne(oi => oi.Order)
+                .WithMany(p => p.OrderItems)
+                .HasForeignKey(oi => oi.OrderID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrderItem>()
+                .HasOne(oi => oi.Consumable)
+                .WithMany(c => c.OrderItems)
+                .HasForeignKey(oi => oi.ConsumableID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PurchaseOrder>()
+                .HasOne(p => p.Supplier)
+                .WithMany(s => s.PurchaseOrders)
+                .HasForeignKey(p => p.SupplierID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PurchaseOrder>()
+                .HasOne(p => p.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(p => p.CreatedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // -------- TEST MANAGEMENT --------
+            modelBuilder.Entity<TestType>()
+                .HasOne(t => t.Category)
+                .WithMany(c => c.TestTypes)
+                .HasForeignKey(t => t.CategoryID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TestType>()
+                .HasOne(t => t.SampleType)
+                .WithMany(s => s.TestTypes)
+                .HasForeignKey(t => t.SampleTypeID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TechnicianTestAssignment>()
+                .HasOne(tta => tta.TestType)
+                .WithMany(t => t.TechnicianTestAssignments)
+                .HasForeignKey(tta => tta.TestID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TechnicianTestAssignment>()
+                .HasOne(tta => tta.Technician)
+                .WithMany(t => t.TestAssignments)
+                .HasForeignKey(tta => tta.TechnicianID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // -------- INVENTORY MANAGEMENT --------
+            modelBuilder.Entity<Consumable>()
+                .HasOne(c => c.Supplier)
+                .WithMany(s => s.Consumables)
+                .HasForeignKey(c => c.SupplierID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TestConsumable>()
+                .HasOne(tc => tc.TestType)
+                .WithMany(t => t.TestConsumables)
+                .HasForeignKey(tc => tc.TestID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TestConsumable>()
+                .HasOne(tc => tc.Consumable)
+                .WithMany(c => c.TestConsumables)
+                .HasForeignKey(tc => tc.ConsumableID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // =========================
+            // USER RELATIONSHIPS (COMMENTED OUT - User model doesn't have these navigation properties)
+            // =========================
+
+            //modelBuilder.Entity<LabTechnician>()
+            //    .HasOne(lt => lt.User)
+            //    .WithOne(u => u.LabTechnician)
+            //    .HasForeignKey<LabTechnician>(lt => lt.UserID)
+            //    .OnDelete(DeleteBehavior.Cascade);
+
+            //modelBuilder.Entity<Doctor>()
+            //    .HasOne(d => d.User)
+            //    .WithOne(u => u.Doctor)
+            //    .HasForeignKey<Doctor>(d => d.UserID)
+            //    .OnDelete(DeleteBehavior.Cascade);
+
+            //modelBuilder.Entity<Patient>()
+            //    .HasOne(p => p.User)
+            //    .WithOne(u => u.Patient)
+            //    .HasForeignKey<Patient>(p => p.UserID)
+            //    .OnDelete(DeleteBehavior.Cascade);
+
+            // =========================
+            // DECIMAL PRECISION
+            // =========================
             modelBuilder.Entity<TestType>()
                 .Property(t => t.NormalRangeMin)
                 .HasPrecision(18, 4);
@@ -142,7 +239,9 @@ namespace NMB_HLabSys.Data
                 .Property(o => o.UnitPrice)
                 .HasPrecision(18, 2);
 
-
+            // =========================
+            // DEFAULT VALUES
+            // =========================
             modelBuilder.Entity<TestCategory>()
                 .Property(t => t.CreatedAt)
                 .HasDefaultValueSql("GETDATE()");
@@ -171,7 +270,9 @@ namespace NMB_HLabSys.Data
                 .Property(t => t.AssignedDate)
                 .HasDefaultValueSql("GETDATE()");
 
-            // Set default boolean values
+            // =========================
+            // BOOLEAN DEFAULTS
+            // =========================
             modelBuilder.Entity<User>()
                 .Property(u => u.IsActive)
                 .HasDefaultValue(true);
@@ -212,11 +313,12 @@ namespace NMB_HLabSys.Data
                 .Property(t => t.IsActive)
                 .HasDefaultValue(true);
 
-            //Doctor related
-
+            // =========================
+            // DOCTOR RELATED
+            // =========================
             modelBuilder.Entity<TestRequest>()
-           .HasIndex(t => t.RequestNumber)
-           .IsUnique();
+                .HasIndex(t => t.RequestNumber)
+                .IsUnique();
 
             modelBuilder.Entity<Sample>()
                 .HasIndex(s => s.Barcode)

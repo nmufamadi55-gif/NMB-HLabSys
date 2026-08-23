@@ -36,7 +36,7 @@ namespace NMB_HLabSys.Models
         public DateTime CreatedAt { get; set; }
 
         // Navigation properties
-        [ForeignKey("SupplierId")]
+        [ForeignKey("SupplierID")]
         public virtual Supplier Supplier { get; set; }
 
         public virtual ICollection<TestConsumable> TestConsumables { get; set; }

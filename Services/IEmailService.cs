@@ -18,18 +18,19 @@ namespace NMB_HLabSys.Services
         Task SendPatientWelcomeEmailAsync(string email, string name, string password);
         Task SendTestResultEmailAsync(string toEmail, string patientName, string testResults);
         Task SendLowStockAlertEmailAsync(List<LowStockAlertViewModel> alerts);
+        Task SendPasswordResetEmailAsync(string toEmail, string userName, string resetLink);
     }
 
     public class EmailService : IEmailService
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger<EmailService> _logger;
-        private readonly ApplicationDbContext _context;  // Added this
+        private readonly ApplicationDbContext _context;
 
         public EmailService(
             IConfiguration configuration,
             ILogger<EmailService> logger,
-            ApplicationDbContext context)  // Added context parameter
+            ApplicationDbContext context)
         {
             _configuration = configuration;
             _logger = logger;
@@ -215,7 +216,6 @@ namespace NMB_HLabSys.Services
                     <p><a href='{GetBaseUrl()}/Manager/StockManagement'>View Stock Management</a></p>
                 ";
 
-                // Send to all managers and admins
                 var recipients = await _context.Users
                     .Where(u => (u.UserRole == "Manager" || u.UserRole == "Admin") && u.IsActive)
                     .Select(u => u.Email)
@@ -242,6 +242,27 @@ namespace NMB_HLabSys.Services
                 _logger.LogError(ex, "Error sending low stock alert emails");
                 throw;
             }
+        }
+
+        public async Task SendPasswordResetEmailAsync(string toEmail, string userName, string resetLink)
+        {
+            var subject = "Password Reset - NMB-HLabSys";
+            var body = $@"
+                <html>
+                <body style='font-family: Arial, sans-serif;'>
+                    <h2>Password Reset Request</h2>
+                    <p>Dear {userName},</p>
+                    <p>We received a request to reset your password for the NMB Haematology Laboratory Test Request Management System.</p>
+                    <p>Click the link below to reset your password (valid for 24 hours):</p>
+                    <p><a href='{resetLink}' style='background: #0d6efd; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Reset Password</a></p>
+                    <p>If you did not request this, please ignore this email.</p>
+                    <hr />
+                    <p style='color: #6c757d; font-size: 12px;'>Nelson Mandela Bay Haematology Diagnostic Laboratories</p>
+                    <p style='color: #6c757d; font-size: 12px;'>UN SDG 3: Good Health and Well-Being</p>
+                </body>
+                </html>";
+
+            await SendEmailAsync(toEmail, subject, body);
         }
 
         private string GetBaseUrl()

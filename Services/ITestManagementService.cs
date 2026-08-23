@@ -1,224 +1,217 @@
-﻿using Microsoft.EntityFrameworkCore;
-using NMB_HLabSys.Data;
-using NMB_HLabSys.Models;
-using NMB_HLabSys.Models.ViewModels;
+﻿//using Microsoft.EntityFrameworkCore;
+//using NMB_HLabSys.Data;
+//using NMB_HLabSys.Models;
+//using NMB_HLabSys.Models.ViewModels;
 
-namespace NMB_HLabSys.Services
-{
-    public interface ITestManagementService
-    {
-        Task<TestType> CreateTestTypeAsync(CreateTestTypeViewModel model);
-        Task<TestType> UpdateTestTypeAsync(EditTestTypeViewModel model);
-        Task<bool> DeleteTestTypeAsync(int testId);
-        Task<List<TestTypeViewModel>> GetTestTypesWithDetailsAsync();
-    }
+//namespace NMB_HLabSys.Services
+//{
+//    public interface ITestManagementService
+//    {
+//        Task<TestType> CreateTestTypeAsync(CreateTestTypeViewModel model);
+//        Task<TestType> UpdateTestTypeAsync(EditTestTypeViewModel model);
+//        Task<bool> DeleteTestTypeAsync(int testId);
+//        Task<List<TestTypeViewModel>> GetTestTypesWithDetailsAsync();
+//    }
 
-    public class TestManagementService : ITestManagementService
-    {
-        private readonly ApplicationDbContext _context;
-        private readonly ILogger<TestManagementService> _logger;
+//    public class TestManagementService : ITestManagementService
+//    {
+//        private readonly ApplicationDbContext _context;
+//        private readonly ILogger<TestManagementService> _logger;
 
-        public TestManagementService(ApplicationDbContext context, ILogger<TestManagementService> logger)
-        {
-            _context = context;
-            _logger = logger;
-        }
+//        public TestManagementService(ApplicationDbContext context, ILogger<TestManagementService> logger)
+//        {
+//            _context = context;
+//            _logger = logger;
+//        }
 
-        public async Task<TestType> CreateTestTypeAsync(CreateTestTypeViewModel model)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                var testType = new TestType
-                {
-                    TestName = model.TestName,
-                    CategoryID = model.CategoryID,
-                    SampleTypeId = model.SampleTypeID,
-                    UnitOfMeasurement = model.UnitOfMeasurement,
-                    NormalRangeMin = model.NormalRangeMin,
-                    NormalRangeMax = model.NormalRangeMax,
-                    TurnaroundTimeMinutes = model.TurnaroundTimeMinutes,
-                    IsActive = true,
-                    CreatedAt = DateTime.Now
-                };
+//        public async Task<TestType> CreateTestTypeAsync(CreateTestTypeViewModel model)
+//        {
+//            using var transaction = await _context.Database.BeginTransactionAsync();
+//            try
+//            {
+//                var testType = new TestType
+//                {
+//                    TestName = model.TestName,
+//                    CategoryID = model.CategoryID,
+//                    SampleTypeID = model.SampleTypeID,
 
-                _context.TestTypes.Add(testType);
-                await _context.SaveChangesAsync();
+//                    UnitOfMeasurement = model.UnitOfMeasurement,
+//                    NormalRangeMin = model.NormalRangeMin,
+//                    NormalRangeMax = model.NormalRangeMax,
+//                    TurnaroundTimeMinutes = model.TurnaroundTimeMinutes,
+//                    IsActive = true,
+//                    CreatedAt = DateTime.Now
+//                };
 
-                // Assign technicians
-                if (model.SelectedTechnicianIDs != null && model.SelectedTechnicianIDs.Any())
-                {
-                    foreach (var techId in model.SelectedTechnicianIDs)
-                    {
-                        _context.TechnicianTestAssignments.Add(new TechnicianTestAssignment
-                        {
-                            TechnicianID = techId,
-                            TestID = testType.TestID,
-                            AssignedDate = DateTime.Now,
-                            IsActive = true
-                        });
-                    }
-                }
+//                _context.TestTypes.Add(testType);
+//                await _context.SaveChangesAsync();
 
-                // Assign consumables
-                if (model.ConsumableQuantities != null && model.ConsumableQuantities.Any())
-                {
-                    foreach (var item in model.ConsumableQuantities)
-                    {
-                        if (item.Value > 0)
-                        {
-                            _context.TestConsumables.Add(new TestConsumable
-                            {
-                                TestID = testType.TestID,
-                                ConsumableID = item.Key,
-                                QuantityRequired = item.Value
-                            });
-                        }
-                    }
-                }
+//                // Assign technicians
+//                if (model.SelectedTechnicianIDs != null && model.SelectedTechnicianIDs.Any())
+//                {
+//                    foreach (var techId in model.SelectedTechnicianIDs)
+//                    {
+//                        _context.TechnicianTestAssignments.Add(new TechnicianTestAssignment
+//                        {
+//                            TechnicianID = techId,
+//                            TestID = testType.TestID,
+//                            AssignedDate = DateTime.Now,
+//                            IsActive = true
+//                        });
+//                    }
+//                }
 
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
+//                // Assign consumables
+//                if (model.ConsumableQuantities != null && model.ConsumableQuantities.Any())
+//                {
+//                    foreach (var item in model.ConsumableQuantities)
+//                    {
+//                        if (item.Value > 0)
+//                        {
+//                            _context.TestConsumables.Add(new TestConsumable
+//                            {
+//                                TestID = testType.TestID,
+//                                ConsumableID = item.Key,
+//                                QuantityRequired = item.Value
+//                            });
+//                        }
+//                    }
+//                }
 
-                _logger.LogInformation($"Test type created: {testType.TestName} (ID: {testType.TestID})");
-                return testType;
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                _logger.LogError(ex, $"Error creating test type: {model.TestName}");
-                throw;
-            }
-        }
+//                await _context.SaveChangesAsync();
+//                await transaction.CommitAsync();
 
-        public async Task<TestType> UpdateTestTypeAsync(EditTestTypeViewModel model)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                var testType = await _context.TestTypes
-                    .Include(t => t.TechnicianTestAssignments)
-                    .Include(t => t.TestConsumables)
-                    .FirstOrDefaultAsync(t => t.TestID == model.TestID);
+//                _logger.LogInformation($"Test type created: {testType.TestName} (ID: {testType.TestID})");
+//                return testType;
+//            }
+//            catch (Exception ex)
+//            {
+//                await transaction.RollbackAsync();
+//                _logger.LogError(ex, $"Error creating test type: {model.TestName}");
+//                throw;
+//            }
+//        }
 
-                if (testType == null)
-                    throw new ArgumentException($"Test type with ID {model.TestID} not found");
+//        public async Task<TestType> UpdateTestTypeAsync(EditTestTypeViewModel model)
+//        {
+//            using var transaction = await _context.Database.BeginTransactionAsync();
+//            try
+//            {
+//                var testType = await _context.TestTypes
+//                    .Include(t => t.TechnicianTestAssignments)
+//                    .Include(t => t.TestConsumables)
+//                    .FirstOrDefaultAsync(t => t.TestID == model.TestID);
 
-                // Update basic info
-                testType.TestName = model.TestName;
-                testType.CategoryID = model.CategoryID;
-                testType.SampleTypeId = model.SampleTypeID;
-                testType.UnitOfMeasurement = model.UnitOfMeasurement;
-                testType.NormalRangeMin = model.NormalRangeMin;
-                testType.NormalRangeMax = model.NormalRangeMax;
-                testType.TurnaroundTimeMinutes = model.TurnaroundTimeMinutes;
-                testType.IsActive = model.IsActive;
+//                if (testType == null)
+//                    throw new ArgumentException($"Test type with ID {model.TestID} not found");
 
-                // Update technician assignments
-                _context.TechnicianTestAssignments.RemoveRange(testType.TechnicianTestAssignments);
-                if (model.SelectedTechnicianIDs != null && model.SelectedTechnicianIDs.Any())
-                {
-                    foreach (var techId in model.SelectedTechnicianIDs)
-                    {
-                        _context.TechnicianTestAssignments.Add(new TechnicianTestAssignment
-                        {
-                            TechnicianID = techId,
-                            TestID = testType.TestID,
-                            AssignedDate = DateTime.Now,
-                            IsActive = true
-                        });
-                    }
-                }
+//                // Update basic info
+//                testType.TestName = model.TestName;
+//                testType.CategoryID = model.CategoryID;
 
-                // Update consumables
-                _context.TestConsumables.RemoveRange(testType.TestConsumables);
-                if (model.ConsumableQuantities != null && model.ConsumableQuantities.Any())
-                {
-                    foreach (var item in model.ConsumableQuantities)
-                    {
-                        if (item.Value > 0)
-                        {
-                            _context.TestConsumables.Add(new TestConsumable
-                            {
-                                TestID = testType.TestID,
-                                ConsumableID = item.Key,
-                                QuantityRequired = item.Value
-                            });
-                        }
-                    }
-                }
+//                testType.SampleTypeID = model.SampleTypeID;
+//                testType.UnitOfMeasurement = model.UnitOfMeasurement;
+//                testType.NormalRangeMin = model.NormalRangeMin;
+//                testType.NormalRangeMax = model.NormalRangeMax;
+//                testType.TurnaroundTimeMinutes = model.TurnaroundTimeMinutes;
+//                testType.IsActive = model.IsActive;
 
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
+//                // Update technician assignments
+//                _context.TechnicianTestAssignments.RemoveRange(testType.TechnicianTestAssignments);
+//                if (model.SelectedTechnicianIDs != null && model.SelectedTechnicianIDs.Any())
+//                {
+//                    foreach (var techId in model.SelectedTechnicianIDs)
+//                    {
+//                        _context.TechnicianTestAssignments.Add(new TechnicianTestAssignment
+//                        {
+//                            TechnicianID = techId,
+//                            TestID = testType.TestID,
+//                            AssignedDate = DateTime.Now,
+//                            IsActive = true
+//                        });
+//                    }
+//                }
 
-                _logger.LogInformation($"Test type updated: {testType.TestName} (ID: {testType.TestID})");
-                return testType;
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                _logger.LogError(ex, $"Error updating test type ID {model.TestID}");
-                throw;
-            }
-        }
+//                // Update consumables
+//                _context.TestConsumables.RemoveRange(testType.TestConsumables);
+//                if (model.ConsumableQuantities != null && model.ConsumableQuantities.Any())
+//                {
+//                    foreach (var item in model.ConsumableQuantities)
+//                    {
+//                        if (item.Value > 0)
+//                        {
+//                            _context.TestConsumables.Add(new TestConsumable
+//                            {
+//                                TestID = testType.TestID,
+//                                ConsumableID = item.Key,
+//                                QuantityRequired = item.Value
+//                            });
+//                        }
+//                    }
+//                }
 
-        public async Task<bool> DeleteTestTypeAsync(int testId)
-        {
-            try
-            {
-                var testType = await _context.TestTypes.FindAsync(testId);
-                if (testType == null)
-                    return false;
+//                await _context.SaveChangesAsync();
+//                await transaction.CommitAsync();
 
-                testType.IsActive = false; // Soft delete
-                await _context.SaveChangesAsync();
+//                _logger.LogInformation($"Test type updated: {testType.TestName} (ID: {testType.TestID})");
+//                return testType;
+//            }
+//            catch (Exception ex)
+//            {
+//                await transaction.RollbackAsync();
+//                _logger.LogError(ex, $"Error updating test type ID {model.TestID}");
+//                throw;
+//            }
+//        }
 
-                _logger.LogInformation($"Test type deactivated: {testType.TestName} (ID: {testId})");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error deleting test type ID {testId}");
-                return false;
-            }
-        }
+//        public async Task<bool> DeleteTestTypeAsync(int testId)
+//        {
+//            try
+//            {
+//                var testType = await _context.TestTypes.FindAsync(testId);
+//                if (testType == null)
+//                    return false;
 
-        public async Task<List<TestTypeViewModel>> GetTestTypesWithDetailsAsync()
-        {
-            return await _context.TestTypes
-                .Include(t => t.Category)
-                .Include(t => t.SampleType)
-                .Include(t => t.TechnicianTestAssignments)
-                    .ThenInclude(ta => ta.Technician)
-                        .ThenInclude(t => t.User)
-                .Include(t => t.TestConsumables)
-                    .ThenInclude(tc => tc.Consumable)
-                .Select(t => new TestTypeViewModel
-                {
-                    TestID = t.TestID,
-                    TestName = t.TestName,
-                    CategoryName = t.Category.CategoryName,
-                    SampleTypeName = t.SampleType.SampleTypeName,
-                    UnitOfMeasurement = t.UnitOfMeasurement,
-                    NormalRangeMin = t.NormalRangeMin,
-                    NormalRangeMax = t.NormalRangeMax,
-                    TurnaroundTimeMinutes = t.TurnaroundTimeMinutes,
-                    AssignedTechnicians = t.TechnicianTestAssignments
-                        .Where(ta => ta.IsActive)
-                        .Select(ta => $"{ta.Technician.User.Name} {ta.Technician.User.Surname}")
-                        .ToList(),
-                    Consumables = t.TestConsumables
-                        .Select(tc => new ConsumableViewModel
-                        {
-                            ConsumableID = tc.ConsumableID,
-                            ConsumableName = tc.Consumable.ConsumableName,
-                            QuantityOnHand = tc.Consumable.QuantityOnHand,
-                            ReorderLevel = tc.Consumable.ReorderLevel
-                        }).ToList(),
-                    IsActive = t.IsActive,
-                    CreatedAt = t.CreatedAt
-                })
-                .ToListAsync();
-        }
-    }
-}
+//                testType.IsActive = false; // Soft delete
+//                await _context.SaveChangesAsync();
+
+//                _logger.LogInformation($"Test type deactivated: {testType.TestName} (ID: {testId})");
+//                return true;
+//            }
+//            catch (Exception ex)
+//            {
+//                _logger.LogError(ex, $"Error deleting test type ID {testId}");
+//                return false;
+//            }
+//        }
+
+//        public async Task<List<TestTypeViewModel>> GetTestTypesWithDetailsAsync()
+//        {
+//            return await _context.TestTypes
+//                .Include(t => t.Category)
+//                .Include(t => t.SampleType)
+//                .Include(t => t.TechnicianTestAssignments)
+//                    .ThenInclude(ta => ta.Technician)
+//                        .ThenInclude(t => t.User)
+//                .Include(t => t.TestConsumables)
+//                    .ThenInclude(tc => tc.Consumable)
+//                .Select(t => new TestTypeViewModel
+//                {
+//                    TestID = t.TestID,
+//                    TestName = t.TestName,
+//                    CategoryName = t.Category.CategoryName,
+//                    SampleTypeName = t.SampleType.SampleTypeName,
+//                    UnitOfMeasurement = t.UnitOfMeasurement,
+//                    NormalRangeMin = t.NormalRangeMin,
+//                    NormalRangeMax = t.NormalRangeMax,
+//                    TurnaroundTimeMinutes = t.TurnaroundTimeMinutes,
+//                    AssignedTechnicians = t.TechnicianTestAssignments
+//                        .Where(ta => ta.IsActive)
+//                        .,
+//                    IsActive = t.IsActive,
+//                    CreatedAt = t.CreatedAt
+//                })
+//                .ToListAsync();
+//        }
+//    }
+//}

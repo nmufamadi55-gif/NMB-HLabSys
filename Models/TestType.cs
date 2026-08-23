@@ -16,7 +16,7 @@ namespace NMB_HLabSys.Models
         public int CategoryID { get; set; }
 
         [Required]
-        public int SampleTypeId { get; set; }
+        public int SampleTypeID { get; set; }
 
         [StringLength(50)]
         public string UnitOfMeasurement { get; set; }
@@ -33,10 +33,10 @@ namespace NMB_HLabSys.Models
         public DateTime CreatedAt { get; set; }
 
         // Navigation properties
-        [ForeignKey("CategoryId")]
+        [ForeignKey("CategoryID")]
         public virtual TestCategory Category { get; set; }
 
-        [ForeignKey("SampleTypeId")]
+        [ForeignKey("SampleTypeID")]
         public virtual SampleType SampleType { get; set; }
 
         public virtual ICollection<TechnicianTestAssignment> TechnicianTestAssignments { get; set; }

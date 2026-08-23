@@ -19,13 +19,10 @@ namespace NMB_HLabSys.Models
         public bool IsActive { get; set; }
 
         // Navigation properties
-        [ForeignKey("TechnicianId")]
+        [ForeignKey("TechnicianID")]
         public virtual LabTechnician Technician { get; set; }
 
-        [ForeignKey("TestId")]
-        public virtual TestType TestType
-        {
-            get; set;
-        }
+        [ForeignKey("TestID")]
+        public virtual TestType TestType { get; set; }
     }
 }

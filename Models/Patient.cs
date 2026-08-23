@@ -24,6 +24,7 @@ namespace NMB_HLabSys.Models
         [Required]
         [StringLength(13)]
         [MinLength(13)]
+        [RegularExpression(@"^[0-9]{13}$", ErrorMessage = "SA ID must be 13 digits")]
         public string SAIDNumber { get; set; }
 
         [Required]
@@ -33,12 +34,19 @@ namespace NMB_HLabSys.Models
         [StringLength(15)]
         public string Cellphone { get; set; }
 
+        [Required]
+        [EmailAddress]
+        [StringLength(255)]
+        public string Email { get; set; } = string.Empty;
+
         [StringLength(500)]
         public string HomeAddress { get; set; }
 
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
         public DateTime? ModifiedDate { get; set; }
+
+        public bool IsActive { get; set; } = true;
 
         // Navigation properties
         [ForeignKey("UserID")]
@@ -48,5 +56,6 @@ namespace NMB_HLabSys.Models
         public virtual ICollection<PatientAllergy> PatientAllergies { get; set; }
         public virtual ICollection<PatientMedication> PatientMedications { get; set; }
         public virtual ICollection<PatientConsentManagement> PatientConsents { get; set; }
+        public virtual ICollection<TestRequest>? TestRequests { get; set; }
     }
 }

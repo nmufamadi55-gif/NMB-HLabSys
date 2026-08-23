@@ -16,9 +16,9 @@ namespace NMB_HLabSys.Models.ViewModels
         public int TotalDoctors { get; set; }
         public int PendingOrders { get; set; }
         public int LowStockItems { get; set; }
-        public List<RecentActivityViewModel> RecentActivities { get; set; }
-        public List<LowStockAlertViewModel> LowStockAlerts { get; set; }
-        public DashboardStatisticsViewModel Statistics { get; set; }
+        public List<RecentActivityViewModel> RecentActivities { get; set; } = new();
+        public List<LowStockAlertViewModel> LowStockAlerts { get; set; } = new();
+        public DashboardStatisticsViewModel Statistics { get; set; } = new();
     }
 
     public class DashboardStatisticsViewModel
@@ -31,20 +31,20 @@ namespace NMB_HLabSys.Models.ViewModels
 
     public class RecentActivityViewModel
     {
-        public string ActivityType { get; set; }
-        public string Description { get; set; }
+        public string ActivityType { get; set; } = string.Empty;
+        public string? Description { get; set; }
         public DateTime ActivityDate { get; set; }
-        public string UserName { get; set; }
+        public string? UserName { get; set; }
     }
 
     public class LowStockAlertViewModel
     {
         public int ConsumableID { get; set; }
-        public string ConsumableName { get; set; }
+        public string? ConsumableName { get; set; }
         public int QuantityOnHand { get; set; }
         public int ReorderLevel { get; set; }
-        public string SupplierName { get; set; }
-        public string AlertLevel { get; set; } // "Critical", "Warning"
+        public string? SupplierName { get; set; }
+        public string? AlertLevel { get; set; } // "Critical", "Warning"
     }
 
     // =========================
@@ -52,16 +52,16 @@ namespace NMB_HLabSys.Models.ViewModels
     // =========================
     public class TestCatalogueIndexViewModel
     {
-        public List<TestCategoryViewModel> Categories { get; set; }
-        public List<TestTypeViewModel> TestTypes { get; set; }
-        public List<SampleTypeViewModel> SampleTypes { get; set; }
+        public List<TestCategoryViewModel>? Categories { get; set; }
+        public List<TestTypeViewModel>? TestTypes { get; set; }
+        public List<SampleTypeViewModel>? SampleTypes { get; set; }
     }
 
     public class TestCategoryViewModel
     {
         public int CategoryID { get; set; }
-        public string CategoryName { get; set; }
-        public string Description { get; set; }
+        public string? CategoryName { get; set; }
+        public string? Description { get; set; }
         public int TestCount { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
@@ -72,11 +72,11 @@ namespace NMB_HLabSys.Models.ViewModels
         [Required(ErrorMessage = "Category name is required")]
         [StringLength(100, MinimumLength = 2, ErrorMessage = "Category name must be between 2 and 100 characters")]
         [Display(Name = "Category Name")]
-        public string CategoryName { get; set; }
+        public string? CategoryName { get; set; }
 
         [StringLength(500, ErrorMessage = "Description cannot exceed 500 characters")]
         [Display(Name = "Description")]
-        public string Description { get; set; }
+        public string? Description { get; set; }
     }
 
     public class EditTestCategoryViewModel
@@ -86,11 +86,11 @@ namespace NMB_HLabSys.Models.ViewModels
         [Required(ErrorMessage = "Category name is required")]
         [StringLength(100, MinimumLength = 2, ErrorMessage = "Category name must be between 2 and 100 characters")]
         [Display(Name = "Category Name")]
-        public string CategoryName { get; set; }
+        public string? CategoryName { get; set; }
 
         [StringLength(500, ErrorMessage = "Description cannot exceed 500 characters")]
         [Display(Name = "Description")]
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         [Display(Name = "Active")]
         public bool IsActive { get; set; }
@@ -99,17 +99,17 @@ namespace NMB_HLabSys.Models.ViewModels
     public class TestTypeViewModel
     {
         public int TestID { get; set; }
-        public string TestName { get; set; }
-        public string CategoryName { get; set; }
-        public string SampleTypeName { get; set; }
-        public string UnitOfMeasurement { get; set; }
+        public string? TestName { get; set; }
+        public string? CategoryName { get; set; }
+        public string? SampleTypeName { get; set; }
+        public string? UnitOfMeasurement { get; set; }
         public string NormalRangeDisplay => $"{NormalRangeMin} - {NormalRangeMax}";
         public decimal? NormalRangeMin { get; set; }
         public decimal? NormalRangeMax { get; set; }
         public int TurnaroundTimeMinutes { get; set; }
         public string TurnaroundTimeDisplay => $"{TurnaroundTimeMinutes / 60}h {TurnaroundTimeMinutes % 60}m";
-        public List<string> AssignedTechnicians { get; set; }
-        public List<ConsumableViewModel> Consumables { get; set; }
+        public List<string>? AssignedTechnicians { get; set; }
+        public List<ConsumableViewModel>? Consumables { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
     }
@@ -119,7 +119,7 @@ namespace NMB_HLabSys.Models.ViewModels
         [Required(ErrorMessage = "Test name is required")]
         [StringLength(200, MinimumLength = 3, ErrorMessage = "Test name must be between 3 and 200 characters")]
         [Display(Name = "Test Name")]
-        public string TestName { get; set; }
+        public string? TestName { get; set; }
 
         [Required(ErrorMessage = "Please select a category")]
         [Display(Name = "Category")]
@@ -130,7 +130,7 @@ namespace NMB_HLabSys.Models.ViewModels
         public int SampleTypeID { get; set; }
 
         [Display(Name = "Unit of Measurement")]
-        public string UnitOfMeasurement { get; set; }
+        public string? UnitOfMeasurement { get; set; }
 
         [Display(Name = "Normal Range Minimum")]
         public decimal? NormalRangeMin { get; set; }
@@ -144,15 +144,15 @@ namespace NMB_HLabSys.Models.ViewModels
         public int TurnaroundTimeMinutes { get; set; }
 
         [Display(Name = "Assign Technicians")]
-        public List<int> SelectedTechnicianIDs { get; set; }
+        public List<int>? SelectedTechnicianIDs { get; set; }
 
         [Display(Name = "Consumables")]
-        public Dictionary<int, int> ConsumableQuantities { get; set; }
+        public Dictionary<int, int>? ConsumableQuantities { get; set; }
 
-        public List<SelectListItem> AvailableCategories { get; set; }
-        public List<SelectListItem> AvailableSampleTypes { get; set; }
-        public List<SelectListItem> AvailableTechnicians { get; set; }
-        public List<SelectListItem> AvailableConsumables { get; set; }
+        public List<SelectListItem>? AvailableCategories { get; set; }
+        public List<SelectListItem>? AvailableSampleTypes { get; set; }
+        public List<SelectListItem>? AvailableTechnicians { get; set; }
+        public List<SelectListItem>? AvailableConsumables { get; set; }
     }
 
     public class EditTestTypeViewModel
@@ -162,7 +162,7 @@ namespace NMB_HLabSys.Models.ViewModels
         [Required(ErrorMessage = "Test name is required")]
         [StringLength(200, MinimumLength = 3, ErrorMessage = "Test name must be between 3 and 200 characters")]
         [Display(Name = "Test Name")]
-        public string TestName { get; set; }
+        public string? TestName { get; set; }
 
         [Required(ErrorMessage = "Please select a category")]
         [Display(Name = "Category")]
@@ -173,7 +173,7 @@ namespace NMB_HLabSys.Models.ViewModels
         public int SampleTypeID { get; set; }
 
         [Display(Name = "Unit of Measurement")]
-        public string UnitOfMeasurement { get; set; }
+        public string? UnitOfMeasurement { get; set; }
 
         [Display(Name = "Normal Range Minimum")]
         public decimal? NormalRangeMin { get; set; }
@@ -190,24 +190,24 @@ namespace NMB_HLabSys.Models.ViewModels
         public bool IsActive { get; set; }
 
         [Display(Name = "Assign Technicians")]
-        public List<int> SelectedTechnicianIDs { get; set; }
+        public List<int>? SelectedTechnicianIDs { get; set; }
 
         [Display(Name = "Consumables")]
-        public Dictionary<int, int> ConsumableQuantities { get; set; }
+        public Dictionary<int, int>? ConsumableQuantities { get; set; }
 
-        public List<SelectListItem> AvailableCategories { get; set; }
-        public List<SelectListItem> AvailableSampleTypes { get; set; }
-        public List<SelectListItem> AvailableTechnicians { get; set; }
-        public List<SelectListItem> AvailableConsumables { get; set; }
+        public List<SelectListItem>? AvailableCategories { get; set; }
+        public List<SelectListItem>? AvailableSampleTypes { get; set; }
+        public List<SelectListItem>? AvailableTechnicians { get; set; }
+        public List<SelectListItem>? AvailableConsumables { get; set; }
     }
 
     public class SampleTypeViewModel
     {
         public int SampleTypeID { get; set; }
-        public string SampleTypeName { get; set; }
-        public string Description { get; set; }
-        public string CollectionTubeType { get; set; }
-        public string StorageRequirements { get; set; }
+        public string SampleTypeName { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string CollectionTubeType { get; set; } = string.Empty;
+        public string StorageRequirements { get; set; } = string.Empty;
         public bool IsActive { get; set; }
     }
 
@@ -216,31 +216,31 @@ namespace NMB_HLabSys.Models.ViewModels
         [Required(ErrorMessage = "Sample type name is required")]
         [StringLength(100, MinimumLength = 2)]
         [Display(Name = "Sample Type Name")]
-        public string SampleTypeName { get; set; }
+        public string SampleTypeName { get; set; } = string.Empty;
 
         [Display(Name = "Description")]
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
         [Display(Name = "Collection Tube Type")]
-        public string CollectionTubeType { get; set; }
+        public string CollectionTubeType { get; set; } = string.Empty;
 
         [Display(Name = "Storage Requirements")]
-        public string StorageRequirements { get; set; }
+        public string StorageRequirements { get; set; } = string.Empty;
     }
 
     public class TechnicianAssignmentViewModel
     {
         public int TestID { get; set; }
-        public string TestName { get; set; }
-        public List<TechnicianAssignmentItemViewModel> AssignedTechnicians { get; set; }
-        public List<TechnicianAssignmentItemViewModel> UnassignedTechnicians { get; set; }
+        public string TestName { get; set; } = string.Empty;
+        public List<TechnicianAssignmentItemViewModel>? AssignedTechnicians { get; set; }
+        public List<TechnicianAssignmentItemViewModel>? UnassignedTechnicians { get; set; }
     }
 
     public class TechnicianAssignmentItemViewModel
     {
         public int TechnicianID { get; set; }
-        public string TechnicianName { get; set; }
-        public string EmployeeNumber { get; set; }
+        public string TechnicianName { get; set; } = string.Empty;
+        public string EmployeeNumber { get; set; } = string.Empty;
         public bool IsAssigned { get; set; }
         public DateTime? AssignedDate { get; set; }
     }
@@ -250,25 +250,25 @@ namespace NMB_HLabSys.Models.ViewModels
     // =========================
     public class StockManagementIndexViewModel
     {
-        public List<ConsumableViewModel> Consumables { get; set; }
-        public List<SupplierViewModel> Suppliers { get; set; }
-        public List<OrderListViewModel> PendingOrders { get; set; }
-        public LowStockSummaryViewModel LowStockSummary { get; set; }
-        public StockStatisticsViewModel Statistics { get; set; }
+        public List<ConsumableViewModel>? Consumables { get; set; }
+        public List<SupplierViewModel>? Suppliers { get; set; }
+        public List<OrderListViewModel>? PendingOrders { get; set; }
+        public LowStockSummaryViewModel LowStockSummary { get; set; } = new();
+        public StockStatisticsViewModel Statistics { get; set; } = new();
     }
 
     public class ConsumableViewModel
     {
         public int ConsumableID { get; set; }
-        public string ConsumableName { get; set; }
-        public string SupplierName { get; set; }
+        public string ConsumableName { get; set; } = string.Empty;
+        public string SupplierName { get; set; } = string.Empty;
         public int QuantityOnHand { get; set; }
         public int ReorderLevel { get; set; }
-        public string StockStatus { get; set; }
-        public string StatusColor { get; set; }
+        public string StockStatus { get; set; } = string.Empty;
+        public string StatusColor { get; set; } = string.Empty;
         public decimal? UnitPrice { get; set; }
-        public string UnitOfMeasure { get; set; }
-        public string StorageLocation { get; set; }
+        public string UnitOfMeasure { get; set; } = string.Empty;
+        public string StorageLocation { get; set; } = string.Empty;
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
     }
@@ -278,7 +278,7 @@ namespace NMB_HLabSys.Models.ViewModels
         [Required(ErrorMessage = "Consumable name is required")]
         [StringLength(200, MinimumLength = 2)]
         [Display(Name = "Consumable Name")]
-        public string ConsumableName { get; set; }
+        public string ConsumableName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Please select a supplier")]
         [Display(Name = "Supplier")]
@@ -295,7 +295,7 @@ namespace NMB_HLabSys.Models.ViewModels
         public int QuantityOnHand { get; set; }
 
         [Display(Name = "Unit of Measure")]
-        public string UnitOfMeasure { get; set; }
+        public string UnitOfMeasure { get; set; } = string.Empty;
 
         [Display(Name = "Unit Price")]
         public decimal? UnitPrice { get; set; }
@@ -304,9 +304,9 @@ namespace NMB_HLabSys.Models.ViewModels
         public int? MinimumStockLevel { get; set; }
 
         [Display(Name = "Storage Location")]
-        public string StorageLocation { get; set; }
+        public string StorageLocation { get; set; } = string.Empty;
 
-        public List<SelectListItem> AvailableSuppliers { get; set; }
+        public List<SelectListItem>? AvailableSuppliers { get; set; }
     }
 
     public class EditConsumableViewModel
@@ -316,7 +316,7 @@ namespace NMB_HLabSys.Models.ViewModels
         [Required(ErrorMessage = "Consumable name is required")]
         [StringLength(200, MinimumLength = 2)]
         [Display(Name = "Consumable Name")]
-        public string ConsumableName { get; set; }
+        public string ConsumableName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Please select a supplier")]
         [Display(Name = "Supplier")]
@@ -333,7 +333,7 @@ namespace NMB_HLabSys.Models.ViewModels
         public int QuantityOnHand { get; set; }
 
         [Display(Name = "Unit of Measure")]
-        public string UnitOfMeasure { get; set; }
+        public string UnitOfMeasure { get; set; } = string.Empty;
 
         [Display(Name = "Unit Price")]
         public decimal? UnitPrice { get; set; }
@@ -342,18 +342,18 @@ namespace NMB_HLabSys.Models.ViewModels
         public int? MinimumStockLevel { get; set; }
 
         [Display(Name = "Storage Location")]
-        public string StorageLocation { get; set; }
+        public string StorageLocation { get; set; } = string.Empty;
 
         [Display(Name = "Active")]
         public bool IsActive { get; set; }
 
-        public List<SelectListItem> AvailableSuppliers { get; set; }
+        public List<SelectListItem>? AvailableSuppliers { get; set; }
     }
 
     public class AdjustStockViewModel
     {
         public int ConsumableID { get; set; }
-        public string ConsumableName { get; set; }
+        public string ConsumableName { get; set; } = string.Empty;
         public int CurrentQuantity { get; set; }
 
         [Required(ErrorMessage = "Adjustment amount is required")]
@@ -363,22 +363,22 @@ namespace NMB_HLabSys.Models.ViewModels
 
         [Required(ErrorMessage = "Please select an adjustment type")]
         [Display(Name = "Adjustment Type")]
-        public string AdjustmentType { get; set; }
+        public string AdjustmentType { get; set; } = string.Empty;
 
         [Display(Name = "Reason for Adjustment")]
-        public string Reason { get; set; }
+        public string Reason { get; set; } = string.Empty;
 
-        public List<SelectListItem> AdjustmentTypes { get; set; }
+        public List<SelectListItem>? AdjustmentTypes { get; set; }
     }
 
     public class SupplierViewModel
     {
         public int SupplierID { get; set; }
-        public string SupplierName { get; set; }
-        public string ContactPerson { get; set; }
-        public string EmailAddress { get; set; }
-        public string PhoneNumber { get; set; }
-        public string Address { get; set; }
+        public string SupplierName { get; set; } = string.Empty;
+        public string ContactPerson { get; set; } = string.Empty;
+        public string EmailAddress { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
         public int ConsumableCount { get; set; }
         public bool IsPreferred { get; set; }
         public bool IsActive { get; set; }
@@ -389,24 +389,24 @@ namespace NMB_HLabSys.Models.ViewModels
         [Required(ErrorMessage = "Supplier name is required")]
         [StringLength(200, MinimumLength = 2)]
         [Display(Name = "Supplier Name")]
-        public string SupplierName { get; set; }
+        public string SupplierName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Contact person is required")]
         [StringLength(150)]
         [Display(Name = "Contact Person")]
-        public string ContactPerson { get; set; }
+        public string ContactPerson { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Email address is required")]
         [EmailAddress(ErrorMessage = "Invalid email format")]
         [Display(Name = "Email Address")]
-        public string EmailAddress { get; set; }
+        public string EmailAddress { get; set; } = string.Empty;
 
         [Phone(ErrorMessage = "Invalid phone number")]
         [Display(Name = "Phone Number")]
-        public string PhoneNumber { get; set; }
+        public string PhoneNumber { get; set; } = string.Empty;
 
         [Display(Name = "Address")]
-        public string Address { get; set; }
+        public string Address { get; set; } = string.Empty;
 
         [Display(Name = "Preferred Supplier")]
         public bool IsPreferred { get; set; }
@@ -416,8 +416,8 @@ namespace NMB_HLabSys.Models.ViewModels
     {
         public int CriticalCount { get; set; }
         public int WarningCount { get; set; }
-        public List<LowStockAlertViewModel> CriticalItems { get; set; }
-        public List<LowStockAlertViewModel> WarningItems { get; set; }
+        public List<LowStockAlertViewModel>? CriticalItems { get; set; }
+        public List<LowStockAlertViewModel>? WarningItems { get; set; }
     }
 
     public class StockStatisticsViewModel
@@ -430,24 +430,84 @@ namespace NMB_HLabSys.Models.ViewModels
     }
 
     // =========================
+    // SUPPLIER VIEWMODELS
+    // =========================
+    public class EditSupplierViewModel
+    {
+        public int SupplierID { get; set; }
+
+        [Required(ErrorMessage = "Supplier name is required")]
+        [StringLength(200, MinimumLength = 2)]
+        [Display(Name = "Supplier Name")]
+        public string SupplierName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Contact person is required")]
+        [StringLength(150)]
+        [Display(Name = "Contact Person")]
+        public string ContactPerson { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Email address is required")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        [Display(Name = "Email Address")]
+        public string EmailAddress { get; set; } = string.Empty;
+
+        [Phone(ErrorMessage = "Invalid phone number")]
+        [Display(Name = "Phone Number")]
+        public string PhoneNumber { get; set; } = string.Empty;
+
+        [Display(Name = "Address")]
+        public string Address { get; set; } = string.Empty;
+
+        [Display(Name = "Preferred Supplier")]
+        public bool IsPreferred { get; set; }
+
+        [Display(Name = "Active")]
+        public bool IsActive { get; set; }
+    }
+
+    public class SupplierDetailsViewModel
+    {
+        public int SupplierID { get; set; }
+        public string SupplierName { get; set; } = string.Empty;
+        public string ContactPerson { get; set; } = string.Empty;
+        public string EmailAddress { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
+        public bool IsPreferred { get; set; }
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public int ConsumableCount { get; set; }
+        public List<ConsumableSummaryViewModel> Consumables { get; set; } = new();
+    }
+
+    public class ConsumableSummaryViewModel
+    {
+        public int ConsumableID { get; set; }
+        public string ConsumableName { get; set; } = string.Empty;
+        public int QuantityOnHand { get; set; }
+        public int ReorderLevel { get; set; }
+        public string UnitOfMeasure { get; set; } = string.Empty;
+    }
+
+    // =========================
     // ORDER MANAGEMENT VIEWMODELS
     // =========================
     public class OrderIndexViewModel
     {
-        public List<OrderListViewModel> Orders { get; set; }
-        public List<OrderListViewModel> PendingOrders { get; set; }
-        public List<OrderListViewModel> CompletedOrders { get; set; }
-        public OrderStatisticsViewModel Statistics { get; set; }
+        public List<OrderListViewModel>? Orders { get; set; }
+        public List<OrderListViewModel>? PendingOrders { get; set; }
+        public List<OrderListViewModel>? CompletedOrders { get; set; }
+        public OrderStatisticsViewModel Statistics { get; set; } = new();
     }
 
     public class OrderListViewModel
     {
         public int OrderID { get; set; }
-        public string OrderNumber { get; set; }
-        public string SupplierName { get; set; }
+        public string OrderNumber { get; set; } = string.Empty;
+        public string SupplierName { get; set; } = string.Empty;
         public DateTime OrderDate { get; set; }
-        public string Status { get; set; }
-        public string StatusColor { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public string StatusColor { get; set; } = string.Empty;
         public int TotalItems { get; set; }
         public int ItemsReceived { get; set; }
         public decimal? TotalAmount { get; set; }
@@ -464,16 +524,16 @@ namespace NMB_HLabSys.Models.ViewModels
         [DataType(DataType.Date)]
         public DateTime? ExpectedDeliveryDate { get; set; }
 
-        public List<OrderItemInputViewModel> Items { get; set; }
+        public List<OrderItemInputViewModel>? Items { get; set; }
 
-        public List<SelectListItem> AvailableSuppliers { get; set; }
-        public List<SelectListItem> AvailableConsumables { get; set; }
+        public List<SelectListItem>? AvailableSuppliers { get; set; }
+        public List<SelectListItem>? AvailableConsumables { get; set; }
     }
 
     public class OrderItemInputViewModel
     {
         public int ConsumableID { get; set; }
-        public string ConsumableName { get; set; }
+        public string ConsumableName { get; set; } = string.Empty;
         public int CurrentStock { get; set; }
         public int ReorderLevel { get; set; }
         public int SuggestedQuantity { get; set; }
@@ -489,20 +549,20 @@ namespace NMB_HLabSys.Models.ViewModels
     public class OrderDetailViewModel
     {
         public int OrderID { get; set; }
-        public string OrderNumber { get; set; }
-        public string SupplierName { get; set; }
-        public string SupplierContact { get; set; }
-        public string SupplierEmail { get; set; }
+        public string OrderNumber { get; set; } = string.Empty;
+        public string SupplierName { get; set; } = string.Empty;
+        public string SupplierContact { get; set; } = string.Empty;
+        public string SupplierEmail { get; set; } = string.Empty;
         public DateTime OrderDate { get; set; }
         public DateTime? ExpectedDeliveryDate { get; set; }
-        public string Status { get; set; }
-        public string StatusColor { get; set; }
-        public string CancellationReason { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public string StatusColor { get; set; } = string.Empty;
+        public string CancellationReason { get; set; } = string.Empty;
         public DateTime? DateCompleted { get; set; }
         public DateTime? DateCancelled { get; set; }
         public decimal? TotalAmount { get; set; }
-        public string CreatedBy { get; set; }
-        public List<OrderItemDetailViewModel> Items { get; set; }
+        public string CreatedBy { get; set; } = string.Empty;
+        public List<OrderItemDetailViewModel>? Items { get; set; }
         public bool CanReceive { get; set; }
         public bool CanCancel { get; set; }
     }
@@ -510,35 +570,35 @@ namespace NMB_HLabSys.Models.ViewModels
     public class OrderItemDetailViewModel
     {
         public int OrderItemID { get; set; }
-        public string ConsumableName { get; set; }
+        public string ConsumableName { get; set; } = string.Empty;
         public int QuantityOrdered { get; set; }
         public int QuantityReceived { get; set; }
         public int RemainingQuantity => QuantityOrdered - QuantityReceived;
         public decimal? UnitPrice { get; set; }
         public decimal? TotalPrice => UnitPrice * QuantityOrdered;
-        public string Status { get; set; }
-        public string StatusColor { get; set; }
-        public string CancellationReason { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public string StatusColor { get; set; } = string.Empty;
+        public string CancellationReason { get; set; } = string.Empty;
         public DateTime? DateReceived { get; set; }
     }
 
     public class ReceiveOrderViewModel
     {
         public int OrderID { get; set; }
-        public string OrderNumber { get; set; }
-        public string SupplierName { get; set; }
+        public string OrderNumber { get; set; } = string.Empty;
+        public string SupplierName { get; set; } = string.Empty;
 
         [Display(Name = "Receive All Items")]
         public bool ReceiveAll { get; set; }
 
-        public List<OrderItemReceiptViewModel> Items { get; set; }
+        public List<OrderItemReceiptViewModel>? Items { get; set; }
     }
 
     public class OrderItemReceiptViewModel
     {
         public int OrderItemID { get; set; }
         public int ConsumableID { get; set; }
-        public string ConsumableName { get; set; }
+        public string ConsumableName { get; set; } = string.Empty;
         public int QuantityOrdered { get; set; }
         public int QuantityReceived { get; set; }
         public int QuantityRemaining => QuantityOrdered - QuantityReceived;
@@ -557,12 +617,12 @@ namespace NMB_HLabSys.Models.ViewModels
     public class CancelOrderViewModel
     {
         public int OrderID { get; set; }
-        public string OrderNumber { get; set; }
+        public string OrderNumber { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Cancellation reason is required")]
         [StringLength(500, ErrorMessage = "Reason cannot exceed 500 characters")]
         [Display(Name = "Cancellation Reason")]
-        public string CancellationReason { get; set; }
+        public string CancellationReason { get; set; } = string.Empty;
 
         [Display(Name = "Notify Supplier")]
         public bool NotifySupplier { get; set; }
@@ -573,25 +633,25 @@ namespace NMB_HLabSys.Models.ViewModels
     // =========================
     public class StaffManagementIndexViewModel
     {
-        public List<TechnicianViewModel> Technicians { get; set; }
-        public List<DoctorListViewModel> Doctors { get; set; }
-        public StaffStatisticsViewModel Statistics { get; set; }
+        public List<TechnicianViewModel> Technicians { get; set; } = new();
+        public List<DoctorListViewModel> Doctors { get; set; } = new();
+        public StaffStatisticsViewModel Statistics { get; set; } = new();
     }
 
     public class TechnicianViewModel
     {
         public int TechnicianID { get; set; }
-        public string FullName { get; set; }
-        public string EmployeeNumber { get; set; }
-        public string SAIDNumber { get; set; }
-        public string Email { get; set; }
-        public string ContactNumber { get; set; }
-        public string Specialization { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string EmployeeNumber { get; set; } = string.Empty;
+        public string SAIDNumber { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string ContactNumber { get; set; } = string.Empty;
+        public string Specialization { get; set; } = string.Empty;
         public int AssignedTestsCount { get; set; }
         public int CompletedTestsCount { get; set; }
         public double AverageTurnaroundTime { get; set; }
-        public string Status { get; set; }
-        public string StatusColor { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public string StatusColor { get; set; } = string.Empty;
         public bool IsActive { get; set; }
         public DateTime HireDate { get; set; }
     }
@@ -601,48 +661,48 @@ namespace NMB_HLabSys.Models.ViewModels
         [Required(ErrorMessage = "Name is required")]
         [StringLength(100)]
         [Display(Name = "Name")]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Surname is required")]
         [StringLength(100)]
         [Display(Name = "Surname")]
-        public string Surname { get; set; }
+        public string Surname { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "SA ID number is required")]
         [StringLength(13, MinimumLength = 13)]
         [RegularExpression(@"^\d{13}$", ErrorMessage = "ID number must be 13 digits")]
         [Display(Name = "South African ID Number")]
-        public string SAIDNumber { get; set; }
+        public string SAIDNumber { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Employee number is required")]
         [StringLength(50)]
         [Display(Name = "Employee Number")]
-        public string EmployeeNumber { get; set; }
+        public string EmployeeNumber { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Email address is required")]
         [EmailAddress(ErrorMessage = "Invalid email format")]
         [Display(Name = "Email Address")]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Contact number is required")]
         [Phone(ErrorMessage = "Invalid phone number")]
         [Display(Name = "Contact Number")]
-        public string ContactNumber { get; set; }
+        public string ContactNumber { get; set; } = string.Empty;
 
         [Display(Name = "Specialization")]
-        public string Specialization { get; set; }
+        public string Specialization { get; set; } = string.Empty;
 
         [Display(Name = "Qualification")]
-        public string Qualification { get; set; }
+        public string Qualification { get; set; } = string.Empty;
 
         [Display(Name = "Years of Experience")]
         [Range(0, 50)]
         public int YearsOfExperience { get; set; }
 
         [Display(Name = "Assign Test Types")]
-        public List<int> SelectedTestTypeIDs { get; set; }
+        public List<int> SelectedTestTypeIDs { get; set; } = new();
 
-        public List<SelectListItem> AvailableTestTypes { get; set; }
+        public List<SelectListItem> AvailableTestTypes { get; set; } = new();
     }
 
     public class EditTechnicianViewModel
@@ -652,39 +712,39 @@ namespace NMB_HLabSys.Models.ViewModels
         [Required(ErrorMessage = "Name is required")]
         [StringLength(100)]
         [Display(Name = "Name")]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Surname is required")]
         [StringLength(100)]
         [Display(Name = "Surname")]
-        public string Surname { get; set; }
+        public string Surname { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "SA ID number is required")]
         [StringLength(13, MinimumLength = 13)]
         [RegularExpression(@"^\d{13}$", ErrorMessage = "ID number must be 13 digits")]
         [Display(Name = "South African ID Number")]
-        public string SAIDNumber { get; set; }
+        public string SAIDNumber { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Employee number is required")]
         [StringLength(50)]
         [Display(Name = "Employee Number")]
-        public string EmployeeNumber { get; set; }
+        public string EmployeeNumber { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Email address is required")]
         [EmailAddress(ErrorMessage = "Invalid email format")]
         [Display(Name = "Email Address")]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Contact number is required")]
         [Phone(ErrorMessage = "Invalid phone number")]
         [Display(Name = "Contact Number")]
-        public string ContactNumber { get; set; }
+        public string ContactNumber { get; set; } = string.Empty;
 
         [Display(Name = "Specialization")]
-        public string Specialization { get; set; }
+        public string Specialization { get; set; } = string.Empty;
 
         [Display(Name = "Qualification")]
-        public string Qualification { get; set; }
+        public string Qualification { get; set; } = string.Empty;
 
         [Display(Name = "Years of Experience")]
         [Range(0, 50)]
@@ -694,33 +754,33 @@ namespace NMB_HLabSys.Models.ViewModels
         public bool IsActive { get; set; }
 
         [Display(Name = "Assign Test Types")]
-        public List<int> SelectedTestTypeIDs { get; set; }
+        public List<int> SelectedTestTypeIDs { get; set; } = new();
 
-        public List<SelectListItem> AvailableTestTypes { get; set; }
+        public List<SelectListItem> AvailableTestTypes { get; set; } = new();
     }
 
     public class TechnicianProfileViewModel
     {
         public int TechnicianID { get; set; }
-        public string FullName { get; set; }
-        public string EmployeeNumber { get; set; }
-        public string SAIDNumber { get; set; }
-        public string Email { get; set; }
-        public string ContactNumber { get; set; }
-        public string Specialization { get; set; }
-        public string Qualification { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string EmployeeNumber { get; set; } = string.Empty;
+        public string SAIDNumber { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string ContactNumber { get; set; } = string.Empty;
+        public string Specialization { get; set; } = string.Empty;
+        public string Qualification { get; set; } = string.Empty;
         public int YearsOfExperience { get; set; }
         public DateTime HireDate { get; set; }
         public bool IsActive { get; set; }
-        public List<AssignedTestViewModel> AssignedTests { get; set; }
-        public PerformanceStatisticsViewModel Performance { get; set; }
+        public List<AssignedTestViewModel> AssignedTests { get; set; } = new();
+        public PerformanceStatisticsViewModel Performance { get; set; } = new();
     }
 
     public class AssignedTestViewModel
     {
         public int TestID { get; set; }
-        public string TestName { get; set; }
-        public string CategoryName { get; set; }
+        public string TestName { get; set; } = string.Empty;
+        public string CategoryName { get; set; } = string.Empty;
         public DateTime AssignedDate { get; set; }
         public bool IsActive { get; set; }
     }
@@ -732,12 +792,12 @@ namespace NMB_HLabSys.Models.ViewModels
         public int TestsThisMonth { get; set; }
         public double AverageCompletionTime { get; set; }
         public int VerificationAccuracy { get; set; }
-        public List<MonthlyPerformanceViewModel> MonthlyPerformance { get; set; }
+        public List<MonthlyPerformanceViewModel> MonthlyPerformance { get; set; } = new();
     }
 
     public class MonthlyPerformanceViewModel
     {
-        public string Month { get; set; }
+        public string Month { get; set; } = string.Empty;
         public int TestsCompleted { get; set; }
         public int TestsVerified { get; set; }
         public double AverageTurnaroundTime { get; set; }
@@ -746,17 +806,17 @@ namespace NMB_HLabSys.Models.ViewModels
     public class TechnicianPerformanceDetailsViewModel
     {
         public int TechnicianID { get; set; }
-        public string TechnicianName { get; set; }
+        public string TechnicianName { get; set; } = string.Empty;
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-        public PerformanceSummaryViewModel Summary { get; set; }
-        public List<TestPerformanceViewModel> TestDetails { get; set; }
-        public List<DailyPerformanceViewModel> DailyPerformance { get; set; }
+        public PerformanceSummaryViewModel Summary { get; set; } = new();
+        public List<TestPerformanceViewModel> TestDetails { get; set; } = new();
+        public List<DailyPerformanceViewModel> DailyPerformance { get; set; } = new();
     }
 
     public class TestPerformanceViewModel
     {
-        public string TestName { get; set; }
+        public string TestName { get; set; } = string.Empty;
         public int PerformedCount { get; set; }
         public int VerifiedCount { get; set; }
         public double AverageTurnaroundTime { get; set; }
@@ -784,16 +844,16 @@ namespace NMB_HLabSys.Models.ViewModels
     public class DoctorListViewModel
     {
         public int DoctorID { get; set; }
-        public string FullName { get; set; }
-        public string HPCSANumber { get; set; }
-        public string Email { get; set; }
-        public string PracticeName { get; set; }
-        public string Specialization { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string HPCSANumber { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string PracticeName { get; set; } = string.Empty;
+        public string Specialization { get; set; } = string.Empty;
         public int TotalRequests { get; set; }
         public DateTime RegisteredDate { get; set; }
         public bool IsVerified { get; set; }
-        public string Status { get; set; }
-        public string StatusColor { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public string StatusColor { get; set; } = string.Empty;
     }
 
     public class RegisterDoctorViewModel
@@ -801,36 +861,36 @@ namespace NMB_HLabSys.Models.ViewModels
         [Required(ErrorMessage = "Name is required")]
         [StringLength(100)]
         [Display(Name = "Name")]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Surname is required")]
         [StringLength(100)]
         [Display(Name = "Surname")]
-        public string Surname { get; set; }
+        public string Surname { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "HPCSA number is required")]
         [StringLength(20, MinimumLength = 5)]
         [Display(Name = "HPCSA Number")]
-        public string HPCSANumber { get; set; }
+        public string HPCSANumber { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Email address is required")]
         [EmailAddress(ErrorMessage = "Invalid email format")]
         [Display(Name = "Email Address")]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Contact number is required")]
         [Phone(ErrorMessage = "Invalid phone number")]
         [Display(Name = "Contact Number")]
-        public string ContactNumber { get; set; }
+        public string ContactNumber { get; set; } = string.Empty;
 
         [Display(Name = "Practice Name")]
-        public string PracticeName { get; set; }
+        public string PracticeName { get; set; } = string.Empty;
 
         [Display(Name = "Practice Address")]
-        public string PracticeAddress { get; set; }
+        public string PracticeAddress { get; set; } = string.Empty;
 
         [Display(Name = "Specialization")]
-        public string Specialization { get; set; }
+        public string Specialization { get; set; } = string.Empty;
     }
 
     public class EditDoctorViewModel
@@ -840,36 +900,36 @@ namespace NMB_HLabSys.Models.ViewModels
         [Required(ErrorMessage = "Name is required")]
         [StringLength(100)]
         [Display(Name = "Name")]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Surname is required")]
         [StringLength(100)]
         [Display(Name = "Surname")]
-        public string Surname { get; set; }
+        public string Surname { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "HPCSA number is required")]
         [StringLength(20, MinimumLength = 5)]
         [Display(Name = "HPCSA Number")]
-        public string HPCSANumber { get; set; }
+        public string HPCSANumber { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Email address is required")]
         [EmailAddress(ErrorMessage = "Invalid email format")]
         [Display(Name = "Email Address")]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Contact number is required")]
         [Phone(ErrorMessage = "Invalid phone number")]
         [Display(Name = "Contact Number")]
-        public string ContactNumber { get; set; }
+        public string ContactNumber { get; set; } = string.Empty;
 
         [Display(Name = "Practice Name")]
-        public string PracticeName { get; set; }
+        public string PracticeName { get; set; } = string.Empty;
 
         [Display(Name = "Practice Address")]
-        public string PracticeAddress { get; set; }
+        public string PracticeAddress { get; set; } = string.Empty;
 
         [Display(Name = "Specialization")]
-        public string Specialization { get; set; }
+        public string Specialization { get; set; } = string.Empty;
 
         [Display(Name = "Verified")]
         public bool IsVerified { get; set; }
@@ -893,15 +953,15 @@ namespace NMB_HLabSys.Models.ViewModels
     // =========================
     public class ReportIndexViewModel
     {
-        public List<ReportTypeViewModel> ReportTypes { get; set; }
-        public ReportFilterViewModel Filter { get; set; }
+        public List<ReportTypeViewModel> ReportTypes { get; set; } = new();
+        public ReportFilterViewModel Filter { get; set; } = new();
     }
 
     public class ReportTypeViewModel
     {
-        public string ReportType { get; set; }
-        public string Description { get; set; }
-        public string Icon { get; set; }
+        public string ReportType { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Icon { get; set; } = string.Empty;
     }
 
     public class ReportFilterViewModel
@@ -917,10 +977,10 @@ namespace NMB_HLabSys.Models.ViewModels
         public DateTime EndDate { get; set; } = DateTime.Now;
 
         [Display(Name = "Report Type")]
-        public string ReportType { get; set; }
+        public string ReportType { get; set; } = string.Empty;
 
         [Display(Name = "Group By")]
-        public string GroupBy { get; set; }
+        public string GroupBy { get; set; } = string.Empty;
 
         [Display(Name = "Include Inactive")]
         public bool IncludeInactive { get; set; }
@@ -931,11 +991,11 @@ namespace NMB_HLabSys.Models.ViewModels
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public DateTime GeneratedDate { get; set; } = DateTime.Now;
-        public string GeneratedBy { get; set; }
-        public ReportSummaryViewModel Summary { get; set; }
-        public List<CategoryReportViewModel> Categories { get; set; }
-        public List<TechnicianReportViewModel> Technicians { get; set; }
-        public List<DailyReportViewModel> DailyBreakdown { get; set; }
+        public string GeneratedBy { get; set; } = string.Empty;
+        public ReportSummaryViewModel Summary { get; set; } = new();
+        public List<CategoryReportViewModel> Categories { get; set; } = new();
+        public List<TechnicianReportViewModel> Technicians { get; set; } = new();
+        public List<DailyReportViewModel> DailyBreakdown { get; set; } = new();
     }
 
     public class ReportSummaryViewModel
@@ -951,18 +1011,18 @@ namespace NMB_HLabSys.Models.ViewModels
 
     public class CategoryReportViewModel
     {
-        public string CategoryName { get; set; }
+        public string CategoryName { get; set; } = string.Empty;
         public int TotalTests { get; set; }
         public int VerifiedTests { get; set; }
         public int AbnormalResults { get; set; }
         public double AverageTurnaroundTime { get; set; }
         public decimal PercentageOfTotal { get; set; }
-        public List<TestReportDetail> TestDetails { get; set; }
+        public List<TestReportDetail> TestDetails { get; set; } = new();
     }
 
     public class TestReportDetail
     {
-        public string TestName { get; set; }
+        public string TestName { get; set; } = string.Empty;
         public int Count { get; set; }
         public int VerifiedCount { get; set; }
         public int AbnormalCount { get; set; }
@@ -973,7 +1033,7 @@ namespace NMB_HLabSys.Models.ViewModels
     public class TechnicianReportViewModel
     {
         public int TechnicianID { get; set; }
-        public string TechnicianName { get; set; }
+        public string TechnicianName { get; set; } = string.Empty;
         public int TestsPerformed { get; set; }
         public int TestsVerified { get; set; }
         public double AverageTurnaroundTime { get; set; }
@@ -993,10 +1053,10 @@ namespace NMB_HLabSys.Models.ViewModels
     public class StockReportViewModel
     {
         public DateTime GeneratedDate { get; set; } = DateTime.Now;
-        public string GeneratedBy { get; set; }
-        public StockReportSummary Summary { get; set; }
-        public List<StockReportItemViewModel> Items { get; set; }
-        public List<SupplierStockSummary> SupplierSummaries { get; set; }
+        public string GeneratedBy { get; set; } = string.Empty;
+        public StockReportSummary Summary { get; set; } = new();
+        public List<StockReportItemViewModel> Items { get; set; } = new();
+        public List<SupplierStockSummary> SupplierSummaries { get; set; } = new();
     }
 
     public class StockReportSummary
@@ -1012,26 +1072,26 @@ namespace NMB_HLabSys.Models.ViewModels
 
     public class StockReportItemViewModel
     {
-        public string ConsumableName { get; set; }
-        public string SupplierName { get; set; }
+        public string ConsumableName { get; set; } = string.Empty;
+        public string SupplierName { get; set; } = string.Empty;
         public int QuantityOnHand { get; set; }
         public int ReorderLevel { get; set; }
-        public string StockStatus { get; set; }
+        public string StockStatus { get; set; } = string.Empty;
         public decimal? UnitPrice { get; set; }
         public decimal? TotalValue { get; set; }
-        public string UnitOfMeasure { get; set; }
-        public string StorageLocation { get; set; }
+        public string UnitOfMeasure { get; set; } = string.Empty;
+        public string StorageLocation { get; set; } = string.Empty;
         public DateTime LastRestocked { get; set; }
     }
 
     public class SupplierStockSummary
     {
-        public string SupplierName { get; set; }
+        public string SupplierName { get; set; } = string.Empty;
         public int ItemsSupplied { get; set; }
         public int ItemsBelowReorder { get; set; }
         public decimal TotalValue { get; set; }
-        public string ContactPerson { get; set; }
-        public string ContactEmail { get; set; }
+        public string ContactPerson { get; set; } = string.Empty;
+        public string ContactEmail { get; set; } = string.Empty;
     }
 
     // =========================
@@ -1039,36 +1099,36 @@ namespace NMB_HLabSys.Models.ViewModels
     // =========================
     public class TestVerificationIndexViewModel
     {
-        public List<PendingVerificationViewModel> PendingVerifications { get; set; }
-        public List<VerifiedTestsViewModel> RecentVerifications { get; set; }
-        public VerificationStatisticsViewModel Statistics { get; set; }
-        public TestVerificationFilterViewModel Filter { get; set; }
+        public List<PendingVerificationViewModel> PendingVerifications { get; set; } = new();
+        public List<VerifiedTestsViewModel> RecentVerifications { get; set; } = new();
+        public VerificationStatisticsViewModel Statistics { get; set; } = new();
+        public TestVerificationFilterViewModel Filter { get; set; } = new();
     }
 
     public class PendingVerificationViewModel
     {
         public int TestResultID { get; set; }
-        public string TestName { get; set; }
-        public string PatientName { get; set; }
-        public string TechnicianName { get; set; }
+        public string TestName { get; set; } = string.Empty;
+        public string PatientName { get; set; } = string.Empty;
+        public string TechnicianName { get; set; } = string.Empty;
         public DateTime CompletionDate { get; set; }
-        public string ResultValue { get; set; }
-        public string NormalRange { get; set; }
+        public string ResultValue { get; set; } = string.Empty;
+        public string NormalRange { get; set; } = string.Empty;
         public bool IsAbnormal { get; set; }
-        public string Notes { get; set; }
+        public string Notes { get; set; } = string.Empty;
         public int RequestID { get; set; }
     }
 
     public class VerifiedTestsViewModel
     {
         public int TestResultID { get; set; }
-        public string TestName { get; set; }
-        public string PatientName { get; set; }
-        public string VerifiedBy { get; set; }
+        public string TestName { get; set; } = string.Empty;
+        public string PatientName { get; set; } = string.Empty;
+        public string VerifiedBy { get; set; } = string.Empty;
         public DateTime VerificationDate { get; set; }
-        public string ResultValue { get; set; }
-        public string Status { get; set; }
-        public string StatusColor { get; set; }
+        public string ResultValue { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public string StatusColor { get; set; } = string.Empty;
     }
 
     public class TestVerificationFilterViewModel
@@ -1087,7 +1147,7 @@ namespace NMB_HLabSys.Models.ViewModels
         [Display(Name = "Category")]
         public int? CategoryID { get; set; }
 
-        public List<SelectListItem> Categories { get; set; }
+        public List<SelectListItem> Categories { get; set; } = new();
     }
 
     public class VerificationStatisticsViewModel
@@ -1107,11 +1167,11 @@ namespace NMB_HLabSys.Models.ViewModels
     // =========================
     public class SettingsIndexViewModel
     {
-        public ProfileSettingsViewModel Profile { get; set; }
-        public SecuritySettingsViewModel Security { get; set; }
-        public NotificationSettingsViewModel Notifications { get; set; }
-        public SystemSettingsViewModel System { get; set; }
-        public List<AuditLogViewModel> RecentAuditLogs { get; set; }
+        public ProfileSettingsViewModel Profile { get; set; } = new();
+        public SecuritySettingsViewModel Security { get; set; } = new();
+        public NotificationSettingsViewModel Notifications { get; set; } = new();
+        public SystemSettingsViewModel System { get; set; } = new();
+        public List<AuditLogViewModel> RecentAuditLogs { get; set; } = new();
     }
 
     public class ProfileSettingsViewModel
@@ -1119,24 +1179,24 @@ namespace NMB_HLabSys.Models.ViewModels
         [Required(ErrorMessage = "Name is required")]
         [StringLength(100)]
         [Display(Name = "Name")]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Surname is required")]
         [StringLength(100)]
         [Display(Name = "Surname")]
-        public string Surname { get; set; }
+        public string Surname { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Email is required")]
         [EmailAddress(ErrorMessage = "Invalid email format")]
         [Display(Name = "Email Address")]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         [Phone(ErrorMessage = "Invalid phone number")]
         [Display(Name = "Contact Number")]
-        public string ContactNumber { get; set; }
+        public string ContactNumber { get; set; } = string.Empty;
 
         [Display(Name = "Profile Picture")]
-        public string ProfilePicture { get; set; }
+        public string ProfilePicture { get; set; } = string.Empty;
         public string FullName => $"{Name} {Surname}";
     }
 
@@ -1159,7 +1219,7 @@ namespace NMB_HLabSys.Models.ViewModels
         [Display(Name = "Require Password Change")]
         public bool RequirePasswordChange { get; set; }
 
-        public ChangePasswordViewModel ChangePassword { get; set; }
+        public ChangePasswordViewModel ChangePassword { get; set; } = new();
     }
 
     public class ChangePasswordViewModel
@@ -1167,7 +1227,7 @@ namespace NMB_HLabSys.Models.ViewModels
         [Required(ErrorMessage = "Current password is required")]
         [DataType(DataType.Password)]
         [Display(Name = "Current Password")]
-        public string CurrentPassword { get; set; }
+        public string CurrentPassword { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "New password is required")]
         [DataType(DataType.Password)]
@@ -1175,13 +1235,13 @@ namespace NMB_HLabSys.Models.ViewModels
         [RegularExpression(@"^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$",
             ErrorMessage = "Password must contain at least one uppercase letter, one number, and one special character")]
         [Display(Name = "New Password")]
-        public string NewPassword { get; set; }
+        public string NewPassword { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Please confirm your new password")]
         [DataType(DataType.Password)]
         [Compare("NewPassword", ErrorMessage = "Passwords do not match")]
         [Display(Name = "Confirm New Password")]
-        public string ConfirmNewPassword { get; set; }
+        public string ConfirmNewPassword { get; set; } = string.Empty;
     }
 
     public class NotificationSettingsViewModel
@@ -1209,7 +1269,7 @@ namespace NMB_HLabSys.Models.ViewModels
     public class SystemSettingsViewModel
     {
         [Display(Name = "Laboratory Name")]
-        public string LaboratoryName { get; set; }
+        public string LaboratoryName { get; set; } = string.Empty;
 
         [Display(Name = "Default Turnaround Time (hours)")]
         [Range(1, 72, ErrorMessage = "Turnaround time must be between 1 and 72 hours")]
@@ -1237,11 +1297,11 @@ namespace NMB_HLabSys.Models.ViewModels
     public class AuditLogViewModel
     {
         public int LogID { get; set; }
-        public string UserName { get; set; }
-        public string Action { get; set; }
-        public string Description { get; set; }
+        public string? UserName { get; set; }
+        public string Action { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
         public DateTime Timestamp { get; set; }
-        public string IPAddress { get; set; }
-        public string Status { get; set; }
+        public string IPAddress { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
     }
 }
