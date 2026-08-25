@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NMB_HLabSys.Models;
+using NMB_HLabSys.Models.ViewModels;
 
 namespace NMB_HLabSys.Data
 {
@@ -12,9 +13,11 @@ namespace NMB_HLabSys.Data
 
         // Core tables
         public DbSet<User> Users { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<LabTechnician> LabTechnicians { get; set; }
         public DbSet<Doctor> Doctors { get; set; }
         public DbSet<Patient> Patients { get; set; }
+        public DbSet<TestRequest> RequestedTests { get; set; }
 
         // Test management
         public DbSet<TestCategory> TestCategories { get; set; }

@@ -1,8 +1,18 @@
+using NMB_HLabSys.Services;
+using QuestPDF.Infrastructure;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddControllersWithViews();
+// Add these service registrations:
+builder.Services.AddScoped<ILaboratoryManagerService, LaboratoryManagerService>();
+builder.Services.AddScoped<IStockManagementService, StockManagementService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IPdfReportService, PdfReportService>();
+builder.Services.AddScoped<IPasswordGenerator, PasswordGenerator>();
 
+QuestPDF.Settings.License = LicenseType.Community;
 // Add Session services
 builder.Services.AddDistributedMemoryCache(); // Stores session in memory
 builder.Services.AddSession(options =>

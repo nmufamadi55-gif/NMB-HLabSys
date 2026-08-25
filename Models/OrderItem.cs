@@ -23,17 +23,18 @@ namespace NMB_HLabSys.Models
 
         [Required]
         [StringLength(50)]
-        public string Status { get; set; }
+        public string? Status { get; set; }
 
-        public string CancellationReason { get; set; }
+        public string? CancellationReason { get; set; }
 
         public DateTime? DateReceived { get; set; }
+        public DateTime? DateCancelled { get; set; }   
 
         // Navigation properties
         [ForeignKey("OrderID")]
-        public virtual PurchaseOrder Order { get; set; }
+        public virtual PurchaseOrder? Order { get; set; }
 
         [ForeignKey("ConsumableID")]
-        public virtual Consumable Consumable { get; set; }
+        public virtual Consumable? Consumable { get; set; }
     }
 }

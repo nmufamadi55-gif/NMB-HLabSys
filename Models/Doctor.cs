@@ -31,5 +31,7 @@ namespace NMB_HLabSys.Models
         // Navigation property
         [ForeignKey("UserID")]
         public virtual User User { get; set; } = null!;
+        public virtual ICollection<TestRequest> TestRequests { get; set; } = new List<TestRequest>();
+        public virtual ICollection<PatientConsentManagement> PatientConsents { get; set; } = new List<PatientConsentManagement>();
     }
 }
