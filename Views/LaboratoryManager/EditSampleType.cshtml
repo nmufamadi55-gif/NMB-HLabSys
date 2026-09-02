@@ -1,0 +1,49 @@
+﻿@using NMB_HLabSys.Models.ViewModels
+@model EditSampleTypeViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Edit Sample Type";
+    ViewData["RoleSubtitle"] = "Laboratory Manager";
+    ViewData["UserGreeting"] = "Update sample type";
+    ViewData["UserInitials"] = "LM";
+}
+
+@section SidebarMenu {
+ ... same ...
+ }
+
+<style>... same ...</style>
+
+<div class="form-card">
+    <h3><i class="fas fa-edit"></i> Edit Sample Type</h3>
+    <form method="post" action="@Url.Action("EditSampleType")">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="SampleTypeID" />
+        <div class="form-group">
+            <label>Sample Type Name <span style="color:red;">*</span></label>
+            <input asp-for="SampleTypeName" class="form-control" />
+            <span asp-validation-for="SampleTypeName" style="color:#DC2626; font-size:0.7rem;"></span>
+        </div>
+        <div class="form-group">
+            <label>Description</label>
+            <textarea asp-for="Description" class="form-control" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Collection Tube Type</label>
+            <input asp-for="CollectionTubeType" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Storage Requirements</label>
+            <input asp-for="StorageRequirements" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Active</label>
+            <input asp-for="IsActive" type="checkbox" />
+        </div>
+        <div style="display:flex; gap:1rem; margin-top:1.5rem;">
+            <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Update</button>
+            <button type="button" class="btn-outline" onclick="history.back()">Cancel</button>
+        </div>
+    </form>
+</div>

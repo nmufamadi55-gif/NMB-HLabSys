@@ -1,0 +1,79 @@
+﻿@using NMB_HLabSys.Models.ViewModels
+@model EditDoctorViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Edit Doctor";
+    ViewData["RoleSubtitle"] = "Laboratory Manager";
+    ViewData["UserGreeting"] = "Update doctor details";
+    ViewData["UserInitials"] = "LM";
+}
+
+@section SidebarMenu {
+ ... same ...
+ }
+
+<style>... form styles ...</style>
+
+<div class="form-card">
+    <h3><i class="fas fa-edit"></i> Edit Doctor</h3>
+    <form method="post" action="@Url.Action("EditDoctor")">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="DoctorID" />
+        <div class="row-2col">
+            <div class="form-group">
+                <label>Name <span style="color:red;">*</span></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" style="color:#DC2626; font-size:0.7rem;"></span>
+            </div>
+            <div class="form-group">
+                <label>Surname <span style="color:red;">*</span></label>
+                <input asp-for="Surname" class="form-control" />
+                <span asp-validation-for="Surname" style="color:#DC2626; font-size:0.7rem;"></span>
+            </div>
+        </div>
+        <div class="row-2col">
+            <div class="form-group">
+                <label>HPCSA Number <span style="color:red;">*</span></label>
+                <input asp-for="HPCSANumber" class="form-control" />
+                <span asp-validation-for="HPCSANumber" style="color:#DC2626; font-size:0.7rem;"></span>
+            </div>
+            <div class="form-group">
+                <label>Email Address <span style="color:red;">*</span></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" style="color:#DC2626; font-size:0.7rem;"></span>
+            </div>
+        </div>
+        <div class="row-2col">
+            <div class="form-group">
+                <label>Contact Number <span style="color:red;">*</span></label>
+                <input asp-for="ContactNumber" class="form-control" />
+                <span asp-validation-for="ContactNumber" style="color:#DC2626; font-size:0.7rem;"></span>
+            </div>
+            <div class="form-group">
+                <label>Practice Name</label>
+                <input asp-for="PracticeName" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Practice Address</label>
+            <textarea asp-for="PracticeAddress" class="form-control" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Specialization</label>
+            <input asp-for="Specialization" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Verified</label>
+            <input asp-for="IsVerified" type="checkbox" />
+        </div>
+        <div class="form-group">
+            <label>Active</label>
+            <input asp-for="IsActive" type="checkbox" />
+        </div>
+        <div style="display:flex; gap:1rem; margin-top:1.5rem;">
+            <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Update</button>
+            <button type="button" class="btn-outline" onclick="history.back()">Cancel</button>
+        </div>
+    </form>
+</div>

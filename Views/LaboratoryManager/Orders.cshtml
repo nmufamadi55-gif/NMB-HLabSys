@@ -1,0 +1,63 @@
+﻿@using NMB_HLabSys.Models.ViewModels
+@model OrderIndexViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Purchase Orders";
+    ViewData["RoleSubtitle"] = "Laboratory Manager";
+    ViewData["UserGreeting"] = "Manage purchase orders";
+    ViewData["UserInitials"] = "LM";
+}
+
+@section SidebarMenu {
+ ... same ...
+ }
+
+<style>... table styles ...</style>
+
+<div class="stats-grid">
+    <div class="stat-box"><h4>@Model.Statistics.TotalOrders</h4><p>Total Orders</p></div>
+    <div class="stat-box"><h4 style="color:#D97706;">@Model.Statistics.PendingOrders</h4><p>Pending</p></div>
+    <div class="stat-box"><h4 style="color:#10B981;">@Model.Statistics.CompletedOrders</h4><p>Completed</p></div>
+    <div class="stat-box"><h4 style="color:#DC2626;">@Model.Statistics.CancelledOrders</h4><p>Cancelled</p></div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-shopping-cart"></i> Purchase Orders</h3>
+        <div>
+            <button class="btn-sm" onclick="location.href='@Url.Action("CreateOrder")'"><i class="fas fa-plus"></i> New Order</button>
+        </div>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Supplier</th>
+                    <th>Date</th>
+                    <th>Items</th>
+                    <th>Received</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var o in Model.Orders)
+                {
+                    <tr>
+                        <td><strong>@o.OrderNumber</strong></td>
+                        <td>@o.SupplierName</td>
+                        <td>@o.OrderDate.ToShortDateString()</td>
+                        <td>@o.TotalItems</td>
+                        <td>@o.ItemsReceived</td>
+                        <td><span class="badge badge-@(o.StatusColor)">@o.Status</span></td>
+                        <td>
+                            <button class="btn-outline-sm" onclick="location.href='@Url.Action("OrderDetails", new { id = o.OrderID })'"><i class="fas fa-eye"></i></button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

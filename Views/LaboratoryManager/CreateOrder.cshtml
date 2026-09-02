@@ -1,0 +1,59 @@
+﻿@using NMB_HLabSys.Models.ViewModels
+@model CreateOrderViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Create Purchase Order";
+    ViewData["RoleSubtitle"] = "Laboratory Manager";
+    ViewData["UserGreeting"] = "Create a new purchase order";
+    ViewData["UserInitials"] = "LM";
+}
+
+@section SidebarMenu {
+ ... same ...
+ }
+
+<style>... form styles ...</style>
+
+<div class="form-card">
+    <h3><i class="fas fa-plus-circle"></i> Create Purchase Order</h3>
+    <form method="post" action="@Url.Action("CreateOrder")">
+        @Html.AntiForgeryToken()
+        <div class="form-group">
+            <label>Supplier <span style="color:red;">*</span></label>
+            <select asp-for="SupplierID" asp-items="Model.AvailableSuppliers" class="form-control">
+                <option value="">-- Select Supplier --</option>
+            </select>
+            <span asp-validation-for="SupplierID" style="color:#DC2626; font-size:0.7rem;"></span>
+        </div>
+        <div class="form-group">
+            <label>Expected Delivery Date</label>
+            <input asp-for="ExpectedDeliveryDate" class="form-control" type="date" />
+        </div>
+        <div class="form-group">
+            <label>Items to Order</label>
+            <div id="orderItemsContainer">
+                @if (Model.Items != null)
+                {
+                    for (int i = 0; i < Model.Items.Count; i++)
+                    {
+                        <div style="display:flex; align-items:center; gap:1rem; margin-bottom:0.5rem; padding:0.5rem; border:1px solid #E2E8F0; border-radius:8px;">
+                            <input type="hidden" name="Items[@i].ConsumableID" value="@Model.Items[i].ConsumableID" />
+                            <input type="checkbox" name="Items[@i].IsSelected" value="true" @(Model.Items[i].IsSelected ? "checked" : "") />
+                            <span style="flex:1;"><strong>@Model.Items[i].ConsumableName</strong> (Stock: @Model.Items[i].CurrentStock, Reorder: @Model.Items[i].ReorderLevel)</span>
+                            <input type="number" name="Items[@i].QuantityToOrder" class="form-control" style="width:100px;" value="@Model.Items[i].QuantityToOrder" placeholder="Qty" />
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p>No consumables available. Please add consumables first.</p>
+                }
+            </div>
+        </div>
+        <div style="display:flex; gap:1rem; margin-top:1.5rem;">
+            <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Create Order</button>
+            <button type="button" class="btn-outline" onclick="history.back()">Cancel</button>
+        </div>
+    </form>
+</div>

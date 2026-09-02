@@ -1,28 +1,74 @@
+using Microsoft.EntityFrameworkCore;
+using NMB_HLabSys.Data;
+using NMB_HLabSys.Models;
 using NMB_HLabSys.Services;
 using QuestPDF.Infrastructure;
+using System.Security.Cryptography;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddControllersWithViews();
-// Add these service registrations:
+
+// Register DbContext
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Register services
 builder.Services.AddScoped<ILaboratoryManagerService, LaboratoryManagerService>();
 builder.Services.AddScoped<IStockManagementService, StockManagementService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IPdfReportService, PdfReportService>();
 builder.Services.AddScoped<IPasswordGenerator, PasswordGenerator>();
 
+// QuestPDF License
 QuestPDF.Settings.License = LicenseType.Community;
+
 // Add Session services
-builder.Services.AddDistributedMemoryCache(); // Stores session in memory
+builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30); // Session expires after 30 minutes of inactivity
-    options.Cookie.HttpOnly = true; // Makes the cookie inaccessible to client-side scripts
-    options.Cookie.IsEssential = true; // Required for session to work
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
 });
 
 var app = builder.Build();
+
+// ??????????? SEED DATABASE (Lab Manager) ???????????
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    // Ensure database is created (if using migrations)
+    context.Database.Migrate();
+
+    // Check if any Manager exists
+    if (!context.Users.Any(u => u.UserRole == "Manager"))
+    {
+        string rawPassword = "Nmb#Manager2025!";
+        string hashedPassword = HashPassword(rawPassword); // Simple SHA256
+
+        var manager = new User
+        {
+            Email = "manager@nmblab.co.za",
+            PasswordHash = hashedPassword,
+            UserRole = "Manager",
+            IsActive = true,
+            IsPasswordChanged = false,
+            CreatedDate = DateTime.Now
+        };
+
+        context.Users.Add(manager);
+        context.SaveChanges();
+
+        Console.WriteLine("? Lab Manager created successfully!");
+        Console.WriteLine($"?? Email: {manager.Email}");
+        Console.WriteLine($"?? Password: {rawPassword}");
+        Console.WriteLine("??  Please change your password on first login.");
+    }
+}
+// ??????????? END SEED ???????????
 
 // Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
@@ -35,9 +81,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-// IMPORTANT: UseSession MUST come before UseAuthorization
 app.UseSession();
-
 app.UseAuthorization();
 
 app.MapControllerRoute(
@@ -45,3 +89,12 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+// ??? Simple Password Hasher (replace with your own IPasswordHasher later) ???
+static string HashPassword(string password)
+{
+    using var sha256 = SHA256.Create();
+    var bytes = Encoding.UTF8.GetBytes(password);
+    var hash = sha256.ComputeHash(bytes);
+    return Convert.ToBase64String(hash);
+}

@@ -1,0 +1,59 @@
+﻿@using NMB_HLabSys.Models.ViewModels
+@model EditSupplierViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Edit Supplier";
+    ViewData["RoleSubtitle"] = "Laboratory Manager";
+    ViewData["UserGreeting"] = "Update supplier details";
+    ViewData["UserInitials"] = "LM";
+}
+
+@section SidebarMenu {
+ ... same ...
+ }
+
+<style>... form styles ...</style>
+
+<div class="form-card">
+    <h3><i class="fas fa-edit"></i> Edit Supplier</h3>
+    <form method="post" action="@Url.Action("EditSupplier")">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="SupplierID" />
+        <div class="form-group">
+            <label>Supplier Name <span style="color:red;">*</span></label>
+            <input asp-for="SupplierName" class="form-control" />
+            <span asp-validation-for="SupplierName" style="color:#DC2626; font-size:0.7rem;"></span>
+        </div>
+        <div class="form-group">
+            <label>Contact Person <span style="color:red;">*</span></label>
+            <input asp-for="ContactPerson" class="form-control" />
+            <span asp-validation-for="ContactPerson" style="color:#DC2626; font-size:0.7rem;"></span>
+        </div>
+        <div class="form-group">
+            <label>Email Address <span style="color:red;">*</span></label>
+            <input asp-for="EmailAddress" class="form-control" />
+            <span asp-validation-for="EmailAddress" style="color:#DC2626; font-size:0.7rem;"></span>
+        </div>
+        <div class="form-group">
+            <label>Phone Number</label>
+            <input asp-for="PhoneNumber" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Address</label>
+            <textarea asp-for="Address" class="form-control" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Preferred Supplier</label>
+            <input asp-for="IsPreferred" type="checkbox" />
+        </div>
+        <div class="form-group">
+            <label>Active</label>
+            <input asp-for="IsActive" type="checkbox" />
+        </div>
+        <div style="display:flex; gap:1rem; margin-top:1.5rem;">
+            <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Update</button>
+            <button type="button" class="btn-outline" onclick="history.back()">Cancel</button>
+        </div>
+    </form>
+</div>

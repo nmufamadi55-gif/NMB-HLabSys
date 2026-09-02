@@ -1,0 +1,148 @@
+﻿@using NMB_HLabSys.Models.ViewModels
+@model ReportFilterViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Manager Reports";
+    ViewData["RoleSubtitle"] = "Laboratory Manager";
+    ViewData["UserGreeting"] = "Generate reports";
+    ViewData["UserInitials"] = "LM";
+}
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Index", "LaboratoryManager")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+    <li><a href="@Url.Action("TestCatalogue", "LaboratoryManager")"><i class="fas fa-vial"></i> <span>Test Catalogue</span></a></li>
+    <li><a href="@Url.Action("Stock", "LaboratoryManager")"><i class="fas fa-boxes"></i> <span>Stock Management</span></a></li>
+    <li><a href="@Url.Action("Suppliers", "LaboratoryManager")"><i class="fas fa-truck"></i> <span>Suppliers</span></a></li>
+    <li><a href="@Url.Action("Orders", "LaboratoryManager")"><i class="fas fa-shopping-cart"></i> <span>Purchase Orders</span></a></li>
+    <li><a href="@Url.Action("Staff", "LaboratoryManager")"><i class="fas fa-user-md"></i> <span>Staff Management</span></a></li>
+    <li><a href="@Url.Action("Reports", "LaboratoryManager")" class="active"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+}
+
+<style>
+    .report-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .report-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        border: 1px solid #E2E8F0;
+    }
+
+        .report-card h4 {
+            margin-top: 0;
+        }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+        .form-group label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 0.3rem;
+            color: #032C7D;
+        }
+
+    .form-control {
+        width: 100%;
+        padding: 0.6rem 0.8rem;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        font-size: 0.9rem;
+    }
+
+    .btn-primary {
+        background: #0841C9;
+        color: white;
+        border: none;
+        padding: 0.6rem 1.4rem;
+        border-radius: 40px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+        .btn-primary:hover {
+            background: #032C7D;
+        }
+
+    .row-2col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+</style>
+
+<h3><i class="fas fa-file-alt"></i> Generate Reports</h3>
+<div class="report-grid">
+    <div class="report-card">
+        <h4><i class="fas fa-vial"></i> Tests by Category</h4>
+        <form method="post" action="@Url.Action("GenerateCategoryReport")">
+            @Html.AntiForgeryToken()
+            <div class="row-2col">
+                <div class="form-group">
+                    <label>Start Date <span style="color:red;">*</span></label>
+                    <input asp-for="StartDate" type="date" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label>End Date <span style="color:red;">*</span></label>
+                    <input asp-for="EndDate" type="date" class="form-control" />
+                </div>
+            </div>
+            <button type="submit" class="btn-primary"><i class="fas fa-file-pdf"></i> Generate PDF</button>
+        </form>
+    </div>
+
+    <div class="report-card">
+        <h4><i class="fas fa-boxes"></i> Stock Report</h4>
+        <form method="post" action="@Url.Action("GenerateStockReport")">
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                <label>Include Inactive</label>
+                <input asp-for="IncludeInactive" type="checkbox" />
+            </div>
+            <button type="submit" class="btn-primary"><i class="fas fa-file-pdf"></i> Generate PDF</button>
+        </form>
+    </div>
+
+    <div class="report-card">
+        <h4><i class="fas fa-user-md"></i> Staff Performance Report</h4>
+        <form method="post" action="@Url.Action("GenerateStaffReport")">
+            @Html.AntiForgeryToken()
+            <div class="row-2col">
+                <div class="form-group">
+                    <label>Start Date <span style="color:red;">*</span></label>
+                    <input asp-for="StartDate" type="date" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label>End Date <span style="color:red;">*</span></label>
+                    <input asp-for="EndDate" type="date" class="form-control" />
+                </div>
+            </div>
+            <button type="submit" class="btn-primary"><i class="fas fa-file-pdf"></i> Generate PDF</button>
+        </form>
+    </div>
+
+    <div class="report-card">
+        <h4><i class="fas fa-shopping-cart"></i> Orders Report</h4>
+        <form method="post" action="@Url.Action("GenerateOrdersReport")">
+            @Html.AntiForgeryToken()
+            <div class="row-2col">
+                <div class="form-group">
+                    <label>Start Date <span style="color:red;">*</span></label>
+                    <input asp-for="StartDate" type="date" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label>End Date <span style="color:red;">*</span></label>
+                    <input asp-for="EndDate" type="date" class="form-control" />
+                </div>
+            </div>
+            <button type="submit" class="btn-primary"><i class="fas fa-file-pdf"></i> Generate PDF</button>
+        </form>
+    </div>
+</div>

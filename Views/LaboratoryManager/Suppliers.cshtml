@@ -1,0 +1,64 @@
+﻿@using NMB_HLabSys.Models.ViewModels
+@model List<SupplierViewModel>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Suppliers";
+    ViewData["RoleSubtitle"] = "Laboratory Manager";
+    ViewData["UserGreeting"] = "Manage suppliers";
+    ViewData["UserInitials"] = "LM";
+}
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Index", "LaboratoryManager")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+    <li><a href="@Url.Action("TestCatalogue", "LaboratoryManager")"><i class="fas fa-vial"></i> <span>Test Catalogue</span></a></li>
+    <li><a href="@Url.Action("Stock", "LaboratoryManager")"><i class="fas fa-boxes"></i> <span>Stock Management</span></a></li>
+    <li><a href="@Url.Action("Suppliers", "LaboratoryManager")" class="active"><i class="fas fa-truck"></i> <span>Suppliers</span></a></li>
+    <li><a href="@Url.Action("Orders", "LaboratoryManager")"><i class="fas fa-shopping-cart"></i> <span>Purchase Orders</span></a></li>
+    <li><a href="@Url.Action("Staff", "LaboratoryManager")"><i class="fas fa-user-md"></i> <span>Staff Management</span></a></li>
+    <li><a href="@Url.Action("Reports", "LaboratoryManager")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+}
+
+<style>... table styles ...</style>
+
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-truck"></i> Suppliers</h3>
+        <div>
+            <button class="btn-sm" onclick="location.href='@Url.Action("CreateSupplier")'"><i class="fas fa-plus"></i> Add Supplier</button>
+        </div>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Contact Person</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Consumables</th>
+                    <th>Preferred</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in Model)
+                {
+                    <tr>
+                        <td><strong>@s.SupplierName</strong></td>
+                        <td>@s.ContactPerson</td>
+                        <td>@s.EmailAddress</td>
+                        <td>@s.PhoneNumber</td>
+                        <td>@s.ConsumableCount</td>
+                        <td>@(s.IsPreferred ? "⭐" : "")</td>
+                        <td>
+                            <button class="btn-outline-sm" onclick="location.href='@Url.Action("SupplierDetails", new { id = s.SupplierID })'"><i class="fas fa-info-circle"></i></button>
+                            <button class="btn-outline-sm" onclick="location.href='@Url.Action("EditSupplier", new { id = s.SupplierID })'"><i class="fas fa-edit"></i></button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -8,7 +8,8 @@ using NMB_HLabSys.Services;
 
 namespace NMB_HLabSys.Controllers
 {
-    [Authorize(Roles = "Manager")]
+    [Route("Manager/[action]")]
+    [Route("[controller]/[action]")]
     public class LaboratoryManagerController : Controller
     {
         private readonly ILaboratoryManagerService _service;

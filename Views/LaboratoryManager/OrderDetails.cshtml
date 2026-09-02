@@ -1,0 +1,106 @@
+﻿@using NMB_HLabSys.Models.ViewModels
+@model OrderDetailViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Order Details";
+    ViewData["RoleSubtitle"] = "Laboratory Manager";
+    ViewData["UserGreeting"] = "Order details";
+    ViewData["UserInitials"] = "LM";
+}
+
+@section SidebarMenu {
+ ... same ...
+ }
+
+<style>... info-grid styles ...</style>
+
+<div class="card">
+    <h3><i class="fas fa-receipt"></i> Order @Model.OrderNumber</h3>
+    <div class="info-grid">
+        <div class="info-item"><span class="info-label">Supplier:</span> @Model.SupplierName</div>
+        <div class="info-item"><span class="info-label">Order Date:</span> @Model.OrderDate.ToShortDateString()</div>
+        <div class="info-item"><span class="info-label">Expected Delivery:</span> @(Model.ExpectedDeliveryDate?.ToShortDateString() ?? "N/A")</div>
+        <div class="info-item"><span class="info-label">Status:</span> <span class="badge badge-@(Model.StatusColor)">@Model.Status</span></div>
+        <div class="info-item"><span class="info-label">Total Amount:</span> R@(Model.TotalAmount?.ToString("N2") ?? "0.00")</div>
+        <div class="info-item"><span class="info-label">Cancellation Reason:</span> @(Model.CancellationReason ?? "N/A")</div>
+    </div>
+</div>
+
+<div class="card">
+    <h4><i class="fas fa-list"></i> Order Items</h4>
+    <table>
+        <thead><tr><th>Item</th><th>Ordered</th><th>Received</th><th>Unit Price</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+            @foreach (var item in Model.Items)
+            {
+                <tr>
+                    <td>@item.ConsumableName</td>
+                    <td>@item.QuantityOrdered</td>
+                    <td>@item.QuantityReceived</td>
+                    <td>R@(item.UnitPrice?.ToString("N2") ?? "0.00")</td>
+                    <td>R@((item.UnitPrice * item.QuantityOrdered)?.ToString("N2") ?? "0.00")</td>
+                    <td><span class="badge badge-@(item.StatusColor)">@item.Status</span></td>
+                    <td>
+                        @if (item.Status != "Received" && item.Status != "Cancelled" && Model.CanReceive)
+                        {
+                            <form method="post" action="@Url.Action("ReceiveOrderItem")" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="orderItemId" value="@item.OrderItemID" />
+                                <button type="submit" class="btn-success-sm"><i class="fas fa-check"></i> Receive</button>
+                            </form>
+                        }
+                        @if (item.Status != "Received" && item.Status != "Cancelled" && Model.CanCancel)
+                        {
+                            <button class="btn-danger-sm" onclick="cancelItem(@item.OrderItemID)"><i class="fas fa-times"></i> Cancel</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (Model.CanCancel)
+{
+    <div class="card">
+        <h4><i class="fas fa-ban"></i> Cancel Order</h4>
+        <form method="post" action="@Url.Action("CancelOrder")">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="OrderID" value="@Model.OrderID" />
+            <div class="form-group">
+                <label>Cancellation Reason <span style="color:red;">*</span></label>
+                <input name="CancellationReason" class="form-control" required />
+            </div>
+            <div class="form-group">
+                <label><input type="checkbox" name="NotifySupplier" checked /> Notify Supplier</label>
+            </div>
+            <button type="submit" class="btn-danger-sm">Cancel Order</button>
+        </form>
+    </div>
+}
+
+<div>
+    <button class="btn-outline-sm" onclick="history.back()">Back</button>
+</div>
+
+<script>
+    function cancelItem(id) {
+        var reason = prompt("Enter cancellation reason:");
+        if (reason) {
+            var form = document.createElement('form');
+            form.method = 'post';
+            form.action = '@Url.Action("CancelOrderItem")';
+            var input1 = document.createElement('input');
+            input1.name = 'orderItemId';
+            input1.value = id;
+            form.appendChild(input1);
+            var input2 = document.createElement('input');
+            input2.name = 'reason';
+            input2.value = reason;
+            form.appendChild(input2);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+</script>
