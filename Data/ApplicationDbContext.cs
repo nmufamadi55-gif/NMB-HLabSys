@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NMB_HLabSys.Models;
+using NMB_HLabSys.Models.ViewModels;
 
 namespace NMB_HLabSys.Data
 {
@@ -12,6 +13,7 @@ namespace NMB_HLabSys.Data
 
         // Core tables
         public DbSet<User> Users { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<LabTechnician> LabTechnicians { get; set; }
         public DbSet<Doctor> Doctors { get; set; }
         public DbSet<Patient> Patients { get; set; }
@@ -32,7 +34,7 @@ namespace NMB_HLabSys.Data
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<StockAdjustmentLog> StockAdjustmentLogs { get; set; }
 
-        // Doctor Management
+        // Doctor & Patient management
         public DbSet<TestRequest> TestRequests { get; set; }
         public DbSet<RequestTestType> RequestTestTypes { get; set; }
         public DbSet<TestResult> TestResults { get; set; }
@@ -44,6 +46,9 @@ namespace NMB_HLabSys.Data
         public DbSet<PatientCondition> PatientConditions { get; set; }
         public DbSet<PatientAllergy> PatientAllergies { get; set; }
         public DbSet<PatientMedication> PatientMedications { get; set; }
+
+        // ========== ADD THIS MISSING DbSet ==========
+        public DbSet<PatientConsentManagement> PatientConsentManagements { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -69,12 +74,6 @@ namespace NMB_HLabSys.Data
                 .HasIndex(u => u.Email)
                 .IsUnique()
                 .HasDatabaseName("IX_User_Email_Unique");
-
-            // COMMENTED OUT - User model doesn't have AspNetUserID
-            // modelBuilder.Entity<User>()
-            //     .HasIndex(u => u.AspNetUserID)
-            //     .IsUnique()
-            //     .HasDatabaseName("IX_User_AspNetUserId_Unique");
 
             modelBuilder.Entity<LabTechnician>()
                 .HasIndex(l => l.EmployeeNumber)
@@ -194,28 +193,38 @@ namespace NMB_HLabSys.Data
                 .HasForeignKey(tc => tc.ConsumableID)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<PatientConsentManagement>(entity =>
+            {
+                // Doctor relationship – now with navigation
+                entity.HasOne(pcm => pcm.Doctor)
+                      .WithMany(d => d.PatientConsentManagements)   // Doctor has collection
+                      .HasForeignKey(pcm => pcm.DoctorID)
+                      .OnDelete(DeleteBehavior.NoAction);   // No cascade
+
+                // Patient relationship
+                entity.HasOne(pcm => pcm.Patient)
+                      .WithMany(p => p.PatientConsents)     // Patient already has collection
+                      .HasForeignKey(pcm => pcm.PatientID)
+                      .OnDelete(DeleteBehavior.NoAction);   // No cascade
+            });
+
             // =========================
-            // USER RELATIONSHIPS (COMMENTED OUT - User model doesn't have these navigation properties)
+            // TEST REQUESTS – FIX CASCADE PATHS
             // =========================
+            modelBuilder.Entity<TestRequest>(entity =>
+            {
+                // Doctor relationship – prevent cascade delete
+                entity.HasOne(tr => tr.Doctor)
+                      .WithMany(d => d.TestRequests)   // Doctor has collection
+                      .HasForeignKey(tr => tr.DoctorID)
+                      .OnDelete(DeleteBehavior.Restrict);
 
-            //modelBuilder.Entity<LabTechnician>()
-            //    .HasOne(lt => lt.User)
-            //    .WithOne(u => u.LabTechnician)
-            //    .HasForeignKey<LabTechnician>(lt => lt.UserID)
-            //    .OnDelete(DeleteBehavior.Cascade);
-
-            //modelBuilder.Entity<Doctor>()
-            //    .HasOne(d => d.User)
-            //    .WithOne(u => u.Doctor)
-            //    .HasForeignKey<Doctor>(d => d.UserID)
-            //    .OnDelete(DeleteBehavior.Cascade);
-
-            //modelBuilder.Entity<Patient>()
-            //    .HasOne(p => p.User)
-            //    .WithOne(u => u.Patient)
-            //    .HasForeignKey<Patient>(p => p.UserID)
-            //    .OnDelete(DeleteBehavior.Cascade);
-
+                // Patient relationship – prevent cascade delete
+                entity.HasOne(tr => tr.Patient)
+                      .WithMany(p => p.TestRequests)   // Patient has collection
+                      .HasForeignKey(tr => tr.PatientID)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
             // =========================
             // DECIMAL PRECISION
             // =========================

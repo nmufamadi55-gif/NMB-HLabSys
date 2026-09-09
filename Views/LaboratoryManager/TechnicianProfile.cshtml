@@ -1,0 +1,53 @@
+﻿@using NMB_HLabSys.Models.ViewModels
+@model TechnicianProfileViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Technician Profile";
+    ViewData["RoleSubtitle"] = "Laboratory Manager";
+    ViewData["UserGreeting"] = "Technician details";
+    ViewData["UserInitials"] = "LM";
+}
+
+@section SidebarMenu {
+ ... same ...
+ }
+
+<style>... info-grid styles ...</style>
+
+<div class="card">
+    <h3><i class="fas fa-user-circle"></i> @Model.FullName</h3>
+    <div class="info-grid">
+        <div class="info-item"><span class="info-label">Employee #:</span> @Model.EmployeeNumber</div>
+        <div class="info-item"><span class="info-label">SA ID:</span> @Model.SAIDNumber</div>
+        <div class="info-item"><span class="info-label">Email:</span> @Model.Email</div>
+        <div class="info-item"><span class="info-label">Phone:</span> @Model.ContactNumber</div>
+        <div class="info-item"><span class="info-label">Specialization:</span> @Model.Specialization</div>
+        <div class="info-item"><span class="info-label">Qualification:</span> @Model.Qualification</div>
+        <div class="info-item"><span class="info-label">Experience:</span> @Model.YearsOfExperience years</div>
+        <div class="info-item"><span class="info-label">Hire Date:</span> @Model.HireDate.ToShortDateString()</div>
+        <div class="info-item"><span class="info-label">Status:</span> <span class="badge @(Model.IsActive ? "badge-success" : "badge-danger")">@(Model.IsActive ? "Active" : "Inactive")</span></div>
+    </div>
+</div>
+
+<div class="card">
+    <h4><i class="fas fa-vial"></i> Assigned Tests</h4>
+    <table>
+        <thead><tr><th>Test Name</th><th>Category</th><th>Assigned Date</th><th>Status</th></tr></thead>
+        <tbody>
+            @foreach (var test in Model.AssignedTests)
+            {
+                <tr>
+                    <td>@test.TestName</td>
+                    <td>@test.CategoryName</td>
+                    <td>@test.AssignedDate.ToShortDateString()</td>
+                    <td><span class="badge @(test.IsActive ? "badge-success" : "badge-danger")">@(test.IsActive ? "Active" : "Inactive")</span></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div>
+    <button class="btn-outline-sm" onclick="history.back()">Back</button>
+</div>

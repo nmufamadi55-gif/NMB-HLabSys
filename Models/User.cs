@@ -39,7 +39,6 @@ namespace NMB_HLabSys.Models
         public DateTime? ModifiedDate { get; set; }
 
         // Navigation properties
-        public virtual Patient? Patient { get; set; }
         public virtual Doctor? Doctor { get; set; }
         public virtual LabTechnician? LabTechnician { get; set; }
         public string? AspNetUserID { get; set; }

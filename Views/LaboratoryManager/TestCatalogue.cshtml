@@ -1,0 +1,163 @@
+﻿@model NMB_HLabSys.Models.ViewModels.TestCatalogueIndexViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Test Catalogue";
+    ViewData["RoleSubtitle"] = "Laboratory Manager";
+    ViewData["UserGreeting"] = "Manage your test catalogue";
+    ViewData["UserInitials"] = "LM";
+}
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Index", "LaboratoryManager")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+    <li><a href="@Url.Action("TestCatalogue", "LaboratoryManager")" class="active"><i class="fas fa-vial"></i> <span>Test Catalogue</span></a></li>
+    <li><a href="@Url.Action("Stock", "LaboratoryManager")"><i class="fas fa-boxes"></i> <span>Stock Management</span></a></li>
+    <li><a href="@Url.Action("Suppliers", "LaboratoryManager")"><i class="fas fa-truck"></i> <span>Suppliers</span></a></li>
+    <li><a href="@Url.Action("Orders", "LaboratoryManager")"><i class="fas fa-shopping-cart"></i> <span>Purchase Orders</span></a></li>
+    <li><a href="@Url.Action("Staff", "LaboratoryManager")"><i class="fas fa-user-md"></i> <span>Staff Management</span></a></li>
+    <li><a href="@Url.Action("Reports", "LaboratoryManager")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+}
+
+<style>
+    .card {
+        background: white;
+        border-radius: 16px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: 1px solid #E2E8F0;
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.8rem;
+        flex-wrap: wrap;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 0.5rem 0.3rem;
+        text-align: left;
+        border-bottom: 1px solid #E2E8F0;
+        font-size: 0.8rem;
+    }
+
+    th {
+        background: #F8FAFE;
+        font-weight: 600;
+        color: #5A6E7A;
+    }
+
+    .btn-sm {
+        background: #0841C9;
+        color: white;
+        border: none;
+        padding: 0.3rem 0.8rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.7rem;
+    }
+
+        .btn-sm:hover {
+            background: #032C7D;
+        }
+
+    .btn-outline-sm {
+        background: transparent;
+        border: 1px solid #E2E8F0;
+        padding: 0.3rem 0.8rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.7rem;
+    }
+
+        .btn-outline-sm:hover {
+            background: #F1F5F9;
+        }
+
+    .btn-danger-sm {
+        background: #DC2626;
+        color: white;
+        border: none;
+        padding: 0.3rem 0.8rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.7rem;
+    }
+
+        .btn-danger-sm:hover {
+            background: #B91C1C;
+        }
+
+    .badge {
+        display: inline-block;
+        padding: 0.15rem 0.5rem;
+        border-radius: 30px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    .badge-success {
+        background: #D4EDDA;
+        color: #155724;
+    }
+
+    .badge-danger {
+        background: #F8D7DA;
+        color: #721C24;
+    }
+
+    .action-bar {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-vial"></i> Test Types</h3>
+        <div>
+            <button class="btn-sm" onclick="location.href='@Url.Action("CreateTestType")'"><i class="fas fa-plus"></i> Add Test</button>
+            <button class="btn-outline-sm" onclick="location.href='@Url.Action("CreateCategory")'"><i class="fas fa-tag"></i> Add Category</button>
+            <button class="btn-outline-sm" onclick="location.href='@Url.Action("CreateSampleType")'"><i class="fas fa-flask"></i> Add Sample Type</button>
+        </div>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Test Name</th>
+                    <th>Category</th>
+                    <th>Sample Type</th>
+                    <th>Turnaround (min)</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var test in Model.TestTypes)
+                {
+                    <tr>
+                        <td><strong>@test.TestName</strong></td>
+                        <td>@test.CategoryName</td>
+                        <td>@test.SampleTypeName</td>
+                        <td>@test.TurnaroundTimeMinutes</td>
+                        <td><span class="badge @(test.IsActive ? "badge-success" : "badge-danger")">@(test.IsActive ? "Active" : "Inactive")</span></td>
+                        <td>
+                            <button class="btn-outline-sm" onclick="location.href='@Url.Action("EditTestType", new { id = test.TestID })'"><i class="fas fa-edit"></i></button>
+                            <button class="btn-danger-sm" onclick="if(confirm('Delete this test?')) location.href='@Url.Action("DeleteTestType", new { id = test.TestID })'"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

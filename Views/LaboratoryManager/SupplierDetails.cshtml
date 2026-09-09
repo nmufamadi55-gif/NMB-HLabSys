@@ -1,0 +1,76 @@
+﻿@using NMB_HLabSys.Models.ViewModels
+@model SupplierDetailsViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Supplier Details";
+    ViewData["RoleSubtitle"] = "Laboratory Manager";
+    ViewData["UserGreeting"] = "Supplier information";
+    ViewData["UserInitials"] = "LM";
+}
+
+@section SidebarMenu {
+ ... same ...
+ }
+
+<style>
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .info-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #F1F5F9;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #5A6E7A;
+    }
+
+    .card {
+        background: white;
+        border-radius: 16px;
+        padding: 1rem;
+        border: 1px solid #E2E8F0;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<div class="card">
+    <h3><i class="fas fa-truck"></i> @Model.SupplierName</h3>
+    <div class="info-grid">
+        <div class="info-item"><span class="info-label">Contact Person:</span> @Model.ContactPerson</div>
+        <div class="info-item"><span class="info-label">Email:</span> @Model.EmailAddress</div>
+        <div class="info-item"><span class="info-label">Phone:</span> @Model.PhoneNumber</div>
+        <div class="info-item"><span class="info-label">Address:</span> @Model.Address</div>
+        <div class="info-item"><span class="info-label">Preferred:</span> @(Model.IsPreferred ? "Yes" : "No")</div>
+        <div class="info-item"><span class="info-label">Active:</span> @(Model.IsActive ? "Yes" : "No")</div>
+        <div class="info-item"><span class="info-label">Total Consumables:</span> @Model.ConsumableCount</div>
+        <div class="info-item"><span class="info-label">Created:</span> @Model.CreatedAt.ToShortDateString()</div>
+    </div>
+</div>
+
+<div class="card">
+    <h4><i class="fas fa-boxes"></i> Consumables Supplied</h4>
+    <table>
+        <thead><tr><th>Name</th><th>Qty On Hand</th><th>Reorder Level</th><th>Unit</th></tr></thead>
+        <tbody>
+            @foreach (var c in Model.Consumables)
+            {
+                <tr>
+                    <td>@c.ConsumableName</td>
+                    <td>@c.QuantityOnHand</td>
+                    <td>@c.ReorderLevel</td>
+                    <td>@c.UnitOfMeasure</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div>
+    <button class="btn-outline-sm" onclick="history.back()">Back</button>
+</div>

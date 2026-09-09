@@ -417,11 +417,8 @@
                         <a href="@Url.Action("Dashboard", "Technician")" class="role-btn">
                             <i class="fas fa-flask"></i> Technician
                         </a>
-                        <a href="@Url.Action("Dashboard", "Manager")" class="role-btn">
+                        <a href="@Url.Action("Index", "LaboratoryManager")" class="role-btn">
                             <i class="fas fa-chart-line"></i> Manager
-                        </a>
-                        <a href="@Url.Action("Dashboard", "Patient")" class="role-btn">
-                            <i class="fas fa-user-injured"></i> Patient
                         </a>
                         <a href="@Url.Action("Dashboard", "Admin")" class="role-btn">
                             <i class="fas fa-cogs"></i> Admin
@@ -481,7 +478,7 @@
                         redirectUrl = '@Url.Action("Dashboard", "Technician")';
                         break;
                     case 'Manager':
-                        redirectUrl = '@Url.Action("Dashboard", "Manager")';
+                        redirectUrl = '@Url.Action("Index", "LaboratoryManager")';
                         break;
                     case 'Patient':
                         redirectUrl = '@Url.Action("Dashboard", "Patient")';
