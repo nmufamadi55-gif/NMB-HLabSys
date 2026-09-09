@@ -28,5 +28,6 @@ namespace NMB_HLabSys.Models
         public virtual ICollection<MedicalCondition> MedicalConditions { get; set; }
         public virtual ICollection<Allergy> Allergies { get; set; }
         public virtual ICollection<Medication> Medications { get; set; }
+        public bool IsActive { get; internal set; }
     }
 }

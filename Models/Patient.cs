@@ -15,24 +15,24 @@ namespace NMB_HLabSys.Models
 
         [Required]
         [StringLength(100)]
-        public string FirstName { get; set; }
+        public string FirstName { get; set; } = string.Empty;
 
         [Required]
         [StringLength(100)]
-        public string LastName { get; set; }
+        public string LastName { get; set; } = string.Empty;
 
         [Required]
         [StringLength(13)]
         [MinLength(13)]
         [RegularExpression(@"^[0-9]{13}$", ErrorMessage = "SA ID must be 13 digits")]
-        public string SAIDNumber { get; set; }
+        public string SAIDNumber { get; set; } = string.Empty;
 
         [Required]
         public DateTime DateOfBirth { get; set; }
 
         [Required]
         [StringLength(15)]
-        public string Cellphone { get; set; }
+        public string Cellphone { get; set; } = string.Empty;
 
         [Required]
         [EmailAddress]
@@ -40,7 +40,7 @@ namespace NMB_HLabSys.Models
         public string Email { get; set; } = string.Empty;
 
         [StringLength(500)]
-        public string HomeAddress { get; set; }
+        public string HomeAddress { get; set; } = string.Empty;
 
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
@@ -50,12 +50,12 @@ namespace NMB_HLabSys.Models
 
         // Navigation properties
         [ForeignKey("UserID")]
-        public virtual User User { get; set; }
+        public virtual User User { get; set; } = null!;
 
-        public virtual ICollection<PatientCondition> PatientConditions { get; set; }
-        public virtual ICollection<PatientAllergy> PatientAllergies { get; set; }
-        public virtual ICollection<PatientMedication> PatientMedications { get; set; }
-        public virtual ICollection<PatientConsentManagement> PatientConsents { get; set; }
+        public virtual ICollection<PatientCondition> PatientConditions { get; set; } = new List<PatientCondition>();
+        public virtual ICollection<PatientAllergy> PatientAllergies { get; set; } = new List<PatientAllergy>();
+        public virtual ICollection<PatientMedication> PatientMedications { get; set; } = new List<PatientMedication>();
+        public virtual ICollection<PatientConsentManagement> PatientConsents { get; set; } = new List<PatientConsentManagement>();
         public virtual ICollection<TestRequest>? TestRequests { get; set; }
     }
 }
