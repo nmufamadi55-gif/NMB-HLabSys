@@ -1,4 +1,7 @@
-﻿namespace NMB_HLabSys.ViewModels.AdminViewModels
+﻿using System;
+using System.Collections.Generic;
+
+namespace NMB_HLabSys.ViewModels.AdminViewModels
 {
     public class AdminDashboardViewModel
     {
@@ -9,15 +12,14 @@
         public int TotalPatients { get; set; }
         public int TotalDoctors { get; set; }
         public int TotalTechnicians { get; set; }
-        public List<RecentActivityViewModel> RecentActivities { get; set; }
+        public List<RecentActivityViewModel> RecentActivities { get; set; } = new List<RecentActivityViewModel>();
     }
 
     public class RecentActivityViewModel
     {
-        public DateTime Date { get; set; }
-        public string Type { get; set; }
-        public string Item { get; set; }
-        public string Action { get; set; }
-        public string User { get; set; }
+        public string ActivityType { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public DateTime ActivityDate { get; set; }
+        public string UserName { get; set; } = string.Empty;  // ← Make sure this exists!
     }
 }
