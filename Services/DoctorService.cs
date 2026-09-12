@@ -1,7 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿// File: Services/DoctorService.cs
+using Microsoft.EntityFrameworkCore;
 using NMB_HLabSys.Data;
 using NMB_HLabSys.Models;
 using NMB_HLabSys.Models.ViewModels;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace NMB_HLabSys.Services
 {
@@ -10,56 +15,114 @@ namespace NMB_HLabSys.Services
         private readonly ApplicationDbContext _context;
         private readonly ILogger<DoctorService> _logger;
         private readonly IBarcodeService _barcodeService;
+        private readonly IPasswordGenerator _passwordGenerator;
+        private readonly IPasswordHasher _passwordHasher;
+        private readonly IEmailService _emailService;
+        private readonly IPdfReportService _pdfService;
 
         public DoctorService(
             ApplicationDbContext context,
             ILogger<DoctorService> logger,
-            IBarcodeService barcodeService)
+            IBarcodeService barcodeService,
+            IPasswordGenerator passwordGenerator,
+            IPasswordHasher passwordHasher,
+            IEmailService emailService,
+            IPdfReportService pdfService)
         {
             _context = context;
             _logger = logger;
             _barcodeService = barcodeService;
+            _passwordGenerator = passwordGenerator;
+            _passwordHasher = passwordHasher;
+            _emailService = emailService;
+            _pdfService = pdfService;
         }
 
-       
+        // ═══════════════════════════════════════════════════════════
         // DASHBOARD
-      
+        // ═══════════════════════════════════════════════════════════
+
         public async Task<DoctorDashboardViewModel> GetDashboardDataAsync(int doctorId)
         {
             var requests = await _context.TestRequests
                 .Where(r => r.DoctorID == doctorId)
                 .Include(r => r.Patient)
-                .Include(r => r.RequestTestTypes)
-                .ThenInclude(rt => rt.TestType)
+                .Include(r => r.RequestTestTypes).ThenInclude(rt => rt.TestType)
+                .Include(r => r.RequestTestTypes).ThenInclude(rt => rt.TestResults)
+                .AsNoTracking()
                 .ToListAsync();
 
-            var activeRequests = requests.Where(r => r.Status != "Completed" && r.Status != "Verified" && r.Status != "Released").Count();
+            var activeRequests = requests.Count(r =>
+                r.Status == "Submitted" ||
+                r.Status == "Samples Received" ||
+                r.Status == "In Progress");
+
             var abnormalCount = requests
-                .SelectMany(r => r.RequestTestTypes)
-                .Count(rt => rt.TestResults != null && rt.TestResults.Any(t => t.IsAbnormal));
+                .Where(r => r.Status != "Cancelled")
+                .Count(r => r.RequestTestTypes
+                    .SelectMany(rt => rt.TestResults ?? new List<TestResult>())
+                    .Any(t => t.IsAbnormal));
+
+            var pendingReleaseCount = requests.Count(r =>
+                r.ReleasedToPatientDate == null &&
+                r.Status != "Cancelled" &&
+                r.Status != "Submitted" &&
+                r.Status != "Samples Received" &&
+                r.Status != "In Progress");
+
+            var totalPatients = await _context.TestRequests
+                .Where(r => r.DoctorID == doctorId)
+                .Select(r => r.PatientID)
+                .Distinct()
+                .CountAsync();
 
             return new DoctorDashboardViewModel
             {
                 ActiveRequests = activeRequests,
                 AbnormalAlerts = abnormalCount,
-                PendingReleaseCount = requests.Count(r => r.Status == "Verified"),
-                TotalPatients = await _context.Patients.CountAsync(p => p.UserID == doctorId),
-                RecentRequests = requests.OrderByDescending(r => r.RequestDate).Take(5).Select(r => new RecentRequestViewModel
-                {
-                    RequestID = r.RequestID,
-                    RequestNumber = r.RequestNumber,
-                    PatientName = r.Patient != null ? $"{r.Patient.FirstName} {r.Patient.LastName}" : "Unknown",
-                    RequestDate = r.RequestDate,
-                    Status = r.Status,
-                    Urgency = r.Urgency,
-                    Progress = GetProgress(r.Status)
-                }).ToList(),
+                PendingReleaseCount = pendingReleaseCount,
+                TotalPatients = totalPatients,
+
+                RecentRequests = requests
+                    .OrderByDescending(r => r.RequestDate)
+                    .Take(5)
+                    .Select(r => new RecentRequestViewModel
+                    {
+                        RequestID = r.RequestID,
+                        RequestNumber = r.RequestNumber,
+                        PatientName = r.Patient != null
+                            ? $"{r.Patient.FirstName} {r.Patient.LastName}"
+                            : "Unknown",
+                        RequestDate = r.RequestDate,
+                        Status = r.Status,
+                        Urgency = r.Urgency,
+                        Progress = GetProgress(r.Status)
+                    })
+                    .ToList(),
+
                 Stats = new DashboardStatsViewModel
                 {
-                    RequestsThisMonth = requests.Count(r => r.RequestDate.Month == DateTime.Now.Month && r.RequestDate.Year == DateTime.Now.Year),
-                    CompletedThisMonth = requests.Count(r => r.Status == "Completed" && r.CompletedDate.HasValue && r.CompletedDate.Value.Month == DateTime.Now.Month),
-                    AbnormalThisMonth = requests.SelectMany(r => r.RequestTestTypes).Count(rt => rt.TestResults != null && rt.TestResults.Any(t => t.IsAbnormal && t.ResultDate.Month == DateTime.Now.Month)),
-                    PendingThisMonth = requests.Count(r => r.Status == "Verified" && r.CompletedDate.HasValue && r.CompletedDate.Value.Month == DateTime.Now.Month)
+                    RequestsThisMonth = requests.Count(r =>
+                        r.RequestDate.Month == DateTime.Now.Month &&
+                        r.RequestDate.Year == DateTime.Now.Year),
+
+                    CompletedThisMonth = requests.Count(r =>
+                        r.Status == "Completed" &&
+                        r.CompletedDate.HasValue &&
+                        r.CompletedDate.Value.Month == DateTime.Now.Month),
+
+                    AbnormalThisMonth = requests
+                        .Where(r => r.Status != "Cancelled")
+                        .SelectMany(r => r.RequestTestTypes)
+                        .SelectMany(rt => rt.TestResults ?? new List<TestResult>())
+                        .Count(t => t.IsAbnormal && t.ResultDate.Month == DateTime.Now.Month),
+
+                    PendingThisMonth = requests.Count(r =>
+                        r.ReleasedToPatientDate == null &&
+                        r.Status != "Cancelled" &&
+                        r.Status != "Submitted" &&
+                        r.Status != "Samples Received" &&
+                        r.Status != "In Progress")
                 }
             };
         }
@@ -73,50 +136,62 @@ namespace NMB_HLabSys.Services
                 "In Progress" => 50,
                 "Completed" => 75,
                 "Verified" => 90,
+                "Appointment Requested" => 95,
                 "Released" => 100,
+                "Cancelled" => 0,
                 _ => 0
             };
         }
 
-        
+        // ═══════════════════════════════════════════════════════════
         // TEST REQUESTS
-       
+        // ═══════════════════════════════════════════════════════════
+
         public async Task<TestRequestIndexViewModel> GetTestRequestsAsync(int doctorId, TestRequestFilterViewModel filter)
         {
+            filter ??= new TestRequestFilterViewModel();
+
             var query = _context.TestRequests
                 .Where(r => r.DoctorID == doctorId)
                 .Include(r => r.Patient)
-                .Include(r => r.RequestTestTypes)
-                .ThenInclude(rt => rt.TestType)
+                .Include(r => r.RequestTestTypes).ThenInclude(rt => rt.TestType)
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(filter.SearchTerm))
+            if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
             {
                 query = query.Where(r => r.RequestNumber.Contains(filter.SearchTerm) ||
-                    (r.Patient != null && (r.Patient.FirstName.Contains(filter.SearchTerm) || r.Patient.LastName.Contains(filter.SearchTerm))));
+                    (r.Patient != null && (r.Patient.FirstName.Contains(filter.SearchTerm) ||
+                                            r.Patient.LastName.Contains(filter.SearchTerm))));
             }
 
-            if (!string.IsNullOrEmpty(filter.Status) && filter.Status != "all")
-            {
-                query = query.Where(r => r.Status == filter.Status);
-            }
-
-            if (!string.IsNullOrEmpty(filter.Urgency) && filter.Urgency != "all")
-            {
+            if (!string.IsNullOrWhiteSpace(filter.Urgency) && filter.Urgency != "all")
                 query = query.Where(r => r.Urgency == filter.Urgency);
+
+            if (!string.IsNullOrWhiteSpace(filter.Status) && filter.Status != "all")
+            {
+                if (filter.Status == "active")
+                {
+                    query = query.Where(r =>
+                        r.Status == "Submitted" ||
+                        r.Status == "Samples Received" ||
+                        r.Status == "In Progress");
+                }
+                else
+                {
+                    query = query.Where(r => r.Status == filter.Status);
+                }
             }
 
             if (filter.StartDate.HasValue)
-            {
                 query = query.Where(r => r.RequestDate >= filter.StartDate.Value);
-            }
 
             if (filter.EndDate.HasValue)
-            {
                 query = query.Where(r => r.RequestDate <= filter.EndDate.Value);
-            }
 
-            var requests = await query.OrderByDescending(r => r.RequestDate).ToListAsync();
+            var requests = await query
+                .OrderByDescending(r => r.RequestDate)
+                .AsNoTracking()
+                .ToListAsync();
 
             return new TestRequestIndexViewModel
             {
@@ -124,16 +199,23 @@ namespace NMB_HLabSys.Services
                 {
                     RequestID = r.RequestID,
                     RequestNumber = r.RequestNumber,
-                    PatientName = r.Patient != null ? $"{r.Patient.FirstName}   {r.Patient.LastName}" : "Unknown",
+                    PatientName = r.Patient != null
+                        ? $"{r.Patient.FirstName} {r.Patient.LastName}"
+                        : "Unknown",
                     RequestDate = r.RequestDate,
                     Status = r.Status,
                     Urgency = r.Urgency,
-                    Tests = r.RequestTestTypes.Select(rt => rt.TestType != null ? rt.TestType.TestName : "Unknown").ToList(),
+                    Tests = r.RequestTestTypes
+                        .Select(rt => rt.TestType != null ? rt.TestType.TestName : "Unknown")
+                        .ToList(),
                     Progress = GetProgress(r.Status),
-                    HasAbnormal = r.RequestTestTypes.Any(rt => rt.TestResults != null && rt.TestResults.Any(t => t.IsAbnormal)),
-                    HasResults = r.RequestTestTypes.Any(rt => rt.TestResults != null && rt.TestResults.Any()),
+                    HasAbnormal = r.RequestTestTypes.Any(rt =>
+                        rt.TestResults != null && rt.TestResults.Any(t => t.IsAbnormal)),
+                    HasResults = r.RequestTestTypes.Any(rt =>
+                        rt.TestResults != null && rt.TestResults.Any()),
                     CanCancel = r.Status == "Submitted" || r.Status == "Samples Received"
                 }).ToList(),
+
                 Statistics = new TestRequestStatisticsViewModel
                 {
                     Total = await _context.TestRequests.CountAsync(r => r.DoctorID == doctorId),
@@ -148,12 +230,120 @@ namespace NMB_HLabSys.Services
                         .Where(rt => rt.TestResults != null && rt.TestResults.Any(t => t.IsAbnormal))
                         .CountAsync()
                 },
+
                 Filter = filter
             };
         }
 
+        public async Task<CreateTestRequestViewModel> GetCreateTestRequestViewModelAsync(int doctorId, int? preselectedPatientId = null)
+        {
+            var patients = await _context.Patients
+                .Where(p => p.IsActive)
+                .Select(p => new PatientDropdownItem
+                {
+                    PatientID = p.PatientID,
+                    FullName = p.FirstName + " " + p.LastName,
+                    SAIDNumber = p.SAIDNumber
+                })
+                .OrderBy(p => p.FullName)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var tests = await _context.TestTypes
+                .Where(t => t.IsActive)
+                .Include(t => t.Category)
+                .Include(t => t.SampleType)
+                .Select(t => new TestTypeDropdownItem
+                {
+                    TestID = t.TestID,
+                    TestName = t.TestName,
+                    CategoryName = t.Category.CategoryName,
+                    SampleTypeID = t.SampleTypeID,
+                    SampleTypeName = t.SampleType.SampleTypeName,
+                    TurnaroundTimeMinutes = t.TurnaroundTimeMinutes
+                })
+                .OrderBy(t => t.CategoryName).ThenBy(t => t.TestName)
+                .AsNoTracking()
+                .ToListAsync();
+
+            return new CreateTestRequestViewModel
+            {
+                PatientID = preselectedPatientId ?? 0,
+                Patients = patients,
+                AvailableTests = tests,
+                Urgency = "routine"
+            };
+        }
+
+        /// <summary>
+        /// Creates a test request using the barcodes TYPED BY THE DOCTOR from
+        /// the physical tube labels. One barcode per SampleType required.
+        /// </summary>
         public async Task<TestRequest> CreateTestRequestAsync(CreateTestRequestViewModel model, int doctorId)
         {
+            // ─── Basic validation ───
+            if (model.PatientID <= 0)
+                throw new InvalidOperationException("Please select a patient.");
+
+            if (model.SelectedTestTypeIDs == null || !model.SelectedTestTypeIDs.Any())
+                throw new InvalidOperationException("Please select at least one test type.");
+
+            var patientExists = await _context.Patients.AnyAsync(p => p.PatientID == model.PatientID && p.IsActive);
+            if (!patientExists)
+                throw new InvalidOperationException("Selected patient not found.");
+
+            // ─── Resolve test types + required sample types ───
+            var selectedTestIds = model.SelectedTestTypeIDs.Distinct().ToList();
+
+            var testTypes = await _context.TestTypes
+                .Include(t => t.SampleType)
+                .Where(t => selectedTestIds.Contains(t.TestID) && t.IsActive)
+                .ToListAsync();
+
+            if (testTypes.Count != selectedTestIds.Count)
+                throw new InvalidOperationException("One or more selected test types are invalid or inactive.");
+
+            var sampleGroups = testTypes
+                .GroupBy(t => t.SampleTypeID)
+                .Select(g => new
+                {
+                    SampleTypeID = g.Key,
+                    SampleTypeName = g.First().SampleType.SampleTypeName
+                })
+                .ToList();
+
+            // ─── Validate barcodes were provided for every sample type ───
+            model.BarcodeOverrides ??= new Dictionary<int, string>();
+
+            foreach (var sg in sampleGroups)
+            {
+                if (!model.BarcodeOverrides.TryGetValue(sg.SampleTypeID, out var bc) ||
+                    string.IsNullOrWhiteSpace(bc))
+                {
+                    throw new InvalidOperationException(
+                        $"Please provide a barcode for the '{sg.SampleTypeName}' sample.");
+                }
+            }
+
+            var submittedBarcodes = sampleGroups
+                .Select(sg => model.BarcodeOverrides[sg.SampleTypeID].Trim())
+                .ToList();
+
+            // ─── Duplicate check within this submission ───
+            if (submittedBarcodes.Count != submittedBarcodes.Distinct(StringComparer.OrdinalIgnoreCase).Count())
+                throw new InvalidOperationException("Duplicate barcodes detected. Each sample must have a unique barcode.");
+
+            // ─── Duplicate check against DB ───
+            var existingBarcodes = await _context.Samples
+                .Where(s => submittedBarcodes.Contains(s.Barcode))
+                .Select(s => s.Barcode)
+                .ToListAsync();
+
+            if (existingBarcodes.Any())
+                throw new InvalidOperationException(
+                    $"These barcodes are already in use: {string.Join(", ", existingBarcodes)}");
+
+            // ─── Create the request inside a transaction ───
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -165,7 +355,7 @@ namespace NMB_HLabSys.Services
                     DoctorID = doctorId,
                     PatientID = model.PatientID,
                     RequestDate = DateTime.Now,
-                    Urgency = model.Urgency,
+                    Urgency = string.IsNullOrWhiteSpace(model.Urgency) ? "routine" : model.Urgency,
                     ClinicalNotes = model.ClinicalNotes,
                     Status = "Submitted"
                 };
@@ -173,47 +363,59 @@ namespace NMB_HLabSys.Services
                 _context.TestRequests.Add(testRequest);
                 await _context.SaveChangesAsync();
 
-                foreach (var testTypeId in model.SelectedTestTypeIDs)
+                // Link test types
+                foreach (var testTypeId in selectedTestIds)
                 {
-                    var requestTestType = new RequestTestType
+                    _context.RequestTestTypes.Add(new RequestTestType
                     {
                         RequestID = testRequest.RequestID,
                         TestTypeID = testTypeId,
                         Status = "Submitted"
-                    };
-                    _context.RequestTestTypes.Add(requestTestType);
+                    });
                 }
 
-                var testTypes = await _context.TestTypes
-                    .Include(t => t.SampleType)
-                    .Where(t => model.SelectedTestTypeIDs.Contains(t.TestID))
-                    .ToListAsync();
-
-                var barcodes = _barcodeService.GenerateBarcodes(testTypes.Count);
-
-                for (int i = 0; i < testTypes.Count; i++)
+                // Create one Sample per distinct SampleType using the doctor-typed barcode
+                foreach (var sg in sampleGroups)
                 {
-                    var testType = testTypes[i];
-                    var sample = new Sample
+                    _context.Samples.Add(new Sample
                     {
                         RequestID = testRequest.RequestID,
-
-                        SampleTypeID = testType.SampleTypeID,
-                        Barcode = barcodes[i],
-                        Status = "Pending"
-                    };
-                    _context.Samples.Add(sample);
+                        SampleTypeID = sg.SampleTypeID,
+                        Barcode = model.BarcodeOverrides[sg.SampleTypeID].Trim(),
+                        Status = "Pending",
+                        DateReceived = null
+                    });
                 }
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
+                _logger.LogInformation(
+                    "Test request {RequestNumber} created by doctor {DoctorId} with {SampleCount} sample(s)",
+                    testRequest.RequestNumber, doctorId, sampleGroups.Count);
+
+                // ─── Notify patient (best effort) ───
+                try
+                {
+                    var patient = await _context.Patients.FindAsync(model.PatientID);
+                    if (patient != null && !string.IsNullOrWhiteSpace(patient.Email))
+                    {
+                        await _emailService.SendTestResultEmailAsync(
+                            patient.Email,
+                            $"{patient.FirstName} {patient.LastName}",
+                            $"A new test request ({testRequest.RequestNumber}) has been submitted on your behalf.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to notify patient {PatientId}", model.PatientID);
+                }
+
                 return testRequest;
             }
-            catch (Exception ex)
+            catch
             {
                 await transaction.RollbackAsync();
-                _logger.LogError(ex, "Error creating test request");
                 throw;
             }
         }
@@ -221,27 +423,33 @@ namespace NMB_HLabSys.Services
         private async Task<string> GenerateRequestNumberAsync()
         {
             var datePart = DateTime.Now.ToString("yyyyMMdd");
-            var existing = await _context.TestRequests
-                .Where(r => r.RequestNumber.StartsWith($"REQ-{datePart}"))
-                .CountAsync();
-            var sequence = (existing + 1).ToString("D4");
+            var todayCount = await _context.TestRequests
+                .CountAsync(r => r.RequestNumber.StartsWith($"REQ-{datePart}"));
+
+            var sequence = (todayCount + 1).ToString("D4");
             return $"REQ-{datePart}-{sequence}";
         }
 
-        public async Task<TestRequest> GetTestRequestDetailsAsync(int requestId)
+        public async Task<TestRequest?> GetTestRequestDetailsAsync(int requestId)
         {
             return await _context.TestRequests
                 .Include(r => r.Patient)
-                .Include(r => r.RequestTestTypes)
-                .ThenInclude(rt => rt.TestType)
-                .Include(r => r.RequestTestTypes)
-                .ThenInclude(rt => rt.TestResults)
+                .Include(r => r.Doctor).ThenInclude(d => d.User)
+                .Include(r => r.Samples).ThenInclude(s => s.SampleType)
+                .Include(r => r.RequestTestTypes).ThenInclude(rt => rt.TestType).ThenInclude(t => t.Category)
+                .Include(r => r.RequestTestTypes).ThenInclude(rt => rt.TestType).ThenInclude(t => t.SampleType)
+                .Include(r => r.RequestTestTypes).ThenInclude(rt => rt.TestResults)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(r => r.RequestID == requestId);
         }
 
         public async Task<bool> CancelTestRequestAsync(int requestId, string reason)
         {
-            var request = await _context.TestRequests.FindAsync(requestId);
+            var request = await _context.TestRequests
+                .Include(r => r.RequestTestTypes)
+                .Include(r => r.Samples)
+                .FirstOrDefaultAsync(r => r.RequestID == requestId);
+
             if (request == null) return false;
 
             if (request.Status != "Submitted" && request.Status != "Samples Received")
@@ -250,6 +458,24 @@ namespace NMB_HLabSys.Services
             request.Status = "Cancelled";
             request.CancelledDate = DateTime.Now;
             request.CancellationReason = reason;
+
+            foreach (var rt in request.RequestTestTypes)
+            {
+                if (rt.Status != "Completed" && rt.Status != "Verified")
+                {
+                    rt.Status = "Cancelled";
+                    rt.CompletedDateTime = null;
+                    rt.StartDateTime = null;
+                }
+            }
+
+            foreach (var sample in request.Samples)
+            {
+                if (sample.Status != "Received" && sample.Status != "Processing")
+                {
+                    sample.Status = "Cancelled";
+                }
+            }
 
             await _context.SaveChangesAsync();
             return true;
@@ -268,48 +494,61 @@ namespace NMB_HLabSys.Services
             return true;
         }
 
-        
+        // ═══════════════════════════════════════════════════════════
         // PATIENTS
-        
+        // ═══════════════════════════════════════════════════════════
+
         public async Task<PatientIndexViewModel> GetPatientsAsync(int doctorId, string? searchTerm = null)
         {
-            var query = _context.Patients
-                .Include(p => p.PatientConditions)
-                .ThenInclude(pc => pc.Condition)
-                .Include(p => p.PatientAllergies)
-                .ThenInclude(pa => pa.Allergy)
-                .Include(p => p.PatientMedications)
-                .ThenInclude(pm => pm.Medication)
-                .Include(p => p.TestRequests)
-                .Where(p => p.UserID == doctorId);
+            var patientIds = await _context.TestRequests
+                .Where(r => r.DoctorID == doctorId)
+                .Select(r => r.PatientID)
+                .Distinct()
+                .ToListAsync();
 
-            if (!string.IsNullOrEmpty(searchTerm))
+            var query = _context.Patients
+                .Include(p => p.PatientConditions).ThenInclude(pc => pc.Condition)
+                .Include(p => p.PatientAllergies).ThenInclude(pa => pa.Allergy)
+                .Include(p => p.PatientMedications).ThenInclude(pm => pm.Medication)
+                .Where(p => patientIds.Contains(p.PatientID));
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                query = query.Where(p => p.FirstName.Contains(searchTerm) ||
+                query = query.Where(p =>
+                    p.FirstName.Contains(searchTerm) ||
                     p.LastName.Contains(searchTerm) ||
                     p.SAIDNumber.Contains(searchTerm));
             }
 
-            var patients = await query.ToListAsync();
+            var patients = await query.AsNoTracking().ToListAsync();
 
             return new PatientIndexViewModel
             {
                 Patients = patients.Select(p => new PatientListViewModel
                 {
                     PatientID = p.PatientID,
-                    FullName = $"{p.FirstName}{p.LastName}",
+                    FullName = $"{p.FirstName} {p.LastName}",
                     SAIDNumber = p.SAIDNumber,
                     DateOfBirth = p.DateOfBirth,
                     Cellphone = p.Cellphone,
-                    Conditions = p.PatientConditions.Select(pc => pc.Condition != null ? pc.Condition.ConditionName : "Unknown").ToList(),
-                    Allergies = p.PatientAllergies.Select(pa => pa.Allergy != null ? pa.Allergy.AllergyName : "Unknown").ToList(),
-                    Medications = p.PatientMedications.Select(pm => pm.Medication != null ? pm.Medication.MedicationName : "Unknown").ToList()
+                    Conditions = p.PatientConditions
+                        .Select(pc => pc.Condition != null ? pc.Condition.ConditionName : "Unknown")
+                        .ToList(),
+                    Allergies = p.PatientAllergies
+                        .Select(pa => pa.Allergy != null ? pa.Allergy.AllergyName : "Unknown")
+                        .ToList(),
+                    Medications = p.PatientMedications
+                        .Select(pm => pm.Medication != null ? pm.Medication.MedicationName : "Unknown")
+                        .ToList()
                 }).ToList(),
+
                 Statistics = new PatientStatisticsViewModel
                 {
-                    Total = await _context.Patients.CountAsync(p => p.UserID == doctorId),
+                    Total = patientIds.Count,
                     ActiveThisMonth = await _context.TestRequests
-                        .Where(r => r.DoctorID == doctorId && r.RequestDate.Month == DateTime.Now.Month)
+                        .Where(r => r.DoctorID == doctorId &&
+                                    r.RequestDate.Month == DateTime.Now.Month &&
+                                    r.RequestDate.Year == DateTime.Now.Year)
                         .Select(r => r.PatientID)
                         .Distinct()
                         .CountAsync(),
@@ -326,108 +565,200 @@ namespace NMB_HLabSys.Services
 
         public async Task<Patient> RegisterPatientAsync(RegisterPatientViewModel model, int doctorId)
         {
+            // ═══════════ UNIQUENESS CHECKS ═══════════
+            if (await _context.Patients.AnyAsync(p => p.SAIDNumber == model.SAIDNumber))
+                throw new InvalidOperationException($"A patient with SA ID {model.SAIDNumber} already exists.");
+
+            var resolvedEmail = string.IsNullOrWhiteSpace(model.Email)
+                ? $"{model.SAIDNumber}@patient.nmblab.co.za"
+                : model.Email;
+
+            if (await _context.Users.AnyAsync(u => u.Email == resolvedEmail))
+                throw new InvalidOperationException($"A user with email {resolvedEmail} already exists.");
+
+            // ═══════════ SANITIZE INPUTS ═══════════
+            // Every string column in the DB is NOT NULL. Empty string is safe; null is not.
+            // Also truncate to the DB column max length so SQL Server doesn't reject the row.
+
+            var contactNumber = (model.Cellphone ?? "").Trim();
+            if (contactNumber.Length > 20) contactNumber = contactNumber.Substring(0, 20);
+
+            var cellphone = (model.Cellphone ?? "").Trim();
+            if (cellphone.Length > 15) cellphone = cellphone.Substring(0, 15);
+
+            var homeAddress = string.Join(", ",
+                new[] { model.AddressLine1, model.AddressLine2, model.City, model.Province, model.PostalCode }
+                    .Where(s => !string.IsNullOrWhiteSpace(s))
+                    .Select(s => s.Trim()));
+            if (homeAddress.Length > 500) homeAddress = homeAddress.Substring(0, 500);
+
+            // ═══════════ CREATE USER ═══════════
+            var tempPassword = _passwordGenerator.GenerateTemporaryPassword();
+            var hashedPassword = _passwordHasher.HashPassword(tempPassword);
+
+            var user = new User
+            {
+                Name = model.Name?.Trim() ?? "",
+                Surname = model.Surname?.Trim() ?? "",
+                Email = resolvedEmail,
+                PasswordHash = hashedPassword,
+                UserRole = "Patient",
+                ContactNumber = contactNumber,
+                IsActive = true,
+                IsPasswordChanged = false,
+                CreatedDate = DateTime.Now
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            // ═══════════ CREATE PATIENT ═══════════
             var patient = new Patient
             {
-                UserID = doctorId,
-                FirstName = model.Name,
-                LastName = model.Surname,
+                UserID = user.UserID,
+                FirstName = model.Name?.Trim() ?? "",
+                LastName = model.Surname?.Trim() ?? "",
                 SAIDNumber = model.SAIDNumber,
                 DateOfBirth = model.DateOfBirth,
-                Cellphone = model.Cellphone,
-                Email = model.Email,
-                HomeAddress = model.Address,
-                CreatedDate = DateTime.Now
+                Cellphone = cellphone,
+                Email = user.Email,
+                HomeAddress = homeAddress,             // already guaranteed non-null
+                CreatedDate = DateTime.Now,
+                IsActive = true
             };
 
             _context.Patients.Add(patient);
             await _context.SaveChangesAsync();
 
-            foreach (var conditionId in model.SelectedConditionIDs)
+            // ═══════════ LINK CONDITIONS ═══════════
+            // Notes column is NOT NULL in the DB — pass "" not null
+            foreach (var cid in model.SelectedConditionIDs.Distinct())
             {
                 _context.PatientConditions.Add(new PatientCondition
                 {
                     PatientID = patient.PatientID,
-                    ConditionID = conditionId,
-                    DiagnosedDate = DateTime.Now
+                    ConditionID = cid,
+                    DiagnosedDate = DateTime.Now,
+                    Notes = "",                        // ← REQUIRED
+                    IsActive = true,
+                    CreatedDate = DateTime.Now
                 });
             }
 
-            foreach (var allergyId in model.SelectedAllergyIDs)
+            // ═══════════ LINK ALLERGIES ═══════════
+            // Severity and Notes are NOT NULL
+            foreach (var aid in model.SelectedAllergyIDs.Distinct())
             {
                 _context.PatientAllergies.Add(new PatientAllergy
                 {
                     PatientID = patient.PatientID,
-                    AllergyID = allergyId
+                    AllergyID = aid,
+                    Severity = "Unknown",              // ← REQUIRED
+                    Notes = "",                        // ← REQUIRED
+                    CreatedDate = DateTime.Now
                 });
             }
 
-            foreach (var medicationId in model.SelectedMedicationIDs)
+            // ═══════════ LINK MEDICATIONS ═══════════
+            // Dosage, Frequency, Notes are NOT NULL
+            foreach (var mid in model.SelectedMedicationIDs.Distinct())
             {
                 _context.PatientMedications.Add(new PatientMedication
                 {
                     PatientID = patient.PatientID,
-                    MedicationID = medicationId,
+                    MedicationID = mid,
+                    Dosage = "",                       // ← REQUIRED
+                    Frequency = "",                    // ← REQUIRED
                     IsCurrent = true,
-                    StartDate = DateTime.Now
+                    StartDate = DateTime.Now,
+                    Notes = "",                        // ← REQUIRED
+                    CreatedDate = DateTime.Now
                 });
             }
 
             await _context.SaveChangesAsync();
+
+            // ═══════════ WELCOME EMAIL (best effort) ═══════════
+            try
+            {
+                await _emailService.SendPatientWelcomeEmailAsync(
+                    user.Email,
+                    $"{model.Name} {model.Surname}".Trim(),
+                    tempPassword);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to send welcome email to patient {Email}", user.Email);
+            }
+
             return patient;
         }
 
         public async Task<PatientMedicalInfoViewModel> GetPatientMedicalInfoAsync(int patientId)
         {
             var patient = await _context.Patients
-                .Include(p => p.PatientConditions)
-                .ThenInclude(pc => pc.Condition)
-                .Include(p => p.PatientAllergies)
-                .ThenInclude(pa => pa.Allergy)
-                .Include(p => p.PatientMedications)
-                .ThenInclude(pm => pm.Medication)
-                .Include(p => p.TestRequests)
-                .ThenInclude(r => r.RequestTestTypes)
-                .ThenInclude(rt => rt.TestType)
+                .Include(p => p.PatientConditions).ThenInclude(pc => pc.Condition).ThenInclude(c => c.Category)
+                .Include(p => p.PatientAllergies).ThenInclude(pa => pa.Allergy).ThenInclude(a => a.Category)
+                .Include(p => p.PatientMedications).ThenInclude(pm => pm.Medication).ThenInclude(m => m.Category)
+                .Include(p => p.TestRequests).ThenInclude(r => r.RequestTestTypes).ThenInclude(rt => rt.TestType)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.PatientID == patientId);
 
             if (patient == null)
                 throw new ArgumentException($"Patient with ID {patientId} not found");
 
+            var today = DateTime.Today;
+            var age = today.Year - patient.DateOfBirth.Year;
+            if (patient.DateOfBirth.Date > today.AddYears(-age)) age--;
+
+            var gender = "Unknown";
+            if (!string.IsNullOrEmpty(patient.SAIDNumber) && patient.SAIDNumber.Length == 13)
+            {
+                var genderDigit = patient.SAIDNumber[6] - '0';
+                gender = genderDigit >= 5 ? "Male" : "Female";
+            }
+
             return new PatientMedicalInfoViewModel
             {
                 PatientID = patient.PatientID,
-                FullName = $"{patient.FirstName}{patient.LastName}",
+                FullName = $"{patient.FirstName} {patient.LastName}",
                 SAIDNumber = patient.SAIDNumber,
                 DateOfBirth = patient.DateOfBirth,
                 Cellphone = patient.Cellphone,
                 Email = patient.Email,
                 Address = patient.HomeAddress,
+                Age = age,
+                Gender = gender,
+
                 Conditions = patient.PatientConditions
                     .Where(pc => pc.IsActive)
                     .Select(pc => new ConditionViewModel
                     {
                         ConditionID = pc.ConditionID,
                         ConditionName = pc.Condition != null ? pc.Condition.ConditionName : "Unknown",
-                        Category = pc.Condition != null ? pc.Condition.Category?.CategoryName ?? "Unknown" : "Unknown",
+                        Category = pc.Condition?.Category?.CategoryName ?? "Unknown",
                         DiagnosedDate = pc.DiagnosedDate
                     }).ToList(),
+
                 Allergies = patient.PatientAllergies.Select(pa => new AllergyViewModel
                 {
                     AllergyID = pa.AllergyID,
                     AllergyName = pa.Allergy != null ? pa.Allergy.AllergyName : "Unknown",
-                    Category = pa.Allergy != null ? pa.Allergy.Category?.CategoryName ?? "Unknown" : "Unknown",
+                    Category = pa.Allergy?.Category?.CategoryName ?? "Unknown",
                     Severity = pa.Severity
                 }).ToList(),
+
                 Medications = patient.PatientMedications
                     .Where(pm => pm.IsCurrent)
                     .Select(pm => new MedicationViewModel
                     {
                         MedicationID = pm.MedicationID,
                         MedicationName = pm.Medication != null ? pm.Medication.MedicationName : "Unknown",
-                        Category = pm.Medication != null ? pm.Medication.Category?.CategoryName ?? "Unknown" : "Unknown",
+                        Category = pm.Medication?.Category?.CategoryName ?? "Unknown",
                         Dosage = pm.Dosage,
                         IsCurrent = pm.IsCurrent
                     }).ToList(),
+
                 RecentRequests = patient.TestRequests
                     .OrderByDescending(r => r.RequestDate)
                     .Take(5)
@@ -437,47 +768,93 @@ namespace NMB_HLabSys.Services
                         RequestNumber = r.RequestNumber,
                         RequestDate = r.RequestDate,
                         Status = r.Status,
-                        Tests = r.RequestTestTypes.Select(rt => rt.TestType != null ? rt.TestType.TestName : "Unknown").ToList()
+                        Tests = r.RequestTestTypes
+                            .Select(rt => rt.TestType != null ? rt.TestType.TestName : "Unknown")
+                            .ToList()
                     }).ToList()
             };
         }
 
-        
+        public async Task<PatientMedicalInfoViewModel?> FindPatientBySAIDAsync(string saIdNumber)
+        {
+            if (string.IsNullOrWhiteSpace(saIdNumber)) return null;
+
+            var patient = await _context.Patients
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.SAIDNumber == saIdNumber && p.IsActive);
+
+            if (patient == null) return null;
+
+            return await GetPatientMedicalInfoAsync(patient.PatientID);
+        }
+
+        public async Task<RegisterPatientViewModel> GetRegisterPatientViewModelAsync()
+        {
+            return new RegisterPatientViewModel
+            {
+                AvailableConditions = await _context.MedicalConditions
+                    .Where(c => c.IsActive)
+                    .Select(c => new LookupItem { Id = c.ConditionID, Name = c.ConditionName })
+                    .OrderBy(c => c.Name)
+                    .AsNoTracking()
+                    .ToListAsync(),
+
+                AvailableAllergies = await _context.Allergies
+                    .Where(a => a.IsActive)
+                    .Select(a => new LookupItem { Id = a.AllergyID, Name = a.AllergyName })
+                    .OrderBy(a => a.Name)
+                    .AsNoTracking()
+                    .ToListAsync(),
+
+                AvailableMedications = await _context.Medications
+                    .Where(m => m.IsActive)
+                    .Select(m => new LookupItem { Id = m.MedicationID, Name = m.MedicationName })
+                    .OrderBy(m => m.Name)
+                    .AsNoTracking()
+                    .ToListAsync()
+            };
+        }
+
+        // ═══════════════════════════════════════════════════════════
         // RESULTS
-    
+        // ═══════════════════════════════════════════════════════════
+
         public async Task<ResultsIndexViewModel> GetResultsAsync(int doctorId, ResultsFilterViewModel filter)
         {
+            filter ??= new ResultsFilterViewModel();
+
             var query = _context.TestRequests
-                .Where(r => r.DoctorID == doctorId && (r.Status == "Verified" || r.Status == "Completed" || r.Status == "Released"))
+                .Where(r => r.DoctorID == doctorId &&
+                            (r.Status == "Verified" ||
+                             r.Status == "Completed" ||
+                             r.Status == "Released" ||
+                             r.Status == "Appointment Requested"))
                 .Include(r => r.Patient)
-                .Include(r => r.RequestTestTypes)
-                .ThenInclude(rt => rt.TestType)
-                .Include(r => r.RequestTestTypes)
-                .ThenInclude(rt => rt.TestResults)
+                .Include(r => r.RequestTestTypes).ThenInclude(rt => rt.TestType)
+                .Include(r => r.RequestTestTypes).ThenInclude(rt => rt.TestResults)
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(filter.SearchTerm))
+            if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
             {
                 query = query.Where(r => r.RequestNumber.Contains(filter.SearchTerm) ||
-                    (r.Patient != null && (r.Patient.FirstName.Contains(filter.SearchTerm) || r.Patient.LastName.Contains(filter.SearchTerm))));
+                    (r.Patient != null && (r.Patient.FirstName.Contains(filter.SearchTerm) ||
+                                            r.Patient.LastName.Contains(filter.SearchTerm))));
             }
 
-            if (!string.IsNullOrEmpty(filter.Status) && filter.Status == "pending")
-            {
-                query = query.Where(r => r.RequestTestTypes.Any(rt => rt.TestResults != null && rt.TestResults.Any(t => !t.IsAbnormal)));
-            }
+            if (!string.IsNullOrWhiteSpace(filter.Status) && filter.Status == "pending")
+                query = query.Where(r => r.ReleasedToPatientDate == null);
 
-            if (!string.IsNullOrEmpty(filter.Status) && filter.Status == "released")
-            {
-                // Filter for released results
-            }
+            if (!string.IsNullOrWhiteSpace(filter.Status) && filter.Status == "released")
+                query = query.Where(r => r.ReleasedToPatientDate != null);
 
-            if (!string.IsNullOrEmpty(filter.AbnormalFilter) && filter.AbnormalFilter == "abnormal")
-            {
-                query = query.Where(r => r.RequestTestTypes.Any(rt => rt.TestResults != null && rt.TestResults.Any(t => t.IsAbnormal)));
-            }
+            if (!string.IsNullOrWhiteSpace(filter.AbnormalFilter) && filter.AbnormalFilter == "abnormal")
+                query = query.Where(r => r.RequestTestTypes.Any(rt =>
+                    rt.TestResults != null && rt.TestResults.Any(t => t.IsAbnormal)));
 
-            var results = await query.ToListAsync();
+            var results = await query
+                .OrderByDescending(r => r.RequestDate)
+                .AsNoTracking()
+                .ToListAsync();
 
             return new ResultsIndexViewModel
             {
@@ -485,32 +862,54 @@ namespace NMB_HLabSys.Services
                 {
                     RequestID = r.RequestID,
                     RequestNumber = r.RequestNumber,
-                    PatientName = r.Patient != null ? $"{r.Patient.FirstName} {r.Patient.LastName}" : "Unknown",
+                    PatientName = r.Patient != null
+                        ? $"{r.Patient.FirstName} {r.Patient.LastName}"
+                        : "Unknown",
                     RequestDate = r.RequestDate,
+                    RequestStatus = r.Status,
+                    ReleasedToPatientDate = r.ReleasedToPatientDate,
+                    AppointmentRequestedDate = r.AppointmentRequestedDate,
+
                     TestResults = r.RequestTestTypes
                         .Where(rt => rt.TestResults != null && rt.TestResults.Any())
                         .SelectMany(rt => rt.TestResults.Select(t => new ResultItemViewModel
                         {
                             ResultID = t.ResultID,
+                            RequestID = r.RequestID,
                             TestName = rt.TestType != null ? rt.TestType.TestName : "Unknown",
                             ResultValue = t.ResultValue ?? "N/A",
-                            NormalRange = rt.TestType != null ? $"{rt.TestType.NormalRangeMin} - {rt.TestType.NormalRangeMax}" : "N/A",
+                            NormalRange = rt.TestType != null
+                                ? $"{rt.TestType.NormalRangeMin} - {rt.TestType.NormalRangeMax}"
+                                : "N/A",
+                            UnitOfMeasurement = rt.TestType?.UnitOfMeasurement ?? string.Empty,
                             IsAbnormal = t.IsAbnormal,
-                            IsReleased = false,
+                            IsReleased = r.ReleasedToPatientDate.HasValue,
+                            ReleasedDate = r.ReleasedToPatientDate,
                             ResultDate = t.ResultDate,
                             Notes = t.Notes
                         })).ToList()
                 }).ToList(),
+
                 Statistics = new ResultsStatisticsViewModel
                 {
                     TotalResults = await _context.TestResults
-                        .Where(r => r.RequestTestType != null && r.RequestTestType.TestRequest != null && r.RequestTestType.TestRequest.DoctorID == doctorId)
+                        .Where(r => r.RequestTestType != null &&
+                                    r.RequestTestType.TestRequest != null &&
+                                    r.RequestTestType.TestRequest.DoctorID == doctorId)
                         .CountAsync(),
+
                     AbnormalResults = await _context.TestResults
-                        .Where(r => r.IsAbnormal && r.RequestTestType != null && r.RequestTestType.TestRequest != null && r.RequestTestType.TestRequest.DoctorID == doctorId)
+                        .Where(r => r.IsAbnormal &&
+                                    r.RequestTestType != null &&
+                                    r.RequestTestType.TestRequest != null &&
+                                    r.RequestTestType.TestRequest.DoctorID == doctorId)
                         .CountAsync(),
+
                     PendingRelease = await _context.TestRequests
-                        .CountAsync(r => r.DoctorID == doctorId && r.Status == "Verified")
+                        .Where(r => r.DoctorID == doctorId &&
+                                    r.ReleasedToPatientDate == null &&
+                                    r.Status != "Cancelled")
+                        .CountAsync()
                 }
             };
         }
@@ -518,88 +917,114 @@ namespace NMB_HLabSys.Services
         public async Task<ResultItemViewModel> GetResultDetailsAsync(int resultId)
         {
             var result = await _context.TestResults
-                .Include(r => r.RequestTestType)
-                .ThenInclude(rt => rt.TestType)
-                .Include(r => r.RequestTestType)
-                .ThenInclude(rt => rt.TestRequest)
-                .ThenInclude(r => r.Patient)
+                .Include(r => r.RequestTestType).ThenInclude(rt => rt.TestType)
+                .Include(r => r.RequestTestType).ThenInclude(rt => rt.TestRequest).ThenInclude(tr => tr.Patient)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(r => r.ResultID == resultId);
 
             if (result == null)
                 throw new ArgumentException($"Result with ID {resultId} not found");
 
+            var rt = result.RequestTestType;
+            var tr = rt?.TestRequest;
+            var tt = rt?.TestType;
+
             return new ResultItemViewModel
             {
                 ResultID = result.ResultID,
-                TestName = result.RequestTestType != null && result.RequestTestType.TestType != null ? result.RequestTestType.TestType.TestName : "Unknown",
+                RequestID = tr?.RequestID ?? 0,
+                TestName = tt?.TestName ?? "Unknown",
                 ResultValue = result.ResultValue ?? "N/A",
-                NormalRange = result.RequestTestType != null && result.RequestTestType.TestType != null ?
-                    $"{result.RequestTestType.TestType.NormalRangeMin} - {result.RequestTestType.TestType.NormalRangeMax}" : "N/A",
+                NormalRange = tt != null
+                    ? $"{tt.NormalRangeMin} - {tt.NormalRangeMax}"
+                    : "N/A",
+                UnitOfMeasurement = tt?.UnitOfMeasurement ?? string.Empty,
                 IsAbnormal = result.IsAbnormal,
-                IsReleased = false,
+                IsReleased = tr?.ReleasedToPatientDate.HasValue ?? false,
+                ReleasedDate = tr?.ReleasedToPatientDate,
+                ReleaseNote = tr?.ReleaseNote,
+                ReleaseMethod = tr?.ReleaseMethod,
+                AppointmentRequestedDate = tr?.AppointmentRequestedDate,
                 ResultDate = result.ResultDate,
                 Notes = result.Notes,
-                Interpretation = result.IsAbnormal ? "This result is outside the normal reference range. Clinical correlation recommended." : "Within normal reference range."
+                Interpretation = result.IsAbnormal
+                    ? "This result is outside the normal reference range. Clinical correlation recommended."
+                    : "Within normal reference range.",
+                PatientID = tr?.PatientID ?? 0,
+                PatientName = tr?.Patient != null
+                    ? $"{tr.Patient.FirstName} {tr.Patient.LastName}"
+                    : "Unknown",
+                SAIDNumber = tr?.Patient?.SAIDNumber ?? string.Empty,
+                RequestNumber = tr?.RequestNumber ?? string.Empty
             };
         }
 
         public async Task<bool> ReleaseResultAsync(int resultId, string note, string releaseMethod, int doctorId)
         {
             var result = await _context.TestResults
-                .Include(r => r.RequestTestType)
-                .ThenInclude(rt => rt.TestRequest)
+                .Include(r => r.RequestTestType).ThenInclude(rt => rt.TestRequest)
                 .FirstOrDefaultAsync(r => r.ResultID == resultId);
 
-            if (result == null) return false;
+            if (result?.RequestTestType?.TestRequest == null) return false;
 
-            var request = result.RequestTestType?.TestRequest;
-            if (request != null)
+            var request = result.RequestTestType.TestRequest;
+
+            if (request.DoctorID != doctorId) return false;
+
+            request.ReleaseNote = note;
+            request.ReleaseMethod = releaseMethod;
+
+            if (releaseMethod == "appointment")
             {
-                request.ReleasedToPatientDate = DateTime.Now;
+                request.Status = "Appointment Requested";
+                request.AppointmentRequestedDate = DateTime.Now;
+            }
+            else
+            {
                 request.Status = "Released";
+                request.ReleasedToPatientDate = DateTime.Now;
             }
 
             await _context.SaveChangesAsync();
             return true;
         }
 
-        
+        // ═══════════════════════════════════════════════════════════
         // ALERTS
-        
+        // ═══════════════════════════════════════════════════════════
+
         public async Task<AlertsIndexViewModel> GetAlertsAsync(int doctorId, AlertsFilterViewModel filter)
         {
+            filter ??= new AlertsFilterViewModel();
+
+            var startDate = filter.StartDate ?? DateTime.Now.AddDays(-5);
+            var endDate = filter.EndDate ?? DateTime.Now.Date.AddDays(1).AddSeconds(-1);
+
             var query = _context.TestRequests
                 .Where(r => r.DoctorID == doctorId)
+                .Where(r => r.RequestDate >= startDate && r.RequestDate <= endDate)
                 .Include(r => r.Patient)
-                .Include(r => r.RequestTestTypes)
-                .ThenInclude(rt => rt.TestType)
-                .Include(r => r.RequestTestTypes)
-                .ThenInclude(rt => rt.TestResults)
-                .Where(r => r.RequestTestTypes.Any(rt => rt.TestResults != null && rt.TestResults.Any(t => t.IsAbnormal)))
+                .Include(r => r.RequestTestTypes).ThenInclude(rt => rt.TestType)
+                .Include(r => r.RequestTestTypes).ThenInclude(rt => rt.TestResults)
+                .Where(r => r.RequestTestTypes.Any(rt =>
+                    rt.TestResults != null && rt.TestResults.Any(t => t.IsAbnormal)))
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(filter.SearchTerm))
+            if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
             {
                 query = query.Where(r => r.RequestNumber.Contains(filter.SearchTerm) ||
-                    (r.Patient != null && (r.Patient.FirstName.Contains(filter.SearchTerm) || r.Patient.LastName.Contains(filter.SearchTerm))));
+                    (r.Patient != null &&
+                     (r.Patient.FirstName.Contains(filter.SearchTerm) ||
+                      r.Patient.LastName.Contains(filter.SearchTerm))));
             }
 
-            if (!string.IsNullOrEmpty(filter.Urgency) && filter.Urgency != "all")
-            {
+            if (!string.IsNullOrWhiteSpace(filter.Urgency) && filter.Urgency != "all")
                 query = query.Where(r => r.Urgency == filter.Urgency);
-            }
 
-            if (filter.StartDate.HasValue)
-            {
-                query = query.Where(r => r.RequestDate >= filter.StartDate.Value);
-            }
-
-            if (filter.EndDate.HasValue)
-            {
-                query = query.Where(r => r.RequestDate <= filter.EndDate.Value);
-            }
-
-            var alerts = await query.ToListAsync();
+            var alerts = await query
+                .OrderByDescending(r => r.RequestDate)
+                .AsNoTracking()
+                .ToListAsync();
 
             return new AlertsIndexViewModel
             {
@@ -607,39 +1032,153 @@ namespace NMB_HLabSys.Services
                 {
                     RequestID = r.RequestID,
                     RequestNumber = r.RequestNumber,
-                    PatientName = r.Patient != null ? $"{r.Patient.FirstName}   {r.Patient.LastName}" : "Unknown",
+                    PatientName = r.Patient != null
+                        ? $"{r.Patient.FirstName} {r.Patient.LastName}"
+                        : "Unknown",
                     AlertDate = r.RequestDate,
                     Urgency = r.Urgency,
                     AbnormalTests = r.RequestTestTypes
                         .Where(rt => rt.TestResults != null && rt.TestResults.Any(t => t.IsAbnormal))
-                        .SelectMany(rt => rt.TestResults.Where(t => t.IsAbnormal).Select(t => new AbnormalTestViewModel
-                        {
-                            TestName = rt.TestType != null ? rt.TestType.TestName : "Unknown",
-                            Result = t.ResultValue ?? "N/A",
-                            NormalRange = rt.TestType != null ? $"{rt.TestType.NormalRangeMin} - {rt.TestType.NormalRangeMax}" : "N/A",
-                            Severity = t.IsAbnormal ? "Abnormal" : "Normal",
-                            ClinicalSignificance = "Clinical correlation recommended"
-                        })).ToList()
+                        .SelectMany(rt => rt.TestResults
+                            .Where(t => t.IsAbnormal)
+                            .Select(t => new AbnormalTestViewModel
+                            {
+                                TestName = rt.TestType != null ? rt.TestType.TestName : "Unknown",
+                                Result = t.ResultValue ?? "N/A",
+                                NormalRange = rt.TestType != null
+                                    ? $"{rt.TestType.NormalRangeMin} - {rt.TestType.NormalRangeMax}"
+                                    : "N/A",
+                                Severity = DetermineSeverity(r.Urgency, t.NumericValue,
+                                    rt.TestType?.NormalRangeMin, rt.TestType?.NormalRangeMax),
+                                ClinicalSignificance = "Clinical correlation recommended."
+                            }))
+                        .ToList()
                 }).ToList(),
+
                 Statistics = new AlertStatisticsViewModel
                 {
                     TotalAlerts = alerts.Count,
                     CriticalCount = alerts.Count(r => r.Urgency == "stat"),
                     UrgentCount = alerts.Count(r => r.Urgency == "urgent")
                 },
-                Filter = filter
+
+                Filter = new AlertsFilterViewModel
+                {
+                    SearchTerm = filter.SearchTerm,
+                    Urgency = filter.Urgency,
+                    StartDate = startDate,
+                    EndDate = endDate
+                }
             };
+        }
+
+        private static string DetermineSeverity(string urgency, decimal? value,
+            decimal? normalMin, decimal? normalMax)
+        {
+            if (urgency == "stat") return "Critical";
+
+            if (value.HasValue && normalMin.HasValue && value.Value < normalMin.Value * 0.5m)
+                return "Critical";
+            if (value.HasValue && normalMax.HasValue && value.Value > normalMax.Value * 2m)
+                return "Critical";
+
+            if (urgency == "urgent") return "Elevated";
+            return "Abnormal";
         }
 
         public async Task<bool> AcknowledgeAlertAsync(int alertId, int doctorId)
         {
-            _logger.LogInformation($"Alert {alertId} acknowledged by doctor {doctorId}");
+            _logger.LogInformation("Alert {AlertId} acknowledged by doctor {DoctorId}", alertId, doctorId);
+            await Task.CompletedTask;
             return true;
         }
 
-        public async Task<byte[]> GenerateReportAsync(ReportFilterViewModel filter)
+        // ═══════════════════════════════════════════════════════════
+        // REPORTS
+        // ═══════════════════════════════════════════════════════════
+
+        public async Task<byte[]> GenerateReportAsync(int doctorId, DoctorReportFilterViewModel filter)
         {
-            return await Task.FromResult(new byte[0]);
+            filter ??= new DoctorReportFilterViewModel();
+
+            var doctor = await _context.Doctors
+                .Include(d => d.User)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(d => d.DoctorID == doctorId);
+
+            var query = _context.TestRequests
+                .Where(r => r.DoctorID == doctorId)
+                .Where(r => r.RequestDate >= filter.StartDate && r.RequestDate <= filter.EndDate)
+                .Include(r => r.Patient)
+                .Include(r => r.RequestTestTypes).ThenInclude(rt => rt.TestType).ThenInclude(t => t.Category)
+                .Include(r => r.RequestTestTypes).ThenInclude(rt => rt.TestResults)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(filter.Status) && filter.Status != "all")
+                query = query.Where(r => r.Status == filter.Status);
+
+            if (!string.IsNullOrWhiteSpace(filter.Urgency) && filter.Urgency != "all")
+                query = query.Where(r => r.Urgency == filter.Urgency);
+
+            var requests = await query
+                .OrderByDescending(r => r.RequestDate)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var reportData = new DoctorReportData
+            {
+                StartDate = filter.StartDate,
+                EndDate = filter.EndDate,
+                DoctorName = doctor?.User != null
+                    ? $"{doctor.User.Name} {doctor.User.Surname}".Trim()
+                    : "Unknown Doctor",
+                DoctorEmail = doctor?.User?.Email ?? string.Empty,
+                TotalRequests = requests.Count,
+                TotalTests = requests.SelectMany(r => r.RequestTestTypes).Count(),
+                AbnormalTests = requests
+                    .SelectMany(r => r.RequestTestTypes)
+                    .SelectMany(rt => rt.TestResults ?? new List<TestResult>())
+                    .Count(t => t.IsAbnormal),
+                PendingTests = requests
+                    .SelectMany(r => r.RequestTestTypes)
+                    .Count(rt => rt.Status != "Completed" && rt.Status != "Verified"),
+
+                Requests = requests.Select(r => new DoctorReportRequest
+                {
+                    RequestNumber = r.RequestNumber,
+                    RequestDate = r.RequestDate,
+                    PatientName = r.Patient != null
+                        ? $"{r.Patient.FirstName} {r.Patient.LastName}"
+                        : "Unknown",
+                    SAIDNumber = r.Patient?.SAIDNumber ?? "—",
+                    Urgency = r.Urgency,
+                    Status = r.Status,
+                    ClinicalNotes = r.ClinicalNotes ?? string.Empty,
+
+                    Tests = r.RequestTestTypes.Select(rt =>
+                    {
+                        var latestResult = rt.TestResults?
+                            .OrderByDescending(t => t.ResultDate)
+                            .FirstOrDefault();
+
+                        return new DoctorReportTest
+                        {
+                            TestName = rt.TestType?.TestName ?? "Unknown",
+                            Category = rt.TestType?.Category?.CategoryName ?? "—",
+                            Status = rt.Status,
+                            ResultValue = latestResult?.ResultValue,
+                            NormalRange = rt.TestType != null
+                                ? $"{rt.TestType.NormalRangeMin} - {rt.TestType.NormalRangeMax}"
+                                : null,
+                            Unit = rt.TestType?.UnitOfMeasurement,
+                            IsAbnormal = latestResult?.IsAbnormal ?? false,
+                            CompletedDate = rt.CompletedDateTime
+                        };
+                    }).ToList()
+                }).ToList()
+            };
+
+            return _pdfService.GenerateDoctorReportPdf(reportData);
         }
     }
 }

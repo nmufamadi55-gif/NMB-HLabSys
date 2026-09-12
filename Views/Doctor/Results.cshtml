@@ -1,675 +1,548 @@
-﻿@{
+﻿@model NMB_HLabSys.Models.ViewModels.ResultsIndexViewModel
+@{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Test Results";
     ViewData["RoleSubtitle"] = "Doctor Portal";
     ViewData["UserGreeting"] = "View and release patient test results";
     ViewData["UserInitials"] = "SJ";
     ViewData["UserName"] = "Sarah Johnson";
-
-    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Doctor")" class="active"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+    <li><a href="@Url.Action("Dashboard", "Doctor")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
     <li><a href="@Url.Action("TestRequests", "Doctor")"><i class="fas fa-notes-medical"></i> <span>Test Requests</span></a></li>
     <li><a href="@Url.Action("Patients", "Doctor")"><i class="fas fa-users"></i> <span>My Patients</span></a></li>
     <li><a href="@Url.Action("Alerts", "Doctor")"><i class="fas fa-bell"></i> <span>Alerts</span></a></li>
-    <li><a href="@Url.Action("Results", "Doctor")"><i class="fas fa-chart-line"></i> <span>Results</span></a></li>
+    <li><a href="@Url.Action("Results", "Doctor")" class="active"><i class="fas fa-chart-line"></i> <span>Results</span></a></li>
     <li><a href="@Url.Action("Reports", "Doctor")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
     <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
-<style>
-    .card {
-        background: white;
-        border-radius: 20px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        border: 1px solid #E2E8F0;
-    }
-
-    .filter-bar {
-        display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-        margin-bottom: 1rem;
-    }
-
-    .filter-input, .filter-select {
-        padding: 0.3rem 0.6rem;
-        border-radius: 30px;
-        border: 1px solid #E2E8F0;
-        font-size: 0.75rem;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    th, td {
-        padding: 0.6rem;
-        text-align: left;
-        border-bottom: 1px solid #E2E8F0;
-        font-size: 0.75rem;
-    }
-
-    th {
-        background: #F8FAFE;
-        font-weight: 600;
-        color: #5A6E7A;
-    }
-
-    .btn-sm {
-        background: #0841C9;
-        color: white;
-        border: none;
-        padding: 0.2rem 0.6rem;
-        border-radius: 30px;
-        cursor: pointer;
-        font-size: 0.7rem;
-    }
-
-    .btn-success-sm {
-        background: #10B981;
-        color: white;
-        border: none;
-        padding: 0.2rem 0.6rem;
-        border-radius: 30px;
-        cursor: pointer;
-        font-size: 0.7rem;
-    }
-
-    .status-pending {
-        background: #FEF3C7;
-        color: #92400E;
-        display: inline-block;
-        padding: 0.15rem 0.4rem;
-        border-radius: 30px;
-        font-size: 0.65rem;
-    }
-
-    .status-released {
-        background: #D1FAE5;
-        color: #065F46;
-        display: inline-block;
-        padding: 0.15rem 0.4rem;
-        border-radius: 30px;
-        font-size: 0.65rem;
-    }
-
-    .abnormal-row {
-        background: #FEF2F2;
-    }
-
-    .abnormal-value {
-        color: #DC2626;
-        font-weight: bold;
-    }
-
-    .stat-box {
-        background: white;
-        border-radius: 12px;
-        padding: 0.5rem;
-        text-align: center;
-        border: 1px solid #E2E8F0;
-        flex: 1;
-    }
-
-        .stat-box h4 {
-            font-size: 1.3rem;
-            margin: 0;
-            color: #032C7D;
+@section Styles {
+    <style>
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.2rem;
         }
 
-        .stat-box p {
+        .stat-box {
+            background: white;
+            border-radius: 16px;
+            padding: 1rem 1.2rem;
+            border: 1px solid #E2E8F0;
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            transition: all 0.2s;
+        }
+
+            .stat-box:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 24px rgba(8,65,201,0.08);
+            }
+
+        .stat-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.05rem;
+            flex-shrink: 0;
+        }
+
+            .stat-icon.blue {
+                background: linear-gradient(135deg, #0841C9, #1D97F1);
+            }
+
+            .stat-icon.red {
+                background: linear-gradient(135deg, #DC2626, #EF4444);
+            }
+
+            .stat-icon.amber {
+                background: linear-gradient(135deg, #F59E0B, #D97706);
+            }
+
+            .stat-icon.green {
+                background: linear-gradient(135deg, #10B981, #059669);
+            }
+
+        .stat-text h3 {
+            font-size: 1.4rem;
+            color: #032C7D;
+            margin: 0;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .stat-text p {
             margin: 0;
             font-size: 0.7rem;
             color: #5A6E7A;
-        }
-
-    .request-group {
-        margin-bottom: 1rem;
-        border: 1px solid #E2E8F0;
-        border-radius: 16px;
-        overflow: hidden;
-        background: white;
-    }
-
-    .request-header {
-        background: #F8FAFE;
-        padding: 0.6rem 1rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        cursor: pointer;
-        gap: 0.5rem;
-    }
-
-        .request-header h4 {
-            margin: 0;
-            color: #032C7D;
-            font-size: 0.9rem;
-        }
-
-    .request-tests {
-        padding: 0;
-    }
-
-        .request-tests table {
-            margin: 0;
-        }
-
-    /* Modal Styles */
-    .modal-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.6);
-        backdrop-filter: blur(3px);
-        z-index: 2000;
-        align-items: center;
-        justify-content: center;
-    }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-    .modal-container {
-        background: white;
-        border-radius: 28px;
-        width: 90%;
-        max-width: 650px;
-        max-height: 85vh;
-        overflow-y: auto;
-        box-shadow: 0 25px 50px rgba(0,0,0,0.25);
-    }
-
-    .modal-header {
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid #E2E8F0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #F8FAFE;
-        border-radius: 28px 28px 0 0;
-    }
-
-        .modal-header h3 {
-            margin: 0;
-            color: #032C7D;
-            font-size: 1.2rem;
-        }
-
-    .modal-body {
-        padding: 1.2rem 1.5rem;
-    }
-
-    .modal-footer {
-        padding: 1rem 1.5rem;
-        border-top: 1px solid #E2E8F0;
-        display: flex;
-        justify-content: flex-end;
-        gap: 0.8rem;
-        background: #F8FAFE;
-        border-radius: 0 0 28px 28px;
-    }
-
-    .close-modal {
-        background: none;
-        border: none;
-        font-size: 1.3rem;
-        cursor: pointer;
-        color: #5A6E7A;
-    }
-
-        .close-modal:hover {
-            color: #DC2626;
-        }
-
-    .form-group {
-        margin-bottom: 1rem;
-    }
-
-        .form-group label {
-            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
             font-weight: 600;
-            display: block;
-            margin-bottom: 0.3rem;
-            color: #032C7D;
         }
 
-    .form-control {
-        width: 100%;
-        padding: 0.6rem;
-        border: 1px solid #E2E8F0;
-        border-radius: 12px;
-        font-size: 0.85rem;
-    }
+        .panel {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 1.2rem;
+            border: 1px solid #E2E8F0;
+        }
 
-    textarea.form-control {
-        resize: vertical;
-        min-height: 70px;
-        font-family: inherit;
-    }
+        .filter-bar {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
 
-    .radio-group {
-        display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-        margin-top: 0.3rem;
-    }
+        .filter-input, .filter-select {
+            padding: 0.6rem 1rem;
+            border-radius: 30px;
+            border: 1px solid #E2E8F0;
+            font-size: 0.85rem;
+            font-family: inherit;
+        }
 
-    .radio-option {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        border: 1px solid #E2E8F0;
-        border-radius: 40px;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
+        .filter-input {
+            flex: 1;
+            min-width: 200px;
+        }
 
-        .radio-option.selected {
+            .filter-input:focus, .filter-select:focus {
+                outline: none;
+                border-color: #0841C9;
+                box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
+            }
+
+        .btn {
+            padding: 0.6rem 1.3rem;
+            border-radius: 30px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
             background: #0841C9;
-            border-color: #0841C9;
             color: white;
         }
 
-        .radio-option input {
-            margin: 0;
+            .btn-primary:hover {
+                background: #032C7D;
+                color: white;
+            }
+
+        .btn-success {
+            background: #10B981;
+            color: white;
         }
 
-        .radio-option i {
-            font-size: 1rem;
+            .btn-success:hover {
+                background: #059669;
+                color: white;
+            }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #E2E8F0;
+            color: #1A2C3A;
         }
 
-    .detail-section {
-        margin-bottom: 1rem;
-        padding-bottom: 0.8rem;
-        border-bottom: 1px solid #E2E8F0;
-    }
+            .btn-outline:hover {
+                background: #F1F5F9;
+                color: #1A2C3A;
+            }
 
-        .detail-section:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
+        .btn-sm {
+            padding: 0.35rem 0.8rem;
+            font-size: 0.72rem;
         }
 
-        .detail-section h4 {
-            color: #032C7D;
+        /* ─── REQUEST GROUP ─── */
+        .request-group {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #E2E8F0;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .request-header {
+            padding: 1rem 1.3rem;
+            background: linear-gradient(135deg, #F8FAFE, #FFFFFF);
+            border-bottom: 1px solid #E2E8F0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            gap: 1rem;
+            flex-wrap: wrap;
+            user-select: none;
+        }
+
+            .request-header:hover {
+                background: #EFF6FF;
+            }
+
+            .request-header h4 {
+                color: #032C7D;
+                font-size: 0.95rem;
+                margin: 0;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                gap: 0.6rem;
+            }
+
+            .request-header .meta {
+                font-size: 0.75rem;
+                color: #5A6E7A;
+                margin-top: 0.15rem;
+            }
+
+            .request-header .badges {
+                display: flex;
+                gap: 0.4rem;
+                align-items: center;
+            }
+
+            .request-header .arrow {
+                transition: transform 0.25s;
+                color: #5A6E7A;
+                font-size: 0.8rem;
+            }
+
+        .request-group.open .request-header .arrow {
+            transform: rotate(180deg);
+        }
+
+        .request-body {
+            display: none;
+            padding: 0.5rem 1.3rem 1rem;
+        }
+
+        .request-group.open .request-body {
+            display: block;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 30px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .badge-abnormal {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .badge-pending {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .badge-released {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 0.7rem 0.5rem;
+            text-align: left;
+            border-bottom: 1px solid #F1F5F9;
+            font-size: 0.83rem;
+        }
+
+        th {
+            color: #5A6E7A;
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+        }
+
+        tbody tr:hover {
+            background: #F8FAFE;
+        }
+
+        tbody tr.abnormal-row {
+            background: #FEF2F2;
+        }
+
+            tbody tr.abnormal-row:hover {
+                background: #FEE2E2;
+            }
+
+        .result-value {
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
             font-size: 0.9rem;
-            margin-bottom: 0.5rem;
         }
 
-    .detail-row {
-        display: flex;
-        margin-bottom: 0.3rem;
-        font-size: 0.8rem;
-    }
+        .result-normal {
+            color: #065F46;
+        }
 
-    .detail-label {
-        width: 110px;
-        font-weight: 600;
-        color: #5A6E7A;
-    }
+        .result-abnormal {
+            color: #DC2626;
+        }
 
-    .detail-value {
-        flex: 1;
-        color: #1A2C3A;
-    }
+        .alert {
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+        }
 
-    .result-item {
-        background: #F8FAFE;
-        border-radius: 12px;
-        padding: 0.6rem;
-        margin-bottom: 0.5rem;
-    }
+        .alert-success {
+            background: #D1FAE5;
+            color: #065F46;
+            border-left: 4px solid #10B981;
+        }
 
-    .result-name {
-        font-weight: 600;
-        color: #032C7D;
-    }
+        .alert-danger {
+            background: #FEE2E2;
+            color: #991B1B;
+            border-left: 4px solid #DC2626;
+        }
 
-    .result-badge {
-        display: inline-block;
-        padding: 0.2rem 0.5rem;
-        border-radius: 20px;
-        font-size: 0.65rem;
-    }
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #94A3B8;
+        }
 
-    .result-normal {
-        background: #D1FAE5;
-        color: #065F46;
-    }
+            .empty-state i {
+                font-size: 3rem;
+                color: #CBD5E1;
+                margin-bottom: 0.8rem;
+                display: block;
+            }
 
-    .result-abnormal {
-        background: #FEE2E2;
-        color: #991B1B;
-    }
+            .empty-state h3 {
+                color: #5A6E7A;
+                font-size: 1.1rem;
+                margin: 0 0 0.3rem;
+            }
 
-    .medical-tag {
-        display: inline-block;
-        padding: 0.15rem 0.4rem;
-        border-radius: 20px;
-        font-size: 0.65rem;
-        margin-right: 0.2rem;
-        margin-bottom: 0.1rem;
-    }
+            .empty-state p {
+                font-size: 0.85rem;
+                margin: 0;
+            }
 
-    .tag-condition {
-        background: #FEF3C7;
-        color: #92400E;
-    }
+        @@media (max-width: 900px) {
+            .stats-row {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+}
 
-    .tag-allergy {
-        background: #FEE2E2;
-        color: #991B1B;
-    }
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
 
-    .tag-medication {
-        background: #D1FAE5;
-        color: #065F46;
-    }
-</style>
-
-<div class="stats" style="display: flex; gap: 0.8rem; margin-bottom: 1rem;">
-    <div class="stat-box"><h4 id="totalResults">0</h4><p>Total Results</p></div>
-    <div class="stat-box"><h4 id="abnormalResults">0</h4><p>Abnormal</p></div>
-    <div class="stat-box"><h4 id="pendingResults">0</h4><p>Pending Release</p></div>
-</div>
-
-<div class="card">
-    <div class="filter-bar">
-        <input type="text" id="resultSearch" class="filter-input" placeholder="Search patient or request #" style="width:180px;">
-        <select id="resultStatusFilter" class="filter-select"><option value="all">All Status</option><option value="pending">Pending Release</option><option value="released">Released</option></select>
-        <select id="resultAbnormalFilter" class="filter-select"><option value="all">All Results</option><option value="abnormal">Abnormal Only</option></select>
-        <button class="btn-sm" onclick="applyResultFilters()">Apply</button>
-        <button class="btn-sm" onclick="resetResultFilters()" style="background:#6B7280;">Reset</button>
+<!-- ─── STATS ─── -->
+<div class="stats-row">
+    <div class="stat-box">
+        <div class="stat-icon blue"><i class="fas fa-vial"></i></div>
+        <div class="stat-text">
+            <h3>@Model.Statistics.TotalResults</h3>
+            <p>Total Results</p>
+        </div>
     </div>
-    <div id="resultsContainer"></div>
-</div>
-
-<!-- View Results Modal -->
-<div id="viewResultsModal" class="modal-overlay">
-    <div class="modal-container">
-        <div class="modal-header"><h3>Test Results</h3><button class="close-modal" onclick="closeModal('viewResultsModal')">&times;</button></div>
-        <div class="modal-body" id="viewResultsContent"></div>
-        <div class="modal-footer">
-            <button class="btn-outline-sm" onclick="closeModal('viewResultsModal')">Close</button>
-            <button class="btn-sm" onclick="downloadResultsPDF()" style="background:#10B981;">Download PDF</button>
+    <div class="stat-box">
+        <div class="stat-icon red"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="stat-text">
+            <h3>@Model.Statistics.AbnormalResults</h3>
+            <p>Abnormal</p>
+        </div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-icon amber"><i class="fas fa-hourglass-half"></i></div>
+        <div class="stat-text">
+            <h3>@Model.Statistics.PendingRelease</h3>
+            <p>Pending Release</p>
+        </div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+        <div class="stat-text">
+            <h3>@(Model.Statistics.TotalResults - Model.Statistics.PendingRelease)</h3>
+            <p>Released</p>
         </div>
     </div>
 </div>
 
-<!-- Release Results Modal - Improved -->
-<div id="releaseModal" class="modal-overlay">
-    <div class="modal-container">
-        <div class="modal-header"><h3>Release Results to Patient</h3><button class="close-modal" onclick="closeReleaseModal()">&times;</button></div>
-        <div class="modal-body">
-            <div class="form-group">
-                <label>Patient</label>
-                <input type="text" id="releasePatientName" class="form-control" readonly style="background:#F8FAFE;">
-            </div>
-            <div class="form-group">
-                <label>Test</label>
-                <input type="text" id="releaseTestName" class="form-control" readonly style="background:#F8FAFE;">
-            </div>
-            <div class="form-group">
-                <label>Result</label>
-                <input type="text" id="releaseResultValue" class="form-control" readonly style="background:#F8FAFE;">
-            </div>
-            <div class="form-group">
-                <label>Add Note to Patient</label>
-                <textarea id="releaseNote" rows="3" class="form-control" placeholder="Add a personal message to the patient..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>Release Method</label>
-                <div class="radio-group" id="releaseMethodGroup">
-                    <div class="radio-option" data-value="email" onclick="selectReleaseMethod('email')">
-                        <i class="fas fa-envelope"></i> <span>Email PDF directly</span>
-                    </div>
-                    <div class="radio-option" data-value="appointment" onclick="selectReleaseMethod('appointment')">
-                        <i class="fas fa-calendar-check"></i> <span>Ask to book appointment</span>
-                    </div>
+<!-- ─── FILTERS ─── -->
+<div class="panel">
+    <form method="get" asp-action="Results" class="filter-bar">
+        <input type="text" name="SearchTerm" class="filter-input"
+               placeholder="Search by patient or request #"
+               value="@Model.Filter.SearchTerm" />
+
+        <select name="Status" class="filter-select">
+            <option value="">All Status</option>
+            <option value="pending" selected="@(Model.Filter.Status == "pending")">Pending Release</option>
+            <option value="released" selected="@(Model.Filter.Status == "released")">Released</option>
+        </select>
+
+        <select name="AbnormalFilter" class="filter-select">
+            <option value="">All Results</option>
+            <option value="abnormal" selected="@(Model.Filter.AbnormalFilter == "abnormal")">Abnormal Only</option>
+        </select>
+
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-filter"></i> Apply
+        </button>
+        <a asp-action="Results" class="btn btn-outline">
+            <i class="fas fa-times"></i> Reset
+        </a>
+    </form>
+</div>
+
+<!-- ─── RESULTS ─── -->
+@if (Model.Results == null || !Model.Results.Any())
+{
+    <div class="panel">
+        <div class="empty-state">
+            <i class="fas fa-flask"></i>
+            <h3>No results yet</h3>
+            <p>Results will appear here once technicians complete and verify tests.</p>
+        </div>
+    </div>
+}
+else
+{
+    foreach (var group in Model.Results)
+    {
+        <div class="request-group open">
+            <div class="request-header" onclick="toggleGroup(this)">
+                <div>
+                    <h4>
+                        <i class="fas fa-notes-medical" style="color:#0841C9;"></i>
+                        @group.RequestNumber — @group.PatientName
+                    </h4>
+                    <div class="meta">Requested @group.RequestDate.ToString("yyyy-MM-dd HH:mm")</div>
                 </div>
-                <input type="hidden" id="releaseMethod" value="email">
+                <div class="badges">
+                    @if (group.HasAbnormal)
+                    {
+                        <span class="badge badge-abnormal"><i class="fas fa-exclamation-triangle"></i> Abnormal</span>
+                    }
+
+                    @if (group.RequestStatus == "Appointment Requested")
+                    {
+                        <span class="badge" style="background:#FEF3C7; color:#78350F;">Appointment Requested</span>
+                    }
+                    else if (group.ReleasedToPatientDate.HasValue)
+                    {
+                        <span class="badge badge-released">Released</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-pending">Pending Release</span>
+                    }
+
+                    <i class="fas fa-chevron-down arrow"></i>
+                </div>
+            </div>
+            <div class="request-body">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Test</th>
+                            <th>Result</th>
+                            <th>Normal Range</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in group.TestResults)
+                        {
+                            <tr class="@(r.IsAbnormal ? "abnormal-row" : "")">
+                                <td><strong>@r.TestName</strong></td>
+                                <td>
+                                    <span class="result-value @(r.IsAbnormal ? "result-abnormal" : "result-normal")">
+                                        @r.ResultValue
+                                    </span>
+                                    @if (r.IsAbnormal)
+                                    {
+                                        <i class="fas fa-exclamation-triangle" style="color:#DC2626; margin-left:0.3rem;" title="Abnormal"></i>
+                                    }
+                                </td>
+                                <td>@r.NormalRange</td>
+                                <td>
+                                    @if (r.IsReleased)
+                                    {
+                                        <span class="badge badge-released">Released</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-pending">Pending</span>
+                                    }
+                                </td>
+                                <td>@r.ResultDate.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>
+                                    <a asp-action="ResultDetails" asp-route-id="@r.ResultID"
+                                       class="btn btn-outline btn-sm">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                    @if (!r.IsReleased)
+                                    {
+                                        <a asp-action="ResultDetails"
+                                           asp-route-id="@r.ResultID"
+                                           asp-route-release="true"
+                                           class="btn btn-success btn-sm">
+                                            <i class="fas fa-paper-plane"></i> Release
+                                        </a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
-        <div class="modal-footer">
-            <button class="btn-outline-sm" onclick="closeReleaseModal()">Cancel</button>
-            <button class="btn-success-sm" onclick="confirmReleaseAction()">Release Results</button>
-        </div>
-    </div>
-</div>
+    }
+}
 
-<script type="text/javascript">
-    // Mock data - Results grouped by Request
-    var testResults = [
-        {
-            requestId: 1,
-            reqNo: "REQ-001",
-            patient: "Thabo Mbeki",
-            patientId: "8001015009087",
-            patientInfo: { name:"Thabo", surname:"Mbeki", dob:"1980-01-01", phone:"0821234567", conditions:["Hypertension"], allergies:["Penicillin"], medications:["Lisinopril 10mg"] },
-            date: "2025-04-09",
-            urgency: "stat",
-            tests: [
-                { name: "Haemoglobin", result: "7.2", normal: "12-16", abnormal: true, released: false, reference: "g/dL", method: "Cyanmethemoglobin" },
-                { name: "White Cell Count", result: "8.5", normal: "4-11", abnormal: false, released: false, reference: "x10³/µL", method: "Flow cytometry" },
-                { name: "Platelet Count", result: "220", normal: "150-450", abnormal: false, released: false, reference: "x10³/µL", method: "Impedance" }
-            ]
-        },
-        {
-            requestId: 2,
-            reqNo: "REQ-002",
-            patient: "Lerato Dlamini",
-            patientId: "8505155009088",
-            patientInfo: { name:"Lerato", surname:"Dlamini", dob:"1985-05-15", phone:"0832345678", conditions:["Type 2 Diabetes"], allergies:[], medications:["Metformin 500mg"] },
-            date: "2025-04-08",
-            urgency: "routine",
-            tests: [
-                { name: "PT/INR", result: "12.5", normal: "11-13.5", abnormal: false, released: false, reference: "seconds", method: "Coagulometry" },
-                { name: "APTT", result: "32", normal: "25-35", abnormal: false, released: false, reference: "seconds", method: "Coagulometry" }
-            ]
-        },
-        {
-            requestId: 3,
-            reqNo: "REQ-003",
-            patient: "John Smith",
-            patientId: "9001015009089",
-            patientInfo: { name:"John", surname:"Smith", dob:"1990-01-01", phone:"0843456789", conditions:[], allergies:["Sulfa"], medications:[] },
-            date: "2025-04-07",
-            urgency: "urgent",
-            tests: [
-                { name: "Platelets", result: "45", normal: "150-450", abnormal: true, released: false, reference: "x10³/µL", method: "Impedance" }
-            ]
+@section Scripts {
+    <script>
+        function toggleGroup(header) {
+            header.closest('.request-group').classList.toggle('open');
         }
-    ];
-
-    var currentViewRequest = null;
-    var currentReleaseRequestId = null;
-    var currentReleaseTestIndex = null;
-
-    function renderResults() {
-        var filtered = testResults.slice();
-        var search = document.getElementById('resultSearch') ? document.getElementById('resultSearch').value.toLowerCase() : '';
-        var statusFilter = document.getElementById('resultStatusFilter') ? document.getElementById('resultStatusFilter').value : 'all';
-        var abnormalFilter = document.getElementById('resultAbnormalFilter') ? document.getElementById('resultAbnormalFilter').value : 'all';
-
-        if(search) filtered = filtered.filter(function(r) { return r.reqNo.toLowerCase().includes(search) || r.patient.toLowerCase().includes(search); });
-        if(statusFilter === 'pending') filtered = filtered.filter(function(r) { return r.tests.some(function(t) { return !t.released; }); });
-        if(statusFilter === 'released') filtered = filtered.filter(function(r) { return r.tests.every(function(t) { return t.released; }); });
-        if(abnormalFilter === 'abnormal') filtered = filtered.filter(function(r) { return r.tests.some(function(t) { return t.abnormal; }); });
-
-        var totalResults = 0, abnormalResults = 0, pendingResults = 0;
-        for(var ri = 0; ri < testResults.length; ri++) {
-            var rt = testResults[ri];
-            for(var ti = 0; ti < rt.tests.length; ti++) {
-                totalResults++;
-                if(rt.tests[ti].abnormal) abnormalResults++;
-                if(!rt.tests[ti].released) pendingResults++;
-            }
-        }
-        document.getElementById('totalResults').innerText = totalResults;
-        document.getElementById('abnormalResults').innerText = abnormalResults;
-        document.getElementById('pendingResults').innerText = pendingResults;
-
-        var container = document.getElementById('resultsContainer');
-        if(filtered.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:2rem; background:white; border-radius:20px;">No results found</div>';
-            return;
-        }
-
-        var html = '';
-        for(var f = 0; f < filtered.length; f++) {
-            var r = filtered[f];
-            var hasPending = r.tests.some(function(t) { return !t.released; });
-            html += '<div class="request-group">' +
-                '<div class="request-header" onclick="toggleRequest(' + r.requestId + ')">' +
-                '<div><h4> ' + r.reqNo + ' - ' + r.patient + '</h4><small>' + r.date + '</small></div>' +
-                '<div>' + (hasPending ? '<span class="status-pending">Pending Release</span>' : '<span class="status-released">Released</span>') + '</div>' +
-                '</div>' +
-                '<div id="req-' + r.requestId + '" class="request-tests" style="display:block;">' +
-                '<table><thead><tr><th>Test Name</th><th>Result</th><th>Normal Range</th><th>Status</th><th>Action</th></tr></thead><tbody>';
-            for(var ti = 0; ti < r.tests.length; ti++) {
-                var t = r.tests[ti];
-                var rowClass = t.abnormal ? 'abnormal-row' : '';
-                html += '<tr class="' + rowClass + '">' +
-                    '<td>' + t.name + '</td>' +
-                    '<td><span class="' + (t.abnormal ? 'abnormal-value' : '') + '">' + t.result + (t.abnormal ? ' ⚠️' : '') + '</span></td>' +
-                    '<td>' + t.normal + '</td>' +
-                    '<td><span class="' + (!t.released ? 'status-pending' : 'status-released') + '">' + (!t.released ? 'Pending' : 'Released') + '</span></td>' +
-                    '<td><button class="btn-sm" onclick="viewResults(' + r.requestId + ', ' + ti + ')">View</button> ' +
-                    (!t.released ? '<button class="btn-success-sm" onclick="openReleaseModal(' + r.requestId + ', ' + ti + ')">Release</button>' : '') + '</td>' +
-                    '</tr>';
-            }
-            html += '</tbody></table></div></div>';
-        }
-        container.innerHTML = html;
-    }
-
-    function toggleRequest(requestId) {
-        var el = document.getElementById('req-' + requestId);
-        if(el) {
-            if(el.style.display === 'none') { el.style.display = 'block'; }
-            else { el.style.display = 'none'; }
-        }
-    }
-
-    function viewResults(requestId, testIndex) {
-        var request = testResults.find(function(r) { return r.requestId === requestId; });
-        if(!request) return;
-        var test = request.tests[testIndex];
-        if(!test) return;
-
-        var patient = request.patientInfo;
-        var content = '<div class="detail-section"><h4>Test Result Details</h4>' +
-            '<div class="detail-row"><div class="detail-label">Request:</div><div class="detail-value">' + request.reqNo + '</div></div>' +
-            '<div class="detail-row"><div class="detail-label">Test Name:</div><div class="detail-value"><strong>' + test.name + '</strong></div></div>' +
-            '<div class="detail-row"><div class="detail-label">Result:</div><div class="detail-value"><span class="' + (test.abnormal ? 'abnormal-value' : '') + '">' + test.result + ' ' + test.reference + '</span></div></div>' +
-            '<div class="detail-row"><div class="detail-label">Normal Range:</div><div class="detail-value">' + test.normal + ' ' + test.reference + '</div></div>' +
-            '<div class="detail-row"><div class="detail-label">Method:</div><div class="detail-value">' + test.method + '</div></div>' +
-            '<div class="detail-row"><div class="detail-label">Interpretation:</div><div class="detail-value">' + (test.abnormal ? 'This result is outside the normal reference range. Clinical correlation recommended.' : 'Within normal reference range.') + '</div></div></div>' +
-
-            '<div class="detail-section"><h4>Patient Information</h4>' +
-            '<div class="detail-row"><div class="detail-label">Full Name:</div><div class="detail-value">' + patient.name + ' ' + patient.surname + '</div></div>' +
-            '<div class="detail-row"><div class="detail-label">ID Number:</div><div class="detail-value">' + request.patientId + '</div></div>' +
-            '<div class="detail-row"><div class="detail-label">Date of Birth:</div><div class="detail-value">' + patient.dob + '</div></div>' +
-            '<div class="detail-row"><div class="detail-label">Contact:</div><div class="detail-value">' + patient.phone + '</div></div>' +
-            '<div class="detail-row"><div class="detail-label">Conditions:</div><div class="detail-value">' + (patient.conditions.map(function(c) { return '<span class="medical-tag tag-condition">' + c + '</span>'; }).join('') || 'None') + '</div></div>' +
-            '<div class="detail-row"><div class="detail-label">Allergies:</div><div class="detail-value">' + (patient.allergies.map(function(a) { return '<span class="medical-tag tag-allergy">' + a + '</span>'; }).join('') || 'None') + '</div></div>' +
-            '<div class="detail-row"><div class="detail-label">Medications:</div><div class="detail-value">' + (patient.medications.map(function(m) { return '<span class="medical-tag tag-medication">' + m + '</span>'; }).join('') || 'None') + '</div></div></div>';
-
-        document.getElementById('viewResultsContent').innerHTML = content;
-        document.getElementById('viewResultsModal').classList.add('active');
-        currentViewRequest = { request: request, test: test };
-    }
-
-    function downloadResultsPDF() {
-        if(currentViewRequest) {
-            alert('Downloading PDF report for ' + currentViewRequest.test.name + ' - ' + currentViewRequest.request.reqNo);
-        } else {
-            alert('Downloading PDF report...');
-        }
-    }
-
-    function selectReleaseMethod(method) {
-        document.getElementById('releaseMethod').value = method;
-        var options = document.querySelectorAll('.radio-option');
-        for(var i = 0; i < options.length; i++) {
-            if(options[i].getAttribute('data-value') === method) {
-                options[i].classList.add('selected');
-            } else {
-                options[i].classList.remove('selected');
-            }
-        }
-    }
-
-    function openReleaseModal(requestId, testIndex) {
-        var request = testResults.find(function(r) { return r.requestId === requestId; });
-        if(!request) return;
-        var test = request.tests[testIndex];
-        if(!test) return;
-
-        currentReleaseRequestId = requestId;
-        currentReleaseTestIndex = testIndex;
-
-        document.getElementById('releasePatientName').value = request.patient;
-        document.getElementById('releaseTestName').value = test.name;
-        document.getElementById('releaseResultValue').value = test.result + ' ' + (test.abnormal ? '(Abnormal)' : '(Normal)');
-        document.getElementById('releaseNote').value = '';
-        document.getElementById('releaseMethod').value = 'email';
-        selectReleaseMethod('email');
-
-        document.getElementById('releaseModal').classList.add('active');
-    }
-
-    function closeReleaseModal() {
-        document.getElementById('releaseModal').classList.remove('active');
-        currentReleaseRequestId = null;
-        currentReleaseTestIndex = null;
-        document.getElementById('releaseNote').value = '';
-    }
-
-    function confirmReleaseAction() {
-        if(currentReleaseRequestId !== null && currentReleaseTestIndex !== null) {
-            var request = testResults.find(function(r) { return r.requestId === currentReleaseRequestId; });
-            if(request) {
-                var test = request.tests[currentReleaseTestIndex];
-                var note = document.getElementById('releaseNote').value;
-                var method = document.getElementById('releaseMethod').value;
-
-                test.released = true;
-
-                var message = method === 'email'
-                    ? 'PDF report emailed directly to patient.'
-                    : 'Patient has been notified to book an appointment.';
-
-                alert(' Results released to ' + request.patient + ' for ' + test.name + '!\n\n ' + message + '\n\n Note: ' + (note || 'None'));
-            }
-        }
-        closeReleaseModal();
-        renderResults();
-    }
-
-    function closeModal(id) {
-        document.getElementById(id).classList.remove('active');
-    }
-
-    function applyResultFilters() { renderResults(); }
-    function resetResultFilters() {
-        if(document.getElementById('resultSearch')) document.getElementById('resultSearch').value = '';
-        if(document.getElementById('resultStatusFilter')) document.getElementById('resultStatusFilter').value = 'all';
-        if(document.getElementById('resultAbnormalFilter')) document.getElementById('resultAbnormalFilter').value = 'all';
-        renderResults();
-    }
-
-    renderResults();
-</script>
+    </script>
+}

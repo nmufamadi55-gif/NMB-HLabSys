@@ -1107,6 +1107,9 @@ namespace NMB_HLabSys.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RequestID"));
 
+                    b.Property<DateTime?>("AppointmentRequestedDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("CancellationReason")
                         .HasColumnType("nvarchar(max)");
 
@@ -1124,6 +1127,14 @@ namespace NMB_HLabSys.Migrations
 
                     b.Property<int>("PatientID")
                         .HasColumnType("int");
+
+                    b.Property<string>("ReleaseMethod")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("ReleaseNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime?>("ReleasedToPatientDate")
                         .HasColumnType("datetime2");

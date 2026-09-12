@@ -34,6 +34,19 @@ namespace NMB_HLabSys.Models
 
         public DateTime? CompletedDate { get; set; }
         public DateTime? ReleasedToPatientDate { get; set; }
+
+        // ═══════════════════════════════════════════════════════════
+        // DOCTOR RELEASE FIELDS
+        // ═══════════════════════════════════════════════════════════
+        [StringLength(500)]
+        public string? ReleaseNote { get; set; }
+
+        [StringLength(30)]
+        public string? ReleaseMethod { get; set; }   // "email" or "appointment"
+
+        public DateTime? AppointmentRequestedDate { get; set; }
+        // ═══════════════════=═══════════════════════════════════════
+
         public DateTime? CancelledDate { get; set; }
         public string? CancellationReason { get; set; }
 

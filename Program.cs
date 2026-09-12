@@ -11,9 +11,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container
 builder.Services.AddControllersWithViews();
 
+
 // Register DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+   options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+       .EnableSensitiveDataLogging()
+       .LogTo(Console.WriteLine, LogLevel.Information));
 
 // Register services
 builder.Services.AddScoped<ILaboratoryManagerService, LaboratoryManagerService>();
@@ -21,6 +24,11 @@ builder.Services.AddScoped<IStockManagementService, StockManagementService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IPdfReportService, PdfReportService>();
 builder.Services.AddScoped<IPasswordGenerator, PasswordGenerator>();
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();          
+builder.Services.AddScoped<IDoctorService, DoctorService>();           
+builder.Services.AddScoped<IBarcodeService, BarcodeService>();          
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 // QuestPDF License
 QuestPDF.Settings.License = LicenseType.Community;
@@ -71,6 +79,51 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine($"?? Email: {manager.Email}");
         Console.WriteLine($"?? Password: {rawPassword}");
         Console.WriteLine("??  Please change your password on first login.");
+    }
+}
+
+// ============================================
+// SEED DATABASE - Create Default Doctor
+// ============================================
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    if (!context.Doctors.Any())
+    {
+        // Create the User row first
+        var doctorUser = new User
+        {
+            Name = "Sarah",
+            Surname = "Johnson",
+            Email = "doctor@nmblab.co.za",
+            PasswordHash = HashPassword("Nmb#Doctor2025!"),
+            UserRole = "Doctor",
+            ContactNumber = "0825555678",
+            IsActive = true,
+            IsPasswordChanged = false,
+            CreatedDate = DateTime.Now
+        };
+
+        context.Users.Add(doctorUser);
+        context.SaveChanges();
+
+        // Create the Doctor profile linked to the User
+        var doctor = new Doctor
+        {
+            UserID = doctorUser.UserID,
+            HPCSANumber = "HPCSA001",
+            PracticeName = "Johnson Medical Practice",
+            PracticeAddress = "123 Medical Street, Gqeberha, 6001",
+            Specialization = "Haematology",
+            IsVerified = true,
+            RegisteredDate = DateTime.Now
+        };
+
+        context.Doctors.Add(doctor);
+        context.SaveChanges();
+
+        Console.WriteLine("? Doctor created: doctor@nmblab.co.za / Nmb#Doctor2025!");
     }
 }
 
