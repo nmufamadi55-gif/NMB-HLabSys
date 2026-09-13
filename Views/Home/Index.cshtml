@@ -1,6 +1,7 @@
 ﻿@{
     Layout = null;
 }
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,11 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
             --primary-deep: #032C7D;
@@ -22,49 +19,31 @@
             --primary-light: #1D97F1;
             --primary-dark: #020D2F;
             --primary-soft: #C4C7F2;
-            --bg-soft: #F0F4F8;
-            --card-white: #FFFFFF;
-            --text-dark: #1A2C3A;
             --text-muted: #5A6E7A;
-            --border-light: #E2E8F0;
-            --success: #10B981;
-            --warning: #F59E0B;
-            --error: #EF4444;
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
-            --radius-card: 24px;
-            --radius-element: 12px;
         }
 
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-deep) 50%, var(--primary-bright) 100%);
             min-height: 100vh;
-            color: var(--text-dark);
+            color: white;
         }
 
-        /* Landing Wrapper */
         .landing-wrapper {
             min-height: 100vh;
             position: relative;
-            overflow-x: hidden;
             display: flex;
             flex-direction: column;
         }
 
         .landing-bg-pattern {
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.05"><path fill="white" d="M20,20 L30,20 L25,30 Z M70,70 L80,70 L75,80 Z M45,45 L55,45 L50,55 Z"/><circle cx="80" cy="20" r="5"/><circle cx="15" cy="85" r="8"/></svg>');
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.05"><path fill="white" d="M20,20 L30,20 L25,30 Z M70,70 L80,70 L75,80 Z M45,45 L55,45 L50,55 Z"/></svg>');
             background-repeat: repeat;
             pointer-events: none;
         }
 
-        /* Navigation */
         .landing-nav {
             background: rgba(2, 13, 47, 0.8);
             backdrop-filter: blur(12px);
@@ -87,13 +66,9 @@
         .logo h1 {
             font-size: 1.5rem;
             font-weight: 700;
-            background: linear-gradient(135deg, #FFFFFF, var(--primary-soft));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: white;
         }
 
-        /* Hero Section */
         .hero-section {
             flex: 1;
             display: flex;
@@ -104,10 +79,10 @@
         }
 
         .hero-content {
-            max-width: 550px;
+            max-width: 650px;
             width: 100%;
             z-index: 2;
-            margin: 0 auto;
+            text-align: center;
         }
 
         .hero-badge {
@@ -120,230 +95,117 @@
             font-weight: 500;
             color: var(--primary-soft);
             margin-bottom: 1.5rem;
-            text-align: center;
-            width: 100%;
         }
 
         .hero-content h1 {
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             font-weight: 800;
-            background: linear-gradient(135deg, #FFFFFF, var(--primary-light));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
             margin-bottom: 1rem;
-            text-align: center;
+            line-height: 1.2;
         }
 
         .hero-content > p {
-            font-size: 1rem;
+            font-size: 1.1rem;
             color: rgba(255,255,255,0.8);
-            text-align: center;
             margin-bottom: 2rem;
+            line-height: 1.6;
         }
 
-        /* Login Card */
-        .login-card {
-            background: rgba(255,255,255,0.98);
-            backdrop-filter: blur(12px);
-            border-radius: var(--radius-card);
-            padding: 2rem;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid rgba(255,255,255,0.3);
-        }
-
-            .login-card h3 {
-                color: var(--primary-deep);
-                font-size: 1.4rem;
-                margin-bottom: 0.5rem;
-                text-align: center;
-            }
-
-            .login-card .subtitle {
-                text-align: center;
-                color: var(--text-muted);
-                font-size: 0.85rem;
-                margin-bottom: 1.5rem;
-            }
-
-        .form-group {
-            margin-bottom: 1.2rem;
-        }
-
-            .form-group label {
-                display: block;
-                font-size: 0.8rem;
-                font-weight: 500;
-                margin-bottom: 0.4rem;
-                color: var(--primary-deep);
-            }
-
-        .input-with-icon {
-            position: relative;
-        }
-
-            .input-with-icon i {
-                position: absolute;
-                left: 12px;
-                top: 50%;
-                transform: translateY(-50%);
-                color: var(--text-muted);
-                font-size: 0.9rem;
-            }
-
-            .input-with-icon input {
-                width: 100%;
-                padding: 0.8rem 0.8rem 0.8rem 2.5rem;
-                border: 1px solid var(--border-light);
-                border-radius: var(--radius-element);
-                font-size: 0.9rem;
-                transition: all 0.2s;
-            }
-
-                .input-with-icon input:focus {
-                    outline: none;
-                    border-color: var(--primary-bright);
-                    box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
-                }
-
-        .password-wrapper {
-            position: relative;
-        }
-
-            .password-wrapper input {
-                padding-right: 2.5rem;
-            }
-
-        .toggle-password {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: var(--text-muted);
-        }
-
-        .login-options {
+        .cta-buttons {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.2rem;
-            font-size: 0.75rem;
-        }
-
-        .forgot-link {
-            color: var(--primary-bright);
-            text-decoration: none;
-        }
-
-            .forgot-link:hover {
-                text-decoration: underline;
-            }
-
-        .btn-login {
-            width: 100%;
-            background: linear-gradient(135deg, var(--primary-bright), var(--primary-light));
-            color: white;
-            border: none;
-            padding: 0.8rem;
-            border-radius: 40px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.95rem;
-        }
-
-            .btn-login:hover {
-                transform: translateY(-2px);
-                box-shadow: var(--shadow-md);
-            }
-
-        .error-message {
-            background: #FEE2E2;
-            color: #991B1B;
-            padding: 0.6rem;
-            border-radius: 10px;
-            font-size: 0.75rem;
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-
-        /* Quick Access Section */
-        .quick-access-section {
-            margin-top: 2rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .quick-access-title {
-            text-align: center;
-            color: rgba(255,255,255,0.8);
-            font-size: 0.85rem;
-            margin-bottom: 1rem;
-        }
-
-        .role-buttons {
-            display: flex;
-            justify-content: center;
             gap: 1rem;
+            justify-content: center;
             flex-wrap: wrap;
+            margin-bottom: 3rem;
         }
 
-        .role-btn {
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(255,255,255,0.2);
-            padding: 0.6rem 1.2rem;
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-light), #38BDF8);
+            color: white;
+            padding: 1rem 2.5rem;
             border-radius: 40px;
+            text-decoration: none;
             font-weight: 600;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s;
+            font-size: 1rem;
+            transition: all 0.3s;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            color: white;
-            text-decoration: none;
+            box-shadow: 0 10px 30px rgba(29, 151, 241, 0.4);
         }
 
-            .role-btn i {
-                font-size: 1rem;
-            }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(29, 151, 241, 0.6);
+        }
 
-            .role-btn:hover {
-                background: rgba(255,255,255,0.25);
-                transform: translateY(-2px);
-            }
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            padding: 1rem 2.5rem;
+            border-radius: 40px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
 
-        /* Footer */
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-3px);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3rem;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .feature-card {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(8px);
+            padding: 1.5rem;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.15);
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            background: rgba(255,255,255,0.12);
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1rem;
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+        }
+
+        .feature-card p {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.7);
+            line-height: 1.5;
+        }
+
         footer {
             text-align: center;
             padding: 1.5rem;
             color: rgba(255,255,255,0.6);
             font-size: 0.75rem;
-        }
-
-        media (max-width: 768px) {
-            .hero-section
-
-        {
-            padding: 5rem 1rem 2rem;
-        }
-
-        .hero-content h1 {
-            font-size: 1.8rem;
-        }
-
-        .role-buttons {
-            gap: 0.6rem;
-        }
-
-        .role-btn {
-            padding: 0.4rem 0.8rem;
-            font-size: 0.75rem;
-        }
-
         }
     </style>
 </head>
@@ -351,163 +213,69 @@
     <div class="landing-wrapper">
         <div class="landing-bg-pattern"></div>
 
-        <!-- Navigation -->
         <nav class="landing-nav">
             <div class="nav-container">
                 <div class="logo"><h1><i class="fas fa-microscope"></i> NMB-HLabSys</h1></div>
+                <div>
+                    <a href="@Url.Action("Login", "Account")" style="color: white; text-decoration: none; font-weight: 500; margin-right: 1rem;">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                    <a href="@Url.Action("Register", "Patient")" style="background: rgba(255,255,255,0.2); color: white; text-decoration: none; padding: 0.5rem 1rem; border-radius: 20px; font-weight: 500;">
+                        Register
+                    </a>
+                </div>
             </div>
         </nav>
 
-        <!-- Hero Section -->
         <div class="hero-section">
             <div class="hero-content">
                 <div class="hero-badge">
                     <i class="fas fa-heartbeat"></i> UN SDG 3 · Good Health & Well-Being
                 </div>
+
                 <h1>Nelson Mandela Bay<br>Haematology Laboratory</h1>
-                <p>Intelligent Test Request Management · Real-time Results · Patient Empowerment</p>
 
-                <!-- Login Card -->
-                <div class="login-card">
-                    <h3><i class="fas fa-lock"></i> Secure Access</h3>
-                    <div class="subtitle">Enter your credentials to access the laboratory system</div>
+                <p>
+                    Intelligent Test Request Management · Real-time Results · Patient Empowerment
+                </p>
 
-                    <!-- Error Message Display -->
-                    <div id="errorMessage" class="error-message" style="display: none;"></div>
-
-                    <form id="loginForm" onsubmit="return handleLogin(event)">
-                        <div class="form-group">
-                            <label>Email Address (Username)</label>
-                            <div class="input-with-icon">
-                                <i class="fas fa-envelope"></i>
-                                <input type="email" id="loginEmail" placeholder="doctor@nmblab.com" value="doctor@nmblab.com" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Password</label>
-                            <div class="input-with-icon password-wrapper">
-                                <i class="fas fa-lock"></i>
-                                <input type="password" id="loginPassword" placeholder="Enter your password" value="password123" required>
-                                <button type="button" class="toggle-password" onclick="togglePassword()">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="login-options">
-                            <label style="display: flex; align-items: center; gap: 0.3rem;">
-                                <input type="checkbox"> Remember me
-                            </label>
-                            <a href="#" class="forgot-link" onclick="alert('📧 Password reset link would be sent to your email. Demo: Use any password to login.')">Forgot password?</a>
-                        </div>
-                        <button type="submit" class="btn-login">
-                            <i class="fas fa-sign-in-alt"></i> Login
-                        </button>
-                    </form>
+                <div class="cta-buttons">
+                    <a href="@Url.Action("Login", "Account")" class="btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> Login to Your Account
+                    </a>
+                    <a href="@Url.Action("Register", "Patient")" class="btn-secondary">
+                        <i class="fas fa-user-plus"></i> Register as Patient
+                    </a>
                 </div>
 
-                <!-- Quick Access Section (Buttons at bottom) -->
-                <div class="quick-access-section">
-                    <div class="quick-access-title">
-                        <i class="fas fa-bolt"></i> Quick Demo Access (No login required)
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🧪</div>
+                        <h3>Test Requests</h3>
+                        <p>Submit and track lab test requests</p>
                     </div>
-                    <div class="role-buttons">
-                        <a href="@Url.Action("Dashboard", "Doctor")" class="role-btn">
-                            <i class="fas fa-user-md"></i> Doctor
-                        </a>
-                        <a href="@Url.Action("Dashboard", "Technician")" class="role-btn">
-                            <i class="fas fa-flask"></i> Technician
-                        </a>
-                        <a href="@Url.Action("Index", "LaboratoryManager")" class="role-btn">
-                            <i class="fas fa-chart-line"></i> Manager
-                        </a>
-                        <a href="@Url.Action("Dashboard", "Admin")" class="role-btn">
-                            <i class="fas fa-cogs"></i> Admin
-                        </a>
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>Real-time Results</h3>
+                        <p>View results as soon as they're ready</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔒</div>
+                        <h3>Secure Access</h3>
+                        <p>Role-based access control</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">👥</div>
+                        <h3>Patient Portal</h3>
+                        <p>Manage your health records</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <footer>
-            <p>© 2025 Nelson Mandela Bay Haematology Diagnostic Laboratories | Aligned with UN SDG 3: Good Health and Well-Being</p>
+            <p>© 2025 Nelson Mandela Bay Haematology Diagnostic Laboratories | Aligned with UN SDG 3</p>
         </footer>
     </div>
-
-    <script>
-        // Mock user database for login
-        const mockUsers = [
-            { email: "doctor@nmblab.com", role: "Doctor", name: "Dr. Sarah Johnson" },
-            { email: "technician@nmblab.com", role: "Technician", name: "Michael Peters" },
-            { email: "manager@nmblab.com", role: "Manager", name: "Amanda Adams" },
-            { email: "patient@nmblab.com", role: "Patient", name: "Thabo Mbeki" },
-            { email: "admin@nmblab.com", role: "Admin", name: "Admin User" }
-        ];
-
-        function togglePassword() {
-            var passwordInput = document.getElementById('loginPassword');
-            var toggleIcon = document.querySelector('.toggle-password i');
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                toggleIcon.classList.remove('fa-eye');
-                toggleIcon.classList.add('fa-eye-slash');
-            } else {
-                passwordInput.type = 'password';
-                toggleIcon.classList.remove('fa-eye-slash');
-                toggleIcon.classList.add('fa-eye');
-            }
-        }
-
-        function handleLogin(event) {
-            event.preventDefault();
-
-            var email = document.getElementById('loginEmail').value.trim();
-            var password = document.getElementById('loginPassword').value;
-            var errorDiv = document.getElementById('errorMessage');
-
-            // Find user by email
-            var user = mockUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
-
-            if (user) {
-                // Successful login - redirect to appropriate dashboard
-                var redirectUrl = '';
-                switch(user.role) {
-                    case 'Doctor':
-                        redirectUrl = '@Url.Action("Dashboard", "Doctor")';
-                        break;
-                    case 'Technician':
-                        redirectUrl = '@Url.Action("Dashboard", "Technician")';
-                        break;
-                    case 'Manager':
-                        redirectUrl = '@Url.Action("Index", "LaboratoryManager")';
-                        break;
-                    case 'Patient':
-                        redirectUrl = '@Url.Action("Dashboard", "Patient")';
-                        break;
-                    case 'Admin':
-                        redirectUrl = '@Url.Action("Dashboard", "Admin")';
-                        break;
-                    default:
-                        redirectUrl = '@Url.Action("Dashboard", "Doctor")';
-                }
-
-                // Store user info in sessionStorage for demo
-                sessionStorage.setItem('userEmail', user.email);
-                sessionStorage.setItem('userRole', user.role);
-                sessionStorage.setItem('userName', user.name);
-
-                // Redirect
-                window.location.href = redirectUrl;
-            } else {
-                // Show error
-                errorDiv.style.display = 'block';
-                errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Invalid email or password. Use doctor@nmblab.com, technician@nmblab.com, manager@nmblab.com, patient@nmblab.com, or admin@nmblab.com';
-            }
-
-            return false;
-        }
-
-        // Demo credentials hint on page load
-        console.log('Demo Credentials: doctor@nmblab.com, technician@nmblab.com, manager@nmblab.com, patient@nmblab.com, admin@nmblab.com');
-    </script>
 </body>
 </html>

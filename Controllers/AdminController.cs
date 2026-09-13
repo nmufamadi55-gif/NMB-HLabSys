@@ -40,8 +40,6 @@ namespace NMB_HLabSys.Controllers
         // ============================================
         // CATEGORIES CRUD
         // ============================================
-
-        // GET: Admin/Categories
         public async Task<IActionResult> Categories()
         {
             try
@@ -61,7 +59,6 @@ namespace NMB_HLabSys.Controllers
             }
         }
 
-        // POST: Admin/AddCategory
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddCategory(string categoryName, string categoryType, string description)
@@ -80,9 +77,33 @@ namespace NMB_HLabSys.Controllers
 
             try
             {
+                var trimmedName = categoryName.Trim();
+
+                // Check if category already exists (active OR inactive)
+                var existing = await _context.LookupCategories
+                    .FirstOrDefaultAsync(c => c.CategoryName == trimmedName && c.CategoryType == categoryType);
+
+                if (existing != null)
+                {
+                    if (existing.IsActive)
+                    {
+                        TempData["ErrorMessage"] = $"❌ '{trimmedName}' already exists!";
+                        return RedirectToAction("Categories");
+                    }
+
+                    // Reactivate
+                    existing.IsActive = true;
+                    existing.Description = description?.Trim();
+                    existing.ModifiedDate = DateTime.Now;
+                    await _context.SaveChangesAsync();
+
+                    TempData["SuccessMessage"] = $"✅ Category '{trimmedName}' reactivated successfully!";
+                    return RedirectToAction("Categories");
+                }
+
                 var category = new LookupCategory
                 {
-                    CategoryName = categoryName.Trim(),
+                    CategoryName = trimmedName,
                     CategoryType = categoryType,
                     Description = description?.Trim(),
                     IsActive = true,
@@ -92,17 +113,17 @@ namespace NMB_HLabSys.Controllers
                 _context.LookupCategories.Add(category);
                 await _context.SaveChangesAsync();
 
-                TempData["SuccessMessage"] = $"✅ Category '{categoryName}' added successfully!";
+                TempData["SuccessMessage"] = $"✅ Category '{trimmedName}' added successfully!";
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"❌ Error: {ex.Message}";
+                var innerMessage = ex.InnerException != null ? ex.InnerException.Message : "";
+                TempData["ErrorMessage"] = $"❌ Error: {ex.Message} | Inner: {innerMessage}";
             }
 
             return RedirectToAction("Categories");
         }
 
-        // POST: Admin/DeleteCategory
         [HttpPost]
         public async Task<IActionResult> DeleteCategory(int id)
         {
@@ -161,9 +182,33 @@ namespace NMB_HLabSys.Controllers
 
             try
             {
+                var trimmedName = conditionName.Trim();
+
+                var existing = await _context.MedicalConditions
+                    .FirstOrDefaultAsync(c => c.ConditionName == trimmedName);
+
+                if (existing != null)
+                {
+                    if (existing.IsActive)
+                    {
+                        TempData["ErrorMessage"] = $"❌ '{trimmedName}' already exists!";
+                        return RedirectToAction("Conditions");
+                    }
+
+                    // Reactivate
+                    existing.IsActive = true;
+                    existing.CategoryID = categoryId;
+                    existing.Description = description?.Trim();
+                    existing.ModifiedDate = DateTime.Now;
+                    await _context.SaveChangesAsync();
+
+                    TempData["SuccessMessage"] = $"✅ Condition '{trimmedName}' reactivated successfully!";
+                    return RedirectToAction("Conditions");
+                }
+
                 var condition = new MedicalCondition
                 {
-                    ConditionName = conditionName.Trim(),
+                    ConditionName = trimmedName,
                     CategoryID = categoryId,
                     Description = description?.Trim(),
                     IsActive = true,
@@ -173,11 +218,12 @@ namespace NMB_HLabSys.Controllers
                 _context.MedicalConditions.Add(condition);
                 await _context.SaveChangesAsync();
 
-                TempData["SuccessMessage"] = $"✅ Condition '{conditionName}' added successfully!";
+                TempData["SuccessMessage"] = $"✅ Condition '{trimmedName}' added successfully!";
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"❌ Error: {ex.Message}";
+                var innerMessage = ex.InnerException != null ? ex.InnerException.Message : "";
+                TempData["ErrorMessage"] = $"❌ Error: {ex.Message} | Inner: {innerMessage}";
             }
 
             return RedirectToAction("Conditions");
@@ -203,7 +249,6 @@ namespace NMB_HLabSys.Controllers
             }
         }
 
-        // GET: Admin/EditCondition/{id}
         public async Task<IActionResult> EditCondition(int id)
         {
             var condition = await _context.MedicalConditions.FindAsync(id);
@@ -257,7 +302,7 @@ namespace NMB_HLabSys.Controllers
 
                 await _context.SaveChangesAsync();
 
-                TempData["SuccessMessage"] = $"✅ Condition updated successfully!";
+                TempData["SuccessMessage"] = $"✅ Condition '{model.ConditionName}' updated successfully!";
                 return RedirectToAction("Conditions");
             }
             catch (Exception ex)
@@ -305,9 +350,33 @@ namespace NMB_HLabSys.Controllers
 
             try
             {
+                var trimmedName = allergyName.Trim();
+
+                var existing = await _context.Allergies
+                    .FirstOrDefaultAsync(a => a.AllergyName == trimmedName);
+
+                if (existing != null)
+                {
+                    if (existing.IsActive)
+                    {
+                        TempData["ErrorMessage"] = $"❌ '{trimmedName}' already exists!";
+                        return RedirectToAction("Allergies");
+                    }
+
+                    // Reactivate
+                    existing.IsActive = true;
+                    existing.CategoryID = categoryId;
+                    existing.Description = description?.Trim();
+                    existing.ModifiedDate = DateTime.Now;
+                    await _context.SaveChangesAsync();
+
+                    TempData["SuccessMessage"] = $"✅ Allergy '{trimmedName}' reactivated successfully!";
+                    return RedirectToAction("Allergies");
+                }
+
                 var allergy = new Allergy
                 {
-                    AllergyName = allergyName.Trim(),
+                    AllergyName = trimmedName,
                     CategoryID = categoryId,
                     Description = description?.Trim(),
                     IsActive = true,
@@ -317,11 +386,12 @@ namespace NMB_HLabSys.Controllers
                 _context.Allergies.Add(allergy);
                 await _context.SaveChangesAsync();
 
-                TempData["SuccessMessage"] = $"✅ Allergy '{allergyName}' added successfully!";
+                TempData["SuccessMessage"] = $"✅ Allergy '{trimmedName}' added successfully!";
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"❌ Error: {ex.Message}";
+                var innerMessage = ex.InnerException != null ? ex.InnerException.Message : "";
+                TempData["ErrorMessage"] = $"❌ Error: {ex.Message} | Inner: {innerMessage}";
             }
 
             return RedirectToAction("Allergies");
@@ -400,7 +470,7 @@ namespace NMB_HLabSys.Controllers
 
                 await _context.SaveChangesAsync();
 
-                TempData["SuccessMessage"] = $"✅ Allergy updated successfully!";
+                TempData["SuccessMessage"] = $"✅ Allergy '{model.AllergyName}' updated successfully!";
                 return RedirectToAction("Allergies");
             }
             catch (Exception ex)
@@ -448,9 +518,33 @@ namespace NMB_HLabSys.Controllers
 
             try
             {
+                var trimmedName = medicationName.Trim();
+
+                var existing = await _context.Medications
+                    .FirstOrDefaultAsync(m => m.MedicationName == trimmedName);
+
+                if (existing != null)
+                {
+                    if (existing.IsActive)
+                    {
+                        TempData["ErrorMessage"] = $"❌ '{trimmedName}' already exists!";
+                        return RedirectToAction("Medications");
+                    }
+
+                    // Reactivate
+                    existing.IsActive = true;
+                    existing.CategoryID = categoryId;
+                    existing.Description = description?.Trim();
+                    existing.ModifiedDate = DateTime.Now;
+                    await _context.SaveChangesAsync();
+
+                    TempData["SuccessMessage"] = $"✅ Medication '{trimmedName}' reactivated successfully!";
+                    return RedirectToAction("Medications");
+                }
+
                 var medication = new Medication
                 {
-                    MedicationName = medicationName.Trim(),
+                    MedicationName = trimmedName,
                     CategoryID = categoryId,
                     Description = description?.Trim(),
                     IsActive = true,
@@ -460,11 +554,12 @@ namespace NMB_HLabSys.Controllers
                 _context.Medications.Add(medication);
                 await _context.SaveChangesAsync();
 
-                TempData["SuccessMessage"] = $"✅ Medication '{medicationName}' added successfully!";
+                TempData["SuccessMessage"] = $"✅ Medication '{trimmedName}' added successfully!";
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"❌ Error: {ex.Message}";
+                var innerMessage = ex.InnerException != null ? ex.InnerException.Message : "";
+                TempData["ErrorMessage"] = $"❌ Error: {ex.Message} | Inner: {innerMessage}";
             }
 
             return RedirectToAction("Medications");
@@ -543,7 +638,7 @@ namespace NMB_HLabSys.Controllers
 
                 await _context.SaveChangesAsync();
 
-                TempData["SuccessMessage"] = $"✅ Medication updated successfully!";
+                TempData["SuccessMessage"] = $"✅ Medication '{model.MedicationName}' updated successfully!";
                 return RedirectToAction("Medications");
             }
             catch (Exception ex)

@@ -183,8 +183,7 @@
                                     }
                                 </span>
                                 <div class="condition-actions">
-                                    <button class="btn-outline-lab" onclick="editCondition(@condition.ConditionID)">Edit</button>
-                                    <button class="btn-outline-lab remove-btn" onclick="deleteCondition(@condition.ConditionID)">Delete</button>
+                                    <a href="@Url.Action("EditCondition", "Admin", new { id = condition.ConditionID })" class="btn-outline-lab">Edit</a>                                    <button class="btn-outline-lab remove-btn" onclick="deleteCondition(@condition.ConditionID)">Delete</button>
                                 </div>
                             </div>
                         }

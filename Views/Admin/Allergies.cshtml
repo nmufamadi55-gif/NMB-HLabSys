@@ -181,8 +181,7 @@
                                     }
                                 </span>
                                 <div class="allergy-actions">
-                                    <button class="btn-outline-lab" onclick="editAllergy(@allergy.AllergyID)">Edit</button>
-                                    <button class="btn-outline-lab remove-btn" onclick="deleteAllergy(@allergy.AllergyID)">Delete</button>
+                                    <a href="@Url.Action("EditAllergy", "Admin", new { id = allergy.AllergyID })" class="btn-outline-lab">Edit</a>                                    <button class="btn-outline-lab remove-btn" onclick="deleteAllergy(@allergy.AllergyID)">Delete</button>
                                 </div>
                             </div>
                         }

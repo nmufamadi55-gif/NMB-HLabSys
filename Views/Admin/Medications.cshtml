@@ -181,8 +181,7 @@
                                     }
                                 </span>
                                 <div class="medication-actions">
-                                    <button class="btn-outline-lab" onclick="editMedication(@medication.MedicationID)">Edit</button>
-                                    <button class="btn-outline-lab remove-btn" onclick="deleteMedication(@medication.MedicationID)">Delete</button>
+                                    <a href="@Url.Action("EditMedication", "Admin", new { id = medication.MedicationID })" class="btn-outline-lab">Edit</a>
                                 </div>
                             </div>
                         }
