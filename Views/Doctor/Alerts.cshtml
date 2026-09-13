@@ -1,516 +1,721 @@
-﻿@{
+﻿@model NMB_HLabSys.Models.ViewModels.AlertsIndexViewModel
+@{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "Alerts & Abnormal Results";
+    ViewData["Title"] = "Alerts";
     ViewData["RoleSubtitle"] = "Doctor Portal";
-    ViewData["UserGreeting"] = "Review abnormal results that need your attention";
+    ViewData["UserGreeting"] = "Abnormal results requiring attention";
     ViewData["UserInitials"] = "SJ";
     ViewData["UserName"] = "Sarah Johnson";
-
-    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Doctor")" class="active"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+    <li><a href="@Url.Action("Dashboard", "Doctor")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
     <li><a href="@Url.Action("TestRequests", "Doctor")"><i class="fas fa-notes-medical"></i> <span>Test Requests</span></a></li>
     <li><a href="@Url.Action("Patients", "Doctor")"><i class="fas fa-users"></i> <span>My Patients</span></a></li>
-    <li><a href="@Url.Action("Alerts", "Doctor")"><i class="fas fa-bell"></i> <span>Alerts</span></a></li>
+    <li><a href="@Url.Action("Alerts", "Doctor")" class="active"><i class="fas fa-bell"></i> <span>Alerts</span></a></li>
     <li><a href="@Url.Action("Results", "Doctor")"><i class="fas fa-chart-line"></i> <span>Results</span></a></li>
     <li><a href="@Url.Action("Reports", "Doctor")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
     <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
-<style>
-    .stats {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-        flex-wrap: wrap;
-    }
-
-    .stat-box {
-        background: white;
-        border-radius: 16px;
-        padding: 1rem;
-        text-align: center;
-        flex: 1;
-        border: 1px solid #E2E8F0;
-        min-width: 120px;
-    }
-
-        .stat-box h4 {
-            font-size: 1.6rem;
-            margin: 0;
+@section Styles {
+    <style>
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.2rem;
         }
 
-        .stat-box p {
+        .stat-box {
+            background: white;
+            border-radius: 16px;
+            padding: 1rem 1.2rem;
+            border: 1px solid #E2E8F0;
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            transition: all 0.2s;
+        }
+
+            .stat-box:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 24px rgba(220,38,38,0.06);
+            }
+
+        .stat-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.05rem;
+            flex-shrink: 0;
+        }
+
+            .stat-icon.red {
+                background: linear-gradient(135deg, #DC2626, #EF4444);
+            }
+
+            .stat-icon.amber {
+                background: linear-gradient(135deg, #F59E0B, #D97706);
+            }
+
+            .stat-icon.blue {
+                background: linear-gradient(135deg, #0841C9, #1D97F1);
+            }
+
+        .stat-text h3 {
+            font-size: 1.4rem;
+            color: #032C7D;
+            margin: 0;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .stat-text p {
             margin: 0;
             font-size: 0.7rem;
             color: #5A6E7A;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-weight: 600;
         }
 
-    .filter-bar {
-        background: white;
-        border-radius: 16px;
-        padding: 1rem;
-        margin-bottom: 1.5rem;
-        display: flex;
-        gap: 0.8rem;
-        flex-wrap: wrap;
-        align-items: center;
-        border: 1px solid #E2E8F0;
-    }
+        .panel {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 1.2rem;
+            border: 1px solid #E2E8F0;
+        }
 
-    .filter-input, .filter-select {
-        padding: 0.4rem 0.8rem;
-        border-radius: 40px;
-        border: 1px solid #E2E8F0;
-        font-size: 0.75rem;
-    }
+        .filter-bar {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
 
-    .btn-sm {
-        background: #0841C9;
-        color: white;
-        border: none;
-        padding: 0.3rem 0.8rem;
-        border-radius: 40px;
-        cursor: pointer;
-        font-size: 0.7rem;
-    }
+        .filter-input, .filter-select {
+            padding: 0.6rem 1rem;
+            border-radius: 30px;
+            border: 1px solid #E2E8F0;
+            font-size: 0.85rem;
+            font-family: inherit;
+        }
 
-    .btn-outline-sm {
-        background: transparent;
-        border: 1px solid #E2E8F0;
-        padding: 0.3rem 0.8rem;
-        border-radius: 40px;
-        cursor: pointer;
-        font-size: 0.7rem;
-    }
+        .filter-input {
+            flex: 1;
+            min-width: 200px;
+        }
 
-    .btn-success-sm {
-        background: #10B981;
-        color: white;
-        border: none;
-        padding: 0.3rem 0.8rem;
-        border-radius: 40px;
-        cursor: pointer;
-        font-size: 0.7rem;
-    }
+            .filter-input:focus, .filter-select:focus {
+                outline: none;
+                border-color: #0841C9;
+                box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
+            }
 
-    .alert-group {
-        margin-bottom: 1rem;
-        border: 1px solid #E2E8F0;
-        border-radius: 16px;
-        overflow: hidden;
-        background: white;
-    }
+        .btn {
+            padding: 0.6rem 1.3rem;
+            border-radius: 30px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s;
+            font-family: inherit;
+            white-space: nowrap;
+        }
 
-    .alert-header {
-        background: #F8FAFE;
-        padding: 0.8rem 1.2rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        cursor: pointer;
-        border-bottom: 1px solid #E2E8F0;
-    }
+        .btn-primary {
+            background: #0841C9;
+            color: white;
+        }
+
+            .btn-primary:hover {
+                background: #032C7D;
+                color: white;
+            }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #E2E8F0;
+            color: #1A2C3A;
+        }
+
+            .btn-outline:hover {
+                background: #F1F5F9;
+                color: #1A2C3A;
+            }
+
+        .btn-sm {
+            padding: 0.35rem 0.8rem;
+            font-size: 0.72rem;
+        }
+
+        /* ─── TOAST ─── */
+        #toastContainer {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            max-width: 380px;
+            width: 100%;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem 1.1rem;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: flex-start;
+            gap: 0.8rem;
+            border-left: 4px solid #10B981;
+            pointer-events: auto;
+            animation: toastSlideIn 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        keyframes toastSlideIn {
+            from
+
+        {
+            opacity: 0;
+            transform: translateX(40px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        }
+
+        .toast-icon {
+            font-size: 1.3rem;
+            color: #10B981;
+            flex-shrink: 0;
+            margin-top: 0.1rem;
+        }
+
+        .toast-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+        }
+
+            .toast-content strong {
+                font-size: 0.88rem;
+                color: #032C7D;
+                font-weight: 700;
+            }
+
+            .toast-content span {
+                font-size: 0.78rem;
+                color: #5A6E7A;
+                line-height: 1.4;
+            }
+
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            color: #94A3B8;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0 0.2rem;
+            flex-shrink: 0;
+        }
+
+            .toast-close:hover {
+                color: #1A2C3A;
+            }
+
+        media (max-width: 480px) {
+            #toastContainer
+
+        {
+            top: 1rem;
+            right: 1rem;
+            left: 1rem;
+            max-width: none;
+        }
+
+        }
+
+        /* ─── ALERT CARD ─── */
+        .alert-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #FECACA;
+            border-left: 5px solid #DC2626;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+            .alert-card.urgent {
+                border-left-color: #F59E0B;
+                border-color: #FDE68A;
+            }
+
+            .alert-card:hover {
+                box-shadow: 0 8px 24px rgba(220,38,38,0.1);
+                transform: translateY(-1px);
+            }
+
+        .alert-header {
+            padding: 1rem 1.3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            gap: 1rem;
+            flex-wrap: wrap;
+            user-select: none;
+            background: #FEF2F2;
+        }
+
+        .alert-card.urgent .alert-header {
+            background: #FFFBEB;
+        }
+
+        .alert-header:hover {
+            filter: brightness(0.98);
+        }
 
         .alert-header h4 {
+            color: #7F1D1D;
+            font-size: 0.95rem;
             margin: 0;
-            color: #032C7D;
-            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
         }
 
-        .alert-header .badge {
-            background: #DC2626;
-            color: white;
-            padding: 0.2rem 0.6rem;
+        .alert-card.urgent .alert-header h4 {
+            color: #78350F;
+        }
+
+        .alert-header .meta {
+            font-size: 0.75rem;
+            color: #5A6E7A;
+            margin-top: 0.2rem;
+        }
+
+        .alert-header .badges {
+            display: flex;
+            gap: 0.4rem;
+            align-items: center;
+        }
+
+        .arrow {
+            transition: transform 0.25s;
+            color: #5A6E7A;
+            font-size: 0.8rem;
+        }
+
+        .alert-card.open .arrow {
+            transform: rotate(180deg);
+        }
+
+        .alert-body {
+            display: none;
+            padding: 0.5rem 1.3rem 1rem;
+        }
+
+        .alert-card.open .alert-body {
+            display: block;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.65rem;
             border-radius: 30px;
             font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
         }
 
-    .abnormal-test-item {
-        padding: 0.8rem 1.2rem;
-        border-bottom: 1px solid #E2E8F0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        background: #FEF2F2;
-    }
-
-        .abnormal-test-item:last-child {
-            border-bottom: none;
+        .badge-critical {
+            background: #DC2626;
+            color: white;
         }
 
-    .test-info {
-        flex: 2;
-    }
+        .badge-elevated {
+            background: #F59E0B;
+            color: white;
+        }
 
-    .test-result {
-        font-weight: bold;
-        color: #DC2626;
-    }
+        .badge-abnormal {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
 
-    .test-normal {
-        color: #5A6E7A;
-        font-size: 0.7rem;
-    }
+        .badge-stat {
+            background: #DC2626;
+            color: white;
+        }
 
-    /* Modal Styles */
-    .modal-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.6);
-        backdrop-filter: blur(3px);
-        z-index: 2000;
-        align-items: center;
-        justify-content: center;
-    }
+        .badge-urgent {
+            background: #F59E0B;
+            color: white;
+        }
 
-        .modal-overlay.active {
+        .badge-routine {
+            background: #F1F5F9;
+            color: #5A6E7A;
+        }
+
+        .abnormal-item {
+            background: #FEF2F2;
+            border-radius: 12px;
+            padding: 0.9rem 1rem;
+            margin-top: 0.6rem;
+            border-left: 4px solid #DC2626;
+        }
+
+            .abnormal-item.elevated {
+                background: #FFFBEB;
+                border-left-color: #F59E0B;
+            }
+
+        .abnormal-row-1 {
             display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 1rem;
+            flex-wrap: wrap;
         }
 
-    .modal-container {
-        background: white;
-        border-radius: 28px;
-        width: 90%;
-        max-width: 650px;
-        max-height: 85vh;
-        overflow-y: auto;
-        box-shadow: 0 25px 50px rgba(0,0,0,0.25);
-    }
+        .abnormal-test-name {
+            font-weight: 700;
+            color: #7F1D1D;
+            font-size: 0.95rem;
+        }
 
-    .modal-header {
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid #E2E8F0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #F8FAFE;
-        border-radius: 28px 28px 0 0;
-    }
+        .abnormal-item.elevated .abnormal-test-name {
+            color: #78350F;
+        }
 
-        .modal-header h3 {
-            margin: 0;
-            color: #032C7D;
+        .abnormal-result {
+            font-family: 'Courier New', monospace;
             font-size: 1.2rem;
-        }
-
-    .modal-body {
-        padding: 1.2rem 1.5rem;
-    }
-
-    .modal-footer {
-        padding: 1rem 1.5rem;
-        border-top: 1px solid #E2E8F0;
-        display: flex;
-        justify-content: flex-end;
-        gap: 0.8rem;
-        background: #F8FAFE;
-        border-radius: 0 0 28px 28px;
-    }
-
-    .close-modal {
-        background: none;
-        border: none;
-        font-size: 1.3rem;
-        cursor: pointer;
-        color: #5A6E7A;
-    }
-
-        .close-modal:hover {
+            font-weight: 800;
             color: #DC2626;
+            letter-spacing: -0.02em;
         }
 
-    .detail-section {
-        margin-bottom: 1rem;
-        padding-bottom: 0.8rem;
-        border-bottom: 1px solid #E2E8F0;
-    }
-
-        .detail-section:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
+        .abnormal-item.elevated .abnormal-result {
+            color: #D97706;
         }
 
-        .detail-section h4 {
-            color: #032C7D;
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
+        .abnormal-range {
+            font-size: 0.72rem;
+            color: #5A6E7A;
         }
 
-    .detail-row {
-        display: flex;
-        margin-bottom: 0.3rem;
-        font-size: 0.8rem;
-    }
+        .abnormal-sig {
+            margin-top: 0.5rem;
+            font-size: 0.78rem;
+            color: #1A2C3A;
+            font-style: italic;
+        }
 
-    .detail-label {
-        width: 110px;
-        font-weight: 600;
-        color: #5A6E7A;
-    }
+        .abnormal-actions {
+            margin-top: 0.6rem;
+            display: flex;
+            gap: 0.5rem;
+        }
 
-    .detail-value {
-        flex: 1;
-        color: #1A2C3A;
-    }
+        .alert {
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+        }
 
-    .medical-tag {
-        display: inline-block;
-        padding: 0.15rem 0.4rem;
-        border-radius: 20px;
-        font-size: 0.65rem;
-        margin-right: 0.2rem;
-        margin-bottom: 0.1rem;
-    }
+        .alert-success {
+            background: #D1FAE5;
+            color: #065F46;
+            border-left: 4px solid #10B981;
+        }
 
-    .tag-condition {
-        background: #FEF3C7;
-        color: #92400E;
-    }
+        .alert-danger {
+            background: #FEE2E2;
+            color: #991B1B;
+            border-left: 4px solid #DC2626;
+        }
 
-    .tag-allergy {
-        background: #FEE2E2;
-        color: #991B1B;
-    }
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #94A3B8;
+        }
 
-    .tag-medication {
-        background: #D1FAE5;
-        color: #065F46;
-    }
+            .empty-state i {
+                font-size: 3rem;
+                color: #86EFAC;
+                margin-bottom: 0.8rem;
+                display: block;
+            }
 
-    .recommendation-box {
-        background: #EFF6FF;
-        border-radius: 12px;
-        padding: 0.8rem;
-        margin-top: 0.8rem;
-        border-left: 4px solid #0841C9;
-    }
+            .empty-state h3 {
+                color: #5A6E7A;
+                font-size: 1.1rem;
+                margin: 0 0 0.3rem;
+            }
 
-    media (max-width: 768px) {
-        .stats
+            .empty-state p {
+                font-size: 0.85rem;
+                margin: 0;
+            }
 
-    {
-        flex-direction: column;
-    }
+        @@media (max-width: 900px) {
+            .stats-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+}
 
-    .filter-bar {
-        flex-direction: column;
-        align-items: stretch;
-    }
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
 
-    .filter-input, .filter-select {
-        width: 100%;
-    }
-
-    .alert-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-    }
-
-    }
-</style>
-
-<div class="stats">
-    <div class="stat-box" style="background:#FEF2F2;"><h4 id="criticalCount" style="color:#DC2626;">0</h4><p>Critical (STAT)</p></div>
-    <div class="stat-box" style="background:#FFFBEB;"><h4 id="urgentCount" style="color:#F59E0B;">0</h4><p>Urgent</p></div>
-    <div class="stat-box"><h4 id="totalCount">0</h4><p>Total Alerts</p></div>
-</div>
-
-<div class="filter-bar">
-    <input type="text" id="alertSearch" class="filter-input" placeholder="Search patient or request #" style="width:220px;">
-    <select id="alertUrgency" class="filter-select"><option value="all">All Urgency</option><option value="stat">STAT</option><option value="urgent">Urgent</option><option value="routine">Routine</option></select>
-    <input type="date" id="alertStartDate" class="filter-input" placeholder="Start Date">
-    <input type="date" id="alertEndDate" class="filter-input" placeholder="End Date">
-    <button class="btn-sm" onclick="applyFilters()">Apply</button>
-    <button class="btn-outline-sm" onclick="resetFilters()">Reset</button>
-</div>
-
-<div id="alertsContainer"></div>
-
-<!-- Review Alert Modal -->
-<div id="reviewModal" class="modal-overlay">
-    <div class="modal-container">
-        <div class="modal-header"><h3>🔍 Review Abnormal Result</h3><button class="close-modal" onclick="closeModal('reviewModal')">&times;</button></div>
-        <div class="modal-body" id="reviewContent"></div>
-        <div class="modal-footer">
-            <button class="btn-outline-sm" onclick="closeModal('reviewModal')">Close</button>
-            <button class="btn-success-sm" onclick="acknowledgeAndClose()">Acknowledge & Close</button>
+<!-- ─── STATS ─── -->
+<div class="stats-row">
+    <div class="stat-box">
+        <div class="stat-icon red"><i class="fas fa-exclamation-circle"></i></div>
+        <div class="stat-text">
+            <h3>@Model.Statistics.CriticalCount</h3>
+            <p>Critical (STAT)</p>
+        </div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-icon amber"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="stat-text">
+            <h3>@Model.Statistics.UrgentCount</h3>
+            <p>Urgent</p>
+        </div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-icon blue"><i class="fas fa-bell"></i></div>
+        <div class="stat-text">
+            <h3>@Model.Statistics.TotalAlerts</h3>
+            <p>Total Alerts</p>
         </div>
     </div>
 </div>
 
-<script type="text/javascript">
-    // Mock data - Alerts grouped by Test Request
-    var alertsData = [
-        {
-            requestId: 1,
-            reqNo: "REQ-001",
-            patient: "Thabo Mbeki",
-            patientId: "8001015009087",
-            patientInfo: { name:"Thabo", surname:"Mbeki", dob:"1980-01-01", phone:"0821234567", conditions:["Hypertension"], allergies:["Penicillin"], medications:["Lisinopril 10mg"] },
-            date: "2025-04-09",
-            urgency: "stat",
-            abnormalTests: [
-                { testName: "Haemoglobin", result: "7.2", normalRange: "12-16", severity: "Critical", clinicalSignificance: "Severe anaemia. Patient may present with fatigue, pallor, shortness of breath." }
-            ]
-        },
-        {
-            requestId: 2,
-            reqNo: "REQ-003",
-            patient: "John Smith",
-            patientId: "9001015009089",
-            patientInfo: { name:"John", surname:"Smith", dob:"1990-01-01", phone:"0843456789", conditions:[], allergies:["Sulfa"], medications:[] },
-            date: "2025-04-07",
-            urgency: "urgent",
-            abnormalTests: [
-                { testName: "Platelets", result: "45", normalRange: "150-450", severity: "Critical", clinicalSignificance: "Severe thrombocytopenia. Risk of bleeding. Consider further investigation for immune thrombocytopenia or bone marrow disorders." },
-                { testName: "PT/INR", result: "14.2", normalRange: "11-13.5", severity: "Elevated", clinicalSignificance: "Elevated INR indicates possible coagulation disorder or medication effect." }
-            ]
-        },
-        {
-            requestId: 3,
-            reqNo: "REQ-004",
-            patient: "Maria Santos",
-            patientId: "9203035009090",
-            patientInfo: { name:"Maria", surname:"Santos", dob:"1992-03-03", phone:"0824567890", conditions:["Asthma"], allergies:["Dust Mites"], medications:["Ventolin"] },
-            date: "2025-04-10",
-            urgency: "urgent",
-            abnormalTests: [
-                { testName: "WBC", result: "18.5", normalRange: "4-11", severity: "High", clinicalSignificance: "Leukocytosis suggests possible infection or inflammatory process." }
-            ]
+<!-- ─── FILTERS ─── -->
+<div class="panel">
+    <form method="get" asp-action="Alerts" class="filter-bar">
+        <input type="text" name="SearchTerm" class="filter-input"
+               placeholder="Search by patient or request #"
+               value="@Model.Filter.SearchTerm" />
+
+        <select name="Urgency" class="filter-select">
+            <option value="all">All Urgency</option>
+            <option value="stat" selected="@(Model.Filter.Urgency == "stat")">STAT</option>
+            <option value="urgent" selected="@(Model.Filter.Urgency == "urgent")">Urgent</option>
+            <option value="routine" selected="@(Model.Filter.Urgency == "routine")">Routine</option>
+        </select>
+
+        <input type="date" name="StartDate" class="filter-select"
+               value="@(Model.Filter.StartDate?.ToString("yyyy-MM-dd"))" />
+
+        <input type="date" name="EndDate" class="filter-select"
+               value="@(Model.Filter.EndDate?.ToString("yyyy-MM-dd"))" />
+
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-filter"></i> Apply
+        </button>
+        <a asp-action="Alerts" class="btn btn-outline">
+            <i class="fas fa-times"></i> Reset
+        </a>
+    </form>
+</div>
+
+<!-- ─── ALERTS ─── -->
+@if (Model.Alerts == null || !Model.Alerts.Any())
+{
+    <div class="panel">
+        <div class="empty-state">
+            <i class="fas fa-check-circle"></i>
+            <h3>No alerts</h3>
+            <p>No abnormal results in this date range. Great news!</p>
+        </div>
+    </div>
+}
+else
+{
+    foreach (var alert in Model.Alerts)
+    {
+        var isUrgent = alert.Urgency == "urgent";
+        var urgencyClass = isUrgent ? "urgent" : "";
+
+        <div class="alert-card @urgencyClass open">
+            <div class="alert-header" onclick="toggleAlert(this)">
+                <div>
+                    <h4>
+                        <i class="fas fa-exclamation-triangle" style="color:@(isUrgent ? "#D97706" : "#DC2626");"></i>
+                        @alert.RequestNumber — @alert.PatientName
+                    </h4>
+                    <div class="meta">
+                        <i class="fas fa-calendar"></i> @alert.AlertDate.ToString("yyyy-MM-dd HH:mm")
+                        &nbsp;·&nbsp;
+                        <span class="badge badge-@alert.Urgency">@alert.Urgency.ToUpper()</span>
+                    </div>
+                </div>
+                <div class="badges">
+                    <span class="badge badge-abnormal">@alert.AbnormalTests.Count Abnormal</span>
+                    <i class="fas fa-chevron-down arrow"></i>
+                </div>
+            </div>
+            <div class="alert-body">
+                @foreach (var test in alert.AbnormalTests)
+                {
+                    var itemClass = test.Severity == "Elevated" ? "elevated" : "";
+
+                    <div class="abnormal-item @itemClass">
+                        <div class="abnormal-row-1">
+                            <div>
+                                <div class="abnormal-test-name">@test.TestName</div>
+                                <div class="abnormal-range">Normal: @test.NormalRange</div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div class="abnormal-result">@test.Result</div>
+                                <span class="badge badge-@test.Severity.ToLower()">@test.Severity</span>
+                            </div>
+                        </div>
+                        <div class="abnormal-sig">@test.ClinicalSignificance</div>
+                        <div class="abnormal-actions">
+                            <a asp-action="TestRequestDetails" asp-route-id="@alert.RequestID"
+                               class="btn btn-outline btn-sm">
+                                <i class="fas fa-notes-medical"></i> View Request
+                            </a>
+                            <button type="button" class="btn btn-primary btn-sm"
+                                    onclick="acknowledge(@alert.RequestID, event)">
+                                <i class="fas fa-check"></i> Acknowledge
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+}
+
+@section Scripts {
+    <script>
+        function toggleAlert(header) {
+            header.closest('.alert-card').classList.toggle('open');
         }
-    ];
 
-    var currentReviewRequest = null;
-    var currentReviewTest = null;
+        function acknowledge(requestId, event) {
+            event.stopPropagation();
 
-    function renderAlerts() {
-        var filtered = alertsData.filter(function(r) { return r.abnormalTests.length > 0; });
+            var card = event.target.closest('.alert-card');
 
-        var search = document.getElementById('alertSearch') ? document.getElementById('alertSearch').value.toLowerCase() : '';
-        var urgency = document.getElementById('alertUrgency') ? document.getElementById('alertUrgency').value : 'all';
-        var startDate = document.getElementById('alertStartDate') ? document.getElementById('alertStartDate').value : '';
-        var endDate = document.getElementById('alertEndDate') ? document.getElementById('alertEndDate').value : '';
+            // Fire the (no-op) server call just to keep the endpoint alive
+            fetch('@Url.Action("AcknowledgeAlert", "Doctor")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'id=' + requestId
+            }).catch(function () { /* ignore errors for the toast-only flow */ });
 
-        if(search) filtered = filtered.filter(function(r) { return r.reqNo.toLowerCase().includes(search) || r.patient.toLowerCase().includes(search); });
-        if(urgency !== 'all') filtered = filtered.filter(function(r) { return r.urgency === urgency; });
-        if(startDate) filtered = filtered.filter(function(r) { return r.date >= startDate; });
-        if(endDate) filtered = filtered.filter(function(r) { return r.date <= endDate; });
+            // Fade out the card
+            card.style.transition = 'opacity 0.3s, transform 0.3s';
+            card.style.opacity = '0';
+            card.style.transform = 'translateX(20px)';
 
-        document.getElementById('criticalCount').innerText = alertsData.filter(function(r) { return r.urgency === 'stat' && r.abnormalTests.length > 0; }).length;
-        document.getElementById('urgentCount').innerText = alertsData.filter(function(r) { return r.urgency === 'urgent' && r.abnormalTests.length > 0; }).length;
-        document.getElementById('totalCount').innerText = filtered.length;
+            setTimeout(function () {
+                card.remove();
 
-        var container = document.getElementById('alertsContainer');
-        if(filtered.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:2rem; background:white; border-radius:20px;">No alerts found</div>';
-            return;
+                // If no cards left, show the empty state
+                if (document.querySelectorAll('.alert-card').length === 0) {
+                    showEmptyState();
+                }
+            }, 300);
+
+            // Toast
+            showToast('Alert acknowledged', 'Request #' + requestId + ' has been marked as reviewed.');
         }
 
-        var html = '';
-        for(var f = 0; f < filtered.length; f++) {
-            var r = filtered[f];
-            var urgencyColor = (r.urgency === 'stat') ? '#DC2626' : '#F59E0B';
-            html += '<div class="alert-group">' +
-                '<div class="alert-header" onclick="toggleRequest(' + r.requestId + ')">' +
-                '<div><h4> ' + r.reqNo + ' - ' + r.patient + '</h4><small>' + r.date + ' | Urgency: <span style="color:' + urgencyColor + '; font-weight:bold;">' + r.urgency.toUpperCase() + '</span></small></div>' +
-                '<div><span class="badge">' + r.abnormalTests.length + ' Abnormal Result(s)</span> <span style="margin-left:0.5rem;">▼</span></div>' +
+        // ─── TOAST SYSTEM ───
+        function showToast(title, message) {
+            var container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            var toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML =
+                '<div class="toast-icon"><i class="fas fa-check-circle"></i></div>' +
+                '<div class="toast-content">' +
+                    '<strong>' + title + '</strong>' +
+                    '<span>' + message + '</span>' +
                 '</div>' +
-                '<div id="alert-' + r.requestId + '" class="alert-details" style="display:block;">';
-            for(var a = 0; a < r.abnormalTests.length; a++) {
-                var t = r.abnormalTests[a];
-                html += '<div class="abnormal-test-item">' +
-                    '<div class="test-info"><strong>' + t.testName + '</strong><br><span class="test-normal">Normal Range: ' + t.normalRange + '</span></div>' +
-                    '<div class="test-result">Result: ' + t.result + ' </div>' +
-                    '<div><button class="btn-sm" onclick="reviewAlert(' + r.requestId + ', \'' + t.testName.replace(/'/g, "\\'") + '\', event)">Review</button></div>' +
-                    '</div>';
+                '<button type="button" class="toast-close" onclick="this.parentElement.remove()">&times;</button>';
+
+            container.appendChild(toast);
+
+            // Auto-dismiss after 4 seconds
+            setTimeout(function () {
+                if (toast.parentNode) {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateX(40px)';
+                    setTimeout(function () {
+                        if (toast.parentNode) toast.remove();
+                    }, 300);
+                }
+            }, 4000);
+        }
+
+        function showEmptyState() {
+            var main = document.querySelector('.main-panel') || document.body;
+            // Find the panel containing alerts (the one after the filters)
+            var lastPanel = document.querySelectorAll('.panel');
+            if (lastPanel.length > 0) {
+                // Remove all alert cards (already done above) and show empty state
+                var container = lastPanel[lastPanel.length - 1];
+
+                // If there's already an empty state, don't add another
+                if (container.querySelector('.empty-state')) return;
+
+                // Remove any remaining alert card wrappers
+                container.querySelectorAll('.alert-card').forEach(function (c) { c.remove(); });
+
+                // Prepend empty state
+                var empty = document.createElement('div');
+                empty.className = 'empty-state';
+                empty.innerHTML =
+                    '<i class="fas fa-check-circle"></i>' +
+                    '<h3>No alerts</h3>' +
+                    '<p>No abnormal results in this date range. Great news!</p>';
+                container.appendChild(empty);
             }
-            html += '</div></div>';
         }
-        container.innerHTML = html;
-    }
-
-    function toggleRequest(requestId) {
-        var el = document.getElementById('alert-' + requestId);
-        if(el) {
-            if(el.style.display === 'none') { el.style.display = 'block'; }
-            else { el.style.display = 'none'; }
-        }
-    }
-
-    function reviewAlert(requestId, testName, event) {
-        if(event) event.stopPropagation();
-        var request = alertsData.find(function(r) { return r.requestId === requestId; });
-        if(!request) return;
-        var test = request.abnormalTests.find(function(t) { return t.testName === testName; });
-        if(!test) return;
-
-        currentReviewRequest = request;
-        currentReviewTest = test;
-
-        var patient = request.patientInfo;
-        var content = '<div class="detail-section"><h4>Abnormal Result Details</h4>' +
-            '<div class="detail-row"><div class="detail-label">Request:</div><div class="detail-value">' + request.reqNo + '</div></div>' +
-            '<div class="detail-row"><div class="detail-label">Test Name:</div><div class="detail-value"><strong>' + test.testName + '</strong></div></div>' +
-            '<div class="detail-row"><div class="detail-label">Result:</div><div class="detail-value"><span style="color:#DC2626; font-weight:bold;">' + test.result + '</span> (Normal: ' + test.normalRange + ')</div></div>' +
-            '<div class="detail-row"><div class="detail-label">Severity:</div><div class="detail-value"><span style="background:#FEE2E2; color:#991B1B; padding:0.2rem 0.5rem; border-radius:20px; font-size:0.7rem;">' + test.severity + '</span></div></div>' +
-            '<div class="detail-row"><div class="detail-label">Clinical Significance:</div><div class="detail-value">' + test.clinicalSignificance + '</div></div></div>' +
-
-            '<div class="detail-section"><h4>Patient Information</h4>' +
-            '<div class="detail-row"><div class="detail-label">Full Name:</div><div class="detail-value">' + patient.name + ' ' + patient.surname + '</div></div>' +
-            '<div class="detail-row"><div class="detail-label">ID Number:</div><div class="detail-value">' + request.patientId + '</div></div>' +
-            '<div class="detail-row"><div class="detail-label">Date of Birth:</div><div class="detail-value">' + patient.dob + '</div></div>' +
-            '<div class="detail-row"><div class="detail-label">Contact:</div><div class="detail-value">' + patient.phone + '</div></div>' +
-            '<div class="detail-row"><div class="detail-label">Conditions:</div><div class="detail-value">' + (patient.conditions.map(function(c) { return '<span class="medical-tag tag-condition">' + c + '</span>'; }).join('') || 'None') + '</div></div>' +
-            '<div class="detail-row"><div class="detail-label">Allergies:</div><div class="detail-value">' + (patient.allergies.map(function(a) { return '<span class="medical-tag tag-allergy">' + a + '</span>'; }).join('') || 'None') + '</div></div>' +
-            '<div class="detail-row"><div class="detail-label">Medications:</div><div class="detail-value">' + (patient.medications.map(function(m) { return '<span class="medical-tag tag-medication">' + m + '</span>'; }).join('') || 'None') + '</div></div></div>' +
-
-            '<div class="recommendation-box"><strong>Recommended Actions:</strong><br>' +
-            '<ul style="margin-top:0.5rem; margin-left:1rem;">' +
-            '<li>Review patient history and clinical presentation</li>' +
-            '<li>Consider repeat testing to confirm result</li>' +
-            '<li>' + (test.testName === 'Haemoglobin' ? 'Consider iron studies and further haematology evaluation' : '') + '</li>' +
-            '<li>' + (test.testName === 'Platelets' ? 'Assess for bleeding risk, consider haematology referral' : '') + '</li>' +
-            '<li>Document findings in patient record</li>' +
-            '<li>Schedule follow-up appointment if needed</li>' +
-            '</ul></div>';
-
-        document.getElementById('reviewContent').innerHTML = content;
-        document.getElementById('reviewModal').classList.add('active');
-    }
-
-    function acknowledgeAndClose() {
-        if(currentReviewRequest && currentReviewTest) {
-            alert('Alert for ' + currentReviewRequest.patient + ' - ' + currentReviewTest.testName + ' has been acknowledged.\n\nAction recorded. Patient record updated.');
-        }
-        closeModal('reviewModal');
-        renderAlerts();
-    }
-
-    function closeModal(id) {
-        document.getElementById(id).classList.remove('active');
-        currentReviewRequest = null;
-        currentReviewTest = null;
-    }
-
-    function applyFilters() { renderAlerts(); }
-    function resetFilters() {
-        if(document.getElementById('alertSearch')) document.getElementById('alertSearch').value = '';
-        if(document.getElementById('alertUrgency')) document.getElementById('alertUrgency').value = 'all';
-        if(document.getElementById('alertStartDate')) document.getElementById('alertStartDate').value = '';
-        if(document.getElementById('alertEndDate')) document.getElementById('alertEndDate').value = '';
-        renderAlerts();
-    }
-
-    renderAlerts();
-</script>
+    </script>
+}
