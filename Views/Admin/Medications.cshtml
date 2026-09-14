@@ -1,6 +1,9 @@
-﻿@{
+﻿@using NMB_HLabSys.ViewModels.AdminViewModels
+@model AdminLookupViewModel
+
+@{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "Medications Management";
+    ViewData["Title"] = "Medications";
     ViewData["RoleSubtitle"] = "Admin Portal";
     ViewData["UserGreeting"] = "⚙️ System Administrator";
     ViewData["UserInitials"] = "AD";
@@ -11,6 +14,7 @@
     <li><a href="@Url.Action("Conditions", "Admin")">🩺 Medical Conditions</a></li>
     <li><a href="@Url.Action("Allergies", "Admin")">⚠️ Allergies</a></li>
     <li><a href="@Url.Action("Medications", "Admin")" class="active">💊 Medications</a></li>
+    <li><a href="@Url.Action("Categories", "Admin")">📁 Categories</a></li>
     <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
@@ -60,169 +64,225 @@
         border-color: red;
     }
 
-    .bulk-box {
-        background: #F8FAFE;
-        padding: 14px;
-        border-radius: 16px;
-        margin-top: 1rem;
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+    .modal-box {
+        background: white;
+        padding: 2rem;
+        border-radius: 20px;
+        max-width: 500px;
+        width: 90%;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid #D1D5DB;
+        }
+
+    .alert-success {
+        background: #DCFCE7;
+        color: #166534;
+        padding: 12px;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+    }
+
+    .alert-error {
+        background: #FEE2E2;
+        color: #991B1B;
+        padding: 12px;
+        border-radius: 12px;
+        margin-bottom: 1rem;
     }
 </style>
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert-success">✅ @TempData["SuccessMessage"]</div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert-error">❌ @TempData["ErrorMessage"]</div>
+}
+
 <div class="card-modern">
     <div class="card-header-flex">
-        <h3>💊 Medication Reference Library</h3>
-
-        <button class="btn-sm-lab" onclick="showDemoAlert('New medication added successfully')">
-            + Add Medication
-        </button>
+        <h3>💊 Medications</h3>
+        <button class="btn-sm-lab" onclick="openAddModal()">+ Add Medication</button>
     </div>
 
     <div class="admin-toolbar">
-        <input type="text"
-               id="searchInput"
-               class="search-box"
-               placeholder="Search medications..."
-               onkeyup="searchMedications()" />
-
-        <button class="btn-outline-lab" onclick="showDemoAlert('Medication list exported successfully')">
-            Export List
-        </button>
+        <input type="text" id="searchInput" class="search-box" placeholder="Search medications..." onkeyup="searchMedications()" />
     </div>
 
-    <div class="grid-2col">
-        <div class="card-modern category-card" style="background:#F8FAFE;">
-            <h4>❤️ Cardiovascular</h4>
-            <ul class="sortable-list" style="margin-top:0.5rem;">
-                <li>Lisinopril (ACE Inhibitor)</li>
-                <li>Amlodipine (Calcium Blocker)</li>
-                <li>Atorvastatin (Statin)</li>
-                <li>Warfarin (Anticoagulant)</li>
-                <li>Apixaban (DOAC)</li>
-            </ul>
-        </div>
+    @if (Model.Medications != null && Model.Medications.Any())
+    {
+        foreach (var category in Model.Categories)
+        {
+            var medicationsInCategory = Model.Medications.Where(m => m.CategoryID == category.CategoryID).ToList();
 
-        <div class="card-modern category-card" style="background:#F8FAFE;">
-            <h4>🩸 Endocrine / Diabetes</h4>
-            <ul class="sortable-list" style="margin-top:0.5rem;">
-                <li>Metformin</li>
-                <li>Insulin Glargine</li>
-                <li>Gliclazide</li>
-                <li>Levothyroxine</li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="grid-2col" style="margin-top:1rem;">
-        <div class="card-modern category-card" style="background:#F8FAFE;">
-            <h4>🧠 Neurological / Psychiatric</h4>
-            <ul class="sortable-list" style="margin-top:0.5rem;">
-                <li>Sertraline (SSRI)</li>
-                <li>Escitalopram</li>
-                <li>Carbamazepine</li>
-                <li>Gabapentin</li>
-            </ul>
-        </div>
-
-        <div class="card-modern category-card" style="background:#F8FAFE;">
-            <h4>🩻 Haematology / Oncology</h4>
-            <ul class="sortable-list" style="margin-top:0.5rem;">
-                <li>Hydroxyurea</li>
-                <li>Imatinib</li>
-                <li>Rituximab</li>
-                <li>Filgrastim (G-CSF)</li>
-            </ul>
-        </div>
-    </div>
+            if (medicationsInCategory.Any())
+            {
+                <div class="card-modern category-card" style="background:#F8FAFE; margin-bottom: 1rem;">
+                    <h4>@category.CategoryName</h4>
+                    <div style="margin-top: 0.5rem;">
+                        @foreach (var medication in medicationsInCategory)
+                        {
+                            <div class="medication-item" data-name="@medication.MedicationName.ToLower()">
+                                <span class="medication-name">
+                                    <strong>@medication.MedicationName</strong>
+                                    @if (!string.IsNullOrEmpty(medication.Description))
+                                    {
+                                        <span style="color: #6B7280; font-size: 0.85rem; margin-left: 0.5rem;">
+                                            @medication.Description
+                                        </span>
+                                    }
+                                </span>
+                                <div class="medication-actions">
+                                    <a href="@Url.Action("EditMedication", "Admin", new { id = medication.MedicationID })" class="btn-outline-lab">Edit</a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    }
+    else
+    {
+        <p style="text-align: center; color: #9CA3AF; padding: 2rem;">
+            No medications found. Click "+ Add Medication" to create one.
+        </p>
+    }
 </div>
 
-<div class="card-modern">
-    <div class="card-header-flex">
-        <h3>📋 Bulk Import / Export</h3>
-
-        <div>
-            <button class="btn-outline-lab" onclick="showDemoAlert('Medications exported to CSV successfully')">
-                Export CSV
-            </button>
-
-            <button class="btn-outline-lab" onclick="showDemoAlert('Medication file imported successfully')">
-                Import CSV
-            </button>
+<!-- Add Medication Modal -->
+<div id="addModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>Add Medication</h3>
+            <button class="modal-close" onclick="closeAddModal()">✕</button>
         </div>
-    </div>
+        <form method="post" action="@Url.Action("AddMedication", "Admin")">
+            @Html.AntiForgeryToken()
 
-    <div class="bulk-box">
-        <p style="color:#5A6E7A; margin:0;">
-            Manage medication reference data in bulk for efficient system administration.
-            This helps keep medication records consistent and easy to update.
-        </p>
+            <div class="form-group">
+                <label>Medication Name *</label>
+                <input type="text" name="medicationName" required />
+            </div>
+
+            <div class="form-group">
+                <label>Category *</label>
+                <select name="categoryId" required>
+                    <option value="">-- Select Category --</option>
+                    @foreach (var cat in Model.Categories)
+                    {
+                        <option value="@cat.CategoryID">@cat.CategoryName</option>
+                    }
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+                <textarea name="description" rows="3"></textarea>
+            </div>
+
+            <button type="submit" class="btn-sm-lab" style="width:100%;">Add Medication</button>
+        </form>
     </div>
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const lists = document.querySelectorAll(".sortable-list");
+    function openAddModal() {
+        document.getElementById('addModal').classList.add('active');
+    }
 
-        lists.forEach(function (list) {
-            let items = Array.from(list.querySelectorAll("li"));
-
-            items.sort(function (a, b) {
-                return a.textContent.trim().localeCompare(b.textContent.trim());
-            });
-
-            list.innerHTML = "";
-
-            items.forEach(function (item) {
-                let itemName = item.textContent.trim();
-
-                let li = document.createElement("li");
-                li.className = "medication-item";
-
-                li.innerHTML = `
-                        <span class="medication-name">${itemName}</span>
-
-                        <div class="medication-actions">
-                            <button class="btn-outline-lab"
-                                    onclick="showDemoAlert('${itemName} updated successfully')">
-                                Edit
-                            </button>
-
-                            <button class="btn-outline-lab remove-btn"
-                                    onclick="removeItem(this)">
-                                Remove
-                            </button>
-                        </div>
-                    `;
-
-                list.appendChild(li);
-            });
-        });
-    });
-
-    function removeItem(button) {
-        let itemName = button.closest("li").querySelector(".medication-name").textContent;
-
-        if (confirm("Are you sure you want to remove " + itemName + "?")) {
-            button.closest("li").remove();
-            alert("✅ " + itemName + " removed successfully.");
-        }
+    function closeAddModal() {
+        document.getElementById('addModal').classList.remove('active');
     }
 
     function searchMedications() {
-        let searchText = document.getElementById("searchInput").value.toLowerCase();
-        let items = document.querySelectorAll(".medication-item");
-
+        var searchText = document.getElementById('searchInput').value.toLowerCase();
+        var items = document.querySelectorAll('.medication-item');
         items.forEach(function (item) {
-            let medicationName = item.querySelector(".medication-name").textContent.toLowerCase();
-
-            if (medicationName.includes(searchText)) {
-                item.style.display = "flex";
+            var name = item.getAttribute('data-name');
+            if (name && name.includes(searchText)) {
+                item.style.display = 'flex';
             } else {
-                item.style.display = "none";
+                item.style.display = 'none';
             }
         });
     }
 
-    function showDemoAlert(msg) {
-        alert("✅ " + msg);
+    function deleteMedication(id) {
+        if (confirm('Are you sure you want to delete this medication?')) {
+            fetch('@Url.Action("DeleteMedication", "Admin")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: 'id=' + id
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('✅ ' + data.message);
+                        location.reload();
+                    } else {
+                        alert('❌ Error: ' + data.message);
+                    }
+                });
+        }
     }
+
+    function editMedication(id) {
+        alert('Edit functionality coming soon for ID: ' + id);
+    }
+
+    document.getElementById('addModal').addEventListener('click', function (e) {
+        if (e.target === this) closeAddModal();
+    });
 </script>

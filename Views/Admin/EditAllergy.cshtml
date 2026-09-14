@@ -1,0 +1,82 @@
+﻿@using NMB_HLabSys.ViewModels.AdminViewModels
+@model ManageAllergyViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Edit Allergy";
+    ViewData["RoleSubtitle"] = "Admin Portal";
+    ViewData["UserGreeting"] = "⚙️ System Administrator";
+    ViewData["UserInitials"] = "AD";
+}
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Admin")">📋 Dashboard</a></li>
+    <li><a href="@Url.Action("Conditions", "Admin")">🩺 Medical Conditions</a></li>
+    <li><a href="@Url.Action("Allergies", "Admin")" class="active">⚠️ Allergies</a></li>
+    <li><a href="@Url.Action("Medications", "Admin")">💊 Medications</a></li>
+    <li><a href="@Url.Action("Categories", "Admin")">📁 Categories</a></li>
+    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+}
+
+<style>
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid #D1D5DB;
+        }
+</style>
+
+<div class="card-modern">
+    <div class="card-header-flex">
+        <h3>✏️ Edit Allergy</h3>
+        <a href="@Url.Action("Allergies")" class="btn-outline-lab">← Back to List</a>
+    </div>
+
+    <form method="post" asp-action="EditAllergy">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="AllergyID" />
+
+        <div class="form-group">
+            <label asp-for="AllergyName">Allergy Name *</label>
+            <input asp-for="AllergyName" required />
+            <span asp-validation-for="AllergyName" style="color: red;"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="CategoryID">Category *</label>
+            <select asp-for="CategoryID" required>
+                <option value="">-- Select Category --</option>
+                @foreach (var cat in Model.Categories)
+                {
+                    <option value="@cat.CategoryID">@cat.CategoryName</option>
+                }
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Description">Description</label>
+            <textarea asp-for="Description" rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>
+                <input asp-for="IsActive" type="checkbox" />
+                Active
+            </label>
+        </div>
+
+        <button type="submit" class="btn-sm-lab">💾 Save Changes</button>
+        <a href="@Url.Action("Allergies")" class="btn-outline-lab">Cancel</a>
+    </form>
+</div>

@@ -18,6 +18,14 @@ namespace NMB_HLabSys.Data
         public DbSet<Doctor> Doctors { get; set; }
         public DbSet<Patient> Patients { get; set; }
 
+        // =========================
+        // ADMIN CRUD TABLES (ADDED!)
+        // =========================
+        public DbSet<LookupCategory> LookupCategories { get; set; }
+        public DbSet<MedicalCondition> MedicalConditions { get; set; }
+        public DbSet<Allergy> Allergies { get; set; }
+        public DbSet<Medication> Medications { get; set; }
+
         // Test management
         public DbSet<TestCategory> TestCategories { get; set; }
         public DbSet<TestType> TestTypes { get; set; }
@@ -47,7 +55,7 @@ namespace NMB_HLabSys.Data
         public DbSet<PatientAllergy> PatientAllergies { get; set; }
         public DbSet<PatientMedication> PatientMedications { get; set; }
 
-        // ========== ADD THIS MISSING DbSet ==========
+        // Patient Consent Management
         public DbSet<PatientConsentManagement> PatientConsentManagements { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -119,6 +127,50 @@ namespace NMB_HLabSys.Data
                 .HasIndex(p => p.OrderNumber)
                 .IsUnique()
                 .HasDatabaseName("IX_PurchaseOrder_Number_Unique");
+
+            // =========================
+            // ADMIN CRUD - UNIQUE CONSTRAINTS
+            // =========================
+            modelBuilder.Entity<LookupCategory>()
+                .HasIndex(l => l.CategoryName)
+                .IsUnique()
+                .HasDatabaseName("IX_LookupCategory_Name_Unique");
+
+            modelBuilder.Entity<MedicalCondition>()
+                .HasIndex(m => m.ConditionName)
+                .IsUnique()
+                .HasDatabaseName("IX_MedicalCondition_Name_Unique");
+
+            modelBuilder.Entity<Allergy>()
+                .HasIndex(a => a.AllergyName)
+                .IsUnique()
+                .HasDatabaseName("IX_Allergy_Name_Unique");
+
+            modelBuilder.Entity<Medication>()
+                .HasIndex(m => m.MedicationName)
+                .IsUnique()
+                .HasDatabaseName("IX_Medication_Name_Unique");
+
+            // =========================
+            // ADMIN CRUD - RELATIONSHIPS
+            // =========================
+            modelBuilder.Entity<MedicalCondition>()
+                .HasOne(m => m.Category)
+                .WithMany(c => c.MedicalConditions)
+                .HasForeignKey(m => m.CategoryID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Allergy>()
+                .HasOne(a => a.Category)
+                .WithMany(c => c.Allergies)
+                .HasForeignKey(a => a.CategoryID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Medication>()
+                .HasOne(m => m.Category)
+                .WithMany(c => c.Medications)
+                .HasForeignKey(m => m.CategoryID)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // =========================
             // RELATIONSHIPS WITH CASCADE BEHAVIOR
@@ -195,17 +247,15 @@ namespace NMB_HLabSys.Data
 
             modelBuilder.Entity<PatientConsentManagement>(entity =>
             {
-                // Doctor relationship – now with navigation
                 entity.HasOne(pcm => pcm.Doctor)
-                      .WithMany(d => d.PatientConsents)   // Doctor has collection
+                      .WithMany(d => d.PatientConsents)
                       .HasForeignKey(pcm => pcm.DoctorID)
-                      .OnDelete(DeleteBehavior.NoAction);   // No cascade
+                      .OnDelete(DeleteBehavior.NoAction);
 
-                // Patient relationship
                 entity.HasOne(pcm => pcm.Patient)
-                      .WithMany(p => p.PatientConsents)     // Patient already has collection
+                      .WithMany(p => p.PatientConsents)
                       .HasForeignKey(pcm => pcm.PatientID)
-                      .OnDelete(DeleteBehavior.NoAction);   // No cascade
+                      .OnDelete(DeleteBehavior.NoAction);
             });
 
             // =========================
@@ -213,18 +263,17 @@ namespace NMB_HLabSys.Data
             // =========================
             modelBuilder.Entity<TestRequest>(entity =>
             {
-                // Doctor relationship – prevent cascade delete
                 entity.HasOne(tr => tr.Doctor)
-                      .WithMany(d => d.TestRequests)   // Doctor has collection
+                      .WithMany(d => d.TestRequests)
                       .HasForeignKey(tr => tr.DoctorID)
                       .OnDelete(DeleteBehavior.Restrict);
 
-                // Patient relationship – prevent cascade delete
                 entity.HasOne(tr => tr.Patient)
-                      .WithMany(p => p.TestRequests)   // Patient has collection
+                      .WithMany(p => p.TestRequests)
                       .HasForeignKey(tr => tr.PatientID)
                       .OnDelete(DeleteBehavior.Restrict);
             });
+
             // =========================
             // DECIMAL PRECISION
             // =========================

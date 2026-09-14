@@ -1,14 +1,28 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using NMB_HLabSys.Data;
+using NMB_HLabSys.Helpers;
 using NMB_HLabSys.Models;
 using NMB_HLabSys.ViewModels.PatientViewModels;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace NMB_HLabSys.Controllers
 {
     public class PatientController : Controller
     {
-        // GET: Patient/Dashboard
+        private readonly ApplicationDbContext _context;
+
+        public PatientController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
+        // ============================================
+        // DASHBOARD
+        // ============================================
         public IActionResult Dashboard()
         {
             var viewModel = new PatientDashboardViewModel
@@ -74,8 +88,24 @@ namespace NMB_HLabSys.Controllers
 
             return View(viewModel);
         }
+        // ============================================
+        // GET LOGGED-IN PATIENT
+        // ============================================
+        private async Task<Patient> GetLoggedInPatient()
+        {
+            var userId = HttpContext.Session.GetInt32("UserID");
+            if (!userId.HasValue)
+            {
+                return null;
+            }
 
-        // GET: Patient/Profile
+            return await _context.Patients
+                .Include(p => p.User)
+                .FirstOrDefaultAsync(p => p.UserID == userId.Value && p.IsActive);
+        }
+        // ============================================
+        // PROFILE
+        // ============================================
         public IActionResult Profile()
         {
             var viewModel = new PatientProfileViewModel
@@ -151,7 +181,9 @@ namespace NMB_HLabSys.Controllers
             return View(viewModel);
         }
 
-        // GET: Patient/EditProfile
+        // ============================================
+        // EDIT PROFILE
+        // ============================================
         public IActionResult EditProfile()
         {
             var viewModel = new EditPatientProfileViewModel
@@ -166,7 +198,6 @@ namespace NMB_HLabSys.Controllers
             return View(viewModel);
         }
 
-        // POST: Patient/EditProfile
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult EditProfile(EditPatientProfileViewModel model)
@@ -180,7 +211,9 @@ namespace NMB_HLabSys.Controllers
             return RedirectToAction("Profile");
         }
 
-        // GET: Patient/MedicalHistory
+        // ============================================
+        // MEDICAL HISTORY
+        // ============================================
         public IActionResult MedicalHistory()
         {
             var viewModel = new PatientMedicalHistoryViewModel
@@ -198,16 +231,6 @@ namespace NMB_HLabSys.Controllers
                         DiagnosedDate = DateTime.Now.AddYears(-5),
                         Notes = "Controlled with medication",
                         IsActive = true
-                    },
-                    new PatientConditionViewModel
-                    {
-                        PatientConditionID = 2,
-                        ConditionID = 2,
-                        ConditionName = "Hypertension",
-                        CategoryName = "Cardiovascular",
-                        DiagnosedDate = DateTime.Now.AddYears(-3),
-                        Notes = "Well controlled",
-                        IsActive = true
                     }
                 },
                 Allergies = new List<PatientAllergyViewModel>
@@ -220,15 +243,6 @@ namespace NMB_HLabSys.Controllers
                         CategoryName = "Medication",
                         Severity = "Severe",
                         Notes = "Causes anaphylaxis"
-                    },
-                    new PatientAllergyViewModel
-                    {
-                        PatientAllergyID = 2,
-                        AllergyID = 2,
-                        AllergyName = "Peanuts",
-                        CategoryName = "Food",
-                        Severity = "Moderate",
-                        Notes = "Causes hives"
                     }
                 },
                 Medications = new List<PatientMedicationViewModel>
@@ -243,17 +257,6 @@ namespace NMB_HLabSys.Controllers
                         Frequency = "Twice daily",
                         StartDate = DateTime.Now.AddYears(-5),
                         IsCurrent = true
-                    },
-                    new PatientMedicationViewModel
-                    {
-                        PatientMedicationID = 2,
-                        MedicationID = 2,
-                        MedicationName = "Lisinopril",
-                        CategoryName = "Cardiovascular",
-                        Dosage = "10mg",
-                        Frequency = "Once daily",
-                        StartDate = DateTime.Now.AddYears(-3),
-                        IsCurrent = true
                     }
                 },
                 AvailableConditions = new List<MedicalCondition>(),
@@ -264,56 +267,26 @@ namespace NMB_HLabSys.Controllers
             return View(viewModel);
         }
 
-        // GET: Patient/Consent
+        // ============================================
+        // CONSENT
+        // ============================================
         public IActionResult Consent()
         {
             var viewModel = new PatientConsentManagementViewModel
             {
                 PatientID = 1,
                 FullName = "Thabo Mbeki",
-                ActiveConsents = new List<PatientConsentViewModel>
-                {
-                    new PatientConsentViewModel
-                    {
-                        ConsentID = 1,
-                        DoctorID = 1,
-                        DoctorName = "Dr. Sarah Johnson",
-                        DoctorEmail = "sarah.johnson@hospital.com",
-                        GrantedDate = DateTime.Now.AddMonths(-2),
-                        IsActive = true,
-                        Notes = "Full access to all results"
-                    }
-                },
-                AvailableDoctors = new List<DoctorViewModel>
-                {
-                    new DoctorViewModel
-                    {
-                        DoctorID = 1,
-                        FullName = "Dr. Sarah Johnson",
-                        Email = "sarah.johnson@hospital.com",
-                        HPCSANumber = "MP1234567",
-                        Specialization = "Haematology"
-                    },
-                    new DoctorViewModel
-                    {
-                        DoctorID = 2,
-                        FullName = "Dr. Michael Brown",
-                        Email = "michael.brown@clinic.com",
-                        HPCSANumber = "MP1234568",
-                        Specialization = "Internal Medicine"
-                    }
-                },
-                AvailableTestRequests = new List<TestRequestViewModel>
-                {
-                    new TestRequestViewModel { TestRequestID = 1, RequestDate = DateTime.Now.AddDays(-10), Status = "Completed" },
-                    new TestRequestViewModel { TestRequestID = 2, RequestDate = DateTime.Now.AddDays(-20), Status = "Completed" }
-                }
+                ActiveConsents = new List<PatientConsentViewModel>(),
+                AvailableDoctors = new List<DoctorViewModel>(),
+                AvailableTestRequests = new List<TestRequestViewModel>()
             };
 
             return View(viewModel);
         }
 
-        // GET: Patient/Trends
+        // ============================================
+        // TRENDS
+        // ============================================
         public IActionResult Trends(string testType = null, int months = 6)
         {
             var viewModel = new PatientTrendsViewModel
@@ -337,71 +310,157 @@ namespace NMB_HLabSys.Controllers
             return View(viewModel);
         }
 
-        // POST: Patient/AddCondition
+        // ============================================
+        // AJAX ENDPOINTS (Placeholder - will implement later)
+        // ============================================
         [HttpPost]
         public IActionResult AddCondition(int conditionId, string diagnosedDate, string notes)
         {
             return Json(new { success = true, message = "Condition added successfully" });
         }
 
-        // POST: Patient/RemoveCondition
         [HttpPost]
         public IActionResult RemoveCondition(int patientConditionId)
         {
             return Json(new { success = true, message = "Condition removed successfully" });
         }
 
-        // POST: Patient/AddAllergy
         [HttpPost]
         public IActionResult AddAllergy(int allergyId, string severity, string notes)
         {
             return Json(new { success = true, message = "Allergy added successfully" });
         }
 
-        // POST: Patient/RemoveAllergy
         [HttpPost]
         public IActionResult RemoveAllergy(int patientAllergyId)
         {
             return Json(new { success = true, message = "Allergy removed successfully" });
         }
 
-        // POST: Patient/AddMedication
         [HttpPost]
         public IActionResult AddMedication(int medicationId, string dosage, string frequency, string startDate, string endDate, string notes)
         {
             return Json(new { success = true, message = "Medication added successfully" });
         }
 
-        // POST: Patient/RemoveMedication
         [HttpPost]
         public IActionResult RemoveMedication(int patientMedicationId)
         {
             return Json(new { success = true, message = "Medication removed successfully" });
         }
 
-        // POST: Patient/GrantConsent
         [HttpPost]
         public IActionResult GrantConsent(int doctorId, string notes)
         {
             return Json(new { success = true, message = "Consent granted successfully" });
         }
 
-        // POST: Patient/RevokeConsent
         [HttpPost]
         public IActionResult RevokeConsent(int consentId)
         {
             return Json(new { success = true, message = "Consent revoked successfully" });
         }
 
-        // GET: Patient/DownloadReport
         public IActionResult DownloadReport()
         {
             TempData["InfoMessage"] = "PDF report will be available in the full implementation.";
             return RedirectToAction("Dashboard");
         }
+
+        // ============================================
+        // PATIENT REGISTRATION
+        // ============================================
+
+        // GET: Patient/Register
+        public IActionResult Register()
+        {
+            return View(new PatientRegistrationViewModel());
+        }
+
+        // POST: Patient/Register
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(PatientRegistrationViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            try
+            {
+                // Check if email already exists
+                var emailExists = await _context.Users
+                    .AnyAsync(u => u.Email == model.Email);
+
+                if (emailExists)
+                {
+                    ModelState.AddModelError("Email", "Email already registered");
+                    return View(model);
+                }
+
+                // Check if SA ID already exists
+                var saIdExists = await _context.Patients
+                    .AnyAsync(p => p.SAIDNumber == model.SAIDNumber);
+
+                if (saIdExists)
+                {
+                    ModelState.AddModelError("SAIDNumber", "SA ID already registered");
+                    return View(model);
+                }
+
+                // Hash password
+                var passwordHash = PasswordHelper.HashPassword(model.Password);
+
+                // Create User
+                var user = new User
+                {
+                    Name = model.FirstName.Trim(),
+                    Surname = model.LastName.Trim(),
+                    Email = model.Email.Trim().ToLower(),
+                    PasswordHash = passwordHash,
+                    UserRole = "Patient",
+                    ContactNumber = model.Cellphone,
+                    IsActive = true,
+                    IsPasswordChanged = false,
+                    CreatedDate = DateTime.Now
+                };
+
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+
+                // Create Patient
+                var patient = new Patient
+                {
+                    UserID = user.UserID,
+                    FirstName = model.FirstName.Trim(),
+                    LastName = model.LastName.Trim(),
+                    SAIDNumber = model.SAIDNumber,
+                    DateOfBirth = model.DateOfBirth,
+                    Cellphone = model.Cellphone,
+                    HomeAddress = model.HomeAddress?.Trim(),
+                    Email = model.Email.Trim().ToLower(),
+                    IsActive = true,
+                    CreatedDate = DateTime.Now
+                };
+
+                _context.Patients.Add(patient);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Registration successful! Please login.";
+                return RedirectToAction("Login", "Account");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"An error occurred: {ex.Message}");
+                return View(model);
+            }
+        }
     }
 
-    // EditPatientProfileViewModel
+    // ============================================
+    // EDIT PATIENT PROFILE VIEWMODEL
+    // ============================================
     public class EditPatientProfileViewModel
     {
         public int PatientID { get; set; }

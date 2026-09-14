@@ -54,9 +54,13 @@ namespace NMB_HLabSys.Migrations
 
                     b.HasKey("AllergyID");
 
+                    b.HasIndex("AllergyName")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Allergy_Name_Unique");
+
                     b.HasIndex("CategoryID");
 
-                    b.ToTable("Allergy");
+                    b.ToTable("Allergies");
                 });
 
             modelBuilder.Entity("NMB_HLabSys.Models.AuditLog", b =>
@@ -338,12 +342,19 @@ namespace NMB_HLabSys.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime?>("ModifiedDate")
                         .HasColumnType("datetime2");
 
                     b.HasKey("CategoryID");
 
-                    b.ToTable("LookupCategory");
+                    b.HasIndex("CategoryName")
+                        .IsUnique()
+                        .HasDatabaseName("IX_LookupCategory_Name_Unique");
+
+                    b.ToTable("LookupCategories");
                 });
 
             modelBuilder.Entity("NMB_HLabSys.Models.MedicalCondition", b =>
@@ -380,7 +391,11 @@ namespace NMB_HLabSys.Migrations
 
                     b.HasIndex("CategoryID");
 
-                    b.ToTable("MedicalCondition");
+                    b.HasIndex("ConditionName")
+                        .IsUnique()
+                        .HasDatabaseName("IX_MedicalCondition_Name_Unique");
+
+                    b.ToTable("MedicalConditions");
                 });
 
             modelBuilder.Entity("NMB_HLabSys.Models.Medication", b =>
@@ -417,7 +432,11 @@ namespace NMB_HLabSys.Migrations
 
                     b.HasIndex("CategoryID");
 
-                    b.ToTable("Medication");
+                    b.HasIndex("MedicationName")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Medication_Name_Unique");
+
+                    b.ToTable("Medications");
                 });
 
             modelBuilder.Entity("NMB_HLabSys.Models.OrderItem", b =>
@@ -522,8 +541,7 @@ namespace NMB_HLabSys.Migrations
 
                     b.HasKey("PatientID");
 
-                    b.HasIndex("UserID")
-                        .IsUnique();
+                    b.HasIndex("UserID");
 
                     b.ToTable("Patients");
                 });
@@ -1089,6 +1107,9 @@ namespace NMB_HLabSys.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RequestID"));
 
+                    b.Property<DateTime?>("AppointmentRequestedDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("CancellationReason")
                         .HasColumnType("nvarchar(max)");
 
@@ -1106,6 +1127,14 @@ namespace NMB_HLabSys.Migrations
 
                     b.Property<int>("PatientID")
                         .HasColumnType("int");
+
+                    b.Property<string>("ReleaseMethod")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("ReleaseNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime?>("ReleasedToPatientDate")
                         .HasColumnType("datetime2");
@@ -1273,6 +1302,14 @@ namespace NMB_HLabSys.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserID"));
 
+                    b.Property<string>("AspNetUserID")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ContactNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
@@ -1292,10 +1329,20 @@ namespace NMB_HLabSys.Migrations
                     b.Property<DateTime?>("ModifiedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Surname")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("UserRole")
                         .IsRequired()
@@ -1316,7 +1363,7 @@ namespace NMB_HLabSys.Migrations
                     b.HasOne("NMB_HLabSys.Models.LookupCategory", "Category")
                         .WithMany("Allergies")
                         .HasForeignKey("CategoryID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Category");
@@ -1390,7 +1437,7 @@ namespace NMB_HLabSys.Migrations
                     b.HasOne("NMB_HLabSys.Models.LookupCategory", "Category")
                         .WithMany("MedicalConditions")
                         .HasForeignKey("CategoryID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Category");
@@ -1401,7 +1448,7 @@ namespace NMB_HLabSys.Migrations
                     b.HasOne("NMB_HLabSys.Models.LookupCategory", "Category")
                         .WithMany("Medications")
                         .HasForeignKey("CategoryID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Category");
@@ -1429,8 +1476,8 @@ namespace NMB_HLabSys.Migrations
             modelBuilder.Entity("NMB_HLabSys.Models.Patient", b =>
                 {
                     b.HasOne("NMB_HLabSys.Models.User", "User")
-                        .WithOne("Patient")
-                        .HasForeignKey("NMB_HLabSys.Models.Patient", "UserID")
+                        .WithMany()
+                        .HasForeignKey("UserID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1807,8 +1854,6 @@ namespace NMB_HLabSys.Migrations
                     b.Navigation("Doctor");
 
                     b.Navigation("LabTechnician");
-
-                    b.Navigation("Patient");
                 });
 #pragma warning restore 612, 618
         }

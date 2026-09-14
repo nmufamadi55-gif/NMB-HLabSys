@@ -1,0 +1,519 @@
+﻿@model NMB_HLabSys.Models.ViewModels.PatientMedicalInfoViewModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = Model.FullName;
+    ViewData["RoleSubtitle"] = "Doctor Portal";
+    ViewData["UserGreeting"] = "Patient details";
+    ViewData["UserInitials"] = "SJ";
+    ViewData["UserName"] = "Sarah Johnson";
+}
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Doctor")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+    <li><a href="@Url.Action("TestRequests", "Doctor")"><i class="fas fa-notes-medical"></i> <span>Test Requests</span></a></li>
+    <li><a href="@Url.Action("Patients", "Doctor")" class="active"><i class="fas fa-users"></i> <span>My Patients</span></a></li>
+    <li><a href="@Url.Action("Alerts", "Doctor")"><i class="fas fa-bell"></i> <span>Alerts</span></a></li>
+    <li><a href="@Url.Action("Results", "Doctor")"><i class="fas fa-chart-line"></i> <span>Results</span></a></li>
+    <li><a href="@Url.Action("Reports", "Doctor")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+}
+
+@section Styles {
+    <style>
+        .panel {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 1.2rem;
+            border: 1px solid #E2E8F0;
+        }
+
+        .panel-title {
+            color: #032C7D;
+            font-size: 1rem;
+            margin: 0 0 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding-bottom: 0.6rem;
+            border-bottom: 1px solid #E2E8F0;
+        }
+
+            .panel-title i {
+                color: #0841C9;
+            }
+
+        /* ─── PATIENT HEADER ─── */
+        .patient-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 0.8rem;
+        }
+
+            .patient-header .name {
+                font-size: 1.6rem;
+                font-weight: 700;
+                color: #032C7D;
+                letter-spacing: -0.02em;
+                margin: 0;
+            }
+
+            .patient-header .meta {
+                display: flex;
+                gap: 1rem;
+                font-size: 0.82rem;
+                color: #5A6E7A;
+                margin-top: 0.3rem;
+                flex-wrap: wrap;
+            }
+
+                .patient-header .meta span {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.3rem;
+                }
+
+                .patient-header .meta strong {
+                    color: #1A2C3A;
+                }
+
+        .contact-row {
+            display: flex;
+            gap: 1.4rem;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+            color: #1A2C3A;
+            margin-top: 0.5rem;
+            padding-top: 0.6rem;
+            border-top: 1px dashed #E2E8F0;
+        }
+
+            .contact-row span {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.35rem;
+            }
+
+            .contact-row i {
+                color: #0841C9;
+            }
+
+        /* ─── TAGS ─── */
+        .medical-tag {
+            display: inline-block;
+            padding: 0.2rem 0.7rem;
+            border-radius: 30px;
+            font-size: 0.72rem;
+            margin: 0.15rem 0.25rem 0.15rem 0;
+            font-weight: 500;
+        }
+
+        .tag-condition {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .tag-allergy {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .tag-medication {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .tag-none {
+            background: #F1F5F9;
+            color: #5A6E7A;
+            font-style: italic;
+        }
+
+        /* ─── GRID FOR MEDICAL INFO ─── */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+        }
+        media (max-width: 1000px) {
+            .info-grid
+
+        {
+            grid-template-columns: 1fr;
+        }
+
+        }
+
+        .info-block {
+            background: #F8FAFE;
+            border-radius: 12px;
+            padding: 1rem;
+            border-left: 4px solid #E2E8F0;
+        }
+
+            .info-block.conditions {
+                border-left-color: #F59E0B;
+            }
+
+            .info-block.allergies {
+                border-left-color: #DC2626;
+            }
+
+            .info-block.medications {
+                border-left-color: #10B981;
+            }
+
+            .info-block h4 {
+                font-size: 0.82rem;
+                font-weight: 700;
+                color: #032C7D;
+                margin: 0 0 0.6rem;
+                display: flex;
+                align-items: center;
+                gap: 0.4rem;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+            }
+
+                .info-block h4 i {
+                    font-size: 0.9rem;
+                }
+
+            .info-block.conditions h4 i {
+                color: #F59E0B;
+            }
+
+            .info-block.allergies h4 i {
+                color: #DC2626;
+            }
+
+            .info-block.medications h4 i {
+                color: #10B981;
+            }
+
+            .info-block .empty {
+                color: #94A3B8;
+                font-size: 0.82rem;
+                font-style: italic;
+            }
+
+        /* ─── TABLE ─── */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 0.65rem 0.5rem;
+            text-align: left;
+            border-bottom: 1px solid #E2E8F0;
+            font-size: 0.82rem;
+        }
+
+        th {
+            background: #F8FAFE;
+            font-weight: 600;
+            color: #5A6E7A;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        tr:hover {
+            background: #F8FAFE;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.15rem 0.6rem;
+            border-radius: 30px;
+            font-size: 0.68rem;
+            font-weight: 600;
+        }
+
+        .status-submitted {
+            background: #FFF3CD;
+            color: #856404;
+        }
+
+        .status-progress {
+            background: #CDE8FF;
+            color: #004085;
+        }
+
+        .status-completed {
+            background: #D4EDDA;
+            color: #155724;
+        }
+
+        .status-verified {
+            background: #D1F7EA;
+            color: #0D5E4A;
+        }
+
+        .status-released {
+            background: #DBEAFE;
+            color: #1E40AF;
+        }
+
+        .status-cancelled {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .btn {
+            padding: 0.6rem 1.3rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: #0841C9;
+            color: white;
+        }
+
+            .btn-primary:hover {
+                background: #032C7D;
+                color: white;
+            }
+
+        .btn-success {
+            background: #10B981;
+            color: white;
+        }
+
+            .btn-success:hover {
+                background: #059669;
+                color: white;
+            }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #E2E8F0;
+            color: #1A2C3A;
+        }
+
+            .btn-outline:hover {
+                background: #F1F5F9;
+                color: #1A2C3A;
+            }
+
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        .alert-success {
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+            background: #D1FAE5;
+            color: #065F46;
+            border-left: 4px solid #10B981;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 1.5rem 1rem;
+            color: #94A3B8;
+            font-style: italic;
+            font-size: 0.85rem;
+        }
+    </style>
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert-success">@TempData["SuccessMessage"]</div>
+}
+
+<!-- ─── PATIENT HEADER ─── -->
+<div class="panel">
+    <div class="patient-header">
+        <div>
+            <h1 class="name">@Model.FullName</h1>
+            <div class="meta">
+                <span><strong>ID:</strong> @Model.SAIDNumber</span>
+                <span><strong>Age:</strong> @Model.Age years</span>
+                <span><strong>Gender:</strong> @Model.Gender</span>
+                <span><strong>DOB:</strong> @Model.DateOfBirth.ToString("yyyy-MM-dd")</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="contact-row">
+        <span><i class="fas fa-phone"></i> @(string.IsNullOrEmpty(Model.Cellphone) ? "N/A" : Model.Cellphone)</span>
+        <span><i class="fas fa-envelope"></i> @(string.IsNullOrEmpty(Model.Email) ? "N/A" : Model.Email)</span>
+        <span><i class="fas fa-home"></i> @(string.IsNullOrEmpty(Model.Address) ? "Address not provided" : Model.Address)</span>
+    </div>
+</div>
+
+<!-- ─── ACTION BAR ─── -->
+<div class="action-bar">
+    <a asp-action="Patients" class="btn btn-outline">
+        <i class="fas fa-arrow-left"></i> Back to Patients
+    </a>
+    <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
+        <a asp-action="CreateTestRequest"
+           asp-route-patientId="@Model.PatientID"
+           asp-route-saId="@Model.SAIDNumber"
+           class="btn btn-primary">
+            <i class="fas fa-flask"></i> New Test Request
+        </a>
+    </div>
+</div>
+
+<!-- ─── MEDICAL HISTORY ─── -->
+<div class="panel">
+    <h3 class="panel-title"><i class="fas fa-notes-medical"></i> Medical History</h3>
+
+    <div class="info-grid">
+        <!-- Conditions -->
+        <div class="info-block conditions">
+            <h4><i class="fas fa-stethoscope"></i> Conditions</h4>
+            @if (Model.Conditions != null && Model.Conditions.Any())
+            {
+                foreach (var c in Model.Conditions)
+                {
+                    <span class="medical-tag tag-condition" title="@c.Category">
+                        @c.ConditionName
+                        @if (c.DiagnosedDate.HasValue)
+                        {
+                            <small style="opacity:0.7;">· @c.DiagnosedDate.Value.ToString("yyyy")</small>
+                        }
+                    </span>
+                }
+            }
+            else
+            {
+                <div class="empty">No conditions recorded.</div>
+            }
+        </div>
+
+        <!-- Allergies -->
+        <div class="info-block allergies">
+            <h4><i class="fas fa-allergies"></i> Allergies</h4>
+            @if (Model.Allergies != null && Model.Allergies.Any())
+            {
+                foreach (var a in Model.Allergies)
+                {
+                    <span class="medical-tag tag-allergy" title="Severity: @a.Severity">
+                        @a.AllergyName
+                        @if (!string.IsNullOrEmpty(a.Severity) && a.Severity != "Unknown")
+                        {
+                            <small style="opacity:0.7;">· @a.Severity</small>
+                        }
+                    </span>
+                }
+            }
+            else
+            {
+                <div class="empty">No known allergies.</div>
+            }
+        </div>
+
+        <!-- Medications -->
+        <div class="info-block medications">
+            <h4><i class="fas fa-pills"></i> Current Medications</h4>
+            @if (Model.Medications != null && Model.Medications.Any())
+            {
+                foreach (var m in Model.Medications)
+                {
+                    <span class="medical-tag tag-medication">
+                        @m.MedicationName
+                        @if (!string.IsNullOrEmpty(m.Dosage))
+                        {
+                            <small style="opacity:0.7;">· @m.Dosage</small>
+                        }
+                    </span>
+                }
+            }
+            else
+            {
+                <div class="empty">No current medications.</div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- ─── RECENT TEST REQUESTS ─── -->
+<div class="panel">
+    <h3 class="panel-title">
+        <i class="fas fa-history"></i>
+        Test Request History
+        <span style="font-weight:400; font-size:0.75rem; color:#5A6E7A; margin-left:auto;">
+            Showing last @(Model.RecentRequests?.Count ?? 0)
+        </span>
+    </h3>
+
+    @if (Model.RecentRequests != null && Model.RecentRequests.Any())
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th>Request #</th>
+                    <th>Date</th>
+                    <th>Tests</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model.RecentRequests)
+                {
+                    var statusClass = r.Status == "In Progress" ? "status-progress"
+                    : r.Status == "Completed" ? "status-completed"
+                    : r.Status == "Verified" ? "status-verified"
+                    : r.Status == "Released" ? "status-released"
+                    : r.Status == "Cancelled" ? "status-cancelled"
+                    : "status-submitted";
+
+                    <tr>
+                        <td><strong>@r.RequestNumber</strong></td>
+                        <td>@r.RequestDate.ToString("yyyy-MM-dd")</td>
+                        <td>
+                            @if (r.Tests != null && r.Tests.Any())
+                            {
+                                @string.Join(", ", r.Tests)
+                            }
+                            else
+                            {
+                                <span style="color:#94A3B8;">—</span>
+                            }
+                        </td>
+                        <td><span class="status-badge @statusClass">@r.Status</span></td>
+                        <td>
+                            <a asp-action="TestRequestDetails" asp-route-id="@r.RequestID"
+                               class="btn btn-outline" style="padding:0.3rem 0.8rem; font-size:0.75rem;">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="fas fa-inbox" style="font-size:2rem; color:#CBD5E1; display:block; margin-bottom:0.5rem;"></i>
+            No test requests for this patient yet.
+        </div>
+    }
+</div>

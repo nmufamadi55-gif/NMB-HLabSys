@@ -1,0 +1,623 @@
+﻿@model NMB_HLabSys.Models.ViewModels.RegisterPatientViewModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Register Patient";
+    ViewData["RoleSubtitle"] = "Doctor Portal";
+    ViewData["UserGreeting"] = "Register a new patient";
+    ViewData["UserInitials"] = "SJ";
+    ViewData["UserName"] = "Sarah Johnson";
+}
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Doctor")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+    <li><a href="@Url.Action("TestRequests", "Doctor")"><i class="fas fa-notes-medical"></i> <span>Test Requests</span></a></li>
+    <li><a href="@Url.Action("Patients", "Doctor")" class="active"><i class="fas fa-users"></i> <span>My Patients</span></a></li>
+    <li><a href="@Url.Action("Alerts", "Doctor")"><i class="fas fa-bell"></i> <span>Alerts</span></a></li>
+    <li><a href="@Url.Action("Results", "Doctor")"><i class="fas fa-chart-line"></i> <span>Results</span></a></li>
+    <li><a href="@Url.Action("Reports", "Doctor")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+}
+
+@section Styles {
+    <style>
+        .panel {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 1.2rem;
+            border: 1px solid #E2E8F0;
+        }
+
+        .panel-title {
+            color: #032C7D;
+            font-size: 1rem;
+            margin: 0 0 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding-bottom: 0.6rem;
+            border-bottom: 1px solid #E2E8F0;
+        }
+
+            .panel-title i {
+                color: #0841C9;
+            }
+
+        .form-group {
+            margin-bottom: 1.1rem;
+        }
+
+            .form-group label {
+                display: block;
+                font-size: 0.8rem;
+                font-weight: 600;
+                color: #032C7D;
+                margin-bottom: 0.4rem;
+            }
+
+                .form-group label .req {
+                    color: #DC2626;
+                }
+
+        .form-control {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+            .form-control:focus {
+                outline: none;
+                border-color: #0841C9;
+                box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
+            }
+
+            .form-control.error {
+                border-color: #DC2626;
+                background: #FEF2F2;
+            }
+
+        .error-msg {
+            color: #DC2626;
+            font-size: 0.72rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+            .error-msg.show {
+                display: block;
+            }
+
+        .row-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .row-3col {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .searchable {
+            position: relative;
+        }
+
+        .dropdown-input {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
+
+            .dropdown-input:focus {
+                outline: none;
+                border-color: #0841C9;
+                box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
+            }
+
+        .dropdown-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 20;
+            display: none;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            margin-top: 0.3rem;
+        }
+
+            .dropdown-results.show {
+                display: block;
+            }
+
+        .dropdown-item {
+            padding: 0.6rem 1rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+            .dropdown-item:hover {
+                background: #EFF6FF;
+            }
+
+        .selected-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-top: 0.6rem;
+        }
+
+        .selected-tag {
+            background: #0841C9;
+            color: white;
+            padding: 0.25rem 0.7rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-weight: 500;
+        }
+
+            .selected-tag.cond {
+                background: #F59E0B;
+            }
+
+            .selected-tag.allg {
+                background: #DC2626;
+            }
+
+            .selected-tag.med {
+                background: #10B981;
+            }
+
+        .remove-tag {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 0.85rem;
+            padding: 0;
+            line-height: 1;
+            opacity: 0.8;
+        }
+
+            .remove-tag:hover {
+                opacity: 1;
+            }
+
+        .btn {
+            padding: 0.7rem 1.5rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-success {
+            background: #10B981;
+            color: white;
+        }
+
+            .btn-success:hover {
+                background: #059669;
+                color: white;
+            }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #E2E8F0;
+            color: #1A2C3A;
+        }
+
+            .btn-outline:hover {
+                background: #F1F5F9;
+                color: #1A2C3A;
+            }
+
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .alert {
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+        }
+
+        .alert-danger {
+            background: #FEE2E2;
+            color: #991B1B;
+            border-left: 4px solid #DC2626;
+        }
+    </style>
+}
+
+<form asp-action="RegisterPatient" method="post" id="registerForm" autocomplete="off">
+    @Html.AntiForgeryToken()
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            <strong>Please fix the following:</strong>
+            <ul style="margin:0.4rem 0 0 1.2rem;">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <!-- Personal Information -->
+    <div class="panel">
+        <h3 class="panel-title"><i class="fas fa-user"></i> Personal Information</h3>
+
+        <div class="row-2col">
+            <div class="form-group">
+                <label>First Name <span class="req">*</span></label>
+                <input asp-for="Name" id="regName" class="form-control" required />
+                <div class="error-msg" id="nameError"></div>
+            </div>
+            <div class="form-group">
+                <label>Last Name <span class="req">*</span></label>
+                <input asp-for="Surname" id="regSurname" class="form-control" required />
+                <div class="error-msg" id="surnameError"></div>
+            </div>
+        </div>
+
+        <div class="row-2col">
+            <div class="form-group">
+                <label>SA ID Number <span class="req">*</span></label>
+                <input asp-for="SAIDNumber" id="regID" class="form-control" maxlength="13"
+                       placeholder="13-digit ID number" required
+                       oninput="this.value=this.value.replace(/\D/g,''); validateID();" />
+                <div class="error-msg" id="idError"></div>
+            </div>
+            <div class="form-group">
+                <label>Date of Birth <span class="req">*</span></label>
+                <input asp-for="DateOfBirth" id="regDOB" type="date" class="form-control" required
+                       onchange="validateDOB()" />
+                <div class="error-msg" id="dobError"></div>
+            </div>
+        </div>
+
+        <div class="row-2col">
+            <div class="form-group">
+                <label>Cellphone Number <span class="req">*</span></label>
+                <input asp-for="Cellphone" id="regPhone" type="tel" class="form-control"
+                       placeholder="082 123 4567" required />
+            </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <input asp-for="Email" id="regEmail" type="email" class="form-control"
+                       placeholder="patient@example.com"
+                       oninput="validateEmail()" />
+                <div class="error-msg" id="emailError"></div>
+                <div style="font-size:0.7rem; color:#5A6E7A; margin-top:0.25rem;">
+                    Login credentials will be emailed here.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Address -->
+    <div class="panel">
+        <h3 class="panel-title"><i class="fas fa-home"></i> Home Address</h3>
+
+        <div class="row-2col">
+            <div class="form-group">
+                <label>Address Line 1</label>
+                <input asp-for="AddressLine1" class="form-control" placeholder="123 Main Street" />
+            </div>
+            <div class="form-group">
+                <label>Address Line 2</label>
+                <input asp-for="AddressLine2" class="form-control" placeholder="Apartment, suite, unit, etc." />
+            </div>
+        </div>
+
+        <div class="row-3col">
+            <div class="form-group">
+                <label>City / Town</label>
+                <input asp-for="City" class="form-control" placeholder="Port Elizabeth" />
+            </div>
+            <div class="form-group">
+                <label>Province</label>
+                <select asp-for="Province" class="form-control">
+                    <option value="">-- Select --</option>
+                    <option>Eastern Cape</option>
+                    <option>Free State</option>
+                    <option>Gauteng</option>
+                    <option>KwaZulu-Natal</option>
+                    <option>Limpopo</option>
+                    <option>Mpumalanga</option>
+                    <option>Northern Cape</option>
+                    <option>North West</option>
+                    <option>Western Cape</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Postal Code</label>
+                <input asp-for="PostalCode" class="form-control" maxlength="10"
+                       placeholder="6001" oninput="this.value=this.value.replace(/\D/g,'')" />
+            </div>
+        </div>
+    </div>
+
+    <!-- Medical History -->
+    <div class="panel">
+        <h3 class="panel-title"><i class="fas fa-notes-medical"></i> Medical History (Optional)</h3>
+
+        <div class="form-group">
+            <label>Medical Conditions</label>
+            <div class="searchable">
+                <input type="text" class="dropdown-input" placeholder="Search conditions..."
+                       oninput="filterDropdown('conditions', this.value)"
+                       onfocus="filterDropdown('conditions', this.value)" />
+                <div class="dropdown-results" id="conditionsResults"></div>
+            </div>
+            <div class="selected-items" id="conditionsSelected"></div>
+        </div>
+
+        <div class="form-group">
+            <label>Allergies</label>
+            <div class="searchable">
+                <input type="text" class="dropdown-input" placeholder="Search allergies..."
+                       oninput="filterDropdown('allergies', this.value)"
+                       onfocus="filterDropdown('allergies', this.value)" />
+                <div class="dropdown-results" id="allergiesResults"></div>
+            </div>
+            <div class="selected-items" id="allergiesSelected"></div>
+        </div>
+
+        <div class="form-group">
+            <label>Medications</label>
+            <div class="searchable">
+                <input type="text" class="dropdown-input" placeholder="Search medications..."
+                       oninput="filterDropdown('medications', this.value)"
+                       onfocus="filterDropdown('medications', this.value)" />
+                <div class="dropdown-results" id="medicationsResults"></div>
+            </div>
+            <div class="selected-items" id="medicationsSelected"></div>
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <a asp-action="Patients" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Cancel
+        </a>
+        <button type="submit" class="btn btn-success">
+            <i class="fas fa-user-plus"></i> Register Patient
+        </button>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        var jsonOptions = new System.Text.Json.JsonSerializerOptions
+        {
+            PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+        };
+        var jsonConditions = System.Text.Json.JsonSerializer.Serialize(Model.AvailableConditions, jsonOptions);
+        var jsonAllergies = System.Text.Json.JsonSerializer.Serialize(Model.AvailableAllergies, jsonOptions);
+        var jsonMedications = System.Text.Json.JsonSerializer.Serialize(Model.AvailableMedications, jsonOptions);
+    }
+    <script>
+        var lookups = {
+            conditions: @Html.Raw(jsonConditions),
+            allergies:  @Html.Raw(jsonAllergies),
+            medications: @Html.Raw(jsonMedications)
+        };
+
+        var selected = { conditions: [], allergies: [], medications: [] };
+
+        function filterDropdown(type, term) {
+            var container = document.getElementById(type + 'Results');
+            var list = lookups[type] || [];
+            var t = (term || '').toLowerCase().trim();
+
+            var matches = list.filter(function (item) {
+                return !t || item.name.toLowerCase().indexOf(t) !== -1;
+            });
+
+            matches = matches.filter(function (item) {
+                return !selected[type].some(function (s) { return s.id === item.id; });
+            });
+
+            if (matches.length === 0) {
+                container.classList.remove('show');
+                container.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = matches.slice(0, 40).map(function (item) {
+                return '<div class="dropdown-item" onclick="addItem(\'' + type + '\',' + item.id + ',\'' +
+                        item.name.replace(/'/g, "\\'") + '\')">' + item.name + '</div>';
+            }).join('');
+            container.classList.add('show');
+        }
+
+        function addItem(type, id, name) {
+            if (selected[type].some(function (s) { return s.id === id; })) return;
+            selected[type].push({ id: id, name: name });
+            renderSelected(type);
+
+            var input = document.querySelector('[oninput*="' + type + '"]');
+            if (input) input.value = '';
+            document.getElementById(type + 'Results').classList.remove('show');
+
+            syncHiddenInputs(type);
+        }
+
+        function removeItem(type, id) {
+            selected[type] = selected[type].filter(function (s) { return s.id !== id; });
+            renderSelected(type);
+            syncHiddenInputs(type);
+        }
+
+        function renderSelected(type) {
+            var container = document.getElementById(type + 'Selected');
+            var cls = type === 'conditions' ? 'cond' : type === 'allergies' ? 'allg' : 'med';
+            container.innerHTML = selected[type].map(function (item) {
+                return '<span class="selected-tag ' + cls + '">' +
+                         item.name +
+                         ' <button type="button" class="remove-tag" onclick="removeItem(\'' + type + '\',' + item.id + ')">&times;</button>' +
+                       '</span>';
+            }).join('');
+        }
+
+        function syncHiddenInputs(type) {
+            var form = document.getElementById('registerForm');
+            var fieldMap = {
+                conditions: 'SelectedConditionIDs',
+                allergies:  'SelectedAllergyIDs',
+                medications: 'SelectedMedicationIDs'
+            };
+            var name = fieldMap[type];
+
+            form.querySelectorAll('input[name="' + name + '"]').forEach(function (el) { el.remove(); });
+
+            selected[type].forEach(function (item) {
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name;
+                input.value = item.id;
+                form.appendChild(input);
+            });
+        }
+
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('.searchable')) {
+                document.querySelectorAll('.dropdown-results').forEach(function (el) {
+                    el.classList.remove('show');
+                });
+            }
+        });
+
+        function validateID() {
+            var id = document.getElementById('regID').value;
+            var errEl = document.getElementById('idError');
+            var input = document.getElementById('regID');
+
+            if (id.length === 0) {
+                errEl.classList.remove('show');
+                input.classList.remove('error');
+                return true;
+            }
+
+            if (id.length !== 13) {
+                errEl.textContent = 'SA ID must be exactly 13 digits';
+                errEl.classList.add('show');
+                input.classList.add('error');
+                return false;
+            }
+
+            var yy = parseInt(id.substring(0, 2));
+            var mm = parseInt(id.substring(2, 4));
+            var dd = parseInt(id.substring(4, 6));
+
+            var year = (yy >= 0 && yy <= 24) ? 2000 + yy : 1900 + yy;
+            var d = new Date(year, mm - 1, dd);
+            var valid = d.getFullYear() === year && d.getMonth() === mm - 1 && d.getDate() === dd;
+
+            if (!valid || mm < 1 || mm > 12 || dd < 1 || dd > 31) {
+                errEl.textContent = 'SA ID contains an invalid date (YYMMDD)';
+                errEl.classList.add('show');
+                input.classList.add('error');
+                return false;
+            }
+
+            var dob = year + '-' + String(mm).padStart(2, '0') + '-' + String(dd).padStart(2, '0');
+            document.getElementById('regDOB').value = dob;
+
+            errEl.classList.remove('show');
+            input.classList.remove('error');
+            return true;
+        }
+
+        function validateDOB() {
+            var dobInput = document.getElementById('regDOB');
+            var errEl = document.getElementById('dobError');
+
+            if (!dobInput.value) {
+                errEl.classList.remove('show');
+                dobInput.classList.remove('error');
+                return true;
+            }
+
+            var dob = new Date(dobInput.value);
+            var today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (dob > today) {
+                errEl.textContent = 'Date of birth cannot be in the future';
+                errEl.classList.add('show');
+                dobInput.classList.add('error');
+                return false;
+            }
+
+            errEl.classList.remove('show');
+            dobInput.classList.remove('error');
+            return true;
+        }
+
+        function validateEmail() {
+            var input = document.getElementById('regEmail');
+            var errEl = document.getElementById('emailError');
+            var val = input.value.trim();
+
+            if (val === '') {
+                errEl.classList.remove('show');
+                input.classList.remove('error');
+                return true;
+            }
+
+            var re = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]{2,}$/;
+            if (!re.test(val)) {
+                errEl.textContent = 'Please enter a valid email address';
+                errEl.classList.add('show');
+                input.classList.add('error');
+                return false;
+            }
+
+            errEl.classList.remove('show');
+            input.classList.remove('error');
+            return true;
+        }
+
+        document.getElementById('registerForm').addEventListener('submit', function (e) {
+            var ok = true;
+            if (!validateID()) ok = false;
+            if (!validateDOB()) ok = false;
+            if (!validateEmail()) ok = false;
+
+            if (!ok) {
+                e.preventDefault();
+                alert('Please fix the highlighted errors before submitting.');
+            }
+        });
+    </script>
+}

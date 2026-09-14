@@ -1,4 +1,7 @@
-﻿@{
+﻿@using NMB_HLabSys.ViewModels.AdminViewModels
+@model AdminDashboardViewModel
+
+@{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Admin Dashboard";
     ViewData["RoleSubtitle"] = "Admin Portal";
@@ -11,6 +14,7 @@
     <li><a href="@Url.Action("Conditions", "Admin")">🩺 Medical Conditions</a></li>
     <li><a href="@Url.Action("Allergies", "Admin")">⚠️ Allergies</a></li>
     <li><a href="@Url.Action("Medications", "Admin")">💊 Medications</a></li>
+    <li><a href="@Url.Action("Categories", "Admin")">📁 Categories</a></li>
     <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
@@ -58,23 +62,6 @@
         margin-top: 1rem;
     }
 
-    .audit-badge {
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-
-    .badge-added {
-        background: #DCFCE7;
-        color: #166534;
-    }
-
-    .badge-modified {
-        background: #FEF3C7;
-        color: #92400E;
-    }
-
     .overview-item {
         background: #F8FAFE;
         padding: 12px;
@@ -82,13 +69,21 @@
         margin-bottom: 10px;
         font-weight: 600;
     }
+
+    .stat-item h3 {
+        font-size: 2rem;
+        font-weight: 700;
+    }
 </style>
 
+<!-- ============================================
+     STAT CARDS - REAL DATABASE COUNTS
+     ============================================ -->
 <div class="stat-cards">
     <div class="stat-item dashboard-card">
         <div class="stat-icon-lg">🩺</div>
         <div>
-            <h3>24</h3>
+            <h3>@Model.TotalConditions</h3>
             <p>Conditions</p>
         </div>
     </div>
@@ -96,7 +91,7 @@
     <div class="stat-item dashboard-card">
         <div class="stat-icon-lg">⚠️</div>
         <div>
-            <h3>12</h3>
+            <h3>@Model.TotalAllergies</h3>
             <p>Allergies</p>
         </div>
     </div>
@@ -104,12 +99,23 @@
     <div class="stat-item dashboard-card">
         <div class="stat-icon-lg">💊</div>
         <div>
-            <h3>38</h3>
+            <h3>@Model.TotalMedications</h3>
             <p>Medications</p>
+        </div>
+    </div>
+
+    <div class="stat-item dashboard-card">
+        <div class="stat-icon-lg">📁</div>
+        <div>
+            <h3>@Model.TotalCategories</h3>
+            <p>Categories</p>
         </div>
     </div>
 </div>
 
+<!-- ============================================
+     QUICK ACTIONS & SYSTEM OVERVIEW
+     ============================================ -->
 <div class="grid-2col">
     <div class="card-modern dashboard-card">
         <h3>📋 Quick Actions</h3>
@@ -118,20 +124,23 @@
             <li><a href="@Url.Action("Conditions", "Admin")">➕ Add / Manage Medical Conditions</a></li>
             <li><a href="@Url.Action("Allergies", "Admin")">⚠️ Add / Manage Allergies</a></li>
             <li><a href="@Url.Action("Medications", "Admin")">💊 Add / Manage Medications</a></li>
-            <li><a href="#" onclick="showDemoAlert('Category management opened successfully')">📁 Manage Categories</a></li>
+            <li><a href="#" onclick="showDemoAlert('Category management coming soon')">📁 Manage Categories</a></li>
         </ul>
     </div>
 
     <div class="card-modern dashboard-card">
         <h3>📊 System Overview</h3>
 
-        <div class="overview-item">👥 Active Users: 45</div>
-        <div class="overview-item">👨‍⚕️ Doctors Registered: 12</div>
-        <div class="overview-item">🔬 Lab Technicians: 8</div>
-        <div class="overview-item">🩺 Patients: 124</div>
+        <div class="overview-item">👥 Active Users: @Model.TotalPatients</div>
+        <div class="overview-item">👨‍⚕️ Doctors Registered: @Model.TotalDoctors</div>
+        <div class="overview-item">🔬 Lab Technicians: @Model.TotalTechnicians</div>
+        <div class="overview-item">🩺 Patients: @Model.TotalPatients</div>
     </div>
 </div>
 
+<!-- ============================================
+     CHARTS - REAL DATA
+     ============================================ -->
 <div class="grid-2col">
     <div class="card-modern dashboard-card">
         <h3>📈 Reference Data Overview</h3>
@@ -150,11 +159,14 @@
     </div>
 </div>
 
+<!-- ============================================
+     RECENT ACTIVITY TABLE (Placeholder - can be implemented later)
+     ============================================ -->
 <div class="card-modern">
     <div class="card-header-flex">
         <h3>🔄 Recent Lookup Table Changes</h3>
 
-        <button class="btn-outline-lab" onclick="showDemoAlert('Audit log opened successfully')">
+        <button class="btn-outline-lab" onclick="showDemoAlert('Audit log coming soon')">
             Audit Log
         </button>
     </div>
@@ -170,31 +182,27 @@
                     <th>User</th>
                 </tr>
             </thead>
-
             <tbody>
-                <tr>
-                    <td>2025-04-08</td>
-                    <td>Condition</td>
-                    <td>Haemochromatosis</td>
-                    <td><span class="audit-badge badge-added">Added</span></td>
-                    <td>Admin</td>
-                </tr>
-
-                <tr>
-                    <td>2025-04-07</td>
-                    <td>Allergy</td>
-                    <td>Latex</td>
-                    <td><span class="audit-badge badge-modified">Modified</span></td>
-                    <td>Admin</td>
-                </tr>
-
-                <tr>
-                    <td>2025-04-05</td>
-                    <td>Medication</td>
-                    <td>Apixaban</td>
-                    <td><span class="audit-badge badge-added">Added</span></td>
-                    <td>Admin</td>
-                </tr>
+                @if (Model.RecentActivities != null && Model.RecentActivities.Any())
+                {
+                    @foreach (var activity in Model.RecentActivities)
+                    {
+                        <tr>
+                            <td>@activity.ActivityDate.ToString("yyyy-MM-dd")</td>
+                            <td>@activity.ActivityType</td>
+                            <td>@activity.Description</td>
+                            <td><span class="badge-added">@activity.UserName</span></td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" style="text-align:center; color:#9CA3AF; padding:1rem;">
+                            No recent activity
+                        </td>
+                    </tr>
+                }
             </tbody>
         </table>
     </div>
@@ -203,14 +211,22 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+    // ============================================
+    // REFERENCE CHART - Using Real Data from Model
+    // ============================================
     new Chart(document.getElementById('referenceChart'), {
         type: 'bar',
         data: {
-            labels: ['Conditions', 'Allergies', 'Medications'],
+            labels: ['Conditions', 'Allergies', 'Medications', 'Categories'],
             datasets: [{
                 label: 'Total Records',
-                data: [24, 12, 38],
-                backgroundColor: ['#8B5CF6', '#F97316', '#EC4899'],
+                data: [
+    @Model.TotalConditions,
+    @Model.TotalAllergies,
+    @Model.TotalMedications,
+    @Model.TotalCategories
+                    ],
+                backgroundColor: ['#8B5CF6', '#F97316', '#EC4899', '#10B981'],
                 borderRadius: 8
             }]
         },
@@ -220,12 +236,20 @@
         }
     });
 
+    // ============================================
+    // USER CHART - Using Real Data from Model
+    // ============================================
     new Chart(document.getElementById('userChart'), {
         type: 'doughnut',
         data: {
             labels: ['Patients', 'Doctors', 'Technicians', 'Admins'],
             datasets: [{
-                data: [124, 12, 8, 3],
+                data: [
+    @Model.TotalPatients,
+    @Model.TotalDoctors,
+    @Model.TotalTechnicians,
+                    1
+                ],
                 backgroundColor: ['#06B6D4', '#4F46E5', '#10B981', '#F59E0B']
             }]
         },

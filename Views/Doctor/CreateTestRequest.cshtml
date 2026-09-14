@@ -1,0 +1,793 @@
+﻿@model NMB_HLabSys.Models.ViewModels.CreateTestRequestViewModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "New Test Request";
+    ViewData["RoleSubtitle"] = "Doctor Portal";
+    ViewData["UserGreeting"] = "Create a new test request";
+    ViewData["UserInitials"] = "SJ";
+    ViewData["UserName"] = "Sarah Johnson";
+}
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Doctor")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+    <li><a href="@Url.Action("TestRequests", "Doctor")" class="active"><i class="fas fa-notes-medical"></i> <span>Test Requests</span></a></li>
+    <li><a href="@Url.Action("Patients", "Doctor")"><i class="fas fa-users"></i> <span>My Patients</span></a></li>
+    <li><a href="@Url.Action("Alerts", "Doctor")"><i class="fas fa-bell"></i> <span>Alerts</span></a></li>
+    <li><a href="@Url.Action("Results", "Doctor")"><i class="fas fa-chart-line"></i> <span>Results</span></a></li>
+    <li><a href="@Url.Action("Reports", "Doctor")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+}
+
+@section Styles {
+    <style>
+        
+        .panel {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 1.2rem;
+            border: 1px solid #E2E8F0;
+        }
+
+        .panel-title {
+            color: #032C7D;
+            font-size: 1rem;
+            margin: 0 0 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+            .panel-title i {
+                color: #0841C9;
+            }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+            .form-group label {
+                display: block;
+                font-size: 0.8rem;
+                font-weight: 600;
+                color: #032C7D;
+                margin-bottom: 0.4rem;
+            }
+
+                .form-group label .req {
+                    color: #DC2626;
+                }
+
+        .form-control {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+            .form-control:focus {
+                outline: none;
+                border-color: #0841C9;
+                box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
+            }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .search-row {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+            .search-row .form-control {
+                flex: 1;
+            }
+
+        .btn {
+            padding: 0.7rem 1.5rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: #0841C9;
+            color: white;
+        }
+
+            .btn-primary:hover {
+                background: #032C7D;
+                color: white;
+            }
+
+        .btn-success {
+            background: #10B981;
+            color: white;
+        }
+
+            .btn-success:hover {
+                background: #059669;
+                color: white;
+            }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #E2E8F0;
+            color: #1A2C3A;
+        }
+
+            .btn-outline:hover {
+                background: #F1F5F9;
+                color: #1A2C3A;
+            }
+
+        /* ─── PATIENT FOUND CARD  ─── */
+        .patient-info-card {
+            background: #F0F9FF;
+            border-radius: 12px;
+            padding: 1rem 1.2rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #0841C9;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+            .patient-info-card.not-found {
+                background: #FEF2F2;
+                border-left-color: #DC2626;
+                color: #991B1B;
+            }
+
+            .patient-info-card .name {
+                font-weight: 700;
+                color: #032C7D;
+                font-size: 1rem;
+                margin-bottom: 0.2rem;
+            }
+
+            .patient-info-card .meta {
+                font-size: 0.78rem;
+                color: #5A6E7A;
+                margin-bottom: 0.5rem;
+            }
+
+                .patient-info-card .meta span {
+                    display: inline-block;
+                    margin-right: 0.9rem;
+                }
+
+                    .patient-info-card .meta span strong {
+                        color: #1A2C3A;
+                    }
+
+            .patient-info-card .tags {
+                margin-top: 0.5rem;
+            }
+
+        .medical-tag {
+            display: inline-block;
+            padding: 0.15rem 0.55rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            margin-right: 0.3rem;
+            margin-bottom: 0.2rem;
+            font-weight: 500;
+        }
+
+        .tag-condition {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .tag-allergy {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .tag-medication {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .tag-none {
+            background: #F1F5F9;
+            color: #5A6E7A;
+        }
+
+        /* ─── URGENCY RADIOS ─── */
+        .radio-group {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .radio-option {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 1.1rem;
+            border: 1.5px solid #E2E8F0;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+            .radio-option:hover {
+                border-color: #0841C9;
+            }
+
+            .radio-option input {
+                margin: 0;
+                cursor: pointer;
+            }
+
+            .radio-option.selected {
+                background: #EFF6FF;
+                border-color: #0841C9;
+            }
+
+        /* ─── TEST ACCORDION ─── */
+        .category-group {
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            margin-bottom: 0.6rem;
+            overflow: hidden;
+        }
+
+        .category-header {
+            background: #F8FAFE;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 0.88rem;
+            color: #032C7D;
+            user-select: none;
+        }
+
+            .category-header:hover {
+                background: #EFF6FF;
+            }
+
+            .category-header .arrow {
+                transition: transform 0.25s;
+                font-size: 0.75rem;
+                color: #5A6E7A;
+            }
+
+        .category-group.open .arrow {
+            transform: rotate(180deg);
+        }
+
+        .test-list {
+            display: none;
+            padding: 0.7rem 1rem;
+            background: white;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.4rem;
+        }
+
+        .category-group.open .test-list {
+            display: grid;
+        }
+
+        .test-list label {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            padding: 0.5rem 0.7rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.83rem;
+            transition: background 0.15s;
+            user-select: none;
+        }
+
+            .test-list label:hover {
+                background: #F8FAFE;
+            }
+
+        .test-list input {
+            margin-top: 0.15rem;
+            cursor: pointer;
+        }
+
+        .test-list .meta {
+            display: block;
+            font-size: 0.68rem;
+            color: #5A6E7A;
+            margin-top: 0.15rem;
+        }
+
+        /* ─── SELECTED TESTS SUMMARY ─── */
+        .selected-tests-summary {
+            background: #EFF6FF;
+            border-radius: 12px;
+            padding: 0.9rem 1rem;
+            margin-top: 1rem;
+            font-size: 0.82rem;
+            border-left: 4px solid #0841C9;
+        }
+
+            .selected-tests-summary strong {
+                color: #032C7D;
+                display: block;
+                margin-bottom: 0.4rem;
+            }
+
+        .selected-test-tag {
+            display: inline-block;
+            background: #0841C9;
+            color: white;
+            padding: 0.2rem 0.7rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            margin: 0.15rem 0.25rem 0.15rem 0;
+        }
+
+        /* ─── SAMPLE COLLECTION REQUIREMENTS ─── */
+        .sample-requirements {
+            background: #F0F9FF;
+            border-radius: 12px;
+            padding: 0.9rem 1rem;
+            margin-top: 1rem;
+            border-left: 4px solid #1D97F1;
+            font-size: 0.82rem;
+        }
+
+            .sample-requirements strong {
+                color: #032C7D;
+                display: block;
+                margin-bottom: 0.6rem;
+            }
+
+        .sample-item {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #DBEAFE;
+        }
+
+            .sample-item:last-child {
+                border-bottom: none;
+            }
+
+        .sample-icon {
+            font-size: 1.2rem;
+        }
+
+        .sample-details {
+            flex: 1;
+        }
+
+        .sample-name {
+            font-weight: 600;
+            color: #032C7D;
+            font-size: 0.85rem;
+        }
+
+        .sample-instruction {
+            font-size: 0.72rem;
+            color: #5A6E7A;
+            margin-top: 0.1rem;
+        }
+
+        .alert {
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+        }
+
+        .alert-danger {
+            background: #FEE2E2;
+            color: #991B1B;
+            border-left: 4px solid #DC2626;
+        }
+
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .text-muted {
+            color: #5A6E7A;
+            font-size: 0.78rem;
+        }
+
+        media (max-width: 768px) {
+            .test-list
+
+        {
+            grid-template-columns: 1fr;
+        }
+
+        .search-row {
+            flex-direction: column;
+        }
+
+            .search-row .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+        }
+
+    </style>
+}
+
+<form asp-action="CreateTestRequest" method="post" id="createForm">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="PatientID" id="hiddenPatientId" />
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            <strong>Please fix the following:</strong>
+            <ul style="margin:0.4rem 0 0 1.2rem;">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <!-- ─── PANEL 1: PATIENT LOOKUP ─── -->
+    <div class="panel">
+        <h3 class="panel-title"><i class="fas fa-user"></i> Patient Lookup</h3>
+
+        <div class="form-group">
+            <label>Enter Patient SA ID Number <span class="req">*</span></label>
+            <div class="search-row">
+                <input type="text" id="saIdInput" class="form-control"
+                       placeholder="e.g., 8001015009087" maxlength="13"
+                       oninput="this.value=this.value.replace(/\D/g,'')" />
+                <button type="button" class="btn btn-primary" onclick="searchPatient()">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+        </div>
+
+        <div id="patientCard"></div>
+    </div>
+
+    <!-- ─── PANEL 2: REQUEST DETAILS (hidden until patient found) ─── -->
+    <div id="requestDetailsPanel" class="hidden">
+
+        <div class="panel">
+            <h3 class="panel-title"><i class="fas fa-exclamation-circle"></i> Request Details</h3>
+
+            <div class="form-group">
+                <label>Urgency <span class="req">*</span></label>
+                <div class="radio-group">
+                    <label class="radio-option" data-value="routine">
+                        <input type="radio" asp-for="Urgency" value="routine" />
+                        <span style="color:#10B981; font-weight:600;">Routine</span>
+                    </label>
+                    <label class="radio-option" data-value="urgent">
+                        <input type="radio" asp-for="Urgency" value="urgent" />
+                        <span style="color:#F59E0B; font-weight:600;">Urgent</span>
+                    </label>
+                    <label class="radio-option" data-value="stat">
+                        <input type="radio" asp-for="Urgency" value="stat" />
+                        <span style="color:#DC2626; font-weight:600;">STAT</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Clinical Notes</label>
+                <textarea asp-for="ClinicalNotes" class="form-control" rows="3"
+                          placeholder="Relevant clinical information, symptoms, or instructions for the lab..."></textarea>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3 class="panel-title"><i class="fas fa-flask"></i> Select Test Types <span class="req" style="color:#DC2626;">*</span></h3>
+
+            <div id="testCategoriesContainer">
+                @{
+                    var groupedTests = Model.AvailableTests.GroupBy(t => t.CategoryName).OrderBy(g => g.Key);
+                    var idx = 0;
+                    foreach (var group in groupedTests)
+                    {
+                        var blockId = $"cat-{idx}";
+                        <div class="category-group" id="@blockId">
+                            <div class="category-header" onclick="toggleCategory('@blockId')">
+                                <span>@group.Key <span style="color:#5A6E7A; font-weight:400;">(@group.Count())</span></span>
+                                <i class="fas fa-chevron-down arrow"></i>
+                            </div>
+                            <div class="test-list">
+                                @foreach (var test in group)
+                                {
+                                    <label>
+                                        <input type="checkbox" name="SelectedTestTypeIDs" value="@test.TestID"
+                                               data-test-name="@test.TestName"
+                                               data-sample-type="@test.SampleTypeName"
+                                               data-sample-type-id="@test.SampleTypeID"
+                                               data-turnaround="@test.TurnaroundTimeMinutes"
+                                               onchange="updateSelectedTests()" />
+                                        <span>
+                                            @test.TestName
+                                            <span class="meta">@test.SampleTypeName · @test.TurnaroundTimeMinutes min</span>
+                                        </span>
+                                    </label>
+                                }
+                            </div>
+                        </div>
+                        idx++;
+                    }
+                }
+            </div>
+
+            <div id="selectedTestsSummary" class="selected-tests-summary hidden">
+                <strong>Selected Tests:</strong>
+                <div id="selectedTestsList"></div>
+            </div>
+
+            <div id="sampleRequirements" class="sample-requirements hidden">
+                <strong>Sample Collection Requirements:</strong>
+                <div id="sampleItems"></div>
+            </div>
+        </div>
+        <div id="barcodeSection" class="sample-requirements hidden" style="border-left-color:#10B981; background:#F0FDF4;">
+            <strong style="color:#065F46;">
+                <i class="fas fa-barcode"></i> Barcodes for Sample Tubes
+            </strong>
+            <div style="font-size:0.72rem; color:#065F46; margin-bottom:0.6rem;">
+                Type the barcode printed on each collection tube. One barcode per sample type.
+            </div>
+            <div id="barcodeInputs"></div>
+        </div>
+
+        <div class="action-bar">
+            <a asp-action="TestRequests" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Cancel
+            </a>
+            <button type="submit" class="btn btn-success" id="submitBtn">
+                <i class="fas fa-paper-plane"></i> Submit Test Request
+            </button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        var foundPatient = null;
+
+        // ─── SEARCH PATIENT BY SA ID ─────────────────────────────
+        async function searchPatient() {
+            var saId = document.getElementById('saIdInput').value.trim();
+            var card = document.getElementById('patientCard');
+            var details = document.getElementById('requestDetailsPanel');
+
+            if (saId.length !== 13) {
+                card.innerHTML = '<div class="patient-info-card not-found">Please enter a valid 13-digit SA ID number.</div>';
+                details.classList.add('hidden');
+                return;
+            }
+
+            card.innerHTML = '<div class="patient-info-card" style="text-align:center;color:#5A6E7A;">Searching...</div>';
+
+            try {
+                var res = await fetch('@Url.Action("FindPatientBySAID", "Doctor")?saId=' + encodeURIComponent(saId));
+                var data = await res.json();
+
+                if (!data.found) {
+                    card.innerHTML =
+                        '<div class="patient-info-card not-found">' +
+                        '<strong>Patient not found.</strong><br>' +
+                        'No patient with SA ID <strong>' + saId + '</strong> exists. ' +
+                        '<a href="@Url.Action("RegisterPatient", "Doctor")" style="color:#991B1B;text-decoration:underline;">Register them first</a>.' +
+                        '</div>';
+                    details.classList.add('hidden');
+                    return;
+                }
+
+                foundPatient = data;
+                document.getElementById('hiddenPatientId').value = data.patientId;
+                renderPatientCard(data);
+                details.classList.remove('hidden');
+            } catch (err) {
+                card.innerHTML = '<div class="patient-info-card not-found">Error searching: ' + err.message + '</div>';
+                details.classList.add('hidden');
+            }
+        }
+
+        // ─── RENDER PATIENT CARD ───
+        function renderPatientCard(p) {
+            function tag(cls, text) {
+                return '<span class="medical-tag ' + cls + '">' + text + '</span>';
+            }
+            function tagList(items, cls, emptyText) {
+                if (!items || items.length === 0) return tag('tag-none', emptyText);
+                return items.map(function (i) { return tag(cls, i); }).join('');
+            }
+
+            var html =
+                '<div class="patient-info-card">' +
+                    '<div class="name">' + p.fullName + '</div>' +
+                    '<div class="meta">' +
+                        '<span><strong>ID:</strong> ' + p.saIdNumber + '</span>' +
+                        '<span><strong>Age:</strong> ' + p.age + ' years</span>' +
+                        '<span><strong>Gender:</strong> ' + p.gender + '</span>' +
+                        '<span><strong>DOB:</strong> ' + p.dateOfBirth + '</span>' +
+                    '</div>' +
+                    '<div class="meta">' +
+                        '<span><i class="fas fa-phone"></i> ' + (p.cellphone || 'N/A') + '</span>' +
+                        '<span><i class="fas fa-envelope"></i> ' + (p.email || 'N/A') + '</span>' +
+                    '</div>' +
+                    '<div class="tags">' +
+                        '<div style="margin-bottom:0.3rem;"><strong>Conditions:</strong> ' + tagList(p.conditions, 'tag-condition', 'None recorded') + '</div>' +
+                        '<div style="margin-bottom:0.3rem;"><strong>Allergies:</strong> ' + tagList(p.allergies, 'tag-allergy', 'No known allergies') + '</div>' +
+                        '<div><strong>Medications:</strong> ' + tagList(p.medications, 'tag-medication', 'None current') + '</div>' +
+                    '</div>' +
+                '</div>';
+
+            document.getElementById('patientCard').innerHTML = html;
+        }
+
+        // Auto-search on Enter key
+        document.getElementById('saIdInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); searchPatient(); }
+        });
+
+        // ─── URGENCY RADIO HIGHLIGHT ─────────────────────────────
+        document.querySelectorAll('.radio-option').forEach(function (opt) {
+            var input = opt.querySelector('input[type="radio"]');
+            if (input.checked) opt.classList.add('selected');
+            input.addEventListener('change', function () {
+                document.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
+                if (input.checked) opt.classList.add('selected');
+            });
+        });
+
+        // ─── TOGGLE CATEGORY ────────────────────────────────────
+        function toggleCategory(id) {
+            document.getElementById(id).classList.toggle('open');
+        }
+
+        // ─── UPDATE SELECTED TESTS + SAMPLES + BARCODE INPUTS ───
+        function updateSelectedTests() {
+            var checked = Array.from(document.querySelectorAll('input[name="SelectedTestTypeIDs"]:checked'));
+
+            var summary = document.getElementById('selectedTestsSummary');
+            var list = document.getElementById('selectedTestsList');
+            var samplesBox = document.getElementById('sampleRequirements');
+            var samplesList = document.getElementById('sampleItems');
+            var barcodeBox = document.getElementById('barcodeSection');
+            var barcodeInputs = document.getElementById('barcodeInputs');
+
+            // Preserve any barcodes already typed
+            var existingBarcodes = {};
+            document.querySelectorAll('#barcodeInputs input[data-sample-type-id]').forEach(function (inp) {
+                existingBarcodes[inp.dataset.sampleTypeId] = inp.value;
+            });
+
+            if (checked.length === 0) {
+                summary.classList.add('hidden');
+                samplesBox.classList.add('hidden');
+                barcodeBox.classList.add('hidden');
+                return;
+            }
+
+            // Chips
+            list.innerHTML = checked.map(function (cb) {
+                return '<span class="selected-test-tag">' + cb.dataset.testName + '</span>';
+            }).join('');
+            summary.classList.remove('hidden');
+
+            // Group by SampleType
+            var sampleMap = {};
+            checked.forEach(function (cb) {
+                var stId = cb.dataset.sampleTypeId;
+                var stName = cb.dataset.sampleType;
+                if (!sampleMap[stId]) {
+                    sampleMap[stId] = { id: stId, name: stName, tests: [], maxTurn: 0 };
+                }
+                sampleMap[stId].tests.push(cb.dataset.testName);
+                sampleMap[stId].maxTurn = Math.max(sampleMap[stId].maxTurn, parseInt(cb.dataset.turnaround || 0));
+            });
+
+            // Sample requirements
+            samplesList.innerHTML = Object.values(sampleMap).map(function (s) {
+                return '<div class="sample-item">' +
+                           '<div class="sample-icon">🧪</div>' +
+                           '<div class="sample-details">' +
+                               '<div class="sample-name">' + s.name + '</div>' +
+                               '<div class="sample-instruction">' +
+                                   s.tests.join(', ') + ' &middot; max ' + s.maxTurn + ' min turnaround' +
+                               '</div>' +
+                           '</div>' +
+                       '</div>';
+            }).join('');
+            samplesBox.classList.remove('hidden');
+
+            // Barcode inputs
+            barcodeInputs.innerHTML = Object.values(sampleMap).map(function (s) {
+                var preserved = existingBarcodes[s.id] || '';
+                return '<div class="sample-item" style="border-bottom-color:#D1FAE5; align-items:flex-start;">' +
+                           '<div class="sample-icon">🏷️</div>' +
+                           '<div class="sample-details">' +
+                               '<div class="sample-name" style="color:#065F46;">' + s.name + '</div>' +
+                               '<input type="text" ' +
+                                      'name="BarcodeOverrides[' + s.id + ']" ' +
+                                      'data-sample-type-id="' + s.id + '" ' +
+                                      'value="' + preserved + '" ' +
+                                      'class="form-control" ' +
+                                      'style="margin-top:0.35rem; font-family:monospace; font-size:0.85rem;" ' +
+                                      'placeholder="Type barcode from tube label" ' +
+                                      'required />' +
+                           '</div>' +
+                       '</div>';
+            }).join('');
+            barcodeBox.classList.remove('hidden');
+        }
+
+        // ─── VALIDATE BARCODES BEFORE SUBMIT ───
+        document.getElementById('createForm').addEventListener('submit', function (e) {
+            var barcodeInputs = document.querySelectorAll('#barcodeInputs input[data-sample-type-id]');
+            if (barcodeInputs.length === 0) return;
+
+            var seen = {};
+            var ok = true;
+
+            barcodeInputs.forEach(function (inp) {
+                var v = inp.value.trim();
+                inp.style.borderColor = '#E2E8F0';
+
+                if (!v) {
+                    inp.style.borderColor = '#DC2626';
+                    ok = false;
+                    return;
+                }
+                if (seen[v]) {
+                    inp.style.borderColor = '#DC2626';
+                    ok = false;
+                    return;
+                }
+                seen[v] = true;
+            });
+
+            if (!ok) {
+                e.preventDefault();
+                alert('Please provide a unique barcode for every sample type.');
+            }
+        });
+
+                // ─── AUTO-SEARCH IF SA ID WAS PASSED IN ───
+        (function () {
+            var prefillSaId = '@Html.Raw(ViewBag.PreselectedSAID ?? "")';
+            if (prefillSaId && prefillSaId.length === 13) {
+                document.getElementById('saIdInput').value = prefillSaId;
+                searchPatient();
+            }
+        })();
+
+    </script>
+}

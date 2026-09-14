@@ -1,218 +1,289 @@
-﻿@{
+﻿@model NMB_HLabSys.Models.ViewModels.DoctorReportFilterViewModel
+@{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Reports";
     ViewData["RoleSubtitle"] = "Doctor Portal";
-    ViewData["UserGreeting"] = "Generate and download reports";
+    ViewData["UserGreeting"] = "Generate PDF reports";
     ViewData["UserInitials"] = "SJ";
     ViewData["UserName"] = "Sarah Johnson";
-
-    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Doctor")" class="active"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+    <li><a href="@Url.Action("Dashboard", "Doctor")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
     <li><a href="@Url.Action("TestRequests", "Doctor")"><i class="fas fa-notes-medical"></i> <span>Test Requests</span></a></li>
     <li><a href="@Url.Action("Patients", "Doctor")"><i class="fas fa-users"></i> <span>My Patients</span></a></li>
     <li><a href="@Url.Action("Alerts", "Doctor")"><i class="fas fa-bell"></i> <span>Alerts</span></a></li>
     <li><a href="@Url.Action("Results", "Doctor")"><i class="fas fa-chart-line"></i> <span>Results</span></a></li>
-    <li><a href="@Url.Action("Reports", "Doctor")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+    <li><a href="@Url.Action("Reports", "Doctor")" class="active"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
     <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
-<style>
-    .card {
-        background: white;
-        border-radius: 16px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        border: 1px solid #E2E8F0;
-    }
-
-    .form-group {
-        margin-bottom: 1rem;
-    }
-
-        .form-group label {
-            font-size: 0.8rem;
-            font-weight: 500;
-            display: block;
-            margin-bottom: 0.2rem;
+@section Styles {
+    <style>
+        .panel {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 1.2rem;
+            border: 1px solid #E2E8F0;
         }
 
-    .form-control {
-        width: 100%;
-        padding: 0.4rem;
-        border: 1px solid #E2E8F0;
-        border-radius: 8px;
-    }
-
-    .btn-primary {
-        background: #0841C9;
-        color: white;
-        border: none;
-        padding: 0.4rem 1rem;
-        border-radius: 30px;
-        cursor: pointer;
-    }
-
-    .btn-sm {
-        background: #0841C9;
-        color: white;
-        border: none;
-        padding: 0.2rem 0.6rem;
-        border-radius: 30px;
-        cursor: pointer;
-        font-size: 0.7rem;
-    }
-
-    .stat-box {
-        background: #F8FAFE;
-        border-radius: 12px;
-        padding: 0.5rem;
-        text-align: center;
-        margin-bottom: 0.5rem;
-    }
-
-        .stat-box h3 {
-            font-size: 1.3rem;
+        .panel-title {
             color: #032C7D;
-            margin: 0;
+            font-size: 1rem;
+            margin: 0 0 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding-bottom: 0.6rem;
+            border-bottom: 1px solid #E2E8F0;
         }
 
-        .stat-box p {
-            margin: 0;
-            font-size: 0.7rem;
-            color: #5A6E7A;
+            .panel-title i {
+                color: #0841C9;
+            }
+
+        .form-group {
+            margin-bottom: 1.1rem;
         }
 
-    .grid-2col {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 1rem;
-    }
+            .form-group label {
+                display: block;
+                font-size: 0.8rem;
+                font-weight: 600;
+                color: #032C7D;
+                margin-bottom: 0.4rem;
+            }
 
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
+        .form-control {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
 
-    th, td {
-        padding: 0.6rem;
-        text-align: left;
-        border-bottom: 1px solid #E2E8F0;
-        font-size: 0.75rem;
-    }
+            .form-control:focus {
+                outline: none;
+                border-color: #0841C9;
+                box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
+            }
 
-    th {
-        background: #F8FAFE;
-        font-weight: 600;
-        color: #5A6E7A;
-    }
-</style>
+        .row-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
 
-<div class="grid-2col">
-    <div class="card">
-        <h3><i class="fas fa-chart-simple"></i> Generate Report</h3>
-        <div class="form-group">
-            <label>Start Date</label>
-            <input type="date" id="reportStart" class="form-control">
-        </div>
-        <div class="form-group">
-            <label>End Date</label>
-            <input type="date" id="reportEnd" class="form-control">
-        </div>
-        <div class="form-group">
-            <label>Report Type</label>
-            <select id="reportType" class="form-control">
-                <option value="all">All Test Requests</option>
-                <option value="completed">Completed Tests Only</option>
-                <option value="abnormal">Abnormal Results Only</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Format</label>
-            <select id="reportFormat" class="form-control">
-                <option value="pdf">PDF Document</option>
-                <option value="excel">Excel (CSV)</option>
-            </select>
-        </div>
-        <button class="btn-primary" onclick="generateReport()"><i class="fas fa-file-pdf"></i> Generate PDF Report</button>
+        .btn {
+            padding: 0.7rem 1.5rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: #0841C9;
+            color: white;
+        }
+
+            .btn-primary:hover {
+                background: #032C7D;
+                color: white;
+            }
+
+        .btn-success {
+            background: #10B981;
+            color: white;
+        }
+
+            .btn-success:hover {
+                background: #059669;
+                color: white;
+            }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #E2E8F0;
+            color: #1A2C3A;
+        }
+
+            .btn-outline:hover {
+                background: #F1F5F9;
+                color: #1A2C3A;
+            }
+
+        .alert {
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+        }
+
+        .alert-success {
+            background: #D1FAE5;
+            color: #065F46;
+            border-left: 4px solid #10B981;
+        }
+
+        .alert-danger {
+            background: #FEE2E2;
+            color: #991B1B;
+            border-left: 4px solid #DC2626;
+        }
+
+        .info-note {
+            background: #EFF6FF;
+            border-left: 4px solid #0841C9;
+            border-radius: 10px;
+            padding: 0.9rem 1rem;
+            font-size: 0.82rem;
+            color: #1A2C3A;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+
+            .info-note i {
+                color: #0841C9;
+                margin-right: 0.4rem;
+            }
+
+        .quick-range {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+
+            .quick-range button {
+                padding: 0.35rem 0.9rem;
+                border-radius: 30px;
+                border: 1px solid #E2E8F0;
+                background: white;
+                color: #1A2C3A;
+                font-size: 0.75rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.15s;
+                font-family: inherit;
+            }
+
+                .quick-range button:hover {
+                    border-color: #0841C9;
+                    color: #0841C9;
+                    background: #EFF6FF;
+                }
+
+        @@media (max-width: 768px) {
+            .row-2col {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+<div class="panel">
+    <h3 class="panel-title"><i class="fas fa-file-pdf"></i> Generate Test Request Report</h3>
+
+    <div class="info-note">
+        <i class="fas fa-info-circle"></i>
+        This report includes all test requests you submitted in the selected date range,
+        including patient details, test statuses, results, and abnormal flags.
     </div>
 
-    <div class="card">
-        <h3><i class="fas fa-chart-pie"></i> Quick Statistics</h3>
-        <div class="stat-box">
-            <h3 id="statTotal">47</h3>
-            <p>Total Requests (This Month)</p>
+    <form asp-action="GenerateReport" method="post" target="_blank">
+        @Html.AntiForgeryToken()
+
+        <div class="row-2col">
+            <div class="form-group">
+                <label>Start Date <span style="color:#DC2626;">*</span></label>
+                <input type="date" asp-for="StartDate" class="form-control"
+                       value="@Model.StartDate.ToString("yyyy-MM-dd")" required />
+            </div>
+            <div class="form-group">
+                <label>End Date <span style="color:#DC2626;">*</span></label>
+                <input type="date" asp-for="EndDate" class="form-control"
+                       value="@Model.EndDate.ToString("yyyy-MM-dd")" required />
+            </div>
         </div>
-        <div class="stat-box">
-            <h3 id="statCompleted">32</h3>
-            <p>Completed</p>
+
+        <div class="quick-range">
+            <button type="button" onclick="setRange(7)">Last 7 days</button>
+            <button type="button" onclick="setRange(30)">Last 30 days</button>
+            <button type="button" onclick="setRange(90)">Last 90 days</button>
+            <button type="button" onclick="setRange(365)">Last year</button>
         </div>
-        <div class="stat-box">
-            <h3 id="statAbnormal">8</h3>
-            <p>Abnormal Results</p>
+
+        <div class="row-2col" style="margin-top:1.1rem;">
+            <div class="form-group">
+                <label>Status</label>
+                <select asp-for="Status" class="form-control">
+                    <option value="all">All Statuses</option>
+                    <option value="Submitted">Submitted</option>
+                    <option value="Samples Received">Samples Received</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Verified">Verified</option>
+                    <option value="Released">Released</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Urgency</label>
+                <select asp-for="Urgency" class="form-control">
+                    <option value="all">All Urgencies</option>
+                    <option value="stat">STAT</option>
+                    <option value="urgent">Urgent</option>
+                    <option value="routine">Routine</option>
+                </select>
+            </div>
         </div>
-        <div class="stat-box">
-            <h3 id="statPending">7</h3>
-            <p>Pending Release</p>
+
+        <div style="display:flex; justify-content:flex-end; gap:0.6rem; margin-top:1rem;">
+            <a asp-action="Reports" class="btn btn-outline">
+                <i class="fas fa-redo"></i> Reset
+            </a>
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-file-pdf"></i> Generate PDF Report
+            </button>
         </div>
-        <button class="btn-primary" onclick="location.href='@Url.Action("Results", "Doctor")'" style="background:#6B7280; margin-top:0.5rem;">View Detailed Analytics →</button>
-    </div>
+    </form>
 </div>
 
-<div class="card">
-    <h3><i class="fas fa-download"></i> Saved Reports</h3>
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Report Name</th>
-                    <th>Date Generated</th>
-                    <th>Type</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Monthly Summary - April 2025</td>
-                    <td>2025-04-30</td>
-                    <td>PDF</td>
-                    <td><button class="btn-sm" onclick="downloadReport('Monthly Summary - April 2025')">Download</button></td>
-                </tr>
-                <tr>
-                    <td>Abnormal Results Q1 2025</td>
-                    <td>2025-03-31</td>
-                    <td>PDF</td>
-                    <td><button class="btn-sm" onclick="downloadReport('Abnormal Results Q1 2025')">Download</button></td>
-                </tr>
-                <tr>
-                    <td>Patient Test History - Thabo Mbeki</td>
-                    <td>2025-03-28</td>
-                    <td>PDF</td>
-                    <td><button class="btn-sm" onclick="downloadReport('Patient Test History - Thabo Mbeki')">Download</button></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
+@section Scripts {
+    <script>
+        function setRange(days) {
+            var end = new Date();
+            var start = new Date();
+            start.setDate(start.getDate() - days);
 
-<script>
-    function generateReport() {
-        var start = document.getElementById('reportStart').value;
-        var end = document.getElementById('reportEnd').value;
-        var type = document.getElementById('reportType').value;
-        var format = document.getElementById('reportFormat').value;
+            document.getElementById('StartDate').value = toDateString(start);
+            document.getElementById('EndDate').value = toDateString(end);
+        }
 
-        var typeText = '';
-        if (type === 'all') typeText = 'All Test Requests';
-        else if (type === 'completed') typeText = 'Completed Tests Only';
-        else typeText = 'Abnormal Results Only';
-
-        alert('📄 Report Generated Successfully!\n\n📅 Period: ' + (start || 'All') + ' to ' + (end || 'All') + '\n📊 Type: ' + typeText + '\n📁 Format: ' + format.toUpperCase() + '\n\nDownload will start shortly.');
-    }
-
-    function downloadReport(reportName) {
-        alert('📥 Downloading "' + reportName + '"...\n\nThe report would be downloaded as PDF.');
-    }
-</script>
+        function toDateString(d) {
+            var y = d.getFullYear();
+            var m = String(d.getMonth() + 1).padStart(2, '0');
+            var day = String(d.getDate()).padStart(2, '0');
+            return y + '-' + m + '-' + day;
+        }
+    </script>
+}

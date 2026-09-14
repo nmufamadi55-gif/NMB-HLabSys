@@ -11,9 +11,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container
 builder.Services.AddControllersWithViews();
 
+
 // Register DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+   options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+       .EnableSensitiveDataLogging()
+       .LogTo(Console.WriteLine, LogLevel.Information));
 
 // Register services
 builder.Services.AddScoped<ILaboratoryManagerService, LaboratoryManagerService>();
@@ -21,6 +24,11 @@ builder.Services.AddScoped<IStockManagementService, StockManagementService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IPdfReportService, PdfReportService>();
 builder.Services.AddScoped<IPasswordGenerator, PasswordGenerator>();
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();          
+builder.Services.AddScoped<IDoctorService, DoctorService>();           
+builder.Services.AddScoped<IBarcodeService, BarcodeService>();          
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 // QuestPDF License
 QuestPDF.Settings.License = LicenseType.Community;
@@ -36,10 +44,13 @@ builder.Services.AddSession(options =>
 
 var app = builder.Build();
 
-// ??????????? SEED DATABASE (Lab Manager) ???????????
+// ============================================
+// SEED DATABASE - Create Default Manager
+// ============================================
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
     // Ensure database is created (if using migrations)
     context.Database.Migrate();
 
@@ -56,7 +67,9 @@ using (var scope = app.Services.CreateScope())
             UserRole = "Manager",
             IsActive = true,
             IsPasswordChanged = false,
-            CreatedDate = DateTime.Now
+            CreatedDate = DateTime.Now,
+            Name = "Manager",
+            Surname = "User"
         };
 
         context.Users.Add(manager);
@@ -68,7 +81,60 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine("??  Please change your password on first login.");
     }
 }
-// ??????????? END SEED ???????????
+
+// ============================================
+// SEED DATABASE - Create Default Doctor
+// ============================================
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    if (!context.Doctors.Any())
+    {
+        // Create the User row first
+        var doctorUser = new User
+        {
+            Name = "Sarah",
+            Surname = "Johnson",
+            Email = "doctor@nmblab.co.za",
+            PasswordHash = HashPassword("Nmb#Doctor2025!"),
+            UserRole = "Doctor",
+            ContactNumber = "0825555678",
+            IsActive = true,
+            IsPasswordChanged = false,
+            CreatedDate = DateTime.Now
+        };
+
+        context.Users.Add(doctorUser);
+        context.SaveChanges();
+
+        // Create the Doctor profile linked to the User
+        var doctor = new Doctor
+        {
+            UserID = doctorUser.UserID,
+            HPCSANumber = "HPCSA001",
+            PracticeName = "Johnson Medical Practice",
+            PracticeAddress = "123 Medical Street, Gqeberha, 6001",
+            Specialization = "Haematology",
+            IsVerified = true,
+            RegisteredDate = DateTime.Now
+        };
+
+        context.Doctors.Add(doctor);
+        context.SaveChanges();
+
+        Console.WriteLine("? Doctor created: doctor@nmblab.co.za / Nmb#Doctor2025!");
+    }
+}
+
+// ============================================
+// ENSURE DATABASE IS CREATED
+// ============================================
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    dbContext.Database.EnsureCreated();
+}
 
 // Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
@@ -80,7 +146,6 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-
 app.UseSession();
 app.UseAuthorization();
 
@@ -90,7 +155,9 @@ app.MapControllerRoute(
 
 app.Run();
 
-// ??? Simple Password Hasher (replace with your own IPasswordHasher later) ???
+// ============================================
+// SIMPLE PASSWORD HASHER
+// ============================================
 static string HashPassword(string password)
 {
     using var sha256 = SHA256.Create();
