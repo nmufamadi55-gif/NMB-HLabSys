@@ -10,40 +10,228 @@
 }
 
 @section SidebarMenu {
- ... same ...
- }
+    <li><a href="@Url.Action("Index", "LaboratoryManager")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+    <li><a href="@Url.Action("TestCatalogue", "LaboratoryManager")"><i class="fas fa-vial"></i> <span>Test Catalogue</span></a></li>
+    <li><a href="@Url.Action("Stock", "LaboratoryManager")" class="active"><i class="fas fa-boxes"></i> <span>Stock Management</span></a></li>
+    <li><a href="@Url.Action("Suppliers", "LaboratoryManager")"><i class="fas fa-truck"></i> <span>Suppliers</span></a></li>
+    <li><a href="@Url.Action("Orders", "LaboratoryManager")"><i class="fas fa-shopping-cart"></i> <span>Purchase Orders</span></a></li>
+    <li><a href="@Url.Action("Staff", "LaboratoryManager")"><i class="fas fa-user-md"></i> <span>Staff Management</span></a></li>
+    <li><a href="@Url.Action("Reports", "LaboratoryManager")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+}
 
-<style>... form styles ...</style>
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #032C7D 0%, #0841C9 100%);
+        border-radius: 20px;
+        padding: 1.2rem 1.8rem;
+        margin-bottom: 1.5rem;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+        .page-header h2 {
+            font-size: 1.3rem;
+            margin: 0;
+            color: white;
+        }
+
+        .page-header p {
+            font-size: 0.8rem;
+            margin: 0.2rem 0 0 0;
+            opacity: 0.9;
+        }
+
+        .page-header .breadcrumb-back {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 0.3rem 0.9rem;
+            border-radius: 40px;
+            text-decoration: none;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+            .page-header .breadcrumb-back:hover {
+                background: rgba(255,255,255,0.3);
+            }
+
+    .form-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        border: 1px solid #E2E8F0;
+        max-width: 700px;
+    }
+
+    .form-section-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #032C7D;
+        margin: 0 0 1rem 0;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #E2E8F0;
+    }
+
+    .form-group {
+        margin-bottom: 1.2rem;
+    }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 0.4rem;
+            color: #032C7D;
+        }
+
+    .form-control {
+        width: 100%;
+        padding: 0.6rem 0.8rem;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        background: #F8FAFE;
+        font-family: 'Inter', sans-serif;
+    }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #0841C9;
+            box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
+            background: white;
+        }
+
+        .form-control:disabled {
+            background: #E2E8F0;
+            cursor: not-allowed;
+        }
+
+    .form-actions {
+        display: flex;
+        gap: 0.8rem;
+        margin-top: 1.5rem;
+        padding-top: 1.2rem;
+        border-top: 1px solid #E2E8F0;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #0841C9, #1D97F1);
+        color: white;
+        border: none;
+        padding: 0.6rem 1.4rem;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(8,65,201,0.3);
+            color: white;
+        }
+
+    .btn-outline {
+        background: transparent;
+        border: 1px solid #E2E8F0;
+        padding: 0.6rem 1.4rem;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        color: #5A6E7A;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .btn-outline:hover {
+            border-color: #0841C9;
+            color: #0841C9;
+            background: rgba(8,65,201,0.02);
+        }
+
+    .validation-message {
+        color: #DC2626;
+        font-size: 0.75rem;
+        margin-top: 0.3rem;
+        display: block;
+    }
+
+    .required {
+        color: #DC2626;
+    }
+
+    .current-stock-badge {
+        display: inline-block;
+        background: #CDE8FF;
+        color: #004085;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        margin-left: 0.5rem;
+    }
+</style>
+
+<div class="page-header">
+    <div>
+        <h2><i class="fas fa-balance-scale"></i> Adjust Stock</h2>
+        <p>@Model.ConsumableName</p>
+    </div>
+    <a href="@Url.Action("Stock")" class="breadcrumb-back">
+        <i class="fas fa-arrow-left"></i> Back to Stock
+    </a>
+</div>
 
 <div class="form-card">
-    <h3><i class="fas fa-balance-scale"></i> Adjust Stock for @Model.ConsumableName</h3>
+    <h3 class="form-section-title"><i class="fas fa-edit"></i> Stock Adjustment</h3>
     <form method="post" action="@Url.Action("AdjustStock")">
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="ConsumableID" />
+        <input type="hidden" asp-for="ConsumableName" />
+
         <div class="form-group">
-            <label>Current Quantity</label>
-            <input class="form-control" value="@Model.CurrentQuantity" disabled />
+            <label>Consumable <span class="current-stock-badge">Current: @Model.CurrentQuantity</span></label>
+            <input class="form-control" value="@Model.ConsumableName" disabled />
         </div>
+
         <div class="form-group">
-            <label>Adjustment Type <span style="color:red;">*</span></label>
+            <label>Adjustment Type <span class="required">*</span></label>
             <select asp-for="AdjustmentType" class="form-control">
-                <option value="increase">Increase</option>
-                <option value="decrease">Decrease</option>
-                <option value="set">Set to exact value</option>
+                <option value="">-- Select Type --</option>
+                <option value="increase">Increase – Add to stock</option>
+                <option value="decrease">Decrease – Remove from stock</option>
+                <option value="set">Set – Replace with exact value</option>
             </select>
+            <span asp-validation-for="AdjustmentType" class="validation-message"></span>
         </div>
+
         <div class="form-group">
-            <label>Adjustment Amount <span style="color:red;">*</span></label>
-            <input asp-for="AdjustmentAmount" class="form-control" type="number" />
-            <span asp-validation-for="AdjustmentAmount" style="color:#DC2626; font-size:0.7rem;"></span>
+            <label>Adjustment Amount <span class="required">*</span></label>
+            <input asp-for="AdjustmentAmount" class="form-control" type="number" min="1" placeholder="e.g., 10" />
+            <span asp-validation-for="AdjustmentAmount" class="validation-message"></span>
         </div>
+
         <div class="form-group">
             <label>Reason for Adjustment</label>
-            <input asp-for="Reason" class="form-control" placeholder="e.g., Damaged, Return, Manual count" />
+            <input asp-for="Reason" class="form-control" placeholder="e.g., Manual count, Damaged, Return" />
         </div>
-        <div style="display:flex; gap:1rem; margin-top:1.5rem;">
+
+        <div class="form-actions">
             <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Apply Adjustment</button>
-            <button type="button" class="btn-outline" onclick="history.back()">Cancel</button>
+            <a href="@Url.Action("Stock")" class="btn-outline"><i class="fas fa-times"></i> Cancel</a>
         </div>
     </form>
 </div>

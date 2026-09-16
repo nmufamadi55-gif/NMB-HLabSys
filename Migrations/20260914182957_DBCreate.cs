@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace NMB_HLabSys.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialDbNMB : Migration
+    public partial class DBCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -30,7 +30,7 @@ namespace NMB_HLabSys.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "LookupCategory",
+                name: "LookupCategories",
                 columns: table => new
                 {
                     CategoryID = table.Column<int>(type: "int", nullable: false)
@@ -39,11 +39,12 @@ namespace NMB_HLabSys.Migrations
                     CategoryType = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ModifiedDate = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    ModifiedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_LookupCategory", x => x.CategoryID);
+                    table.PrimaryKey("PK_LookupCategories", x => x.CategoryID);
                 });
 
             migrationBuilder.CreateTable(
@@ -105,13 +106,17 @@ namespace NMB_HLabSys.Migrations
                 {
                     UserID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Surname = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Email = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     UserRole = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    ContactNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
                     IsPasswordChanged = table.Column<bool>(type: "bit", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ModifiedDate = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    ModifiedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    AspNetUserID = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -119,7 +124,7 @@ namespace NMB_HLabSys.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Allergy",
+                name: "Allergies",
                 columns: table => new
                 {
                     AllergyID = table.Column<int>(type: "int", nullable: false)
@@ -133,17 +138,17 @@ namespace NMB_HLabSys.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Allergy", x => x.AllergyID);
+                    table.PrimaryKey("PK_Allergies", x => x.AllergyID);
                     table.ForeignKey(
-                        name: "FK_Allergy_LookupCategory_CategoryID",
+                        name: "FK_Allergies_LookupCategories_CategoryID",
                         column: x => x.CategoryID,
-                        principalTable: "LookupCategory",
+                        principalTable: "LookupCategories",
                         principalColumn: "CategoryID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
-                name: "MedicalCondition",
+                name: "MedicalConditions",
                 columns: table => new
                 {
                     ConditionID = table.Column<int>(type: "int", nullable: false)
@@ -157,17 +162,17 @@ namespace NMB_HLabSys.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MedicalCondition", x => x.ConditionID);
+                    table.PrimaryKey("PK_MedicalConditions", x => x.ConditionID);
                     table.ForeignKey(
-                        name: "FK_MedicalCondition_LookupCategory_CategoryID",
+                        name: "FK_MedicalConditions_LookupCategories_CategoryID",
                         column: x => x.CategoryID,
-                        principalTable: "LookupCategory",
+                        principalTable: "LookupCategories",
                         principalColumn: "CategoryID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Medication",
+                name: "Medications",
                 columns: table => new
                 {
                     MedicationID = table.Column<int>(type: "int", nullable: false)
@@ -181,13 +186,13 @@ namespace NMB_HLabSys.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Medication", x => x.MedicationID);
+                    table.PrimaryKey("PK_Medications", x => x.MedicationID);
                     table.ForeignKey(
-                        name: "FK_Medication_LookupCategory_CategoryID",
+                        name: "FK_Medications_LookupCategories_CategoryID",
                         column: x => x.CategoryID,
-                        principalTable: "LookupCategory",
+                        principalTable: "LookupCategories",
                         principalColumn: "CategoryID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -436,9 +441,9 @@ namespace NMB_HLabSys.Migrations
                 {
                     table.PrimaryKey("PK_PatientAllergies", x => x.PatientAllergyID);
                     table.ForeignKey(
-                        name: "FK_PatientAllergies_Allergy_AllergyID",
+                        name: "FK_PatientAllergies_Allergies_AllergyID",
                         column: x => x.AllergyID,
-                        principalTable: "Allergy",
+                        principalTable: "Allergies",
                         principalColumn: "AllergyID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -466,9 +471,9 @@ namespace NMB_HLabSys.Migrations
                 {
                     table.PrimaryKey("PK_PatientConditions", x => x.PatientConditionID);
                     table.ForeignKey(
-                        name: "FK_PatientConditions_MedicalCondition_ConditionID",
+                        name: "FK_PatientConditions_MedicalConditions_ConditionID",
                         column: x => x.ConditionID,
-                        principalTable: "MedicalCondition",
+                        principalTable: "MedicalConditions",
                         principalColumn: "ConditionID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -527,9 +532,9 @@ namespace NMB_HLabSys.Migrations
                 {
                     table.PrimaryKey("PK_PatientMedications", x => x.PatientMedicationID);
                     table.ForeignKey(
-                        name: "FK_PatientMedications_Medication_MedicationID",
+                        name: "FK_PatientMedications_Medications_MedicationID",
                         column: x => x.MedicationID,
-                        principalTable: "Medication",
+                        principalTable: "Medications",
                         principalColumn: "MedicationID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -555,6 +560,9 @@ namespace NMB_HLabSys.Migrations
                     Status = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
                     CompletedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     ReleasedToPatientDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ReleaseNote = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    ReleaseMethod = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: true),
+                    AppointmentRequestedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     CancelledDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     CancellationReason = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
@@ -802,9 +810,15 @@ namespace NMB_HLabSys.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Allergy_CategoryID",
-                table: "Allergy",
+                name: "IX_Allergies_CategoryID",
+                table: "Allergies",
                 column: "CategoryID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Allergy_Name_Unique",
+                table: "Allergies",
+                column: "AllergyName",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_ConsentTestRequest_ConsentID",
@@ -863,13 +877,31 @@ namespace NMB_HLabSys.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_MedicalCondition_CategoryID",
-                table: "MedicalCondition",
+                name: "IX_LookupCategory_Name_Unique",
+                table: "LookupCategories",
+                column: "CategoryName",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MedicalCondition_Name_Unique",
+                table: "MedicalConditions",
+                column: "ConditionName",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MedicalConditions_CategoryID",
+                table: "MedicalConditions",
                 column: "CategoryID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Medication_CategoryID",
-                table: "Medication",
+                name: "IX_Medication_Name_Unique",
+                table: "Medications",
+                column: "MedicationName",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Medications_CategoryID",
+                table: "Medications",
                 column: "CategoryID");
 
             migrationBuilder.CreateIndex(
@@ -925,8 +957,7 @@ namespace NMB_HLabSys.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Patients_UserID",
                 table: "Patients",
-                column: "UserID",
-                unique: true);
+                column: "UserID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PurchaseOrder_Number_Unique",
@@ -1117,13 +1148,13 @@ namespace NMB_HLabSys.Migrations
                 name: "PatientConsentManagements");
 
             migrationBuilder.DropTable(
-                name: "Allergy");
+                name: "Allergies");
 
             migrationBuilder.DropTable(
-                name: "MedicalCondition");
+                name: "MedicalConditions");
 
             migrationBuilder.DropTable(
-                name: "Medication");
+                name: "Medications");
 
             migrationBuilder.DropTable(
                 name: "PurchaseOrders");
@@ -1138,7 +1169,7 @@ namespace NMB_HLabSys.Migrations
                 name: "TestResults");
 
             migrationBuilder.DropTable(
-                name: "LookupCategory");
+                name: "LookupCategories");
 
             migrationBuilder.DropTable(
                 name: "Suppliers");

@@ -64,7 +64,6 @@ namespace NMB_HLabSys.Controllers
         {
             if (!ModelState.IsValid)
             {
-                // FIX: Get the view model properly
                 var viewModel = await _service.GetCreateTestTypeViewModelAsync();
                 model.AvailableCategories = viewModel.AvailableCategories;
                 model.AvailableSampleTypes = viewModel.AvailableSampleTypes;
@@ -176,7 +175,11 @@ namespace NMB_HLabSys.Controllers
         // ============================================================
         // TEST CATEGORIES
         // ============================================================
-
+        // GET: /Manager/CreateCategory
+        public IActionResult CreateCategory()
+        {
+            return View(new CreateTestCategoryViewModel());
+        }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateCategory(CreateTestCategoryViewModel model)
@@ -370,7 +373,12 @@ namespace NMB_HLabSys.Controllers
             var viewModel = await _service.GetStockManagementAsync();
             return View(viewModel);
         }
-
+        // GET: /Manager/CreateConsumable
+        public async Task<IActionResult> CreateConsumable()
+        {
+            var viewModel = await _service.GetCreateConsumableViewModelAsync();
+            return View(viewModel);
+        }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateConsumable(CreateConsumableViewModel model)
@@ -471,7 +479,12 @@ namespace NMB_HLabSys.Controllers
 
             return RedirectToAction(nameof(Stock));
         }
-
+        [HttpGet]
+        public async Task<IActionResult> AdjustStock(int id)
+        {
+            var viewModel = new AdjustStockViewModel { ConsumableID = id };
+            return View(viewModel);
+        }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AdjustStock(AdjustStockViewModel model)

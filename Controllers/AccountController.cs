@@ -72,7 +72,7 @@ namespace NMB_HLabSys.Controllers
                 }
                 else if (user.UserRole == "Manager")
                 {
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Index", "LaboratoryManager");
                 }
 
                 return RedirectToAction("Index", "Home");

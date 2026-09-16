@@ -1,4 +1,5 @@
-﻿@model NMB_HLabSys.Models.ViewModels.TestCatalogueIndexViewModel
+﻿@using NMB_HLabSys.Models.ViewModels
+@model TestCatalogueIndexViewModel
 
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -16,10 +17,34 @@
     <li><a href="@Url.Action("Orders", "LaboratoryManager")"><i class="fas fa-shopping-cart"></i> <span>Purchase Orders</span></a></li>
     <li><a href="@Url.Action("Staff", "LaboratoryManager")"><i class="fas fa-user-md"></i> <span>Staff Management</span></a></li>
     <li><a href="@Url.Action("Reports", "LaboratoryManager")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
-    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
 <style>
+    .page-header {
+        background: linear-gradient(135deg, #032C7D 0%, #0841C9 100%);
+        border-radius: 20px;
+        padding: 1.2rem 1.8rem;
+        margin-bottom: 1.5rem;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+        .page-header h2 {
+            font-size: 1.3rem;
+            margin: 0;
+            color: white;
+        }
+
+        .page-header p {
+            font-size: 0.8rem;
+            margin: 0.2rem 0 0 0;
+            opacity: 0.9;
+        }
+
     .card {
         background: white;
         border-radius: 16px;
@@ -34,6 +59,24 @@
         align-items: center;
         margin-bottom: 0.8rem;
         flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+        .card-header h3 {
+            font-size: 1rem;
+            margin: 0;
+            color: #032C7D;
+            font-weight: 600;
+        }
+
+    .action-bar {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .table-container {
+        overflow-x: auto;
     }
 
     table {
@@ -42,7 +85,7 @@
     }
 
     th, td {
-        padding: 0.5rem 0.3rem;
+        padding: 0.7rem 0.5rem;
         text-align: left;
         border-bottom: 1px solid #E2E8F0;
         font-size: 0.8rem;
@@ -52,43 +95,67 @@
         background: #F8FAFE;
         font-weight: 600;
         color: #5A6E7A;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        letter-spacing: 0.03em;
+    }
+
+    tr:hover {
+        background: #F8FAFE;
     }
 
     .btn-sm {
-        background: #0841C9;
+        background: linear-gradient(135deg, #0841C9, #1D97F1);
         color: white;
         border: none;
-        padding: 0.3rem 0.8rem;
-        border-radius: 30px;
+        padding: 0.4rem 1rem;
+        border-radius: 40px;
         cursor: pointer;
-        font-size: 0.7rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
     }
 
         .btn-sm:hover {
-            background: #032C7D;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(8,65,201,0.25);
+            color: white;
         }
 
     .btn-outline-sm {
         background: transparent;
         border: 1px solid #E2E8F0;
-        padding: 0.3rem 0.8rem;
-        border-radius: 30px;
+        padding: 0.4rem 0.8rem;
+        border-radius: 40px;
         cursor: pointer;
-        font-size: 0.7rem;
+        font-size: 0.75rem;
+        text-decoration: none;
+        color: #5A6E7A;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
     }
 
         .btn-outline-sm:hover {
-            background: #F1F5F9;
+            border-color: #0841C9;
+            color: #0841C9;
+            background: rgba(8,65,201,0.02);
         }
 
     .btn-danger-sm {
         background: #DC2626;
         color: white;
         border: none;
-        padding: 0.3rem 0.8rem;
-        border-radius: 30px;
+        padding: 0.4rem 0.8rem;
+        border-radius: 40px;
         cursor: pointer;
-        font-size: 0.7rem;
+        font-size: 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
     }
 
         .btn-danger-sm:hover {
@@ -97,8 +164,8 @@
 
     .badge {
         display: inline-block;
-        padding: 0.15rem 0.5rem;
-        border-radius: 30px;
+        padding: 0.2rem 0.6rem;
+        border-radius: 40px;
         font-size: 0.7rem;
         font-weight: 600;
     }
@@ -112,22 +179,22 @@
         background: #F8D7DA;
         color: #721C24;
     }
-
-    .action-bar {
-        display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-        margin-bottom: 1rem;
-    }
 </style>
+
+<div class="page-header">
+    <div>
+        <h2><i class="fas fa-vial"></i> Test Catalogue</h2>
+        <p>Manage test types, categories, and sample types</p>
+    </div>
+</div>
 
 <div class="card">
     <div class="card-header">
         <h3><i class="fas fa-vial"></i> Test Types</h3>
-        <div>
-            <button class="btn-sm" onclick="location.href='@Url.Action("CreateTestType")'"><i class="fas fa-plus"></i> Add Test</button>
-            <button class="btn-outline-sm" onclick="location.href='@Url.Action("CreateCategory")'"><i class="fas fa-tag"></i> Add Category</button>
-            <button class="btn-outline-sm" onclick="location.href='@Url.Action("CreateSampleType")'"><i class="fas fa-flask"></i> Add Sample Type</button>
+        <div class="action-bar">
+            <a href="@Url.Action("CreateTestType")" class="btn-sm"><i class="fas fa-plus"></i> Add Test</a>
+            <a href="@Url.Action("CreateCategory")" class="btn-outline-sm"><i class="fas fa-tag"></i> Add Category</a>
+            <a href="@Url.Action("CreateSampleType")" class="btn-outline-sm"><i class="fas fa-flask"></i> Add Sample Type</a>
         </div>
     </div>
     <div class="table-container">
@@ -137,25 +204,147 @@
                     <th>Test Name</th>
                     <th>Category</th>
                     <th>Sample Type</th>
-                    <th>Turnaround (min)</th>
+                    <th>Turnaround</th>
                     <th>Status</th>
-                    <th>Actions</th>
+                    <th style="text-align:right;">Actions</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var test in Model.TestTypes)
+                @if (Model.TestTypes != null && Model.TestTypes.Any())
+                {
+                    @foreach (var test in Model.TestTypes)
+                    {
+                        <tr>
+                            <td><strong>@test.TestName</strong></td>
+                            <td>@test.CategoryName</td>
+                            <td>@test.SampleTypeName</td>
+                            <td>@test.TurnaroundTimeMinutes min</td>
+                            <td>
+                                <span class="badge @(test.IsActive ? "badge-success" : "badge-danger")">
+                                    @(test.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </td>
+                            <td style="text-align:right;">
+                                <a href="@Url.Action("EditTestType", new { id = test.TestID })" class="btn-outline-sm">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <form method="post" action="@Url.Action("DeleteTestType")" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this test?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@test.TestID" />
+                                    <button type="submit" class="btn-danger-sm">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
                 {
                     <tr>
-                        <td><strong>@test.TestName</strong></td>
-                        <td>@test.CategoryName</td>
-                        <td>@test.SampleTypeName</td>
-                        <td>@test.TurnaroundTimeMinutes</td>
-                        <td><span class="badge @(test.IsActive ? "badge-success" : "badge-danger")">@(test.IsActive ? "Active" : "Inactive")</span></td>
-                        <td>
-                            <button class="btn-outline-sm" onclick="location.href='@Url.Action("EditTestType", new { id = test.TestID })'"><i class="fas fa-edit"></i></button>
-                            <button class="btn-danger-sm" onclick="if(confirm('Delete this test?')) location.href='@Url.Action("DeleteTestType", new { id = test.TestID })'"><i class="fas fa-trash"></i></button>
+                        <td colspan="6" style="text-align:center; padding:2rem; color:#5A6E7A;">
+                            <i class="fas fa-inbox" style="font-size:2rem; opacity:0.4;"></i>
+                            <p style="margin-top:0.5rem;">No test types found. Add your first test!</p>
                         </td>
                     </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-tags"></i> Test Categories</h3>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Category Name</th>
+                    <th>Description</th>
+                    <th>Tests</th>
+                    <th>Status</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Categories != null && Model.Categories.Any())
+                {
+                    @foreach (var cat in Model.Categories)
+                    {
+                        <tr>
+                            <td><strong>@cat.CategoryName</strong></td>
+                            <td>@cat.Description</td>
+                            <td>@cat.TestCount</td>
+                            <td>
+                                <span class="badge @(cat.IsActive ? "badge-success" : "badge-danger")">
+                                    @(cat.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </td>
+                            <td style="text-align:right;">
+                                <a href="@Url.Action("EditCategory", new { id = cat.CategoryID })" class="btn-outline-sm">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <form method="post" action="@Url.Action("DeleteCategory")" style="display:inline;" onsubmit="return confirm('Delete this category?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@cat.CategoryID" />
+                                    <button type="submit" class="btn-danger-sm"><i class="fas fa-trash"></i> Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="5" style="text-align:center; padding:1.5rem; color:#5A6E7A;">No categories yet.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-flask"></i> Sample Types</h3>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Sample Type</th>
+                    <th>Description</th>
+                    <th>Collection Tube</th>
+                    <th>Storage</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.SampleTypes != null && Model.SampleTypes.Any())
+                {
+                    @foreach (var st in Model.SampleTypes)
+                    {
+                        <tr>
+                            <td><strong>@st.SampleTypeName</strong></td>
+                            <td>@st.Description</td>
+                            <td>@st.CollectionTubeType</td>
+                            <td>@st.StorageRequirements</td>
+                            <td style="text-align:right;">
+                                <a href="@Url.Action("EditSampleType", new { id = st.SampleTypeID })" class="btn-outline-sm">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <form method="post" action="@Url.Action("DeleteSampleType")" style="display:inline;" onsubmit="return confirm('Delete this sample type?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@st.SampleTypeID" />
+                                    <button type="submit" class="btn-danger-sm"><i class="fas fa-trash"></i> Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="5" style="text-align:center; padding:1.5rem; color:#5A6E7A;">No sample types yet.</td></tr>
                 }
             </tbody>
         </table>

@@ -44,41 +44,32 @@ builder.Services.AddSession(options =>
 
 var app = builder.Build();
 
-// ============================================
-// SEED DATABASE - Create Default Manager
-// ============================================
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-    // Ensure database is created (if using migrations)
-    context.Database.Migrate();
-
-    // Check if any Manager exists
     if (!context.Users.Any(u => u.UserRole == "Manager"))
     {
         string rawPassword = "Nmb#Manager2025!";
-        string hashedPassword = HashPassword(rawPassword); // Simple SHA256
+        string hashedPassword = NMB_HLabSys.Helpers.PasswordHelper.HashPassword(rawPassword);
 
         var manager = new User
         {
+            Name = "Lab",
+            Surname = "Manager",
             Email = "manager@nmblab.co.za",
+            ContactNumber = "0820000000",
             PasswordHash = hashedPassword,
             UserRole = "Manager",
             IsActive = true,
-            IsPasswordChanged = false,
-            CreatedDate = DateTime.Now,
-            Name = "Manager",
-            Surname = "User"
+            IsPasswordChanged = true,   // ? Set to true to skip forced password change
+            CreatedDate = DateTime.Now
         };
 
         context.Users.Add(manager);
         context.SaveChanges();
 
-        Console.WriteLine("? Lab Manager created successfully!");
-        Console.WriteLine($"?? Email: {manager.Email}");
-        Console.WriteLine($"?? Password: {rawPassword}");
-        Console.WriteLine("??  Please change your password on first login.");
+        Console.WriteLine("? Lab Manager created: manager@nmblab.co.za / Nmb#Manager2025!");
     }
 }
 

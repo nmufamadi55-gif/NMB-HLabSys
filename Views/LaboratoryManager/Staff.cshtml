@@ -17,41 +17,241 @@
     <li><a href="@Url.Action("Orders", "LaboratoryManager")"><i class="fas fa-shopping-cart"></i> <span>Purchase Orders</span></a></li>
     <li><a href="@Url.Action("Staff", "LaboratoryManager")" class="active"><i class="fas fa-user-md"></i> <span>Staff Management</span></a></li>
     <li><a href="@Url.Action("Reports", "LaboratoryManager")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
-    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
-<style>... table styles, stat boxes ...</style>
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #032C7D 0%, #0841C9 100%);
+        border-radius: 20px;
+        padding: 1.2rem 1.8rem;
+        margin-bottom: 1.5rem;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+        .page-header h2 {
+            font-size: 1.3rem;
+            margin: 0;
+            color: white;
+        }
+
+        .page-header p {
+            font-size: 0.8rem;
+            margin: 0.2rem 0 0 0;
+            opacity: 0.9;
+        }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-box {
+        background: white;
+        border-radius: 16px;
+        padding: 1rem;
+        border: 1px solid #E2E8F0;
+        text-align: center;
+    }
+
+        .stat-box h4 {
+            font-size: 1.6rem;
+            margin: 0;
+            color: #032C7D;
+            font-weight: 700;
+        }
+
+        .stat-box p {
+            margin: 0.2rem 0 0;
+            font-size: 0.75rem;
+            color: #5A6E7A;
+        }
+
+    .card {
+        background: white;
+        border-radius: 16px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: 1px solid #E2E8F0;
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.8rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+        .card-header h3 {
+            font-size: 1rem;
+            margin: 0;
+            color: #032C7D;
+            font-weight: 600;
+        }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 0.7rem 0.5rem;
+        text-align: left;
+        border-bottom: 1px solid #E2E8F0;
+        font-size: 0.8rem;
+    }
+
+    th {
+        background: #F8FAFE;
+        font-weight: 600;
+        color: #5A6E7A;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        letter-spacing: 0.03em;
+    }
+
+    tr:hover {
+        background: #F8FAFE;
+    }
+
+    .btn-sm {
+        background: linear-gradient(135deg, #0841C9, #1D97F1);
+        color: white;
+        border: none;
+        padding: 0.4rem 1rem;
+        border-radius: 40px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+        .btn-sm:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(8,65,201,0.25);
+            color: white;
+        }
+
+    .btn-outline-sm {
+        background: transparent;
+        border: 1px solid #E2E8F0;
+        padding: 0.4rem 0.8rem;
+        border-radius: 40px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        text-decoration: none;
+        color: #5A6E7A;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+        .btn-outline-sm:hover {
+            border-color: #0841C9;
+            color: #0841C9;
+            background: rgba(8,65,201,0.02);
+        }
+
+    .badge {
+        display: inline-block;
+        padding: 0.2rem 0.6rem;
+        border-radius: 40px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    .badge-success {
+        background: #D4EDDA;
+        color: #155724;
+    }
+
+    .badge-danger {
+        background: #F8D7DA;
+        color: #721C24;
+    }
+
+    .badge-warning {
+        background: #FFF3CD;
+        color: #856404;
+    }
+</style>
+
+<div class="page-header">
+    <div>
+        <h2><i class="fas fa-users"></i> Staff Management</h2>
+        <p>Manage lab technicians and doctors</p>
+    </div>
+</div>
 
 <div class="stats-grid">
-    <div class="stat-box"><h4>@Model.Statistics.TotalTechnicians</h4><p>Technicians</p></div>
-    <div class="stat-box"><h4>@Model.Statistics.ActiveTechnicians</h4><p>Active Technicians</p></div>
-    <div class="stat-box"><h4>@Model.Statistics.TotalDoctors</h4><p>Doctors</p></div>
-    <div class="stat-box"><h4>@Model.Statistics.ActiveDoctors</h4><p>Active Doctors</p></div>
+    <div class="stat-box"><h4>@Model.Statistics.TotalTechnicians</h4><p>Total Technicians</p></div>
+    <div class="stat-box"><h4 style="color:#10B981;">@Model.Statistics.ActiveTechnicians</h4><p>Active Technicians</p></div>
+    <div class="stat-box"><h4>@Model.Statistics.TotalDoctors</h4><p>Total Doctors</p></div>
+    <div class="stat-box"><h4 style="color:#10B981;">@Model.Statistics.ActiveDoctors</h4><p>Active Doctors</p></div>
 </div>
 
 <div class="card">
     <div class="card-header">
-        <h3><i class="fas fa-user-md"></i> Lab Technicians</h3>
-        <div>
-            <button class="btn-sm" onclick="location.href='@Url.Action("AddTechnician")'"><i class="fas fa-plus"></i> Add Technician</button>
-        </div>
+        <h3><i class="fas fa-flask"></i> Lab Technicians</h3>
+        <a href="@Url.Action("AddTechnician")" class="btn-sm"><i class="fas fa-plus"></i> Add Technician</a>
     </div>
     <div class="table-container">
         <table>
-            <thead><tr><th>Name</th><th>Employee #</th><th>SA ID</th><th>Specialization</th><th>Assigned Tests</th><th>Status</th><th>Actions</th></tr></thead>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Employee #</th>
+                    <th>SA ID</th>
+                    <th>Specialization</th>
+                    <th>Assigned Tests</th>
+                    <th>Status</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
             <tbody>
-                @foreach (var t in Model.Technicians)
+                @if (Model.Technicians != null && Model.Technicians.Any())
+                {
+                    @foreach (var t in Model.Technicians)
+                    {
+                        <tr>
+                            <td><strong>@t.FullName</strong></td>
+                            <td>@t.EmployeeNumber</td>
+                            <td>@t.SAIDNumber</td>
+                            <td>@t.Specialization</td>
+                            <td>@t.AssignedTestsCount</td>
+                            <td>
+                                <span class="badge @(t.IsActive ? "badge-success" : "badge-danger")">
+                                    @(t.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </td>
+                            <td style="text-align:right;">
+                                <a href="@Url.Action("TechnicianProfile", new { id = t.TechnicianID })" class="btn-outline-sm"><i class="fas fa-user"></i> Profile</a>
+                                <a href="@Url.Action("EditTechnician", new { id = t.TechnicianID })" class="btn-outline-sm"><i class="fas fa-edit"></i> Edit</a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
                 {
                     <tr>
-                        <td><strong>@t.FullName</strong></td>
-                        <td>@t.EmployeeNumber</td>
-                        <td>@t.SAIDNumber</td>
-                        <td>@t.Specialization</td>
-                        <td>@t.AssignedTestsCount</td>
-                        <td><span class="badge @(t.IsActive ? "badge-success" : "badge-danger")">@(t.IsActive ? "Active" : "Inactive")</span></td>
-                        <td>
-                            <button class="btn-outline-sm" onclick="location.href='@Url.Action("TechnicianProfile", new { id = t.TechnicianID })'"><i class="fas fa-user"></i></button>
-                            <button class="btn-outline-sm" onclick="location.href='@Url.Action("EditTechnician", new { id = t.TechnicianID })'"><i class="fas fa-edit"></i></button>
+                        <td colspan="7" style="text-align:center; padding:2rem; color:#5A6E7A;">
+                            <i class="fas fa-inbox" style="font-size:2rem; opacity:0.4;"></i>
+                            <p style="margin-top:0.5rem;">No technicians found.</p>
                         </td>
                     </tr>
                 }
@@ -63,24 +263,47 @@
 <div class="card">
     <div class="card-header">
         <h3><i class="fas fa-user-md"></i> Doctors</h3>
-        <div>
-            <button class="btn-sm" onclick="location.href='@Url.Action("AddDoctor")'"><i class="fas fa-plus"></i> Add Doctor</button>
-        </div>
+        <a href="@Url.Action("AddDoctor")" class="btn-sm"><i class="fas fa-plus"></i> Add Doctor</a>
     </div>
     <div class="table-container">
         <table>
-            <thead><tr><th>Name</th><th>HPCSA</th><th>Email</th><th>Practice</th><th>Verified</th><th>Actions</th></tr></thead>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>HPCSA</th>
+                    <th>Email</th>
+                    <th>Practice</th>
+                    <th>Verified</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
             <tbody>
-                @foreach (var d in Model.Doctors)
+                @if (Model.Doctors != null && Model.Doctors.Any())
+                {
+                    @foreach (var d in Model.Doctors)
+                    {
+                        <tr>
+                            <td><strong>@d.FullName</strong></td>
+                            <td>@d.HPCSANumber</td>
+                            <td>@d.Email</td>
+                            <td>@d.PracticeName</td>
+                            <td>
+                                <span class="badge @(d.IsVerified ? "badge-success" : "badge-warning")">
+                                    @(d.IsVerified ? "Verified" : "Pending")
+                                </span>
+                            </td>
+                            <td style="text-align:right;">
+                                <a href="@Url.Action("EditDoctor", new { id = d.DoctorID })" class="btn-outline-sm"><i class="fas fa-edit"></i> Edit</a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
                 {
                     <tr>
-                        <td><strong>@d.FullName</strong></td>
-                        <td>@d.HPCSANumber</td>
-                        <td>@d.Email</td>
-                        <td>@d.PracticeName</td>
-                        <td><span class="badge @(d.IsVerified ? "badge-success" : "badge-warning")">@(d.IsVerified ? "Verified" : "Pending")</span></td>
-                        <td>
-                            <button class="btn-outline-sm" onclick="location.href='@Url.Action("EditDoctor", new { id = d.DoctorID })'"><i class="fas fa-edit"></i></button>
+                        <td colspan="6" style="text-align:center; padding:2rem; color:#5A6E7A;">
+                            <i class="fas fa-inbox" style="font-size:2rem; opacity:0.4;"></i>
+                            <p style="margin-top:0.5rem;">No doctors found.</p>
                         </td>
                     </tr>
                 }

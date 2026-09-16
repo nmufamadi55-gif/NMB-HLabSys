@@ -10,24 +10,219 @@
 }
 
 @section SidebarMenu {
- ... same ...
- }
+    <li><a href="@Url.Action("Index", "LaboratoryManager")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+    <li><a href="@Url.Action("TestCatalogue", "LaboratoryManager")"><i class="fas fa-vial"></i> <span>Test Catalogue</span></a></li>
+    <li><a href="@Url.Action("Stock", "LaboratoryManager")"><i class="fas fa-boxes"></i> <span>Stock Management</span></a></li>
+    <li><a href="@Url.Action("Suppliers", "LaboratoryManager")"><i class="fas fa-truck"></i> <span>Suppliers</span></a></li>
+    <li><a href="@Url.Action("Orders", "LaboratoryManager")" class="active"><i class="fas fa-shopping-cart"></i> <span>Purchase Orders</span></a></li>
+    <li><a href="@Url.Action("Staff", "LaboratoryManager")"><i class="fas fa-user-md"></i> <span>Staff Management</span></a></li>
+    <li><a href="@Url.Action("Reports", "LaboratoryManager")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+}
 
-<style>... table styles ...</style>
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #032C7D 0%, #0841C9 100%);
+        border-radius: 20px;
+        padding: 1.2rem 1.8rem;
+        margin-bottom: 1.5rem;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+        .page-header h2 {
+            font-size: 1.3rem;
+            margin: 0;
+            color: white;
+        }
+
+        .page-header p {
+            font-size: 0.8rem;
+            margin: 0.2rem 0 0 0;
+            opacity: 0.9;
+        }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-box {
+        background: white;
+        border-radius: 16px;
+        padding: 1rem;
+        border: 1px solid #E2E8F0;
+        text-align: center;
+        transition: all 0.2s;
+    }
+
+        .stat-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+
+        .stat-box h4 {
+            font-size: 1.6rem;
+            margin: 0;
+            color: #032C7D;
+            font-weight: 700;
+        }
+
+        .stat-box p {
+            margin: 0.2rem 0 0;
+            font-size: 0.75rem;
+            color: #5A6E7A;
+        }
+
+    .card {
+        background: white;
+        border-radius: 16px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: 1px solid #E2E8F0;
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.8rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+        .card-header h3 {
+            font-size: 1rem;
+            margin: 0;
+            color: #032C7D;
+            font-weight: 600;
+        }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 0.7rem 0.5rem;
+        text-align: left;
+        border-bottom: 1px solid #E2E8F0;
+        font-size: 0.8rem;
+    }
+
+    th {
+        background: #F8FAFE;
+        font-weight: 600;
+        color: #5A6E7A;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        letter-spacing: 0.03em;
+    }
+
+    tr:hover {
+        background: #F8FAFE;
+    }
+
+    .btn-sm {
+        background: linear-gradient(135deg, #0841C9, #1D97F1);
+        color: white;
+        border: none;
+        padding: 0.4rem 1rem;
+        border-radius: 40px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: all 0.2s;
+    }
+
+        .btn-sm:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(8,65,201,0.25);
+            color: white;
+        }
+
+    .btn-outline-sm {
+        background: transparent;
+        border: 1px solid #E2E8F0;
+        padding: 0.4rem 0.8rem;
+        border-radius: 40px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        text-decoration: none;
+        color: #5A6E7A;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+        .btn-outline-sm:hover {
+            border-color: #0841C9;
+            color: #0841C9;
+            background: rgba(8,65,201,0.02);
+        }
+
+    .badge {
+        display: inline-block;
+        padding: 0.2rem 0.6rem;
+        border-radius: 40px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    .badge-success {
+        background: #D4EDDA;
+        color: #155724;
+    }
+
+    .badge-danger {
+        background: #F8D7DA;
+        color: #721C24;
+    }
+
+    .badge-warning {
+        background: #FFF3CD;
+        color: #856404;
+    }
+
+    .badge-info {
+        background: #CDE8FF;
+        color: #004085;
+    }
+</style>
+
+<div class="page-header">
+    <div>
+        <h2><i class="fas fa-shopping-cart"></i> Purchase Orders</h2>
+        <p>Track and manage consumable orders</p>
+    </div>
+</div>
 
 <div class="stats-grid">
     <div class="stat-box"><h4>@Model.Statistics.TotalOrders</h4><p>Total Orders</p></div>
     <div class="stat-box"><h4 style="color:#D97706;">@Model.Statistics.PendingOrders</h4><p>Pending</p></div>
     <div class="stat-box"><h4 style="color:#10B981;">@Model.Statistics.CompletedOrders</h4><p>Completed</p></div>
     <div class="stat-box"><h4 style="color:#DC2626;">@Model.Statistics.CancelledOrders</h4><p>Cancelled</p></div>
+    <div class="stat-box"><h4 style="color:#1D97F1;">@Model.Statistics.PartiallyCompleteOrders</h4><p>Partially Complete</p></div>
 </div>
 
 <div class="card">
     <div class="card-header">
-        <h3><i class="fas fa-shopping-cart"></i> Purchase Orders</h3>
-        <div>
-            <button class="btn-sm" onclick="location.href='@Url.Action("CreateOrder")'"><i class="fas fa-plus"></i> New Order</button>
-        </div>
+        <h3><i class="fas fa-list"></i> All Orders</h3>
+        <a href="@Url.Action("CreateOrder")" class="btn-sm"><i class="fas fa-plus"></i> New Order</a>
     </div>
     <div class="table-container">
         <table>
@@ -39,21 +234,42 @@
                     <th>Items</th>
                     <th>Received</th>
                     <th>Status</th>
-                    <th>Actions</th>
+                    <th style="text-align:right;">Actions</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var o in Model.Orders)
+                @if (Model.Orders != null && Model.Orders.Any())
+                {
+                    @foreach (var o in Model.Orders)
+                    {
+                        <tr>
+                            <td><strong>@o.OrderNumber</strong></td>
+                            <td>@o.SupplierName</td>
+                            <td>@o.OrderDate.ToString("dd MMM yyyy")</td>
+                            <td>@o.TotalItems</td>
+                            <td>@o.ItemsReceived</td>
+                            <td>
+                                @{
+                                    var badgeClass = o.StatusColor == "success" ? "badge-success" :
+                                    o.StatusColor == "danger" ? "badge-danger" :
+                                    o.StatusColor == "warning" ? "badge-warning" : "badge-info";
+                                }
+                                <span class="badge @badgeClass">@o.Status</span>
+                            </td>
+                            <td style="text-align:right;">
+                                <a href="@Url.Action("OrderDetails", new { id = o.OrderID })" class="btn-outline-sm">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
                 {
                     <tr>
-                        <td><strong>@o.OrderNumber</strong></td>
-                        <td>@o.SupplierName</td>
-                        <td>@o.OrderDate.ToShortDateString()</td>
-                        <td>@o.TotalItems</td>
-                        <td>@o.ItemsReceived</td>
-                        <td><span class="badge badge-@(o.StatusColor)">@o.Status</span></td>
-                        <td>
-                            <button class="btn-outline-sm" onclick="location.href='@Url.Action("OrderDetails", new { id = o.OrderID })'"><i class="fas fa-eye"></i></button>
+                        <td colspan="7" style="text-align:center; padding:2rem; color:#5A6E7A;">
+                            <i class="fas fa-inbox" style="font-size:2rem; opacity:0.4;"></i>
+                            <p style="margin-top:0.5rem;">No orders found. Create your first order!</p>
                         </td>
                     </tr>
                 }
