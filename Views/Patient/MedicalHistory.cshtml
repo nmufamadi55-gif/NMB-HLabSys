@@ -1,4 +1,5 @@
 ﻿@using NMB_HLabSys.ViewModels.PatientViewModels
+@using NMB_HLabSys.Models
 @model PatientMedicalHistoryViewModel
 
 @{
@@ -85,7 +86,6 @@
         font-size: 0.875rem;
         padding: 4px 8px;
         border-radius: 8px;
-        transition: 0.2s;
     }
 
         .remove-btn:hover {
@@ -95,14 +95,6 @@
     .status-active {
         background: #DCFCE7;
         color: #166534;
-        padding: 2px 10px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-    }
-
-    .status-inactive {
-        background: #FEE2E2;
-        color: #991B1B;
         padding: 2px 10px;
         border-radius: 20px;
         font-size: 0.75rem;
@@ -119,34 +111,97 @@
     .severity-severe {
         color: #DC2626;
     }
+
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+    .modal-box {
+        background: white;
+        padding: 2rem;
+        border-radius: 20px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid #D1D5DB;
+        }
+
+    .btn-submit {
+        background: #4F46E5;
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+    }
+
+        .btn-submit:hover {
+            background: #4338CA;
+        }
 </style>
 
-<!-- Summary Cards -->
 <div class="stat-cards">
     <div class="stat-item">
         <div class="stat-icon">🩺</div>
-        <div>
-            <h3>@Model.Conditions?.Count ?? 0</h3>
-            <p>Conditions</p>
-        </div>
+        <div><h3>@Model.Conditions?.Count ?? 0</h3><p>Conditions</p></div>
     </div>
     <div class="stat-item">
         <div class="stat-icon">⚠️</div>
-        <div>
-            <h3>@Model.Allergies?.Count ?? 0</h3>
-            <p>Allergies</p>
-        </div>
+        <div><h3>@Model.Allergies?.Count ?? 0</h3><p>Allergies</p></div>
     </div>
     <div class="stat-item">
         <div class="stat-icon">💊</div>
-        <div>
-            <h3>@Model.Medications?.Where(m => m.IsCurrent).Count() ?? 0</h3>
-            <p>Active Medications</p>
-        </div>
+        <div><h3>@Model.Medications?.Count ?? 0</h3><p>Medications</p></div>
     </div>
 </div>
 
-<!-- Medical Conditions -->
+<!-- Conditions -->
 <div class="card-modern history-section">
     <h3>
         <span>🩺 Medical Conditions</span>
@@ -155,28 +210,26 @@
 
     @if (Model.Conditions != null && Model.Conditions.Any())
     {
-        @foreach (var condition in Model.Conditions)
+        @foreach (var c in Model.Conditions)
         {
             <div class="history-item">
                 <div class="item-info">
-                    <span class="item-name">@condition.ConditionName</span>
+                    <span class="item-name">@c.ConditionName</span>
                     <span class="item-details">
-                        @condition.CategoryName
-                        @if (condition.DiagnosedDate.HasValue)
+                        @c.CategoryName
+                        @if (c.DiagnosedDate.HasValue)
                         {
-                            <span>• Diagnosed: @condition.DiagnosedDate.Value.ToString("dd MMM yyyy")</span>
+                            <span>• Diagnosed: @c.DiagnosedDate.Value.ToString("dd MMM yyyy")</span>
                         }
-                        @if (!string.IsNullOrEmpty(condition.Notes))
+                        @if (!string.IsNullOrEmpty(c.Notes))
                         {
-                            <span>• @condition.Notes</span>
+                            <span>• @c.Notes</span>
                         }
                     </span>
                 </div>
                 <div>
-                    <span class="@(condition.IsActive ? "status-active" : "status-inactive")">
-                        @(condition.IsActive ? "Active" : "Inactive")
-                    </span>
-                    <button class="remove-btn" onclick="removeItem('condition', @condition.PatientConditionID)">✕</button>
+                    <span class="status-active">Active</span>
+                    <button class="remove-btn" onclick="removeItem('condition', @c.PatientConditionID)">✕</button>
                 </div>
             </div>
         }
@@ -196,23 +249,21 @@
 
     @if (Model.Allergies != null && Model.Allergies.Any())
     {
-        @foreach (var allergy in Model.Allergies)
+        @foreach (var a in Model.Allergies)
         {
             <div class="history-item">
                 <div class="item-info">
-                    <span class="item-name">@allergy.AllergyName</span>
+                    <span class="item-name">@a.AllergyName</span>
                     <span class="item-details">
-                        @allergy.CategoryName
-                        <span class="severity-@(allergy.Severity?.ToLower() ?? "mild")">
-                            • @(allergy.Severity ?? "Mild")
-                        </span>
-                        @if (!string.IsNullOrEmpty(allergy.Notes))
+                        @a.CategoryName
+                        <span class="severity-@(a.Severity?.ToLower() ?? "mild")">• @(a.Severity ?? "Mild")</span>
+                        @if (!string.IsNullOrEmpty(a.Notes))
                         {
-                            <span>• @allergy.Notes</span>
+                            <span>• @a.Notes</span>
                         }
                     </span>
                 </div>
-                <button class="remove-btn" onclick="removeItem('allergy', @allergy.PatientAllergyID)">✕</button>
+                <button class="remove-btn" onclick="removeItem('allergy', @a.PatientAllergyID)">✕</button>
             </div>
         }
     }
@@ -231,36 +282,26 @@
 
     @if (Model.Medications != null && Model.Medications.Any())
     {
-        @foreach (var medication in Model.Medications)
+        @foreach (var m in Model.Medications)
         {
             <div class="history-item">
                 <div class="item-info">
-                    <span class="item-name">@medication.MedicationName</span>
+                    <span class="item-name">@m.MedicationName</span>
                     <span class="item-details">
-                        @medication.CategoryName
-                        @if (!string.IsNullOrEmpty(medication.Dosage))
+                        @m.CategoryName
+                        @if (!string.IsNullOrEmpty(m.Dosage))
                         {
-                            <span>• Dosage: @medication.Dosage</span>
+                            <span>• Dosage: @m.Dosage</span>
                         }
-                        @if (!string.IsNullOrEmpty(medication.Frequency))
+                        @if (!string.IsNullOrEmpty(m.Frequency))
                         {
-                            <span>• @medication.Frequency</span>
-                        }
-                        @if (medication.StartDate.HasValue)
-                        {
-                            <span>• Started: @medication.StartDate.Value.ToString("dd MMM yyyy")</span>
-                        }
-                        @if (!medication.IsCurrent && medication.EndDate.HasValue)
-                        {
-                            <span>• Ended: @medication.EndDate.Value.ToString("dd MMM yyyy")</span>
+                            <span>• @m.Frequency</span>
                         }
                     </span>
                 </div>
                 <div>
-                    <span class="@(medication.IsCurrent ? "status-active" : "status-inactive")">
-                        @(medication.IsCurrent ? "Current" : "Discontinued")
-                    </span>
-                    <button class="remove-btn" onclick="removeItem('medication', @medication.PatientMedicationID)">✕</button>
+                    <span class="status-active">Current</span>
+                    <button class="remove-btn" onclick="removeItem('medication', @m.PatientMedicationID)">✕</button>
                 </div>
             </div>
         }
@@ -271,409 +312,163 @@
     }
 </div>
 
+<!-- Add Modal -->
+<div id="addModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3 id="modalTitle">Add Item</h3>
+            <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+
+        <form id="addForm" onsubmit="submitForm(event)">
+            <input type="hidden" id="itemType" value="" />
+
+            <div class="form-group">
+                <label>Select Item *</label>
+                <select id="itemSelect" required>
+                    <option value="">-- Select --</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="severityGroup" style="display:none;">
+                <label>Severity</label>
+                <select id="severity">
+                    <option value="Mild">Mild</option>
+                    <option value="Moderate" selected>Moderate</option>
+                    <option value="Severe">Severe</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="dosageGroup" style="display:none;">
+                <label>Dosage</label>
+                <input type="text" id="dosage" placeholder="e.g., 500mg" />
+            </div>
+
+            <div class="form-group" id="frequencyGroup" style="display:none;">
+                <label>Frequency</label>
+                <input type="text" id="frequency" placeholder="e.g., Twice daily" />
+            </div>
+
+            <div class="form-group" id="dateGroup" style="display:none;">
+                <label>Diagnosed Date</label>
+                <input type="date" id="diagnosedDate" />
+            </div>
+
+            <div class="form-group">
+                <label>Notes (Optional)</label>
+                <textarea id="notes" rows="2" placeholder="Additional notes..."></textarea>
+            </div>
+
+            <button type="submit" class="btn-submit">Add Item</button>
+        </form>
+    </div>
+</div>
+
 <script>
+    var availableConditions = @Html.Raw(Json.Serialize(Model.AvailableConditions ?? new List<MedicalCondition>()));
+    var availableAllergies = @Html.Raw(Json.Serialize(Model.AvailableAllergies ?? new List<Allergy>()));
+    var availableMedications = @Html.Raw(Json.Serialize(Model.AvailableMedications ?? new List<Medication>()));
+
     function openModal(type) {
-        alert('Add ' + type + ' form will open here');
+        document.getElementById('addModal').classList.add('active');
+        document.getElementById('itemType').value = type;
+        document.getElementById('addForm').reset();
+
+        ['severityGroup', 'dosageGroup', 'frequencyGroup', 'dateGroup'].forEach(id => {
+            document.getElementById(id).style.display = 'none';
+        });
+
+        var select = document.getElementById('itemSelect');
+        select.innerHTML = '<option value="">-- Select --</option>';
+        var title = document.getElementById('modalTitle');
+
+        if (type === 'condition') {
+            title.textContent = 'Add Medical Condition';
+            availableConditions.forEach(c => {
+                select.innerHTML += `<option value="${c.conditionID}">${c.conditionName}</option>`;
+            });
+            document.getElementById('dateGroup').style.display = 'block';
+        } else if (type === 'allergy') {
+            title.textContent = 'Add Allergy';
+            availableAllergies.forEach(a => {
+                select.innerHTML += `<option value="${a.allergyID}">${a.allergyName}</option>`;
+            });
+            document.getElementById('severityGroup').style.display = 'block';
+        } else if (type === 'medication') {
+            title.textContent = 'Add Medication';
+            availableMedications.forEach(m => {
+                select.innerHTML += `<option value="${m.medicationID}">${m.medicationName}</option>`;
+            });
+            document.getElementById('dosageGroup').style.display = 'block';
+            document.getElementById('frequencyGroup').style.display = 'block';
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('addModal').classList.remove('active');
+    }
+
+    function submitForm(event) {
+        event.preventDefault();
+
+        var type = document.getElementById('itemType').value;
+        var itemId = document.getElementById('itemSelect').value;
+        var notes = document.getElementById('notes').value;
+
+        if (!itemId) { alert('Please select an item'); return; }
+
+        var url = '', body = '';
+
+        if (type === 'condition') {
+            url = '@Url.Action("AddCondition", "Patient")';
+            body = 'conditionId=' + itemId + '&diagnosedDate=' + (document.getElementById('diagnosedDate').value || '') + '&notes=' + encodeURIComponent(notes);
+        } else if (type === 'allergy') {
+            url = '@Url.Action("AddAllergy", "Patient")';
+            body = 'allergyId=' + itemId + '&severity=' + document.getElementById('severity').value + '&notes=' + encodeURIComponent(notes);
+        } else if (type === 'medication') {
+            url = '@Url.Action("AddMedication", "Patient")';
+            body = 'medicationId=' + itemId + '&dosage=' + encodeURIComponent(document.getElementById('dosage').value) + '&frequency=' + encodeURIComponent(document.getElementById('frequency').value) + '&startDate=&endDate=&notes=' + encodeURIComponent(notes);
+        }
+
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) { alert('✅ ' + data.message); location.reload(); }
+            else { alert('❌ ' + data.message); }
+        })
+        .catch(err => alert('Error: ' + err));
     }
 
     function removeItem(type, id) {
-        if (confirm('Are you sure you want to remove this ' + type + '?')) {
-            alert(type + ' removed successfully');
+        if (!confirm('Remove this ' + type + '?')) return;
+
+        var url = '', body = '';
+
+        if (type === 'condition') {
+            url = '@Url.Action("RemoveCondition", "Patient")';
+            body = 'patientConditionId=' + id;
+        } else if (type === 'allergy') {
+            url = '@Url.Action("RemoveAllergy", "Patient")';
+            body = 'patientAllergyId=' + id;
+        } else if (type === 'medication') {
+            url = '@Url.Action("RemoveMedication", "Patient")';
+            body = 'patientMedicationId=' + id;
         }
+
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) { alert('✅ ' + data.message); location.reload(); }
+            else { alert('❌ ' + data.message); }
+        })
+        .catch(err => alert('Error: ' + err));
     }
 </script>
-
-@* @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "Consent Management";
-    ViewData["RoleSubtitle"] = "Patient Portal";
-    ViewData["UserGreeting"] = $"🩺 {@ViewBag.PatientName} (ID: {@ViewBag.PatientID})";
-    ViewData["UserInitials"] = "TM";
-}
-
-@section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Patient")">📋 My Results</a></li>
-    <li><a href="@Url.Action("MedicalHistory", "Patient")">📝 Medical History</a></li>
-    <li><a href="@Url.Action("Consent", "Patient")" class="active">🔐 Consent Management</a></li>
-    <li><a href="@Url.Action("Trends", "Patient")">📈 Track Trends</a></li>
-    <li>
-        <a href="@Url.Action("Index", "Profile")">
-            <i class="fas fa-user-circle"></i>
-            <span>My Profile</span>
-        </a>
-    </li>
-}
-
-<style>
-
-    .security-badge {
-        display: inline-block;
-        padding: 5px 12px;
-        border-radius: 20px;
-        background: #DCFCE7;
-        color: #166534;
-        font-size: 0.75rem;
-        font-weight: 600;
-        margin-right: 8px;
-    }
-
-    .doctor-card {
-        transition: 0.25s;
-    }
-
-        .doctor-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-        }
-
-    .status-pill {
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-
-    .status-active {
-        background: #DCFCE7;
-        color: #166534;
-    }
-
-    .status-limited {
-        background: #FEF3C7;
-        color: #92400E;
-    }
-
-    .info-box {
-        background: #EFF6FF;
-        padding: 1rem;
-        border-radius: 16px;
-        margin-bottom: 1.5rem;
-    }
-</style>
-
-<!-- Info -->
-
-<div class="info-box">
-
-    <strong>🔐 About Consent Management</strong>
-
-    <p style="margin-top:10px;">
-        You control which healthcare professionals can access your laboratory records.
-        Access can be granted, modified, or revoked at any time.
-    </p>
-
-    <div style="margin-top:10px;">
-
-        <span class="security-badge">POPIA Compliant</span>
-
-        <span class="security-badge">Secure Sharing</span>
-
-        <span class="security-badge">Encrypted Access</span>
-
-    </div>
-
-</div>
-
-<!-- Access Tables -->
-
-<div class="grid-2col">
-
-    <!-- Doctors With Access -->
-
-    <div class="card-modern doctor-card">
-
-        <div class="card-header-flex">
-
-            <h3>✅ Doctors with Access</h3>
-
-            <button class="btn-sm-lab"
-                    onclick="showDemoAlert('Doctor access invitation sent successfully')">
-                + Grant Access
-            </button>
-
-        </div>
-
-        <div class="table-container">
-
-            <table>
-
-                <thead>
-                    <tr>
-                        <th>Doctor</th>
-                        <th>HPCSA #</th>
-                        <th>Status</th>
-                        <th>Expiry</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-
-                    <tr>
-
-                        <td>
-                            <strong>Dr. Sarah Johnson</strong>
-                            <br />
-                            <small>Haematologist</small>
-                        </td>
-
-                        <td>MP1234567</td>
-
-                        <td>
-                            <span class="status-pill status-active">
-                                Full Access
-                            </span>
-                        </td>
-
-                        <td>2026-12-31</td>
-
-                        <td>
-
-                            <button class="btn-outline-lab"
-                                    onclick="showDemoAlert('Doctor access updated successfully')">
-                                Edit
-                            </button>
-
-                            <button class="btn-outline-lab"
-                                    style="color:red; border-color:red;"
-                                    onclick="confirmRevoke('Dr. Sarah Johnson')">
-                                Revoke
-                            </button>
-
-                        </td>
-
-                    </tr>
-
-                    <tr>
-
-                        <td>
-                            <strong>Dr. Michael Brown</strong>
-                            <br />
-                            <small>Internal Medicine</small>
-                        </td>
-
-                        <td>MP1234568</td>
-
-                        <td>
-                            <span class="status-pill status-limited">
-                                Limited Access
-                            </span>
-                        </td>
-
-                        <td>2025-10-30</td>
-
-                        <td>
-
-                            <button class="btn-outline-lab"
-                                    onclick="showDemoAlert('Doctor access updated successfully')">
-                                Edit
-                            </button>
-
-                            <button class="btn-outline-lab"
-                                    style="color:red; border-color:red;"
-                                    onclick="confirmRevoke('Dr. Michael Brown')">
-                                Revoke
-                            </button>
-
-                        </td>
-
-                    </tr>
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </div>
-
-    <!-- Grant Access -->
-
-    <div class="card-modern doctor-card">
-
-        <h3>🔐 Grant New Access</h3>
-
-        <div class="form-group">
-
-            <label><strong>Select Doctor</strong></label>
-
-            <select style="width:100%; padding:10px; border-radius:12px; border:1px solid #E2E8F0;">
-
-                <option>Dr. Lisa Ndlovu (MP1234569)</option>
-
-                <option>Dr. Peter Khumalo (MP1234570)</option>
-
-                <option>Dr. Thabo Cele (MP1234571)</option>
-
-            </select>
-
-        </div>
-
-        <div class="form-group">
-
-            <label><strong>Access Expiry Date</strong></label>
-
-            <input type="date"
-                   value="2026-12-31"
-                   style="width:100%; padding:10px; border-radius:12px; border:1px solid #E2E8F0;" />
-
-        </div>
-
-        <div class="form-group">
-
-            <label><strong>Select Test Requests to Share</strong></label>
-
-            <div style="border:1px solid #E2E8F0; border-radius:12px; padding:10px;">
-
-                <label>
-                    <input type="checkbox">
-                    REQ-001 - Full Blood Count
-                </label>
-
-                <br>
-
-                <label>
-                    <input type="checkbox">
-                    REQ-002 - Coagulation Studies
-                </label>
-
-                <br>
-
-                <label>
-                    <input type="checkbox">
-                    REQ-004 - Lipid Profile
-                </label>
-
-                <br>
-
-                <label>
-                    <input type="checkbox" checked>
-                    REQ-005 - FBC Follow-up
-                </label>
-
-            </div>
-
-        </div>
-
-        <button class="btn-sm-lab"
-                onclick="showDemoAlert('Access granted successfully')">
-
-            Grant Access
-
-        </button>
-
-    </div>
-
-</div>
-
-<!-- Consent History -->
-
-<div class="card-modern">
-
-    <div class="card-header-flex">
-
-        <h3>📜 Consent History</h3>
-
-        <button class="btn-outline-lab"
-                onclick="showDemoAlert('Consent history exported successfully')">
-
-            Export Log
-
-        </button>
-
-    </div>
-
-    <div class="table-container">
-
-        <table>
-
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Action</th>
-                    <th>Doctor</th>
-                    <th>Details</th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-                <tr>
-                    <td>2024-01-15</td>
-
-                    <td>
-                        <span class="status-pill status-active">
-                            Granted
-                        </span>
-                    </td>
-
-                    <td>Dr. Sarah Johnson</td>
-
-                    <td>
-                        Access to all past and future results
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>2024-06-20</td>
-
-                    <td>
-                        <span class="status-pill status-active">
-                            Granted
-                        </span>
-                    </td>
-
-                    <td>Dr. Michael Brown</td>
-
-                    <td>
-                        Access to test results from 2024 onwards
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>2025-02-10</td>
-
-                    <td>
-                        <span class="status-pill status-limited">
-                            Modified
-                        </span>
-                    </td>
-
-                    <td>Dr. Sarah Johnson</td>
-
-                    <td>
-                        Restricted access to REQ-001 only
-                    </td>
-                </tr>
-
-            </tbody>
-
-        </table>
-
-    </div>
-
-</div>
-
-<script>
-
-    function showDemoAlert(msg) {
-
-        alert('✅ ' + msg);
-
-    }
-
-    function confirmRevoke(doctorName) {
-
-        let confirmAction = confirm(
-            'Are you sure you want to revoke access from ' + doctorName + '?'
-        );
-
-        if (confirmAction) {
-
-            alert('🚫 Access revoked successfully.');
-
-        }
-
-    }
-
-</script> *@

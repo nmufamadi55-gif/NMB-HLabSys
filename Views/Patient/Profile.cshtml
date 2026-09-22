@@ -14,32 +14,27 @@
     <li><a href="@Url.Action("MedicalHistory", "Patient")">📝 Medical History</a></li>
     <li><a href="@Url.Action("Consent", "Patient")">🔐 Consent Management</a></li>
     <li><a href="@Url.Action("Trends", "Patient")">📈 Track Trends</a></li>
-    <li><a href="@Url.Action("Index", "Profile")" class="active"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+    <li><a href="@Url.Action("Profile", "Patient")" class="active"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
 <style>
-    .profile-section {
-        margin-bottom: 2rem;
-    }
-    .profile-section h4 {
-        border-bottom: 2px solid #E5E7EB;
-        padding-bottom: 0.5rem;
-        margin-bottom: 1rem;
-    }
     .info-row {
         display: flex;
         justify-content: space-between;
         padding: 8px 0;
         border-bottom: 1px solid #F3F4F6;
     }
+
     .info-label {
         color: #6B7280;
         font-weight: 500;
     }
+
     .info-value {
         font-weight: 500;
         color: #1F2937;
     }
+
     .avatar-circle {
         width: 100px;
         height: 100px;
@@ -53,6 +48,7 @@
         color: white;
         margin: 0 auto 1rem;
     }
+
     .badge-count {
         background: #4F46E5;
         color: white;
@@ -60,20 +56,9 @@
         border-radius: 20px;
         font-size: 0.75rem;
     }
-    .status-active {
-        background: #DCFCE7;
-        color: #166534;
-        padding: 2px 10px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-    }
-    .severity-severe { color: #DC2626; font-weight: 600; }
-    .severity-moderate { color: #F59E0B; font-weight: 600; }
-    .severity-mild { color: #16A34A; font-weight: 600; }
 </style>
 
 <div class="grid-2col">
-    <!-- Profile Photo & Basic Info -->
     <div class="card-modern" style="text-align: center;">
         <div class="avatar-circle">@Model.FirstName.Substring(0, 1)@Model.LastName.Substring(0, 1)</div>
         <h2>@Model.FullName</h2>
@@ -82,7 +67,6 @@
 
         <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 1rem;">
             <a href="@Url.Action("EditProfile", "Patient")" class="btn-sm-lab">✏️ Edit Profile</a>
-            <a href="@Url.Action("DownloadReport", "Patient")" class="btn-outline-lab">📄 Download Report</a>
         </div>
 
         <hr style="margin: 1.5rem 0;" />
@@ -108,7 +92,6 @@
         </div>
     </div>
 
-    <!-- Medical Summary -->
     <div>
         <div class="card-modern" style="margin-bottom: 1rem;">
             <div class="card-header-flex">
@@ -119,20 +102,11 @@
             @if (Model.Conditions != null && Model.Conditions.Any())
             {
                 <ul style="list-style: none; padding: 0;">
-                    @foreach (var condition in Model.Conditions)
+                    @foreach (var c in Model.Conditions)
                     {
-                        <li style="padding: 8px 0; border-bottom: 1px solid #F3F4F6; display: flex; justify-content: space-between;">
-                            <span>
-                                <strong>@condition.ConditionName</strong>
-                                <span style="color: #6B7280; font-size: 0.875rem;">(@condition.CategoryName)</span>
-                            </span>
-                            <span style="font-size: 0.75rem; color: #6B7280;">
-                                @(condition.DiagnosedDate?.ToString("dd MMM yyyy") ?? "Unknown date")
-                                @if (condition.IsActive)
-                                {
-                                    <span class="status-active">Active</span>
-                                }
-                            </span>
+                        <li style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;">
+                            <strong>@c.ConditionName</strong>
+                            <span style="color: #6B7280; font-size: 0.875rem;">(@c.CategoryName)</span>
                         </li>
                     }
                 </ul>
@@ -149,57 +123,44 @@
                     <h4>⚠️ Allergies</h4>
                     <span class="badge-count">@Model.Allergies?.Count ?? 0</span>
                 </div>
-
                 @if (Model.Allergies != null && Model.Allergies.Any())
                 {
                     <ul style="list-style: none; padding: 0;">
-                        @foreach (var allergy in Model.Allergies)
+                        @foreach (var a in Model.Allergies)
                         {
-                            <li style="padding: 6px 0; border-bottom: 1px solid #F3F4F6; display: flex; justify-content: space-between;">
-                                <span>
-                                    <strong>@allergy.AllergyName</strong>
-                                    <span style="color: #6B7280; font-size: 0.75rem;">(@allergy.CategoryName)</span>
-                                </span>
-                                <span class="severity-@(allergy.Severity?.ToLower() ?? "mild")">
-                                    @allergy.Severity
-                                </span>
+                            <li style="padding: 6px 0; border-bottom: 1px solid #F3F4F6;">
+                                <strong>@a.AllergyName</strong>
+                                <span style="color: #6B7280; font-size: 0.75rem;">(@a.CategoryName)</span>
                             </li>
                         }
                     </ul>
                 }
                 else
                 {
-                    <p style="color: #9CA3AF; text-align: center; padding: 0.5rem;">No allergies recorded</p>
+                    <p style="color: #9CA3AF; text-align: center; padding: 0.5rem;">No allergies</p>
                 }
             </div>
 
             <div class="card-modern">
                 <div class="card-header-flex">
                     <h4>💊 Medications</h4>
-                    <span class="badge-count">@Model.Medications?.Where(m => m.IsCurrent).Count() ?? 0</span>
+                    <span class="badge-count">@Model.Medications?.Count ?? 0</span>
                 </div>
-
-                @if (Model.Medications != null && Model.Medications.Any(m => m.IsCurrent))
+                @if (Model.Medications != null && Model.Medications.Any())
                 {
                     <ul style="list-style: none; padding: 0;">
-                        @foreach (var medication in Model.Medications.Where(m => m.IsCurrent))
+                        @foreach (var m in Model.Medications)
                         {
                             <li style="padding: 6px 0; border-bottom: 1px solid #F3F4F6;">
-                                <strong>@medication.MedicationName</strong>
-                                <span style="color: #6B7280; font-size: 0.75rem;">@medication.Dosage</span>
-                                <br />
-                                <span style="color: #6B7280; font-size: 0.75rem;">@medication.Frequency</span>
-                                @if (!string.IsNullOrEmpty(medication.Notes))
-                                {
-                                    <br /><span style="color: #6B7280; font-size: 0.7rem;">@medication.Notes</span>
-                                }
+                                <strong>@m.MedicationName</strong>
+                                <span style="color: #6B7280; font-size: 0.75rem;">@m.Dosage</span>
                             </li>
                         }
                     </ul>
                 }
                 else
                 {
-                    <p style="color: #9CA3AF; text-align: center; padding: 0.5rem;">No current medications</p>
+                    <p style="color: #9CA3AF; text-align: center; padding: 0.5rem;">No medications</p>
                 }
             </div>
         </div>

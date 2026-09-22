@@ -1,0 +1,226 @@
+﻿@using NMB_HLabSys.ViewModels.AdminViewModels
+@model AdminRegistrationViewModel
+
+@{
+    Layout = null;
+    ViewData["Title"] = "Admin Registration";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NMBHDL - Admin Registration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0F172A, #1E293B);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .register-container {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 520px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+            .logo h1 {
+                font-size: 24px;
+                color: #0F172A;
+                font-weight: 700;
+            }
+
+            .logo p {
+                color: #64748B;
+                font-size: 14px;
+                margin-top: 4px;
+            }
+
+        .warning-box {
+            background: #FEF3C7;
+            color: #92400E;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            border-left: 4px solid #F59E0B;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+            .form-group label {
+                display: block;
+                font-weight: 500;
+                font-size: 14px;
+                color: #334155;
+                margin-bottom: 4px;
+            }
+
+            .form-group input {
+                width: 100%;
+                padding: 10px 14px;
+                border: 1px solid #E2E8F0;
+                border-radius: 10px;
+                font-size: 14px;
+                transition: 0.2s;
+            }
+
+                .form-group input:focus {
+                    outline: none;
+                    border-color: #4F46E5;
+                    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+                }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .btn-register {
+            width: 100%;
+            padding: 14px;
+            background: #4F46E5;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 8px;
+        }
+
+            .btn-register:hover {
+                background: #4338CA;
+            }
+
+        .login-link {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 14px;
+            color: #64748B;
+        }
+
+            .login-link a {
+                color: #4F46E5;
+                text-decoration: none;
+                font-weight: 500;
+            }
+
+        .error-message {
+            background: #FEE2E2;
+            color: #991B1B;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .validation-error {
+            color: #DC2626;
+            font-size: 13px;
+            margin-top: 2px;
+        }
+
+        .required {
+            color: #DC2626;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="logo">
+            <h1>⚙️ NMBHDL</h1>
+            <p>Admin Account Registration</p>
+        </div>
+
+        <div class="warning-box">
+            <strong>⚠️ Restricted Access</strong><br />
+            You need a valid admin setup code to register.
+        </div>
+
+        @if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Any()))
+        {
+            <div class="error-message">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <div>❌ @error.ErrorMessage</div>
+                }
+            </div>
+        }
+
+        <form method="post" asp-action="RegisterAdmin">
+            @Html.AntiForgeryToken()
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="FirstName">First Name <span class="required">*</span></label>
+                    <input asp-for="FirstName" placeholder="Enter first name" required />
+                    <span asp-validation-for="FirstName" class="validation-error"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="LastName">Last Name <span class="required">*</span></label>
+                    <input asp-for="LastName" placeholder="Enter last name" required />
+                    <span asp-validation-for="LastName" class="validation-error"></span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Email">Email Address <span class="required">*</span></label>
+                <input asp-for="Email" type="email" placeholder="admin@nmblab.com" required />
+                <span asp-validation-for="Email" class="validation-error"></span>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="Password">Password <span class="required">*</span></label>
+                    <input asp-for="Password" type="password" placeholder="Min 8 chars" required />
+                    <span asp-validation-for="Password" class="validation-error"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="ConfirmPassword">Confirm Password <span class="required">*</span></label>
+                    <input asp-for="ConfirmPassword" type="password" placeholder="Confirm password" required />
+                    <span asp-validation-for="ConfirmPassword" class="validation-error"></span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="AdminSetupCode">Admin Setup Code <span class="required">*</span></label>
+                <input asp-for="AdminSetupCode" type="password" placeholder="Enter admin setup code" required />
+                <span asp-validation-for="AdminSetupCode" class="validation-error"></span>
+            </div>
+
+            <button type="submit" class="btn-register">Register as Admin</button>
+        </form>
+
+        <div class="login-link">
+            Already have an account? <a href="@Url.Action("Login", "Account")">Login here</a>
+        </div>
+    </div>
+</body>
+</html>

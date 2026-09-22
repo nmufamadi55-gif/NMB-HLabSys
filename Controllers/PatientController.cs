@@ -20,447 +20,476 @@ namespace NMB_HLabSys.Controllers
             _context = context;
         }
 
-        // ============================================
-        // DASHBOARD
-        // ============================================
-        public IActionResult Dashboard()
-        {
-            var viewModel = new PatientDashboardViewModel
-            {
-                PatientID = 1,
-                FirstName = "Thabo",
-                LastName = "Mbeki",
-                SAIDNumber = "8001015009087",
-                Email = "thabo.mbeki@email.com",
-                Cellphone = "0821234567",
-                DateOfBirth = new DateTime(1980, 1, 1),
-                TotalTestRequests = 6,
-                AbnormalResultsCount = 1,
-                ReportsAvailable = 4,
-                HealthScore = 82,
-                HealthStatusMessage = "Stable condition with improving cholesterol levels.",
-                CholesterolTrend = "6.2 → 5.8 → 5.5 → 5.2",
-                RecentTestResults = new List<RecentTestResultViewModel>
-                {
-                    new RecentTestResultViewModel
-                    {
-                        TestRequestID = 1,
-                        RequestDate = DateTime.Now.AddDays(-5),
-                        TestName = "Full Blood Count - Haemoglobin",
-                        ResultValue = "13.2 g/dL",
-                        NormalRange = "12-16 g/dL",
-                        Status = "Normal",
-                        DoctorName = "Dr. Sarah Johnson",
-                        ReportUrl = "#",
-                        IsAbnormal = false
-                    },
-                    new RecentTestResultViewModel
-                    {
-                        TestRequestID = 2,
-                        RequestDate = DateTime.Now.AddDays(-5),
-                        TestName = "Full Blood Count - WCC",
-                        ResultValue = "7.5 x10³/µL",
-                        NormalRange = "4-11 x10³/µL",
-                        Status = "Normal",
-                        DoctorName = "Dr. Sarah Johnson",
-                        ReportUrl = "#",
-                        IsAbnormal = false
-                    },
-                    new RecentTestResultViewModel
-                    {
-                        TestRequestID = 3,
-                        RequestDate = DateTime.Now.AddDays(-20),
-                        TestName = "Lipid Profile - Cholesterol",
-                        ResultValue = "5.2 mmol/L",
-                        NormalRange = "<5.0 mmol/L",
-                        Status = "Borderline High",
-                        DoctorName = "Dr. Michael Brown",
-                        ReportUrl = "#",
-                        IsAbnormal = true
-                    }
-                },
-                UpcomingTests = new List<UpcomingTestViewModel>
-                {
-                    new UpcomingTestViewModel { TestName = "FBC Follow-up", RequestDate = DateTime.Now.AddDays(5) },
-                    new UpcomingTestViewModel { TestName = "Lipid Profile Annual Check", RequestDate = DateTime.Now.AddMonths(1) }
-                }
-            };
-
-            return View(viewModel);
-        }
-        // ============================================
         // GET LOGGED-IN PATIENT
-        // ============================================
         private async Task<Patient> GetLoggedInPatient()
         {
             var userId = HttpContext.Session.GetInt32("UserID");
-            if (!userId.HasValue)
-            {
-                return null;
-            }
+            if (!userId.HasValue) return null;
 
             return await _context.Patients
                 .Include(p => p.User)
                 .FirstOrDefaultAsync(p => p.UserID == userId.Value && p.IsActive);
         }
-        // ============================================
-        // PROFILE
-        // ============================================
-        public IActionResult Profile()
-        {
-            var viewModel = new PatientProfileViewModel
-            {
-                PatientID = 1,
-                FirstName = "Thabo",
-                LastName = "Mbeki",
-                SAIDNumber = "8001015009087",
-                Email = "thabo.mbeki@email.com",
-                Cellphone = "0821234567",
-                HomeAddress = "123 Soweto Street, Johannesburg",
-                DateOfBirth = new DateTime(1980, 1, 1),
-                Conditions = new List<PatientConditionViewModel>
-                {
-                    new PatientConditionViewModel
-                    {
-                        PatientConditionID = 1,
-                        ConditionID = 1,
-                        ConditionName = "Diabetes Type 2",
-                        CategoryName = "Metabolic",
-                        DiagnosedDate = DateTime.Now.AddYears(-5),
-                        IsActive = true
-                    },
-                    new PatientConditionViewModel
-                    {
-                        PatientConditionID = 2,
-                        ConditionID = 2,
-                        ConditionName = "Hypertension",
-                        CategoryName = "Cardiovascular",
-                        DiagnosedDate = DateTime.Now.AddYears(-3),
-                        IsActive = true
-                    }
-                },
-                Allergies = new List<PatientAllergyViewModel>
-                {
-                    new PatientAllergyViewModel
-                    {
-                        PatientAllergyID = 1,
-                        AllergyID = 1,
-                        AllergyName = "Penicillin",
-                        CategoryName = "Medication",
-                        Severity = "Severe",
-                        Notes = "Causes anaphylaxis"
-                    }
-                },
-                Medications = new List<PatientMedicationViewModel>
-                {
-                    new PatientMedicationViewModel
-                    {
-                        PatientMedicationID = 1,
-                        MedicationID = 1,
-                        MedicationName = "Metformin",
-                        CategoryName = "Diabetes",
-                        Dosage = "500mg",
-                        Frequency = "Twice daily",
-                        StartDate = DateTime.Now.AddYears(-5),
-                        IsCurrent = true
-                    },
-                    new PatientMedicationViewModel
-                    {
-                        PatientMedicationID = 2,
-                        MedicationID = 2,
-                        MedicationName = "Lisinopril",
-                        CategoryName = "Cardiovascular",
-                        Dosage = "10mg",
-                        Frequency = "Once daily",
-                        StartDate = DateTime.Now.AddYears(-3),
-                        IsCurrent = true
-                    }
-                }
-            };
 
+        // DASHBOARD
+        public async Task<IActionResult> Dashboard()
+        {
+            var patient = await GetLoggedInPatient();
+            if (patient == null) return RedirectToAction("Login", "Account");
+
+            var viewModel = new PatientDashboardViewModel
+            {
+                PatientID = patient.PatientID,
+                FirstName = patient.FirstName,
+                LastName = patient.LastName,
+                SAIDNumber = patient.SAIDNumber,
+                Email = patient.User?.Email ?? patient.Email,
+                Cellphone = patient.Cellphone,
+                DateOfBirth = patient.DateOfBirth,
+                TotalTestRequests = 0,
+                AbnormalResultsCount = 0,
+                ReportsAvailable = 0,
+                HealthScore = 0,
+                HealthStatusMessage = "No health data yet.",
+                CholesterolTrend = "No data",
+                RecentTestResults = new List<RecentTestResultViewModel>(),
+                UpcomingTests = new List<UpcomingTestViewModel>()
+            };
             return View(viewModel);
         }
 
-        // ============================================
-        // EDIT PROFILE
-        // ============================================
-        public IActionResult EditProfile()
+        // PROFILE
+        public async Task<IActionResult> Profile()
         {
-            var viewModel = new EditPatientProfileViewModel
+            var patient = await GetLoggedInPatient();
+            if (patient == null) return RedirectToAction("Login", "Account");
+
+            var viewModel = new PatientProfileViewModel
             {
-                PatientID = 1,
-                FirstName = "Thabo",
-                LastName = "Mbeki",
-                Cellphone = "0821234567",
-                HomeAddress = "123 Soweto Street, Johannesburg",
-                Email = "thabo.mbeki@email.com"
+                PatientID = patient.PatientID,
+                FirstName = patient.FirstName,
+                LastName = patient.LastName,
+                SAIDNumber = patient.SAIDNumber,
+                Email = patient.User?.Email ?? patient.Email,
+                Cellphone = patient.Cellphone,
+                HomeAddress = patient.HomeAddress,
+                DateOfBirth = patient.DateOfBirth,
+                Conditions = await _context.PatientConditions
+                    .Include(pc => pc.Condition).ThenInclude(c => c.Category)
+                    .Where(pc => pc.PatientID == patient.PatientID && pc.IsActive)
+                    .Select(pc => new PatientConditionViewModel
+                    {
+                        PatientConditionID = pc.PatientConditionID,
+                        ConditionName = pc.Condition.ConditionName,
+                        CategoryName = pc.Condition.Category != null ? pc.Condition.Category.CategoryName : "",
+                        DiagnosedDate = pc.DiagnosedDate,
+                        Notes = pc.Notes,
+                        IsActive = pc.IsActive
+                    }).ToListAsync(),
+                Allergies = await _context.PatientAllergies
+                    .Include(pa => pa.Allergy).ThenInclude(a => a.Category)
+                    .Where(pa => pa.PatientID == patient.PatientID)
+                    .Select(pa => new PatientAllergyViewModel
+                    {
+                        PatientAllergyID = pa.PatientAllergyID,
+                        AllergyName = pa.Allergy.AllergyName,
+                        CategoryName = pa.Allergy.Category != null ? pa.Allergy.Category.CategoryName : "",
+                        Severity = pa.Severity,
+                        Notes = pa.Notes
+                    }).ToListAsync(),
+                Medications = await _context.PatientMedications
+                    .Include(pm => pm.Medication).ThenInclude(m => m.Category)
+                    .Where(pm => pm.PatientID == patient.PatientID)
+                    .Select(pm => new PatientMedicationViewModel
+                    {
+                        PatientMedicationID = pm.PatientMedicationID,
+                        MedicationName = pm.Medication.MedicationName,
+                        CategoryName = pm.Medication.Category != null ? pm.Medication.Category.CategoryName : "",
+                        Dosage = pm.Dosage,
+                        Frequency = pm.Frequency,
+                        StartDate = pm.StartDate,
+                        EndDate = pm.EndDate,
+                        IsCurrent = pm.IsCurrent,
+                        Notes = pm.Notes
+                    }).ToListAsync()
             };
             return View(viewModel);
+        }
+
+        // EDIT PROFILE
+        public async Task<IActionResult> EditProfile()
+        {
+            var patient = await GetLoggedInPatient();
+            if (patient == null) return RedirectToAction("Login", "Account");
+
+            return View(new EditPatientProfileViewModel
+            {
+                PatientID = patient.PatientID,
+                FirstName = patient.FirstName,
+                LastName = patient.LastName,
+                Cellphone = patient.Cellphone,
+                HomeAddress = patient.HomeAddress,
+                Email = patient.User?.Email ?? patient.Email
+            });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult EditProfile(EditPatientProfileViewModel model)
+        public async Task<IActionResult> EditProfile(EditPatientProfileViewModel model)
         {
-            if (!ModelState.IsValid)
+            if (!ModelState.IsValid) return View(model);
+
+            var patient = await GetLoggedInPatient();
+            if (patient == null) return RedirectToAction("Login", "Account");
+
+            patient.FirstName = model.FirstName.Trim();
+            patient.LastName = model.LastName.Trim();
+            patient.Cellphone = model.Cellphone.Trim();
+            patient.HomeAddress = model.HomeAddress?.Trim();
+            patient.ModifiedDate = DateTime.Now;
+
+            if (patient.User != null)
             {
-                return View(model);
+                patient.User.Name = model.FirstName.Trim();
+                patient.User.Surname = model.LastName.Trim();
+                patient.User.ContactNumber = model.Cellphone.Trim();
             }
 
-            TempData["SuccessMessage"] = "Profile updated successfully!";
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Profile updated!";
             return RedirectToAction("Profile");
         }
 
-        // ============================================
         // MEDICAL HISTORY
-        // ============================================
-        public IActionResult MedicalHistory()
+        public async Task<IActionResult> MedicalHistory()
         {
+            var patient = await GetLoggedInPatient();
+            if (patient == null) return RedirectToAction("Login", "Account");
+
             var viewModel = new PatientMedicalHistoryViewModel
             {
-                PatientID = 1,
-                FullName = "Thabo Mbeki",
-                Conditions = new List<PatientConditionViewModel>
-                {
-                    new PatientConditionViewModel
+                PatientID = patient.PatientID,
+                FullName = $"{patient.FirstName} {patient.LastName}",
+                Conditions = await _context.PatientConditions
+                    .Include(pc => pc.Condition).ThenInclude(c => c.Category)
+                    .Where(pc => pc.PatientID == patient.PatientID && pc.IsActive)
+                    .Select(pc => new PatientConditionViewModel
                     {
-                        PatientConditionID = 1,
-                        ConditionID = 1,
-                        ConditionName = "Diabetes Type 2",
-                        CategoryName = "Metabolic",
-                        DiagnosedDate = DateTime.Now.AddYears(-5),
-                        Notes = "Controlled with medication",
-                        IsActive = true
-                    }
-                },
-                Allergies = new List<PatientAllergyViewModel>
-                {
-                    new PatientAllergyViewModel
+                        PatientConditionID = pc.PatientConditionID,
+                        ConditionName = pc.Condition.ConditionName,
+                        CategoryName = pc.Condition.Category != null ? pc.Condition.Category.CategoryName : "",
+                        DiagnosedDate = pc.DiagnosedDate,
+                        Notes = pc.Notes,
+                        IsActive = pc.IsActive
+                    }).ToListAsync(),
+                Allergies = await _context.PatientAllergies
+                    .Include(pa => pa.Allergy).ThenInclude(a => a.Category)
+                    .Where(pa => pa.PatientID == patient.PatientID)
+                    .Select(pa => new PatientAllergyViewModel
                     {
-                        PatientAllergyID = 1,
-                        AllergyID = 1,
-                        AllergyName = "Penicillin",
-                        CategoryName = "Medication",
-                        Severity = "Severe",
-                        Notes = "Causes anaphylaxis"
-                    }
-                },
-                Medications = new List<PatientMedicationViewModel>
-                {
-                    new PatientMedicationViewModel
+                        PatientAllergyID = pa.PatientAllergyID,
+                        AllergyName = pa.Allergy.AllergyName,
+                        CategoryName = pa.Allergy.Category != null ? pa.Allergy.Category.CategoryName : "",
+                        Severity = pa.Severity,
+                        Notes = pa.Notes
+                    }).ToListAsync(),
+                Medications = await _context.PatientMedications
+                    .Include(pm => pm.Medication).ThenInclude(m => m.Category)
+                    .Where(pm => pm.PatientID == patient.PatientID)
+                    .Select(pm => new PatientMedicationViewModel
                     {
-                        PatientMedicationID = 1,
-                        MedicationID = 1,
-                        MedicationName = "Metformin",
-                        CategoryName = "Diabetes",
-                        Dosage = "500mg",
-                        Frequency = "Twice daily",
-                        StartDate = DateTime.Now.AddYears(-5),
-                        IsCurrent = true
-                    }
-                },
-                AvailableConditions = new List<MedicalCondition>(),
-                AvailableAllergies = new List<Allergy>(),
-                AvailableMedications = new List<Medication>()
+                        PatientMedicationID = pm.PatientMedicationID,
+                        MedicationName = pm.Medication.MedicationName,
+                        CategoryName = pm.Medication.Category != null ? pm.Medication.Category.CategoryName : "",
+                        Dosage = pm.Dosage,
+                        Frequency = pm.Frequency,
+                        StartDate = pm.StartDate,
+                        EndDate = pm.EndDate,
+                        IsCurrent = pm.IsCurrent,
+                        Notes = pm.Notes
+                    }).ToListAsync(),
+                AvailableConditions = await _context.MedicalConditions.Where(c => c.IsActive).ToListAsync(),
+                AvailableAllergies = await _context.Allergies.Where(a => a.IsActive).ToListAsync(),
+                AvailableMedications = await _context.Medications.Where(m => m.IsActive).ToListAsync()
             };
-
             return View(viewModel);
         }
 
-        // ============================================
-        // CONSENT
-        // ============================================
-        public IActionResult Consent()
+        // ADD CONDITION
+        [HttpPost]
+        public async Task<IActionResult> AddCondition(int conditionId, DateTime? diagnosedDate, string notes)
         {
+            var patient = await GetLoggedInPatient();
+            if (patient == null) return Json(new { success = false, message = "Not authenticated" });
+
+            var exists = await _context.PatientConditions
+                .AnyAsync(pc => pc.PatientID == patient.PatientID && pc.ConditionID == conditionId && pc.IsActive);
+            if (exists) return Json(new { success = false, message = "Already have this condition" });
+
+            _context.PatientConditions.Add(new PatientCondition
+            {
+                PatientID = patient.PatientID,
+                ConditionID = conditionId,
+                DiagnosedDate = diagnosedDate,
+                Notes = notes,
+                IsActive = true,
+                CreatedDate = DateTime.Now
+            });
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Condition added!" });
+        }
+
+        // REMOVE CONDITION
+        [HttpPost]
+        public async Task<IActionResult> RemoveCondition(int patientConditionId)
+        {
+            var patient = await GetLoggedInPatient();
+            if (patient == null) return Json(new { success = false, message = "Not authenticated" });
+
+            var pc = await _context.PatientConditions
+                .FirstOrDefaultAsync(x => x.PatientConditionID == patientConditionId && x.PatientID == patient.PatientID);
+            if (pc == null) return Json(new { success = false, message = "Not found" });
+
+            _context.PatientConditions.Remove(pc);
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Condition removed!" });
+        }
+
+        // ADD ALLERGY
+        [HttpPost]
+        public async Task<IActionResult> AddAllergy(int allergyId, string severity, string notes)
+        {
+            var patient = await GetLoggedInPatient();
+            if (patient == null) return Json(new { success = false, message = "Not authenticated" });
+
+            var exists = await _context.PatientAllergies
+                .AnyAsync(pa => pa.PatientID == patient.PatientID && pa.AllergyID == allergyId);
+            if (exists) return Json(new { success = false, message = "Already have this allergy" });
+
+            _context.PatientAllergies.Add(new PatientAllergy
+            {
+                PatientID = patient.PatientID,
+                AllergyID = allergyId,
+                Severity = severity,
+                Notes = notes,
+                CreatedDate = DateTime.Now
+            });
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Allergy added!" });
+        }
+
+        // REMOVE ALLERGY
+        [HttpPost]
+        public async Task<IActionResult> RemoveAllergy(int patientAllergyId)
+        {
+            var patient = await GetLoggedInPatient();
+            if (patient == null) return Json(new { success = false, message = "Not authenticated" });
+
+            var pa = await _context.PatientAllergies
+                .FirstOrDefaultAsync(x => x.PatientAllergyID == patientAllergyId && x.PatientID == patient.PatientID);
+            if (pa == null) return Json(new { success = false, message = "Not found" });
+
+            _context.PatientAllergies.Remove(pa);
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Allergy removed!" });
+        }
+
+        // ADD MEDICATION
+        [HttpPost]
+        public async Task<IActionResult> AddMedication(int medicationId, string dosage, string frequency, DateTime? startDate, DateTime? endDate, string notes)
+        {
+            var patient = await GetLoggedInPatient();
+            if (patient == null) return Json(new { success = false, message = "Not authenticated" });
+
+            var exists = await _context.PatientMedications
+                .AnyAsync(pm => pm.PatientID == patient.PatientID && pm.MedicationID == medicationId);
+            if (exists) return Json(new { success = false, message = "Already have this medication" });
+
+            _context.PatientMedications.Add(new PatientMedication
+            {
+                PatientID = patient.PatientID,
+                MedicationID = medicationId,
+                Dosage = dosage,
+                Frequency = frequency,
+                StartDate = startDate,
+                EndDate = endDate,
+                IsCurrent = endDate == null,
+                Notes = notes,
+                CreatedDate = DateTime.Now
+            });
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Medication added!" });
+        }
+
+        // REMOVE MEDICATION
+        [HttpPost]
+        public async Task<IActionResult> RemoveMedication(int patientMedicationId)
+        {
+            var patient = await GetLoggedInPatient();
+            if (patient == null) return Json(new { success = false, message = "Not authenticated" });
+
+            var pm = await _context.PatientMedications
+                .FirstOrDefaultAsync(x => x.PatientMedicationID == patientMedicationId && x.PatientID == patient.PatientID);
+            if (pm == null) return Json(new { success = false, message = "Not found" });
+
+            _context.PatientMedications.Remove(pm);
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Medication removed!" });
+        }
+
+        // CONSENT
+        public async Task<IActionResult> Consent()
+        {
+            var patient = await GetLoggedInPatient();
+            if (patient == null) return RedirectToAction("Login", "Account");
+
             var viewModel = new PatientConsentManagementViewModel
             {
-                PatientID = 1,
-                FullName = "Thabo Mbeki",
-                ActiveConsents = new List<PatientConsentViewModel>(),
-                AvailableDoctors = new List<DoctorViewModel>(),
+                PatientID = patient.PatientID,
+                FullName = $"{patient.FirstName} {patient.LastName}",
+                ActiveConsents = await _context.PatientConsentManagements
+                    .Include(pcm => pcm.Doctor).ThenInclude(d => d.User)
+                    .Where(pcm => pcm.PatientID == patient.PatientID && pcm.IsActive)
+                    .Select(pcm => new PatientConsentViewModel
+                    {
+                        ConsentID = pcm.ConsentID,
+                        DoctorID = pcm.DoctorID,
+                        DoctorName = pcm.Doctor != null && pcm.Doctor.User != null
+                            ? $"{pcm.Doctor.User.Name} {pcm.Doctor.User.Surname}" : "Unknown",
+                        DoctorEmail = pcm.Doctor != null && pcm.Doctor.User != null ? pcm.Doctor.User.Email : "",
+                        GrantedDate = pcm.GrantedDate,
+                        IsActive = pcm.IsActive,
+                        Notes = pcm.Notes
+                    }).ToListAsync(),
+                AvailableDoctors = await _context.Doctors.Include(d => d.User)
+                    .Where(d => d.User != null && d.User.IsActive)
+                    .Select(d => new DoctorViewModel
+                    {
+                        DoctorID = d.DoctorID,
+                        FullName = d.User != null ? $"{d.User.Name} {d.User.Surname}" : "Unknown",
+                        Email = d.User != null ? d.User.Email : "",
+                        HPCSANumber = d.HPCSANumber,
+                        Specialization = d.Specialization ?? "General"
+                    }).ToListAsync(),
                 AvailableTestRequests = new List<TestRequestViewModel>()
             };
-
             return View(viewModel);
         }
 
-        // ============================================
-        // TRENDS
-        // ============================================
-        public IActionResult Trends(string testType = null, int months = 6)
+        [HttpPost]
+        public async Task<IActionResult> GrantConsent(int doctorId, string notes)
         {
-            var viewModel = new PatientTrendsViewModel
+            var patient = await GetLoggedInPatient();
+            if (patient == null) return Json(new { success = false, message = "Not authenticated" });
+
+            var existing = await _context.PatientConsentManagements
+                .FirstOrDefaultAsync(pcm => pcm.PatientID == patient.PatientID && pcm.DoctorID == doctorId && pcm.IsActive);
+            if (existing != null) return Json(new { success = false, message = "Already have consent with this doctor" });
+
+            _context.PatientConsentManagements.Add(new PatientConsentManagement
             {
-                PatientID = 1,
-                FullName = "Thabo Mbeki",
-                AvailableTestTypes = new List<string> { "Cholesterol", "Haemoglobin", "Platelets", "WBC Count", "Glucose" },
+                PatientID = patient.PatientID,
+                DoctorID = doctorId,
+                GrantedDate = DateTime.Now,
+                IsActive = true,
+                Notes = notes
+            });
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Consent granted!" });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RevokeConsent(int consentId)
+        {
+            var patient = await GetLoggedInPatient();
+            if (patient == null) return Json(new { success = false, message = "Not authenticated" });
+
+            var consent = await _context.PatientConsentManagements
+                .FirstOrDefaultAsync(pcm => pcm.ConsentID == consentId && pcm.PatientID == patient.PatientID);
+            if (consent == null) return Json(new { success = false, message = "Not found" });
+
+            consent.IsActive = false;
+            consent.RevokedDate = DateTime.Now;
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Consent revoked!" });
+        }
+
+        // TRENDS
+        public async Task<IActionResult> Trends(string testType = null, int months = 6)
+        {
+            var patient = await GetLoggedInPatient();
+            if (patient == null) return RedirectToAction("Login", "Account");
+
+            return View(new PatientTrendsViewModel
+            {
+                PatientID = patient.PatientID,
+                FullName = $"{patient.FirstName} {patient.LastName}",
+                AvailableTestTypes = new List<string> { "Cholesterol", "Haemoglobin", "Platelets" },
                 SelectedTestType = testType ?? "Cholesterol",
                 Months = months,
-                TrendData = new List<TrendDataPoint>
-                {
-                    new TrendDataPoint { Date = DateTime.Now.AddMonths(-5), Value = 5.2, LowerLimit = 3.0, UpperLimit = 6.0 },
-                    new TrendDataPoint { Date = DateTime.Now.AddMonths(-4), Value = 5.5, LowerLimit = 3.0, UpperLimit = 6.0 },
-                    new TrendDataPoint { Date = DateTime.Now.AddMonths(-3), Value = 5.8, LowerLimit = 3.0, UpperLimit = 6.0 },
-                    new TrendDataPoint { Date = DateTime.Now.AddMonths(-2), Value = 6.1, LowerLimit = 3.0, UpperLimit = 6.0 },
-                    new TrendDataPoint { Date = DateTime.Now.AddMonths(-1), Value = 5.9, LowerLimit = 3.0, UpperLimit = 6.0 },
-                    new TrendDataPoint { Date = DateTime.Now, Value = 5.7, LowerLimit = 3.0, UpperLimit = 6.0 }
-                }
-            };
-
-            return View(viewModel);
+                TrendData = new List<TrendDataPoint>()
+            });
         }
 
-        // ============================================
-        // AJAX ENDPOINTS (Placeholder - will implement later)
-        // ============================================
-        [HttpPost]
-        public IActionResult AddCondition(int conditionId, string diagnosedDate, string notes)
-        {
-            return Json(new { success = true, message = "Condition added successfully" });
-        }
-
-        [HttpPost]
-        public IActionResult RemoveCondition(int patientConditionId)
-        {
-            return Json(new { success = true, message = "Condition removed successfully" });
-        }
-
-        [HttpPost]
-        public IActionResult AddAllergy(int allergyId, string severity, string notes)
-        {
-            return Json(new { success = true, message = "Allergy added successfully" });
-        }
-
-        [HttpPost]
-        public IActionResult RemoveAllergy(int patientAllergyId)
-        {
-            return Json(new { success = true, message = "Allergy removed successfully" });
-        }
-
-        [HttpPost]
-        public IActionResult AddMedication(int medicationId, string dosage, string frequency, string startDate, string endDate, string notes)
-        {
-            return Json(new { success = true, message = "Medication added successfully" });
-        }
-
-        [HttpPost]
-        public IActionResult RemoveMedication(int patientMedicationId)
-        {
-            return Json(new { success = true, message = "Medication removed successfully" });
-        }
-
-        [HttpPost]
-        public IActionResult GrantConsent(int doctorId, string notes)
-        {
-            return Json(new { success = true, message = "Consent granted successfully" });
-        }
-
-        [HttpPost]
-        public IActionResult RevokeConsent(int consentId)
-        {
-            return Json(new { success = true, message = "Consent revoked successfully" });
-        }
-
-        public IActionResult DownloadReport()
-        {
-            TempData["InfoMessage"] = "PDF report will be available in the full implementation.";
-            return RedirectToAction("Dashboard");
-        }
-
-        // ============================================
-        // PATIENT REGISTRATION
-        // ============================================
-
-        // GET: Patient/Register
+        // REGISTER
         public IActionResult Register()
         {
             return View(new PatientRegistrationViewModel());
         }
 
-        // POST: Patient/Register
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(PatientRegistrationViewModel model)
         {
-            if (!ModelState.IsValid)
+            if (!ModelState.IsValid) return View(model);
+
+            if (await _context.Users.AnyAsync(u => u.Email == model.Email))
             {
+                ModelState.AddModelError("Email", "Email already registered");
                 return View(model);
             }
 
-            try
+            if (await _context.Patients.AnyAsync(p => p.SAIDNumber == model.SAIDNumber))
             {
-                // Check if email already exists
-                var emailExists = await _context.Users
-                    .AnyAsync(u => u.Email == model.Email);
-
-                if (emailExists)
-                {
-                    ModelState.AddModelError("Email", "Email already registered");
-                    return View(model);
-                }
-
-                // Check if SA ID already exists
-                var saIdExists = await _context.Patients
-                    .AnyAsync(p => p.SAIDNumber == model.SAIDNumber);
-
-                if (saIdExists)
-                {
-                    ModelState.AddModelError("SAIDNumber", "SA ID already registered");
-                    return View(model);
-                }
-
-                // Hash password
-                var passwordHash = PasswordHelper.HashPassword(model.Password);
-
-                // Create User
-                var user = new User
-                {
-                    Name = model.FirstName.Trim(),
-                    Surname = model.LastName.Trim(),
-                    Email = model.Email.Trim().ToLower(),
-                    PasswordHash = passwordHash,
-                    UserRole = "Patient",
-                    ContactNumber = model.Cellphone,
-                    IsActive = true,
-                    IsPasswordChanged = false,
-                    CreatedDate = DateTime.Now
-                };
-
-                _context.Users.Add(user);
-                await _context.SaveChangesAsync();
-
-                // Create Patient
-                var patient = new Patient
-                {
-                    UserID = user.UserID,
-                    FirstName = model.FirstName.Trim(),
-                    LastName = model.LastName.Trim(),
-                    SAIDNumber = model.SAIDNumber,
-                    DateOfBirth = model.DateOfBirth,
-                    Cellphone = model.Cellphone,
-                    HomeAddress = model.HomeAddress?.Trim(),
-                    Email = model.Email.Trim().ToLower(),
-                    IsActive = true,
-                    CreatedDate = DateTime.Now
-                };
-
-                _context.Patients.Add(patient);
-                await _context.SaveChangesAsync();
-
-                TempData["SuccessMessage"] = "Registration successful! Please login.";
-                return RedirectToAction("Login", "Account");
-            }
-            catch (Exception ex)
-            {
-                ModelState.AddModelError("", $"An error occurred: {ex.Message}");
+                ModelState.AddModelError("SAIDNumber", "SA ID already registered");
                 return View(model);
             }
+
+            var user = new User
+            {
+                Name = model.FirstName.Trim(),
+                Surname = model.LastName.Trim(),
+                Email = model.Email.Trim().ToLower(),
+                PasswordHash = PasswordHelper.HashPassword(model.Password),
+                UserRole = "Patient",
+                ContactNumber = model.Cellphone,
+                IsActive = true,
+                IsPasswordChanged = false,
+                CreatedDate = DateTime.Now
+            };
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            _context.Patients.Add(new Patient
+            {
+                UserID = user.UserID,
+                FirstName = model.FirstName.Trim(),
+                LastName = model.LastName.Trim(),
+                SAIDNumber = model.SAIDNumber,
+                DateOfBirth = model.DateOfBirth,
+                Cellphone = model.Cellphone,
+                HomeAddress = model.HomeAddress?.Trim(),
+                Email = model.Email.Trim().ToLower(),
+                IsActive = true,
+                CreatedDate = DateTime.Now
+            });
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Registration successful! Please login.";
+            return RedirectToAction("Login", "Account");
         }
     }
 
-    // ============================================
-    // EDIT PATIENT PROFILE VIEWMODEL
-    // ============================================
     public class EditPatientProfileViewModel
     {
         public int PatientID { get; set; }
