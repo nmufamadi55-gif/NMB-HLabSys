@@ -413,22 +413,73 @@ namespace NMB_HLabSys.Controllers
             await _context.SaveChangesAsync();
             return Json(new { success = true, message = "Consent revoked!" });
         }
-
-        // TRENDS
+        // ============================================
+        // TRENDS (with real database data)
+        // ============================================
         public async Task<IActionResult> Trends(string testType = null, int months = 6)
         {
             var patient = await GetLoggedInPatient();
-            if (patient == null) return RedirectToAction("Login", "Account");
+            if (patient == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
 
-            return View(new PatientTrendsViewModel
+            // Get available test types (from patient's test results)
+            var availableTestTypes = new List<string> { "Cholesterol", "Haemoglobin", "Platelets", "WBC Count", "Glucose" };
+            var selectedType = testType ?? "Cholesterol";
+
+            // Get trend data for the selected test type
+            var trendData = new List<TrendDataPoint>();
+
+            try
+            {
+                // Query real data from TestResults
+                var results = await _context.TestResults
+                    .Include(tr => tr.RequestTestType)
+                        .ThenInclude(rtt => rtt.TestType)
+                    .Include(tr => tr.RequestTestType)
+                        .ThenInclude(rtt => rtt.TestRequest)
+                    .Where(tr => tr.RequestTestType.TestRequest.PatientID == patient.PatientID
+                              && tr.RequestTestType.TestType.TestName.Contains(selectedType)
+                              && tr.RequestTestType.TestRequest.RequestDate >= DateTime.Now.AddMonths(-months))
+                    .OrderBy(tr => tr.RequestTestType.TestRequest.RequestDate)
+                    .Select(tr => new
+                    {
+                        Date = tr.RequestTestType.TestRequest.RequestDate,
+                        Value = tr.NumericValue ?? 0,
+                        LowerLimit = tr.RequestTestType.TestType.NormalRangeMin,
+                        UpperLimit = tr.RequestTestType.TestType.NormalRangeMax
+                    })
+                    .ToListAsync();
+
+                foreach (var r in results)
+                {
+                    trendData.Add(new TrendDataPoint
+                    {
+                        Date = r.Date,
+                        Value = Convert.ToDouble(r.Value),
+                        LowerLimit = r.LowerLimit.HasValue ? Convert.ToDouble(r.LowerLimit.Value) : null,
+                        UpperLimit = r.UpperLimit.HasValue ? Convert.ToDouble(r.UpperLimit.Value) : null
+                    });
+                }
+            }
+            catch
+            {
+                // If no data yet, return empty list
+                trendData = new List<TrendDataPoint>();
+            }
+
+            var viewModel = new PatientTrendsViewModel
             {
                 PatientID = patient.PatientID,
                 FullName = $"{patient.FirstName} {patient.LastName}",
-                AvailableTestTypes = new List<string> { "Cholesterol", "Haemoglobin", "Platelets" },
-                SelectedTestType = testType ?? "Cholesterol",
+                AvailableTestTypes = availableTestTypes,
+                SelectedTestType = selectedType,
                 Months = months,
-                TrendData = new List<TrendDataPoint>()
-            });
+                TrendData = trendData
+            };
+
+            return View(viewModel);
         }
 
         // REGISTER
