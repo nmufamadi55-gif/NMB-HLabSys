@@ -19,7 +19,7 @@ namespace NMB_HLabSys.Controllers
         {
             _context = context;
         }
-
+        
         // ============================================
         // LOGIN
         // ============================================
@@ -54,6 +54,7 @@ namespace NMB_HLabSys.Controllers
                 HttpContext.Session.SetInt32("UserID", user.UserID);
                 HttpContext.Session.SetString("UserRole", user.UserRole);
                 HttpContext.Session.SetString("UserName", $"{user.Name} {user.Surname}");
+                HttpContext.Session.SetString("UserEmail", user.Email);
 
                 // Redirect based on role
                 if (user.UserRole == "Patient")
@@ -85,7 +86,77 @@ namespace NMB_HLabSys.Controllers
                 return View(model);
             }
         }
+        // ============================================
+        // FORGOT PASSWORD
+        // ============================================
 
+        // GET: Account/ForgotPassword
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        // POST: Account/ForgotPassword
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                ViewBag.Error = "Email is required";
+                return View();
+            }
+
+            try
+            {
+                var user = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Email == email.Trim().ToLower() && u.IsActive);
+
+                // Always show success (don't reveal if email exists)
+                if (user != null)
+                {
+                    // Generate a temporary password
+                    var newPassword = GenerateTemporaryPassword();
+                    user.PasswordHash = PasswordHelper.HashPassword(newPassword);
+                    user.IsPasswordChanged = false;
+                    user.ModifiedDate = DateTime.Now;
+                    await _context.SaveChangesAsync();
+
+                    // In production: send email with new password
+                    // For now, show on screen (remove before publishing!)
+                    ViewBag.TempPassword = newPassword;
+                    ViewBag.FoundUser = true;
+                }
+
+                ViewBag.Success = "If this email is registered, a password reset link has been sent.";
+                return View();
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = $"Error: {ex.Message}";
+                return View();
+            }
+        }
+
+        private string GenerateTemporaryPassword()
+        {
+            const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$";
+            var random = new Random();
+            var password = new char[10];
+
+            // Ensure at least one of each type
+            password[0] = "ABCDEFGHJKLMNPQRSTUVWXYZ"[random.Next(24)];
+            password[1] = "abcdefghijkmnpqrstuvwxyz"[random.Next(24)];
+            password[2] = "23456789"[random.Next(8)];
+            password[3] = "!@#$"[random.Next(4)];
+
+            for (int i = 4; i < password.Length; i++)
+            {
+                password[i] = chars[random.Next(chars.Length)];
+            }
+
+            return new string(password);
+        }
         // ============================================
         // LOGOUT
         // ============================================

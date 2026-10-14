@@ -1,95 +1,159 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using NMB_HLabSys.Data;
+using NMB_HLabSys.Helpers;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace NMB_HLabSys.Controllers
 {
     public class ProfileController : Controller
     {
-        // For prototype - store user info in ViewBag without session
-        // In production, this would come from database via session or claims
+        private readonly ApplicationDbContext _context;
 
-        public IActionResult Index()
+        public ProfileController(ApplicationDbContext context)
         {
-            // For prototype, determine role from URL or use default
-            // You can also pass role via query parameter or set a cookie
+            _context = context;
+        }
 
-            var userRole = "Doctor"; // Default role for prototype
-            var userEmail = "doctor@nmblab.com";
-
-            // Optional: Check if coming from a specific controller
-            var referer = Request.Headers["Referer"].ToString();
-            if (referer.Contains("/Technician")) userRole = "Technician";
-            else if (referer.Contains("/Manager")) userRole = "Manager";
-            else if (referer.Contains("/Patient")) userRole = "Patient";
-            else if (referer.Contains("/Admin")) userRole = "Admin";
-            else if (referer.Contains("/Doctor")) userRole = "Doctor";
-
-            // You can also accept role as query parameter
-            if (Request.Query.ContainsKey("role"))
+        // GET: Profile/Index
+        public async Task<IActionResult> Index()
+        {
+            var userId = HttpContext.Session.GetInt32("UserID");
+            if (!userId.HasValue)
             {
-                userRole = Request.Query["role"].ToString();
+                return RedirectToAction("Login", "Account");
             }
 
-            ViewBag.UserRole = userRole;
-            ViewBag.UserEmail = userEmail;
-            ViewBag.UserName = GetUserNameFromRole(userRole);
-            ViewBag.UserInitials = GetInitials(ViewBag.UserName);
-            ViewBag.UserGreeting = GetUserGreeting(userRole, ViewBag.UserName);
+            var user = await _context.Users.FindAsync(userId.Value);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            ViewBag.UserRole = user.UserRole;
+            ViewBag.UserName = $"{user.Name} {user.Surname}";
+            ViewBag.UserEmail = user.Email;
+            ViewBag.UserInitials = GetInitials($"{user.Name} {user.Surname}");
+            ViewBag.UserGreeting = GetUserGreeting(user.UserRole, $"{user.Name} {user.Surname}");
 
             return View();
         }
 
+        // POST: Profile/UpdateProfile
         [HttpPost]
-        public IActionResult UpdateProfile(string name, string surname, string email, string phone)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateProfile(string name, string surname, string email, string phone)
         {
-            // In production, update database
+            var userId = HttpContext.Session.GetInt32("UserID");
+            if (!userId.HasValue)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var user = await _context.Users.FindAsync(userId.Value);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            user.Name = name?.Trim() ?? user.Name;
+            user.Surname = surname?.Trim() ?? user.Surname;
+            user.ContactNumber = phone?.Trim() ?? user.ContactNumber;
+            user.ModifiedDate = DateTime.Now;
+
+            // Update session with new name
+            HttpContext.Session.SetString("UserName", $"{user.Name} {user.Surname}");
+
+            await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Profile updated successfully!";
             return RedirectToAction("Index");
         }
 
+        // POST: Profile/ChangePassword
         [HttpPost]
-        public IActionResult ChangePassword(string currentPassword, string newPassword, string confirmPassword)
+        //[ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(string currentPassword, string newPassword, string confirmPassword)
         {
+            var userId = HttpContext.Session.GetInt32("UserID");
+            if (!userId.HasValue)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Check new passwords match
             if (newPassword != confirmPassword)
             {
                 TempData["ErrorMessage"] = "New passwords do not match.";
-                return RedirectToAction("Index");
+                return RedirectBasedOnRole();
             }
 
+            // Check password strength
             if (!IsValidPassword(newPassword))
             {
                 TempData["ErrorMessage"] = "Password must be at least 8 characters, contain an uppercase letter, a number, and a special character.";
-                return RedirectToAction("Index");
+                return RedirectBasedOnRole();
             }
 
+            var user = await _context.Users.FindAsync(userId.Value);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Verify current password
+            var currentHash = PasswordHelper.HashPassword(currentPassword);
+            if (user.PasswordHash != currentHash)
+            {
+                TempData["ErrorMessage"] = "Current password is incorrect.";
+                return RedirectBasedOnRole();
+            }
+
+            // Update password
+            user.PasswordHash = PasswordHelper.HashPassword(newPassword);
+            user.IsPasswordChanged = true;
+            user.ModifiedDate = DateTime.Now;
+
+            await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Password changed successfully!";
-            return RedirectToAction("Index");
+            return RedirectBasedOnRole();
+        }
+
+        // Helper: Redirect based on role
+        private IActionResult RedirectBasedOnRole()
+        {
+            var role = HttpContext.Session.GetString("UserRole");
+            switch (role)
+            {
+                case "Patient":
+                    return RedirectToAction("Profile", "Patient");
+                case "Doctor":
+                    return RedirectToAction("Dashboard", "Doctor");
+                case "Manager":
+                    return RedirectToAction("Index", "LaboratoryManager");
+                case "Technician":
+                    return RedirectToAction("Dashboard", "Technician");
+                case "Admin":
+                    return RedirectToAction("Dashboard", "Admin");
+                default:
+                    return RedirectToAction("Index", "Home");
+            }
         }
 
         private bool IsValidPassword(string password)
         {
-            return password.Length >= 8 &&
+            return !string.IsNullOrEmpty(password) &&
+                   password.Length >= 8 &&
                    password.Any(char.IsUpper) &&
                    password.Any(char.IsDigit) &&
                    password.Any(ch => !char.IsLetterOrDigit(ch));
         }
 
-        private string GetUserNameFromRole(string role)
-        {
-            switch (role)
-            {
-                case "Doctor": return "Dr. Sarah Johnson";
-                case "Technician": return "Michael Peters";
-                case "Manager": return "Amanda Adams";
-                case "Patient": return "Thabo Mbeki";
-                case "Admin": return "Admin User";
-                default: return "User";
-            }
-        }
-
         private string GetInitials(string name)
         {
             if (string.IsNullOrEmpty(name)) return "U";
-            var parts = name.Split(' ');
+            var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length >= 2) return parts[0][0].ToString() + parts[1][0].ToString();
             return name.Substring(0, 1).ToUpper();
         }

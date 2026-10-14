@@ -30,32 +30,153 @@ namespace NMB_HLabSys.Controllers
                 .Include(p => p.User)
                 .FirstOrDefaultAsync(p => p.UserID == userId.Value && p.IsActive);
         }
-
-        // DASHBOARD
+       
+        // ============================================
+        // DASHBOARD - with real data
+        // ============================================
         public async Task<IActionResult> Dashboard()
         {
             var patient = await GetLoggedInPatient();
-            if (patient == null) return RedirectToAction("Login", "Account");
-
-            var viewModel = new PatientDashboardViewModel
+            if (patient == null)
             {
-                PatientID = patient.PatientID,
-                FirstName = patient.FirstName,
-                LastName = patient.LastName,
-                SAIDNumber = patient.SAIDNumber,
-                Email = patient.User?.Email ?? patient.Email,
-                Cellphone = patient.Cellphone,
-                DateOfBirth = patient.DateOfBirth,
-                TotalTestRequests = 0,
-                AbnormalResultsCount = 0,
-                ReportsAvailable = 0,
-                HealthScore = 0,
-                HealthStatusMessage = "No health data yet.",
-                CholesterolTrend = "No data",
-                RecentTestResults = new List<RecentTestResultViewModel>(),
-                UpcomingTests = new List<UpcomingTestViewModel>()
-            };
-            return View(viewModel);
+                return RedirectToAction("Login", "Account");
+            }
+
+            try
+            {
+                // Count total test requests
+                var totalTests = await _context.TestRequests
+                    .CountAsync(tr => tr.PatientID == patient.PatientID);
+
+                // Count abnormal results
+                var abnormalResults = await _context.TestResults
+                    .Include(tr => tr.RequestTestType)
+                        .ThenInclude(rtt => rtt.TestRequest)
+                    .Where(tr => tr.RequestTestType != null
+                              && tr.RequestTestType.TestRequest != null
+                              && tr.RequestTestType.TestRequest.PatientID == patient.PatientID
+                              && tr.IsAbnormal)
+                    .CountAsync();
+
+                // Count completed test results (reports available)
+                var reportsAvailable = await _context.TestResults
+                    .Include(tr => tr.RequestTestType)
+                        .ThenInclude(rtt => rtt.TestRequest)
+                    .Where(tr => tr.RequestTestType != null
+                              && tr.RequestTestType.TestRequest != null
+                              && tr.RequestTestType.TestRequest.PatientID == patient.PatientID)
+                    .CountAsync();
+
+                // Get recent test results (last 5)
+                var recentResults = await _context.TestResults
+                    .Include(tr => tr.RequestTestType)
+                        .ThenInclude(rtt => rtt.TestType)
+                    .Include(tr => tr.RequestTestType)
+                        .ThenInclude(rtt => rtt.TestRequest)
+                            .ThenInclude(trq => trq.Doctor)
+                                .ThenInclude(d => d.User)
+                    .Where(tr => tr.RequestTestType != null
+                              && tr.RequestTestType.TestRequest != null
+                              && tr.RequestTestType.TestRequest.PatientID == patient.PatientID)
+                    .OrderByDescending(tr => tr.RequestTestType.TestRequest.RequestDate)
+                    .Take(5)
+                    .Select(tr => new RecentTestResultViewModel
+                    {
+                        TestRequestID = tr.RequestTestType.RequestTestID,
+                        RequestDate = tr.RequestTestType.TestRequest.RequestDate,
+                        TestName = tr.RequestTestType.TestType != null ? tr.RequestTestType.TestType.TestName : "Unknown Test",
+                        ResultValue = tr.ResultValue ?? "Pending",
+                        NormalRange = tr.RequestTestType.TestType != null
+                            && tr.RequestTestType.TestType.NormalRangeMin.HasValue
+                            && tr.RequestTestType.TestType.NormalRangeMax.HasValue
+                            ? $"{tr.RequestTestType.TestType.NormalRangeMin} - {tr.RequestTestType.TestType.NormalRangeMax}"
+                            : "N/A",
+                        Status = tr.IsAbnormal ? "Abnormal" : "Normal",
+                        DoctorName = tr.RequestTestType.TestRequest.Doctor != null
+                            && tr.RequestTestType.TestRequest.Doctor.User != null
+                            ? $"Dr. {tr.RequestTestType.TestRequest.Doctor.User.Name} {tr.RequestTestType.TestRequest.Doctor.User.Surname}"
+                            : "Unknown Doctor",
+                        ReportUrl = "#",
+                        IsAbnormal = tr.IsAbnormal
+                    })
+                    .ToListAsync();
+
+                // Get upcoming/pending tests
+                var upcomingTests = await _context.TestRequests
+                    .Where(tr => tr.PatientID == patient.PatientID
+                              && (tr.Status == "Submitted" || tr.Status == "Sample Received" || tr.Status == "In Progress"))
+                    .OrderBy(tr => tr.RequestDate)
+                    .Take(5)
+                    .Select(tr => new UpcomingTestViewModel
+                    {
+                        TestName = tr.RequestNumber ?? "Test Request",
+                        RequestDate = tr.RequestDate
+                    })
+                    .ToListAsync();
+
+                var viewModel = new PatientDashboardViewModel
+                {
+                    PatientID = patient.PatientID,
+                    FirstName = patient.FirstName,
+                    LastName = patient.LastName,
+                    SAIDNumber = patient.SAIDNumber,
+                    Email = patient.User?.Email ?? patient.Email,
+                    Cellphone = patient.Cellphone,
+                    DateOfBirth = patient.DateOfBirth,
+                    TotalTestRequests = totalTests,
+                    AbnormalResultsCount = abnormalResults,
+                    ReportsAvailable = reportsAvailable,
+                    HealthScore = CalculateHealthScore(abnormalResults, reportsAvailable),
+                    HealthStatusMessage = GetHealthStatusMessage(abnormalResults, reportsAvailable),
+                    CholesterolTrend = "No data yet",
+                    RecentTestResults = recentResults,
+                    UpcomingTests = upcomingTests
+                };
+
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                // If anything fails, return empty dashboard
+                var viewModel = new PatientDashboardViewModel
+                {
+                    PatientID = patient.PatientID,
+                    FirstName = patient.FirstName,
+                    LastName = patient.LastName,
+                    SAIDNumber = patient.SAIDNumber,
+                    Email = patient.User?.Email ?? patient.Email,
+                    Cellphone = patient.Cellphone,
+                    DateOfBirth = patient.DateOfBirth,
+                    TotalTestRequests = 0,
+                    AbnormalResultsCount = 0,
+                    ReportsAvailable = 0,
+                    HealthScore = 100,
+                    HealthStatusMessage = "No test data yet",
+                    CholesterolTrend = "No data yet",
+                    RecentTestResults = new List<RecentTestResultViewModel>(),
+                    UpcomingTests = new List<UpcomingTestViewModel>()
+                };
+                return View(viewModel);
+            }
+        }
+
+        // ============================================
+        // HELPER METHODS FOR DASHBOARD
+        // ============================================
+        private int CalculateHealthScore(int abnormalCount, int totalResults)
+        {
+            if (totalResults == 0) return 100;
+            if (abnormalCount == 0) return 100;
+            var score = 100 - (abnormalCount * 100 / Math.Max(totalResults, 1));
+            return Math.Max(score, 0);
+        }
+
+        private string GetHealthStatusMessage(int abnormalCount, int totalResults)
+        {
+            if (totalResults == 0) return "No test data available yet.";
+            if (abnormalCount == 0) return "All results within normal ranges. Keep it up!";
+            if (abnormalCount <= 1) return "Mostly stable — one result to watch.";
+            return $"{abnormalCount} results need attention. Please consult your doctor.";
         }
 
         // PROFILE

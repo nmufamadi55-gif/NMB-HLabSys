@@ -56,7 +56,46 @@
         border-radius: 20px;
         font-size: 0.75rem;
     }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            color: #374151;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid #D1D5DB;
+            font-size: 0.95rem;
+        }
+
+            .form-group input:focus {
+                outline: none;
+                border-color: #4F46E5;
+                box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            }
 </style>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div style="background:#DCFCE7; color:#166534; padding:12px; border-radius:12px; margin-bottom:1rem;">
+        ✅ @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div style="background:#FEE2E2; color:#991B1B; padding:12px; border-radius:12px; margin-bottom:1rem;">
+        ❌ @TempData["ErrorMessage"]
+    </div>
+}
 
 <div class="grid-2col">
     <div class="card-modern" style="text-align: center;">
@@ -165,4 +204,32 @@
             </div>
         </div>
     </div>
+</div>
+
+<!-- CHANGE PASSWORD — MOVED OUTSIDE THE GRID -->
+<div class="card-modern" style="margin-top: 2rem; max-width: 600px;">
+    <div class="card-header-flex">
+        <h3>🔒 Change Password</h3>
+    </div>
+
+    <form method="post" action="/Profile/ChangePassword">
+        @* @Html.AntiForgeryToken() *@
+
+        <div class="form-group">
+            <label>Current Password *</label>
+            <input type="password" name="currentPassword" required />
+        </div>
+
+        <div class="form-group">
+            <label>New Password *</label>
+            <input type="password" name="newPassword" required />
+        </div>
+
+        <div class="form-group">
+            <label>Confirm New Password *</label>
+            <input type="password" name="confirmPassword" required />
+        </div>
+
+        <button type="submit" class="btn-sm-lab">🔒 Change Password</button>
+    </form>
 </div>

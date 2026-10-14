@@ -1,0 +1,93 @@
+﻿@using NMB_HLabSys.ViewModels.PatientViewModels
+@model EditPatientProfileViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Edit Profile";
+    ViewData["RoleSubtitle"] = "Patient Portal";
+}
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Patient")">📋 My Results</a></li>
+    <li><a href="@Url.Action("MedicalHistory", "Patient")">📝 Medical History</a></li>
+    <li><a href="@Url.Action("Consent", "Patient")">🔐 Consent Management</a></li>
+    <li><a href="@Url.Action("Trends", "Patient")">📈 Track Trends</a></li>
+    <li><a href="@Url.Action("Profile", "Patient")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+}
+
+<style>
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            color: #374151;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid #D1D5DB;
+            font-size: 0.95rem;
+        }
+
+            .form-group input:focus {
+                outline: none;
+                border-color: #4F46E5;
+                box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            }
+
+            .form-group input[readonly] {
+                background: #F3F4F6;
+                cursor: not-allowed;
+            }
+</style>
+
+<div class="card-modern">
+    <div class="card-header-flex">
+        <h3>✏️ Edit Profile</h3>
+        <a href="@Url.Action("Profile", "Patient")" class="btn-outline-lab">← Back to Profile</a>
+    </div>
+
+    <form method="post" asp-action="EditProfile">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="PatientID" />
+
+        <div class="form-group">
+            <label asp-for="FirstName">First Name *</label>
+            <input asp-for="FirstName" required />
+            <span asp-validation-for="FirstName" style="color: red;"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="LastName">Last Name *</label>
+            <input asp-for="LastName" required />
+            <span asp-validation-for="LastName" style="color: red;"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Cellphone">Cellphone *</label>
+            <input asp-for="Cellphone" required />
+            <span asp-validation-for="Cellphone" style="color: red;"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="HomeAddress">Home Address</label>
+            <input asp-for="HomeAddress" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Email">Email (read-only)</label>
+            <input asp-for="Email" readonly />
+        </div>
+
+        <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+            <button type="submit" class="btn-sm-lab">💾 Save Changes</button>
+            <a href="@Url.Action("Profile", "Patient")" class="btn-outline-lab">Cancel</a>
+        </div>
+    </form>
+</div>
