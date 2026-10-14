@@ -545,16 +545,29 @@ namespace NMB_HLabSys.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            // Get available test types (from patient's test results)
-            var availableTestTypes = new List<string> { "Cholesterol", "Haemoglobin", "Platelets", "WBC Count", "Glucose" };
-            var selectedType = testType ?? "Cholesterol";
+            var availableTestTypes = new List<string>
+    {
+        "Haemoglobin",
+        "Platelet",
+        "White Cell",
+        "Ferritin",
+        "Folate",
+        "Vitamin B12",
+        "Neutrophils",
+        "Lymphocytes",
+        "APTT",
+        "D-Dimer",
+        "ESR",
+        "INR"
+    };
 
-            // Get trend data for the selected test type
+            // ✅ DEFAULT TO "Haemoglobin" (not Cholesterol!)
+            var selectedType = testType ?? "Haemoglobin";
+
             var trendData = new List<TrendDataPoint>();
 
             try
             {
-                // Query real data from TestResults
                 var results = await _context.TestResults
                     .Include(tr => tr.RequestTestType)
                         .ThenInclude(rtt => rtt.TestType)
@@ -562,11 +575,11 @@ namespace NMB_HLabSys.Controllers
                         .ThenInclude(rtt => rtt.TestRequest)
                     .Where(tr => tr.RequestTestType.TestRequest.PatientID == patient.PatientID
                               && tr.RequestTestType.TestType.TestName.Contains(selectedType)
-                              && tr.RequestTestType.TestRequest.RequestDate >= DateTime.Now.AddMonths(-months))
-                    .OrderBy(tr => tr.RequestTestType.TestRequest.RequestDate)
+                              && tr.ResultDate >= DateTime.Now.AddMonths(-months))
+                    .OrderBy(tr => tr.ResultDate)
                     .Select(tr => new
                     {
-                        Date = tr.RequestTestType.TestRequest.RequestDate,
+                        Date = tr.ResultDate,
                         Value = tr.NumericValue ?? 0,
                         LowerLimit = tr.RequestTestType.TestType.NormalRangeMin,
                         UpperLimit = tr.RequestTestType.TestType.NormalRangeMax
@@ -586,7 +599,6 @@ namespace NMB_HLabSys.Controllers
             }
             catch
             {
-                // If no data yet, return empty list
                 trendData = new List<TrendDataPoint>();
             }
 
