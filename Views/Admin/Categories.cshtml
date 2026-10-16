@@ -4,52 +4,94 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Manage Categories";
     ViewData["RoleSubtitle"] = "Admin Portal";
-    ViewData["UserGreeting"] = "⚙️ System Administrator";
+    ViewData["UserGreeting"] = "System Administrator";
     ViewData["UserInitials"] = "AD";
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Admin")">📋 Dashboard</a></li>
-    <li><a href="@Url.Action("Conditions", "Admin")">🩺 Medical Conditions</a></li>
-    <li><a href="@Url.Action("Allergies", "Admin")">⚠️ Allergies</a></li>
-    <li><a href="@Url.Action("Medications", "Admin")">💊 Medications</a></li>
-    <li><a href="@Url.Action("Categories", "Admin")" class="active">📁 Categories</a></li>
+    <li><a href="@Url.Action("Dashboard", "Admin")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+    <li><a href="@Url.Action("Conditions", "Admin")"><i class="fas fa-database"></i> <span>Conditions</span></a></li>
+    <li><a href="@Url.Action("Allergies", "Admin")"><i class="fas fa-allergies"></i> <span>Allergies</span></a></li>
+    <li><a href="@Url.Action("Medications", "Admin")"><i class="fas fa-capsules"></i> <span>Medications</span></a></li>
+    <li><a href="@Url.Action("Categories", "Admin")" class="active"><i class="fas fa-folder"></i> <span>Categories</span></a></li>
     <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
 <style>
+    .profile-card {
+        background: white;
+        border-radius: 20px;
+        border: 1px solid #E2E8F0;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+    }
+
+    .profile-card-header {
+        background: linear-gradient(135deg, #F8FAFE, #FFFFFF);
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #E2E8F0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        .profile-card-header h3 {
+            margin: 0;
+            color: #032C7D;
+            font-size: 1.1rem;
+        }
+
+    .profile-card-body {
+        padding: 1.5rem;
+    }
+
+    .category-section {
+        background: #F8FAFE;
+        border-radius: 16px;
+        padding: 1.2rem;
+        margin-bottom: 1rem;
+    }
+
+        .category-section h4 {
+            color: #032C7D;
+            font-size: 0.95rem;
+            margin: 0 0 0.8rem 0;
+            font-weight: 600;
+        }
+
     .category-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
         background: white;
-        padding: 10px 12px;
-        border-radius: 14px;
+        padding: 12px 16px;
+        border-radius: 12px;
         margin-bottom: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        border: 1px solid #F3F4F6;
+        transition: 0.2s;
     }
 
-    .category-actions {
-        display: flex;
-        gap: 6px;
-    }
+        .category-item:hover {
+            border-color: #E0E7FF;
+            background: #F8FAFE;
+        }
 
-    .remove-btn {
-        color: red;
-        border-color: red;
-    }
+        .category-item strong {
+            color: #032C7D;
+            font-size: 0.9rem;
+        }
 
     .type-badge {
-        padding: 3px 10px;
+        padding: 3px 12px;
         border-radius: 20px;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: 600;
-        margin-left: 0.5rem;
+        margin-left: 8px;
     }
 
     .type-condition {
-        background: #EDE9FE;
-        color: #6D28D9;
+        background: #E0E7FF;
+        color: #032C7D;
     }
 
     .type-allergy {
@@ -60,6 +102,76 @@
     .type-medication {
         background: #FCE7F3;
         color: #9D174D;
+    }
+
+    .btn-primary {
+        background: #0841C9;
+        color: white;
+        border: none;
+        padding: 0.5rem 1.2rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+        .btn-primary:hover {
+            background: #032C7D;
+        }
+
+    .btn-outline {
+        background: transparent;
+        border: 1px solid #E2E8F0;
+        padding: 0.4rem 1rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        color: #032C7D;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+        .btn-outline:hover {
+            background: #F8FAFE;
+            border-color: #0841C9;
+        }
+
+    .btn-danger {
+        color: #DC2626;
+        border-color: #FCA5A5;
+    }
+
+        .btn-danger:hover {
+            background: #FEE2E2;
+            border-color: #DC2626;
+        }
+
+    .alert-success {
+        background: #D1FAE5;
+        color: #065F46;
+        padding: 0.8rem 1rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .alert-error {
+        background: #FEE2E2;
+        color: #991B1B;
+        padding: 0.8rem 1rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
     }
 
     .modal-overlay {
@@ -94,11 +206,18 @@
         margin-bottom: 1.5rem;
     }
 
+        .modal-header h3 {
+            color: #032C7D;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
     .modal-close {
         background: none;
         border: none;
-        font-size: 1.5rem;
+        font-size: 1.3rem;
         cursor: pointer;
+        color: #5A6E7A;
     }
 
     .form-group {
@@ -107,135 +226,134 @@
 
         .form-group label {
             display: block;
-            font-weight: 500;
-            margin-bottom: 0.25rem;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #032C7D;
+            margin-bottom: 0.3rem;
         }
 
         .form-group input, .form-group select, .form-group textarea {
             width: 100%;
-            padding: 10px;
+            padding: 10px 14px;
             border-radius: 12px;
-            border: 1px solid #D1D5DB;
+            border: 1px solid #E2E8F0;
+            font-size: 0.85rem;
+            font-family: inherit;
         }
 
-    .alert-success {
-        background: #DCFCE7;
-        color: #166534;
-        padding: 12px;
-        border-radius: 12px;
-        margin-bottom: 1rem;
-    }
-
-    .alert-error {
-        background: #FEE2E2;
-        color: #991B1B;
-        padding: 12px;
-        border-radius: 12px;
-        margin-bottom: 1rem;
-    }
+            .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+                outline: none;
+                border-color: #0841C9;
+                box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
+            }
 </style>
 
 @if (TempData["SuccessMessage"] != null)
 {
-    <div class="alert-success">✅ @TempData["SuccessMessage"]</div>
+    <div class="alert-success"><i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]</div>
 }
 
 @if (TempData["ErrorMessage"] != null)
 {
-    <div class="alert-error">❌ @TempData["ErrorMessage"]</div>
+    <div class="alert-error"><i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]</div>
 }
 
-<div class="card-modern">
-    <div class="card-header-flex">
-        <h3>📁 Categories</h3>
-        <button class="btn-sm-lab" onclick="openAddModal()">+ Add Category</button>
+<div class="profile-card">
+    <div class="profile-card-header">
+        <h3><i class="fas fa-folder"></i> Categories</h3>
+        <button class="btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> Add Category</button>
     </div>
-
-    @if (Model != null && Model.Any())
-    {
-        var conditionCategories = Model.Where(c => c.CategoryType == "Condition").ToList();
-        var allergyCategories = Model.Where(c => c.CategoryType == "Allergy").ToList();
-        var medicationCategories = Model.Where(c => c.CategoryType == "Medication").ToList();
-
-        <!-- Condition Categories -->
-        @if (conditionCategories.Any())
+    <div class="profile-card-body">
+        @if (Model != null && Model.Any())
         {
-            <h4 style="margin-top: 1rem; margin-bottom: 0.5rem;">🩺 Condition Categories</h4>
-            @foreach (var cat in conditionCategories)
+            var conditionCategories = Model.Where(c => c.CategoryType == "Condition").ToList();
+            var allergyCategories = Model.Where(c => c.CategoryType == "Allergy").ToList();
+            var medicationCategories = Model.Where(c => c.CategoryType == "Medication").ToList();
+
+            @if (conditionCategories.Any())
             {
-                <div class="category-item">
-                    <span>
-                        <strong>@cat.CategoryName</strong>
-                        <span class="type-badge type-condition">Condition</span>
-                    </span>
-                    <div class="category-actions">
-                        <button class="btn-outline-lab remove-btn" onclick="deleteCategory(@cat.CategoryID)">Delete</button>
-                    </div>
+                <div class="category-section">
+                    <h4><i class="fas fa-database"></i> Condition Categories</h4>
+                    @foreach (var cat in conditionCategories)
+                    {
+                        <div class="category-item">
+                            <span>
+                                <strong>@cat.CategoryName</strong>
+                                <span class="type-badge type-condition">Condition</span>
+                            </span>
+                            <button class="btn-outline btn-danger" onclick="deleteCategory(@cat.CategoryID)">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (allergyCategories.Any())
+            {
+                <div class="category-section">
+                    <h4><i class="fas fa-allergies"></i> Allergy Categories</h4>
+                    @foreach (var cat in allergyCategories)
+                    {
+                        <div class="category-item">
+                            <span>
+                                <strong>@cat.CategoryName</strong>
+                                <span class="type-badge type-allergy">Allergy</span>
+                            </span>
+                            <button class="btn-outline btn-danger" onclick="deleteCategory(@cat.CategoryID)">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (medicationCategories.Any())
+            {
+                <div class="category-section">
+                    <h4><i class="fas fa-capsules"></i> Medication Categories</h4>
+                    @foreach (var cat in medicationCategories)
+                    {
+                        <div class="category-item">
+                            <span>
+                                <strong>@cat.CategoryName</strong>
+                                <span class="type-badge type-medication">Medication</span>
+                            </span>
+                            <button class="btn-outline btn-danger" onclick="deleteCategory(@cat.CategoryID)">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    }
                 </div>
             }
         }
-
-        <!-- Allergy Categories -->
-        @if (allergyCategories.Any())
+        else
         {
-            <h4 style="margin-top: 1.5rem; margin-bottom: 0.5rem;">⚠️ Allergy Categories</h4>
-            @foreach (var cat in allergyCategories)
-            {
-                <div class="category-item">
-                    <span>
-                        <strong>@cat.CategoryName</strong>
-                        <span class="type-badge type-allergy">Allergy</span>
-                    </span>
-                    <div class="category-actions">
-                        <button class="btn-outline-lab remove-btn" onclick="deleteCategory(@cat.CategoryID)">Delete</button>
-                    </div>
-                </div>
-            }
+            <p style="text-align: center; color: #9CA3AF; padding: 2rem;">
+                <i class="fas fa-inbox" style="font-size: 2rem; display: block; margin-bottom: 0.5rem; opacity: 0.5;"></i>
+                No categories found.
+            </p>
         }
-
-        <!-- Medication Categories -->
-        @if (medicationCategories.Any())
-        {
-            <h4 style="margin-top: 1.5rem; margin-bottom: 0.5rem;">💊 Medication Categories</h4>
-            @foreach (var cat in medicationCategories)
-            {
-                <div class="category-item">
-                    <span>
-                        <strong>@cat.CategoryName</strong>
-                        <span class="type-badge type-medication">Medication</span>
-                    </span>
-                    <div class="category-actions">
-                        <button class="btn-outline-lab remove-btn" onclick="deleteCategory(@cat.CategoryID)">Delete</button>
-                    </div>
-                </div>
-            }
-        }
-    }
-    else
-    {
-        <p style="text-align: center; color: #9CA3AF; padding: 2rem;">
-            No categories found. Click "+ Add Category" to create one.
-        </p>
-    }
+    </div>
 </div>
 
 <!-- Add Category Modal -->
 <div id="addModal" class="modal-overlay">
     <div class="modal-box">
         <div class="modal-header">
-            <h3>Add Category</h3>
-            <button class="modal-close" onclick="closeAddModal()">✕</button>
+            <h3><i class="fas fa-plus-circle"></i> Add Category</h3>
+            <button class="modal-close" onclick="closeAddModal()"><i class="fas fa-times"></i></button>
         </div>
         <form method="post" action="@Url.Action("AddCategory", "Admin")">
             @Html.AntiForgeryToken()
 
             <div class="form-group">
-                <label>Category Name *</label>
+                <label>Category Name</label>
                 <input type="text" name="categoryName" required />
             </div>
 
             <div class="form-group">
-                <label>Category Type *</label>
+                <label>Category Type</label>
                 <select name="categoryType" required>
                     <option value="">-- Select Type --</option>
                     <option value="Condition">Condition</option>
@@ -249,39 +367,29 @@
                 <textarea name="description" rows="3"></textarea>
             </div>
 
-            <button type="submit" class="btn-sm-lab" style="width:100%;">Add Category</button>
+            <button type="submit" class="btn-primary" style="width:100%;">
+                <i class="fas fa-save"></i> Add Category
+            </button>
         </form>
     </div>
 </div>
 
 <script>
-    function openAddModal() {
-        document.getElementById('addModal').classList.add('active');
-    }
-
-    function closeAddModal() {
-        document.getElementById('addModal').classList.remove('active');
-    }
+    function openAddModal() { document.getElementById('addModal').classList.add('active'); }
+    function closeAddModal() { document.getElementById('addModal').classList.remove('active'); }
 
     function deleteCategory(id) {
-        if (confirm('Are you sure you want to delete this category?')) {
+        if (confirm('Delete this category?')) {
             fetch('@Url.Action("DeleteCategory", "Admin")', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
-                },
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: 'id=' + id
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('✅ ' + data.message);
-                        location.reload();
-                    } else {
-                        alert('❌ Error: ' + data.message);
-                    }
-                });
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) { alert(data.message); location.reload(); }
+                else { alert('Error: ' + data.message); }
+            });
         }
     }
 

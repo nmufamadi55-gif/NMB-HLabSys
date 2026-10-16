@@ -21,20 +21,86 @@ namespace NMB_HLabSys.Controllers
         // ============================================
         // DASHBOARD
         // ============================================
+        // GET: Admin/Dashboard
         public async Task<IActionResult> Dashboard()
         {
-            var viewModel = new AdminDashboardViewModel
+            try
             {
-                TotalConditions = await _context.MedicalConditions.CountAsync(c => c.IsActive),
-                TotalAllergies = await _context.Allergies.CountAsync(a => a.IsActive),
-                TotalMedications = await _context.Medications.CountAsync(m => m.IsActive),
-                TotalCategories = await _context.LookupCategories.CountAsync(c => c.IsActive),
-                TotalPatients = await _context.Patients.CountAsync(p => p.IsActive),
-                TotalDoctors = await _context.Doctors.CountAsync(d => d.IsVerified),
-                TotalTechnicians = 0
-            };
+                // Real counts from DB
+                var totalConditions = await _context.MedicalConditions.CountAsync(c => c.IsActive);
+                var totalAllergies = await _context.Allergies.CountAsync(a => a.IsActive);
+                var totalMedications = await _context.Medications.CountAsync(m => m.IsActive);
+                var totalCategories = await _context.LookupCategories.CountAsync(c => c.IsActive);
+                var totalPatients = await _context.Patients.CountAsync(p => p.IsActive);
+                var totalDoctors = await _context.Doctors.CountAsync();
+                var totalTechnicians = 0;
 
-            return View(viewModel);
+                // Real recent activities from DB
+                var recentConditions = await _context.MedicalConditions
+                    .Where(c => c.IsActive)
+                    .OrderByDescending(c => c.CreatedDate)
+                    .Take(5)
+                    .Select(c => new RecentActivityViewModel
+                    {
+                        Type = "Condition",
+                        Name = c.ConditionName,
+                        Action = "Added",
+                        Date = c.CreatedDate,
+                        UserName = "Admin"
+                    }).ToListAsync();
+
+                var recentAllergies = await _context.Allergies
+                    .Where(a => a.IsActive)
+                    .OrderByDescending(a => a.CreatedDate)
+                    .Take(5)
+                    .Select(a => new RecentActivityViewModel
+                    {
+                        Type = "Allergy",
+                        Name = a.AllergyName,
+                        Action = "Added",
+                        Date = a.CreatedDate,
+                        UserName = "Admin"
+                    }).ToListAsync();
+
+                var recentMedications = await _context.Medications
+                    .Where(m => m.IsActive)
+                    .OrderByDescending(m => m.CreatedDate)
+                    .Take(5)
+                    .Select(m => new RecentActivityViewModel
+                    {
+                        Type = "Medication",
+                        Name = m.MedicationName,
+                        Action = "Added",
+                        Date = m.CreatedDate,
+                        UserName = "Admin"
+                    }).ToListAsync();
+
+                var allActivities = recentConditions
+                    .Concat(recentAllergies)
+                    .Concat(recentMedications)
+                    .OrderByDescending(a => a.Date)
+                    .Take(10)
+                    .ToList();
+
+                var viewModel = new AdminDashboardViewModel
+                {
+                    TotalConditions = totalConditions,
+                    TotalAllergies = totalAllergies,
+                    TotalMedications = totalMedications,
+                    TotalCategories = totalCategories,
+                    TotalPatients = totalPatients,
+                    TotalDoctors = totalDoctors,
+                    TotalTechnicians = totalTechnicians,
+                    RecentActivities = allActivities
+                };
+
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error: {ex.Message}";
+                return View(new AdminDashboardViewModel());
+            }
         }
 
         // ============================================

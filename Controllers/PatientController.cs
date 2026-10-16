@@ -535,9 +535,9 @@ namespace NMB_HLabSys.Controllers
             return Json(new { success = true, message = "Consent revoked!" });
         }
         // ============================================
-        // TRENDS (with real database data)
+        // TRENDS (with real database data + date range)
         // ============================================
-        public async Task<IActionResult> Trends(string testType = null, int months = 6)
+        public async Task<IActionResult> Trends(string testType = null, DateTime? fromDate = null, DateTime? toDate = null)
         {
             var patient = await GetLoggedInPatient();
             if (patient == null)
@@ -561,8 +561,19 @@ namespace NMB_HLabSys.Controllers
         "INR"
     };
 
-            // ✅ DEFAULT TO "Haemoglobin" (not Cholesterol!)
             var selectedType = testType ?? "Haemoglobin";
+
+            // ✅ Default date range: last 6 months
+            var from = fromDate ?? DateTime.Now.AddMonths(-6);
+            var to = toDate ?? DateTime.Now;
+
+            // Ensure from is before to
+            if (from > to)
+            {
+                var temp = from;
+                from = to;
+                to = temp;
+            }
 
             var trendData = new List<TrendDataPoint>();
 
@@ -575,7 +586,8 @@ namespace NMB_HLabSys.Controllers
                         .ThenInclude(rtt => rtt.TestRequest)
                     .Where(tr => tr.RequestTestType.TestRequest.PatientID == patient.PatientID
                               && tr.RequestTestType.TestType.TestName.Contains(selectedType)
-                              && tr.ResultDate >= DateTime.Now.AddMonths(-months))
+                              && tr.ResultDate >= from
+                              && tr.ResultDate <= to)
                     .OrderBy(tr => tr.ResultDate)
                     .Select(tr => new
                     {
@@ -608,7 +620,8 @@ namespace NMB_HLabSys.Controllers
                 FullName = $"{patient.FirstName} {patient.LastName}",
                 AvailableTestTypes = availableTestTypes,
                 SelectedTestType = selectedType,
-                Months = months,
+                FromDate = from,
+                ToDate = to,
                 TrendData = trendData
             };
 

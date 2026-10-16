@@ -5,78 +5,166 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Edit Allergy";
     ViewData["RoleSubtitle"] = "Admin Portal";
-    ViewData["UserGreeting"] = "⚙️ System Administrator";
+    ViewData["UserGreeting"] = "System Administrator";
     ViewData["UserInitials"] = "AD";
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Admin")">📋 Dashboard</a></li>
-    <li><a href="@Url.Action("Conditions", "Admin")">🩺 Medical Conditions</a></li>
-    <li><a href="@Url.Action("Allergies", "Admin")" class="active">⚠️ Allergies</a></li>
-    <li><a href="@Url.Action("Medications", "Admin")">💊 Medications</a></li>
-    <li><a href="@Url.Action("Categories", "Admin")">📁 Categories</a></li>
+    <li><a href="@Url.Action("Dashboard", "Admin")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+    <li><a href="@Url.Action("Conditions", "Admin")"><i class="fas fa-database"></i> <span>Conditions</span></a></li>
+    <li><a href="@Url.Action("Allergies", "Admin")" class="active"><i class="fas fa-allergies"></i> <span>Allergies</span></a></li>
+    <li><a href="@Url.Action("Medications", "Admin")"><i class="fas fa-capsules"></i> <span>Medications</span></a></li>
+    <li><a href="@Url.Action("Categories", "Admin")"><i class="fas fa-folder"></i> <span>Categories</span></a></li>
     <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
 <style>
+    .profile-card {
+        background: white;
+        border-radius: 20px;
+        border: 1px solid #E2E8F0;
+        overflow: hidden;
+        max-width: 600px;
+    }
+
+    .profile-card-header {
+        background: linear-gradient(135deg, #F8FAFE, #FFFFFF);
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #E2E8F0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        .profile-card-header h3 {
+            margin: 0;
+            color: #032C7D;
+            font-size: 1.1rem;
+        }
+
+    .profile-card-body {
+        padding: 1.5rem;
+    }
+
     .form-group {
         margin-bottom: 1rem;
     }
 
         .form-group label {
             display: block;
-            font-weight: 500;
-            margin-bottom: 0.25rem;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #032C7D;
+            margin-bottom: 0.3rem;
         }
 
         .form-group input, .form-group select, .form-group textarea {
             width: 100%;
-            padding: 10px;
+            padding: 10px 14px;
             border-radius: 12px;
-            border: 1px solid #D1D5DB;
+            border: 1px solid #E2E8F0;
+            font-size: 0.85rem;
+            font-family: inherit;
+        }
+
+            .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+                outline: none;
+                border-color: #0841C9;
+                box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
+            }
+
+    .btn-primary {
+        background: #0841C9;
+        color: white;
+        border: none;
+        padding: 0.6rem 1.5rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+        .btn-primary:hover {
+            background: #032C7D;
+        }
+
+    .btn-outline {
+        background: transparent;
+        border: 1px solid #E2E8F0;
+        padding: 0.6rem 1.5rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        color: #032C7D;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+        .btn-outline:hover {
+            background: #F8FAFE;
+            border-color: #0841C9;
+        }
+
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
         }
 </style>
 
-<div class="card-modern">
-    <div class="card-header-flex">
-        <h3>✏️ Edit Allergy</h3>
-        <a href="@Url.Action("Allergies")" class="btn-outline-lab">← Back to List</a>
+<div class="profile-card">
+    <div class="profile-card-header">
+        <h3><i class="fas fa-edit"></i> Edit Allergy</h3>
+        <a href="@Url.Action("Allergies", "Admin")" class="btn-outline">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
     </div>
+    <div class="profile-card-body">
+        <form method="post" asp-action="EditAllergy">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="AllergyID" />
 
-    <form method="post" asp-action="EditAllergy">
-        @Html.AntiForgeryToken()
-        <input type="hidden" asp-for="AllergyID" />
+            <div class="form-group">
+                <label asp-for="AllergyName">Allergy Name</label>
+                <input asp-for="AllergyName" required />
+                <span asp-validation-for="AllergyName" style="color: #DC2626; font-size: 0.75rem;"></span>
+            </div>
 
-        <div class="form-group">
-            <label asp-for="AllergyName">Allergy Name *</label>
-            <input asp-for="AllergyName" required />
-            <span asp-validation-for="AllergyName" style="color: red;"></span>
-        </div>
+            <div class="form-group">
+                <label asp-for="CategoryID">Category</label>
+                <select asp-for="CategoryID" required>
+                    <option value="">-- Select Category --</option>
+                    @foreach (var cat in Model.Categories)
+                    {
+                        <option value="@cat.CategoryID">@cat.CategoryName</option>
+                    }
+                </select>
+            </div>
 
-        <div class="form-group">
-            <label asp-for="CategoryID">Category *</label>
-            <select asp-for="CategoryID" required>
-                <option value="">-- Select Category --</option>
-                @foreach (var cat in Model.Categories)
-                {
-                    <option value="@cat.CategoryID">@cat.CategoryName</option>
-                }
-            </select>
-        </div>
+            <div class="form-group">
+                <label asp-for="Description">Description</label>
+                <textarea asp-for="Description" rows="3"></textarea>
+            </div>
 
-        <div class="form-group">
-            <label asp-for="Description">Description</label>
-            <textarea asp-for="Description" rows="3"></textarea>
-        </div>
-
-        <div class="form-group">
-            <label>
+            <div class="form-group checkbox-group">
                 <input asp-for="IsActive" type="checkbox" />
-                Active
-            </label>
-        </div>
+                <label asp-for="IsActive">Active</label>
+            </div>
 
-        <button type="submit" class="btn-sm-lab">💾 Save Changes</button>
-        <a href="@Url.Action("Allergies")" class="btn-outline-lab">Cancel</a>
-    </form>
+            <div style="display: flex; gap: 10px; margin-top: 1rem;">
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+                <a href="@Url.Action("Allergies", "Admin")" class="btn-outline">Cancel</a>
+            </div>
+        </form>
+    </div>
 </div>

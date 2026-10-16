@@ -5,33 +5,101 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Admin Dashboard";
     ViewData["RoleSubtitle"] = "Admin Portal";
-    ViewData["UserGreeting"] = "⚙️ System Administrator";
+    ViewData["UserGreeting"] = "System Administrator";
     ViewData["UserInitials"] = "AD";
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Admin")" class="active">📋 Dashboard</a></li>
-    <li><a href="@Url.Action("Conditions", "Admin")">🩺 Medical Conditions</a></li>
-    <li><a href="@Url.Action("Allergies", "Admin")">⚠️ Allergies</a></li>
-    <li><a href="@Url.Action("Medications", "Admin")">💊 Medications</a></li>
-    <li><a href="@Url.Action("Categories", "Admin")">📁 Categories</a></li>
+    <li><a href="@Url.Action("Dashboard", "Admin")" class="active"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+    <li><a href="@Url.Action("Conditions", "Admin")"><i class="fas fa-database"></i> <span>Conditions</span></a></li>
+    <li><a href="@Url.Action("Allergies", "Admin")"><i class="fas fa-allergies"></i> <span>Allergies</span></a></li>
+    <li><a href="@Url.Action("Medications", "Admin")"><i class="fas fa-capsules"></i> <span>Medications</span></a></li>
+    <li><a href="@Url.Action("Categories", "Admin")"><i class="fas fa-folder"></i> <span>Categories</span></a></li>
     <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
 <style>
-    .dashboard-card {
-        transition: 0.25s;
+    .profile-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 1.5rem;
     }
 
-        .dashboard-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    .profile-card {
+        background: white;
+        border-radius: 20px;
+        border: 1px solid #E2E8F0;
+        overflow: hidden;
+    }
+
+    .profile-card-header {
+        background: linear-gradient(135deg, #F8FAFE, #FFFFFF);
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #E2E8F0;
+    }
+
+        .profile-card-header h3 {
+            margin: 0;
+            color: #032C7D;
+            font-size: 1.1rem;
         }
+
+    .profile-card-body {
+        padding: 1.5rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+    }
+
+    .stat-box {
+        background: #F8FAFE;
+        border-radius: 16px;
+        padding: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.2s;
+    }
+
+        .stat-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(8,65,201,0.08);
+        }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #0841C9, #1D97F1);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+
+    .stat-info h3 {
+        margin: 0;
+        color: #032C7D;
+        font-size: 1.6rem;
+        font-weight: 700;
+    }
+
+    .stat-info p {
+        margin: 0;
+        color: #5A6E7A;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
 
     .quick-action-list {
         list-style: none;
         padding-left: 0;
-        margin-top: 1rem;
+        margin: 0;
     }
 
         .quick-action-list li {
@@ -39,13 +107,16 @@
         }
 
         .quick-action-list a {
-            display: block;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
             background: #F8FAFE;
-            padding: 12px;
-            border-radius: 14px;
+            padding: 12px 16px;
+            border-radius: 12px;
             text-decoration: none;
-            color: #1F2937;
-            font-weight: 600;
+            color: #032C7D;
+            font-weight: 500;
+            font-size: 0.9rem;
             transition: 0.2s;
         }
 
@@ -54,212 +125,282 @@
                 transform: translateX(4px);
             }
 
-    .chart-box {
-        background: #F8FAFE;
-        border-radius: 20px;
-        padding: 20px;
-        height: 300px;
-        margin-top: 1rem;
-    }
+            .quick-action-list a i {
+                color: #0841C9;
+                font-size: 1rem;
+                width: 20px;
+            }
 
-    .overview-item {
-        background: #F8FAFE;
-        padding: 12px;
-        border-radius: 14px;
-        margin-bottom: 10px;
+    .activity-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
         font-weight: 600;
     }
 
-    .stat-item h3 {
-        font-size: 2rem;
-        font-weight: 700;
+    .badge-condition {
+        background: #E0E7FF;
+        color: #032C7D;
+    }
+
+    .badge-allergy {
+        background: #FEF3C7;
+        color: #92400E;
+    }
+
+    .badge-medication {
+        background: #FCE7F3;
+        color: #9D174D;
+    }
+
+    .badge-action {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+
+    .overview-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #F8FAFE;
+        padding: 12px 16px;
+        border-radius: 12px;
+        margin-bottom: 10px;
+        font-size: 0.85rem;
+    }
+
+        .overview-item span:first-child {
+            color: #5A6E7A;
+        }
+
+        .overview-item span:last-child {
+            color: #032C7D;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+    .activity-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+
+        .activity-table thead th {
+            text-align: left;
+            padding: 10px 12px;
+            color: #5A6E7A;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #E2E8F0;
+        }
+
+        .activity-table tbody td {
+            padding: 12px;
+            color: #1F2937;
+            border-bottom: 1px solid #F3F4F6;
+        }
+
+        .activity-table tbody tr:hover {
+            background: #F8FAFE;
+        }
+
+    .no-data {
+        text-align: center;
+        color: #9CA3AF;
+        padding: 2rem;
+        font-size: 0.85rem;
+    }
+
+    .alert-success {
+        background: #D1FAE5;
+        color: #065F46;
+        padding: 0.8rem 1rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .alert-error {
+        background: #FEE2E2;
+        color: #991B1B;
+        padding: 0.8rem 1rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    @@media (max-width: 768px) {
+        .profile-container {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 
-<!-- ============================================
-     STAT CARDS - REAL DATABASE COUNTS
-     ============================================ -->
-<div class="stat-cards">
-    <div class="stat-item dashboard-card">
-        <div class="stat-icon-lg">🩺</div>
-        <div>
-            <h3>@Model.TotalConditions</h3>
-            <p>Conditions</p>
-        </div>
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert-success">
+        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
     </div>
+}
 
-    <div class="stat-item dashboard-card">
-        <div class="stat-icon-lg">⚠️</div>
-        <div>
-            <h3>@Model.TotalAllergies</h3>
-            <p>Allergies</p>
-        </div>
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert-error">
+        <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
     </div>
+}
 
-    <div class="stat-item dashboard-card">
-        <div class="stat-icon-lg">💊</div>
-        <div>
-            <h3>@Model.TotalMedications</h3>
-            <p>Medications</p>
-        </div>
+<!-- STAT CARDS -->
+<div class="profile-card" style="margin-bottom: 1.5rem;">
+    <div class="profile-card-header">
+        <h3><i class="fas fa-chart-pie"></i> System Statistics</h3>
     </div>
-
-    <div class="stat-item dashboard-card">
-        <div class="stat-icon-lg">📁</div>
-        <div>
-            <h3>@Model.TotalCategories</h3>
-            <p>Categories</p>
-        </div>
-    </div>
-</div>
-
-<!-- ============================================
-     QUICK ACTIONS & SYSTEM OVERVIEW
-     ============================================ -->
-<div class="grid-2col">
-    <div class="card-modern dashboard-card">
-        <h3>📋 Quick Actions</h3>
-
-        <ul class="quick-action-list">
-            <li><a href="@Url.Action("Conditions", "Admin")">➕ Add / Manage Medical Conditions</a></li>
-            <li><a href="@Url.Action("Allergies", "Admin")">⚠️ Add / Manage Allergies</a></li>
-            <li><a href="@Url.Action("Medications", "Admin")">💊 Add / Manage Medications</a></li>
-            <li><a href="#" onclick="showDemoAlert('Category management coming soon')">📁 Manage Categories</a></li>
-        </ul>
-    </div>
-
-    <div class="card-modern dashboard-card">
-        <h3>📊 System Overview</h3>
-
-        <div class="overview-item">👥 Active Users: @Model.TotalPatients</div>
-        <div class="overview-item">👨‍⚕️ Doctors Registered: @Model.TotalDoctors</div>
-        <div class="overview-item">🔬 Lab Technicians: @Model.TotalTechnicians</div>
-        <div class="overview-item">🩺 Patients: @Model.TotalPatients</div>
-    </div>
-</div>
-
-<!-- ============================================
-     CHARTS - REAL DATA
-     ============================================ -->
-<div class="grid-2col">
-    <div class="card-modern dashboard-card">
-        <h3>📈 Reference Data Overview</h3>
-
-        <div class="chart-box">
-            <canvas id="referenceChart"></canvas>
-        </div>
-    </div>
-
-    <div class="card-modern dashboard-card">
-        <h3>👥 User Distribution</h3>
-
-        <div class="chart-box">
-            <canvas id="userChart"></canvas>
+    <div class="profile-card-body">
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-icon"><i class="fas fa-database"></i></div>
+                <div class="stat-info">
+                    <h3>@Model.TotalConditions</h3>
+                    <p>Conditions</p>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-icon"><i class="fas fa-allergies"></i></div>
+                <div class="stat-info">
+                    <h3>@Model.TotalAllergies</h3>
+                    <p>Allergies</p>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-icon"><i class="fas fa-capsules"></i></div>
+                <div class="stat-info">
+                    <h3>@Model.TotalMedications</h3>
+                    <p>Medications</p>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-icon"><i class="fas fa-folder"></i></div>
+                <div class="stat-info">
+                    <h3>@Model.TotalCategories</h3>
+                    <p>Categories</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- ============================================
-     RECENT ACTIVITY TABLE (Placeholder - can be implemented later)
-     ============================================ -->
-<div class="card-modern">
-    <div class="card-header-flex">
-        <h3>🔄 Recent Lookup Table Changes</h3>
-
-        <button class="btn-outline-lab" onclick="showDemoAlert('Audit log coming soon')">
-            Audit Log
-        </button>
+<!-- QUICK ACTIONS + OVERVIEW -->
+<div class="profile-container">
+    <div class="profile-card">
+        <div class="profile-card-header">
+            <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+        </div>
+        <div class="profile-card-body">
+            <ul class="quick-action-list">
+                <li>
+                    <a href="@Url.Action("Conditions", "Admin")">
+                        <i class="fas fa-database"></i>
+                        <span>Manage Medical Conditions</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="@Url.Action("Allergies", "Admin")">
+                        <i class="fas fa-allergies"></i>
+                        <span>Manage Allergies</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="@Url.Action("Medications", "Admin")">
+                        <i class="fas fa-capsules"></i>
+                        <span>Manage Medications</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="@Url.Action("Categories", "Admin")">
+                        <i class="fas fa-folder"></i>
+                        <span>Manage Categories</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
     </div>
 
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Type</th>
-                    <th>Item</th>
-                    <th>Action</th>
-                    <th>User</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model.RecentActivities != null && Model.RecentActivities.Any())
-                {
+    <div class="profile-card">
+        <div class="profile-card-header">
+            <h3><i class="fas fa-users"></i> System Overview</h3>
+        </div>
+        <div class="profile-card-body">
+            <div class="overview-item">
+                <span>Total Patients</span>
+                <span>@Model.TotalPatients</span>
+            </div>
+            <div class="overview-item">
+                <span>Doctors Registered</span>
+                <span>@Model.TotalDoctors</span>
+            </div>
+            <div class="overview-item">
+                <span>Lab Technicians</span>
+                <span>@Model.TotalTechnicians</span>
+            </div>
+            <div class="overview-item" style="margin-bottom: 0;">
+                <span>Conditions Tracked</span>
+                <span>@Model.TotalConditions</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- RECENT ACTIVITY -->
+<div class="profile-card" style="margin-top: 1.5rem;">
+    <div class="profile-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h3><i class="fas fa-history"></i> Recent Lookup Table Changes</h3>
+        <small style="color: #5A6E7A; font-size: 0.75rem;">Last 10 changes</small>
+    </div>
+    <div class="profile-card-body" style="padding: 0;">
+        @if (Model.RecentActivities != null && Model.RecentActivities.Any())
+        {
+            <table class="activity-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Item</th>
+                        <th>Action</th>
+                        <th>User</th>
+                    </tr>
+                </thead>
+                <tbody>
                     @foreach (var activity in Model.RecentActivities)
                     {
+                        var badgeClass = activity.Type == "Condition" ? "badge-condition" :
+                                         activity.Type == "Allergy" ? "badge-allergy" :
+                                         "badge-medication";
                         <tr>
-                            <td>@activity.ActivityDate.ToString("yyyy-MM-dd")</td>
-                            <td>@activity.ActivityType</td>
-                            <td>@activity.Description</td>
-                            <td><span class="badge-added">@activity.UserName</span></td>
+                            <td>@activity.Date.ToString("dd MMM yyyy HH:mm")</td>
+                            <td><span class="activity-badge @badgeClass">@activity.Type</span></td>
+                            <td><strong>@activity.Name</strong></td>
+                            <td><span class="activity-badge badge-action">@activity.Action</span></td>
+                            <td>@activity.UserName</td>
                         </tr>
                     }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="5" style="text-align:center; color:#9CA3AF; padding:1rem;">
-                            No recent activity
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p class="no-data">
+                <i class="fas fa-inbox" style="font-size: 2rem; display: block; margin-bottom: 0.5rem; opacity: 0.5;"></i>
+                No recent activity yet. Add some conditions, allergies, or medications.
+            </p>
+        }
     </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-    // ============================================
-    // REFERENCE CHART - Using Real Data from Model
-    // ============================================
-    new Chart(document.getElementById('referenceChart'), {
-        type: 'bar',
-        data: {
-            labels: ['Conditions', 'Allergies', 'Medications', 'Categories'],
-            datasets: [{
-                label: 'Total Records',
-                data: [
-    @Model.TotalConditions,
-    @Model.TotalAllergies,
-    @Model.TotalMedications,
-    @Model.TotalCategories
-                    ],
-                backgroundColor: ['#8B5CF6', '#F97316', '#EC4899', '#10B981'],
-                borderRadius: 8
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false
-        }
-    });
-
-    // ============================================
-    // USER CHART - Using Real Data from Model
-    // ============================================
-    new Chart(document.getElementById('userChart'), {
-        type: 'doughnut',
-        data: {
-            labels: ['Patients', 'Doctors', 'Technicians', 'Admins'],
-            datasets: [{
-                data: [
-    @Model.TotalPatients,
-    @Model.TotalDoctors,
-    @Model.TotalTechnicians,
-                    1
-                ],
-                backgroundColor: ['#06B6D4', '#4F46E5', '#10B981', '#F59E0B']
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false
-        }
-    });
-
-    function showDemoAlert(msg) {
-        alert('✅ ' + msg);
-    }
-</script>
