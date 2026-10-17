@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using NMB_HLabSys.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NMB_HLabSys.Data;
 using NMB_HLabSys.Helpers;
@@ -14,12 +15,14 @@ namespace NMB_HLabSys.Controllers
     public class AccountController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IPasswordHasher _passwordHasher;
 
-        public AccountController(ApplicationDbContext context)
+        public AccountController(ApplicationDbContext context, IPasswordHasher passwordHasher)
         {
             _context = context;
+            _passwordHasher = passwordHasher;
         }
-        
+
         // ============================================
         // LOGIN
         // ============================================
@@ -39,10 +42,14 @@ namespace NMB_HLabSys.Controllers
 
             try
             {
-                var passwordHash = PasswordHelper.HashPassword(model.Password);
-
                 var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Email == model.Email && u.PasswordHash == passwordHash && u.IsActive);
+                    .FirstOrDefaultAsync(u => u.Email == model.Email.ToLower() && u.IsActive);
+
+                if (user == null || !_passwordHasher.VerifyPassword(model.Password, user.PasswordHash))
+                {
+                    ModelState.AddModelError("", "Invalid email or password");
+                    return View(model);
+                }
 
                 if (user == null)
                 {
@@ -117,7 +124,7 @@ namespace NMB_HLabSys.Controllers
                 {
                     // Generate a temporary password
                     var newPassword = GenerateTemporaryPassword();
-                    user.PasswordHash = PasswordHelper.HashPassword(newPassword);
+                    user.PasswordHash = _passwordHasher.HashPassword(newPassword);
                     user.IsPasswordChanged = false;
                     user.ModifiedDate = DateTime.Now;
                     await _context.SaveChangesAsync();
@@ -216,7 +223,7 @@ namespace NMB_HLabSys.Controllers
                 }
 
                 // Hash password
-                var passwordHash = PasswordHelper.HashPassword(model.Password);
+                var passwordHash = _passwordHasher.HashPassword(model.Password);
 
                 // Create admin user
                 var user = new User

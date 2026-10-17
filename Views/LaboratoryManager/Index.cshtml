@@ -1,245 +1,242 @@
-﻿@{
-    Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "Manager Dashboard";
-    ViewData["RoleSubtitle"] = "Laboratory Manager";
-    ViewData["UserGreeting"] = "Welcome back! Here's your lab overview";
-    ViewData["UserInitials"] = "LM";
-    ViewData["UserName"] = "Lab Manager";
-}
-
-@section SidebarMenu {
-    <li><a href="@Url.Action("Index", "LaboratoryManager")" class="active"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
-    <li><a href="@Url.Action("TestCatalogue", "LaboratoryManager")"><i class="fas fa-vial"></i> <span>Test Catalogue</span></a></li>
-    <li><a href="@Url.Action("Stock", "LaboratoryManager")"><i class="fas fa-boxes"></i> <span>Stock Management</span></a></li>
-    <li><a href="@Url.Action("Suppliers", "LaboratoryManager")"><i class="fas fa-truck"></i> <span>Suppliers</span></a></li>
-    <li><a href="@Url.Action("Orders", "LaboratoryManager")"><i class="fas fa-shopping-cart"></i> <span>Purchase Orders</span></a></li>
-    <li><a href="@Url.Action("Staff", "LaboratoryManager")"><i class="fas fa-user-md"></i> <span>Staff Management</span></a></li>
-    <li><a href="@Url.Action("Reports", "LaboratoryManager")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
-    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+﻿@using NMB_HLabSys.Models.ViewModels
+@model DashboardViewModel
+@{
+    Layout = "~/Views/Shared/_ManagerLayout.cshtml";
+    ViewData["Title"] = "Dashboard";
 }
 
 <style>
-    .welcome-banner {
-        background: linear-gradient(135deg, #032C7D 0%, #0841C9 100%);
-        border-radius: 20px;
-        padding: 1.2rem 1.8rem;
-        margin-bottom: 1.5rem;
-        color: white;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-    }
-
-    .stats-grid {
+    .dash-2col {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: 1fr 1fr;
         gap: 1rem;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
     }
 
-    .stat-card {
-        background: white;
-        border-radius: 16px;
-        padding: 1rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        cursor: pointer;
-        border: 1px solid #E2E8F0;
-        transition: all 0.2s;
-    }
-
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    @@media (max-width: 900px) {
+        .dash-2col {
+            grid-template-columns: 1fr;
         }
-
-    .stat-info h3 {
-        font-size: 1.6rem;
-        color: #032C7D;
-        margin: 0;
-    }
-
-    .stat-info p {
-        font-size: 0.75rem;
-        color: #5A6E7A;
-        margin: 0;
-    }
-
-    .stat-icon {
-        font-size: 1.8rem;
-        color: #1D97F1;
     }
 
     .quick-actions {
         display: flex;
-        gap: 0.8rem;
         flex-wrap: wrap;
-        margin-bottom: 1.5rem;
+        gap: 0.5rem;
+        margin-bottom: 1.25rem;
     }
 
-    .action-chip {
-        background: white;
-        padding: 0.5rem 1rem;
-        border-radius: 30px;
+    .activity-list {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .activity-item {
+        display: flex;
+        gap: 0.75rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+    .activity-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--brand-50);
+        color: var(--brand-700);
         display: flex;
         align-items: center;
-        gap: 8px;
-        cursor: pointer;
-        border: 1px solid #E2E8F0;
+        justify-content: center;
+        font-size: 0.75rem;
+        flex-shrink: 0;
+    }
+
+    .activity-title {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin: 0 0 0.15rem;
+    }
+
+    .activity-time {
+        font-size: 0.7rem;
+        color: var(--gray-500);
+    }
+
+    .stock-row {
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        gap: 0.75rem;
+        align-items: center;
+        padding: 0.65rem 0;
+        border-bottom: 1px solid var(--gray-100);
         font-size: 0.8rem;
     }
 
-        .action-chip:hover {
-            background: #0841C9;
-            color: white;
+        .stock-row:last-child {
+            border-bottom: none;
         }
 
-    .card {
-        background: white;
-        border-radius: 16px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        border: 1px solid #E2E8F0;
+    .stock-name {
+        font-weight: 500;
+        color: var(--gray-900);
     }
 
-    .card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.8rem;
-        flex-wrap: wrap;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    th, td {
-        padding: 0.5rem 0.3rem;
-        text-align: left;
-        border-bottom: 1px solid #E2E8F0;
+    .stock-qty {
         font-size: 0.75rem;
+        color: var(--gray-500);
+        white-space: nowrap;
     }
 
-    th {
-        background: #F8FAFE;
-        font-weight: 600;
-        color: #5A6E7A;
-    }
-
-    .btn-sm {
-        background: #0841C9;
-        color: white;
-        border: none;
-        padding: 0.2rem 0.5rem;
-        border-radius: 30px;
-        cursor: pointer;
-        font-size: 0.65rem;
-    }
-
-    .status-badge {
-        display: inline-block;
-        padding: 0.15rem 0.4rem;
-        border-radius: 30px;
-        font-size: 0.6rem;
-        font-weight: 600;
-    }
-
-    .status-critical {
-        background: #F8D7DA;
-        color: #721C24;
-    }
-
-    .status-warning {
-        background: #FFF3CD;
-        color: #856404;
-    }
-
-    .status-success {
-        background: #D4EDDA;
-        color: #155724;
-    }
-
-    .grid-2col {
+    .summary-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
         gap: 1rem;
+    }
+
+    .summary-item .val {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--brand-900);
+        line-height: 1.1;
+    }
+
+    .summary-item .lbl {
+        font-size: 0.7rem;
+        color: var(--gray-500);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-top: 0.2rem;
     }
 </style>
 
-<div class="welcome-banner">
-    <div><h2 style="font-size:1.3rem;"><i class="fas fa-flask"></i> Laboratory Manager</h2><p style="font-size:0.8rem;">You have <strong id="urgentCount">0</strong> low stock alerts</p></div>
-    <div style="background:rgba(255,255,255,0.2); padding:0.3rem 0.8rem; border-radius:40px;"><i class="far fa-calendar-alt"></i> <span id="currentDate"></span></div>
-</div>
-
-<div class="stats-grid">
-    <div class="stat-card" onclick="location.href='@Url.Action("TestCatalogue", "LaboratoryManager")'"><div class="stat-info"><h3 id="totalTests">0</h3><p>Test Types</p></div><div class="stat-icon"><i class="fas fa-vial"></i></div></div>
-    <div class="stat-card" onclick="location.href='@Url.Action("Stock", "LaboratoryManager")'"><div class="stat-info"><h3 id="totalConsumables">0</h3><p>Consumables</p></div><div class="stat-icon"><i class="fas fa-boxes"></i></div></div>
-    <div class="stat-card" onclick="location.href='@Url.Action("Orders", "LaboratoryManager")'"><div class="stat-info"><h3 id="pendingOrders">0</h3><p>Pending Orders</p></div><div class="stat-icon"><i class="fas fa-shopping-cart"></i></div></div>
-    <div class="stat-card" onclick="location.href='@Url.Action("Staff", "LaboratoryManager")'"><div class="stat-info"><h3 id="totalStaff">0</h3><p>Staff</p></div><div class="stat-icon"><i class="fas fa-users"></i></div></div>
-</div>
-
+<!-- Quick actions -->
 <div class="quick-actions">
-    <div class="action-chip" onclick="location.href='@Url.Action("CreateTestType", "LaboratoryManager")'"><i class="fas fa-plus-circle"></i> New Test</div>
-    <div class="action-chip" onclick="location.href='@Url.Action("CreateConsumable", "LaboratoryManager")'"><i class="fas fa-plus-circle"></i> New Consumable</div>
-    <div class="action-chip" onclick="location.href='@Url.Action("CreateOrder", "LaboratoryManager")'"><i class="fas fa-plus-circle"></i> New Order</div>
-    <div class="action-chip" onclick="location.href='@Url.Action("AddTechnician", "LaboratoryManager")'"><i class="fas fa-user-plus"></i> Add Technician</div>
+    <a asp-action="CreateTestType" class="btn btn-primary"><i class="fas fa-plus"></i> New Test</a>
+    <a asp-action="CreateConsumable" class="btn btn-outline"><i class="fas fa-plus"></i> New Consumable</a>
+    <a asp-action="CreateOrder" class="btn btn-outline"><i class="fas fa-plus"></i> New Order</a>
+    <a asp-action="AddTechnician" class="btn btn-outline"><i class="fas fa-user-plus"></i> Add Technician</a>
 </div>
 
+<!-- KPI cards -->
+<div class="stats-grid">
+    <a asp-action="TestCatalogue" class="stat-card" style="text-decoration:none;">
+        <div class="stat-info">
+            <h3>@Model.TotalTestTypes</h3>
+            <p>Test Types</p>
+        </div>
+        <div class="stat-icon"><i class="fas fa-vial"></i></div>
+    </a>
+    <a asp-action="Stock" class="stat-card" style="text-decoration:none;">
+        <div class="stat-info">
+            <h3>@Model.TotalConsumables</h3>
+            <p>Consumables</p>
+        </div>
+        <div class="stat-icon"><i class="fas fa-boxes-stacked"></i></div>
+    </a>
+    <a asp-action="Orders" class="stat-card" style="text-decoration:none;">
+        <div class="stat-info">
+            <h3>@Model.PendingOrders</h3>
+            <p>Pending Orders</p>
+        </div>
+        <div class="stat-icon"><i class="fas fa-clipboard-list"></i></div>
+    </a>
+    <a asp-action="Staff" class="stat-card" style="text-decoration:none;">
+        <div class="stat-info">
+            <h3>@(Model.TotalTechnicians + Model.TotalDoctors)</h3>
+            <p>Staff Members</p>
+        </div>
+        <div class="stat-icon"><i class="fas fa-users-gear"></i></div>
+    </a>
+</div>
+
+<!-- Low stock + Recent activity -->
+<div class="dash-2col">
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-exclamation-triangle"></i> Low Stock Alerts</h3>
+            <a asp-action="Stock" class="btn btn-sm btn-outline">View All</a>
+        </div>
+        @if (Model.LowStockAlerts != null && Model.LowStockAlerts.Any())
+        {
+            @foreach (var alert in Model.LowStockAlerts.Take(6))
+            {
+                <div class="stock-row">
+                    <span class="stock-name">@alert.ConsumableName</span>
+                    <span class="badge @(alert.AlertLevel == "Critical" ? "badge-danger" : "badge-warning")">
+                        @alert.AlertLevel
+                    </span>
+                    <span class="stock-qty">@alert.QuantityOnHand / @alert.ReorderLevel</span>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-state" style="padding: 2rem 1rem;">
+                <i class="fas fa-check-circle" style="color: var(--success-fg);"></i>
+                <h3>All Stock Healthy</h3>
+                <p>No items are below reorder level.</p>
+            </div>
+        }
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-history"></i> Recent Activity</h3>
+        </div>
+        @if (Model.RecentActivities != null && Model.RecentActivities.Any())
+        {
+            <div class="activity-list">
+                @foreach (var activity in Model.RecentActivities.Take(6))
+                {
+                    <div class="activity-item">
+                        <div class="activity-icon"><i class="fas fa-circle-info"></i></div>
+                        <div>
+                            <div class="activity-title">@activity.ActivityType</div>
+                            <div class="activity-time">
+                                @activity.Description · @activity.ActivityDate.ToString("dd MMM HH:mm")
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state" style="padding: 2rem 1rem;">
+                <i class="fas fa-inbox"></i>
+                <h3>No Activity Yet</h3>
+                <p>Recent actions will appear here.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- This month summary -->
 <div class="card">
-    <div class="card-header"><h3><i class="fas fa-exclamation-triangle"></i> Low Stock Alerts</h3><button class="btn-sm" onclick="location.href='@Url.Action("Stock", "LaboratoryManager")'">View All →</button></div>
-    <div id="lowStockAlerts" style="font-size:0.85rem; padding:0.5rem 0;"></div>
+    <div class="card-header">
+        <h3><i class="fas fa-chart-line"></i> This Month</h3>
+    </div>
+    <div class="summary-grid">
+        <div class="summary-item">
+            <div class="val">@Model.Statistics.TestsPerformedThisMonth</div>
+            <div class="lbl">Tests Completed</div>
+        </div>
+        <div class="summary-item">
+            <div class="val">@Model.Statistics.OrdersProcessedThisMonth</div>
+            <div class="lbl">Orders Processed</div>
+        </div>
+        <div class="summary-item">
+            <div class="val">R@Model.Statistics.TotalStockValue.ToString("N0")</div>
+            <div class="lbl">Stock Value</div>
+        </div>
+        <div class="summary-item">
+            <div class="val">@Model.Statistics.ActiveTechnicians</div>
+            <div class="lbl">Active Technicians</div>
+        </div>
+    </div>
 </div>
-
-<div class="grid-2col">
-    <div class="card"><h3><i class="fas fa-history"></i> Recent Activities</h3><div id="recentActivities" style="font-size:0.75rem;"></div></div>
-    <div class="card"><h3><i class="fas fa-chart-line"></i> Quick Stats</h3><div id="quickStats" style="font-size:0.75rem;"></div></div>
-</div>
-
-<script>
-    // Simulate data – replace with real API calls
-    document.getElementById('totalTests').innerText = '@Model.TotalTestTypes';
-    document.getElementById('totalConsumables').innerText = '@Model.TotalConsumables';
-    document.getElementById('pendingOrders').innerText = '@Model.PendingOrders';
-    document.getElementById('totalStaff').innerText = '@Model.TotalTechnicians + @Model.TotalDoctors';
-    document.getElementById('urgentCount').innerText = '@Model.LowStockItems';
-    document.getElementById('currentDate').innerText = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
-
-    // Low stock alerts
-    var alerts = @Html.Raw(Json.Serialize(Model.LowStockAlerts));
-    if (alerts.length === 0) {
-        document.getElementById('lowStockAlerts').innerHTML = '<div style="color:#10B981;"><i class="fas fa-check-circle"></i> All stock levels are adequate.</div>';
-    } else {
-        document.getElementById('lowStockAlerts').innerHTML = alerts.map(a =>
-            `<div style="display:flex; justify-content:space-between; padding:0.3rem 0; border-bottom:1px solid #F1F5F9;">
-                <span><span class="status-badge status-${a.alertLevel.toLowerCase()}">${a.alertLevel}</span> ${a.consumableName}</span>
-                <span>Stock: ${a.quantityOnHand} / Reorder: ${a.reorderLevel}</span>
-            </div>`
-        ).join('');
-    }
-
-    // Recent activities
-    var activities = @Html.Raw(Json.Serialize(Model.RecentActivities));
-    if (activities.length === 0) {
-        document.getElementById('recentActivities').innerHTML = '<div>No recent activities</div>';
-    } else {
-        document.getElementById('recentActivities').innerHTML = activities.map(a =>
-            `<div style="padding:0.3rem 0; border-bottom:1px solid #F1F5F9;">
-                <strong>${a.activityType}</strong> – ${a.description}<br>
-                <small style="color:#5A6E7A;">${new Date(a.activityDate).toLocaleString()}</small>
-            </div>`
-        ).join('');
-    }
-
-    // Quick stats
-    var stats = @Html.Raw(Json.Serialize(Model.Statistics));
-    document.getElementById('quickStats').innerHTML = `
-        <p>📊 Tests this month: <strong>${stats.testsPerformedThisMonth}</strong></p>
-        <p>📦 Orders processed: <strong>${stats.ordersProcessedThisMonth}</strong></p>
-        <p>💰 Stock value: <strong>R${stats.totalStockValue.toFixed(2)}</strong></p>
-        <p>👨‍🔬 Active technicians: <strong>${stats.activeTechnicians}</strong></p>
-    `;
-</script>

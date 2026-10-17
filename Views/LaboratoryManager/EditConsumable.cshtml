@@ -1,300 +1,122 @@
 ﻿@using NMB_HLabSys.Models.ViewModels
 @model EditConsumableViewModel
-
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_ManagerLayout.cshtml";
     ViewData["Title"] = "Edit Consumable";
-    ViewData["RoleSubtitle"] = "Laboratory Manager";
-    ViewData["UserGreeting"] = "Update consumable details";
-    ViewData["UserInitials"] = "LM";
 }
-
-@section SidebarMenu {
-    <li><a href="@Url.Action("Index", "LaboratoryManager")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
-    <li><a href="@Url.Action("TestCatalogue", "LaboratoryManager")"><i class="fas fa-vial"></i> <span>Test Catalogue</span></a></li>
-    <li><a href="@Url.Action("Stock", "LaboratoryManager")" class="active"><i class="fas fa-boxes"></i> <span>Stock Management</span></a></li>
-    <li><a href="@Url.Action("Suppliers", "LaboratoryManager")"><i class="fas fa-truck"></i> <span>Suppliers</span></a></li>
-    <li><a href="@Url.Action("Orders", "LaboratoryManager")"><i class="fas fa-shopping-cart"></i> <span>Purchase Orders</span></a></li>
-    <li><a href="@Url.Action("Staff", "LaboratoryManager")"><i class="fas fa-user-md"></i> <span>Staff Management</span></a></li>
-    <li><a href="@Url.Action("Reports", "LaboratoryManager")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
-}
-
-<style>
-    /* SAME shared style block as above – reuse it */
-    .page-header {
-        background: linear-gradient(135deg, #032C7D 0%, #0841C9 100%);
-        border-radius: 20px;
-        padding: 1.2rem 1.8rem;
-        margin-bottom: 1.5rem;
-        color: white;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-        .page-header h2 {
-            font-size: 1.3rem;
-            margin: 0;
-            color: white;
-        }
-
-        .page-header p {
-            font-size: 0.8rem;
-            margin: 0.2rem 0 0 0;
-            opacity: 0.9;
-        }
-
-        .page-header .breadcrumb-back {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            padding: 0.3rem 0.9rem;
-            border-radius: 40px;
-            text-decoration: none;
-            font-size: 0.75rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-            .page-header .breadcrumb-back:hover {
-                background: rgba(255,255,255,0.3);
-            }
-
-    .form-card {
-        background: white;
-        border-radius: 16px;
-        padding: 1.5rem;
-        border: 1px solid #E2E8F0;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-        max-width: 900px;
-    }
-
-    .form-section-title {
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: #032C7D;
-        margin: 0 0 1rem 0;
-        padding-bottom: 0.5rem;
-        border-bottom: 1px solid #E2E8F0;
-    }
-
-    .form-group {
-        margin-bottom: 1.2rem;
-    }
-
-        .form-group label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            display: block;
-            margin-bottom: 0.4rem;
-            color: #032C7D;
-        }
-
-    .form-control {
-        width: 100%;
-        padding: 0.6rem 0.8rem;
-        border: 1px solid #E2E8F0;
-        border-radius: 12px;
-        font-size: 0.9rem;
-        font-family: 'Inter', sans-serif;
-        background: #F8FAFE;
-        transition: all 0.2s;
-    }
-
-        .form-control:focus {
-            outline: none;
-            border-color: #0841C9;
-            box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
-            background: white;
-        }
-
-    .row-2col {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-    }
-
-    .form-actions {
-        display: flex;
-        gap: 0.8rem;
-        margin-top: 1.5rem;
-        padding-top: 1.2rem;
-        border-top: 1px solid #E2E8F0;
-        flex-wrap: wrap;
-    }
-
-    .btn-primary {
-        background: linear-gradient(135deg, #0841C9, #1D97F1);
-        color: white;
-        border: none;
-        padding: 0.6rem 1.4rem;
-        border-radius: 40px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        cursor: pointer;
-        transition: all 0.2s;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        text-decoration: none;
-    }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 16px rgba(8,65,201,0.3);
-        }
-
-    .btn-outline {
-        background: transparent;
-        border: 1px solid #E2E8F0;
-        padding: 0.6rem 1.4rem;
-        border-radius: 40px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        cursor: pointer;
-        color: #5A6E7A;
-        transition: all 0.2s;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-        .btn-outline:hover {
-            border-color: #0841C9;
-            color: #0841C9;
-            background: rgba(8,65,201,0.02);
-        }
-
-    .validation-message {
-        color: #DC2626;
-        font-size: 0.75rem;
-        margin-top: 0.3rem;
-        display: block;
-    }
-
-    .alert {
-        padding: 0.8rem 1rem;
-        border-radius: 12px;
-        margin-bottom: 1rem;
-        font-size: 0.85rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .alert-error {
-        background: #FEE2E2;
-        color: #991B1B;
-        border: 1px solid #FECACA;
-    }
-
-    .required {
-        color: #DC2626;
-    }
-
-    .checkbox-row {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 0;
-        font-size: 0.85rem;
-    }
-
-        .checkbox-row input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: #0841C9;
-            cursor: pointer;
-        }
-
-    @@media (max-width: 768px) {
-        .row-2col {
-            grid-template-columns: 1fr;
-        }
-    }
-</style>
 
 <div class="page-header">
     <div>
-        <h2><i class="fas fa-edit"></i> Edit Consumable</h2>
-        <p>Update the consumable details</p>
+        <h2>Edit Consumable</h2>
+        <p>Update details for @Model.ConsumableName</p>
     </div>
-    <a href="@Url.Action("Stock")" class="breadcrumb-back">
-        <i class="fas fa-arrow-left"></i> Back to Stock
+    <a asp-action="Stock" class="btn btn-outline">
+        <i class="fas fa-arrow-left"></i> Back
     </a>
 </div>
 
 @if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Any()))
 {
-    <div class="alert alert-error">
+    <div class="alert alert-danger">
         <i class="fas fa-exclamation-circle"></i>
-        <div>@foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        <div>
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
             {
                 <div>@error.ErrorMessage</div>
-            }</div>
+            }
+        </div>
     </div>
 }
 
-<div class="form-card">
-    <h3 class="form-section-title"><i class="fas fa-info-circle"></i> Consumable Details</h3>
-    <form method="post" action="@Url.Action("EditConsumable")">
-        @Html.AntiForgeryToken()
-        <input type="hidden" asp-for="ConsumableID" />
+<form method="post" asp-action="EditConsumable">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="ConsumableID" />
 
-        <div class="form-group">
-            <label>Consumable Name <span class="required">*</span></label>
-            <input asp-for="ConsumableName" class="form-control" />
-            <span asp-validation-for="ConsumableName" class="validation-message"></span>
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-box"></i> Consumable Details</h3>
         </div>
 
-        <div class="form-group">
-            <label>Supplier <span class="required">*</span></label>
-            <select asp-for="SupplierID" asp-items="Model.AvailableSuppliers" class="form-control"></select>
-            <span asp-validation-for="SupplierID" class="validation-message"></span>
+        <div class="form-row-2">
+            <div class="form-group">
+                <label>Consumable Name <span class="required">*</span></label>
+                <input asp-for="ConsumableName" class="form-control" />
+                <span asp-validation-for="ConsumableName" class="validation-message"></span>
+            </div>
+            <div class="form-group">
+                <label>Supplier <span class="required">*</span></label>
+                <select asp-for="SupplierID" asp-items="Model.AvailableSuppliers" class="form-control"></select>
+                <span asp-validation-for="SupplierID" class="validation-message"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-cubes"></i> Stock Levels</h3>
         </div>
 
-        <h3 class="form-section-title" style="margin-top:1.5rem;"><i class="fas fa-cubes"></i> Stock Levels</h3>
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                To change <strong>Quantity on Hand</strong>, use
+                <a asp-action="AdjustStock" asp-route-id="@Model.ConsumableID">Adjust Stock</a>
+                so the change is logged.
+            </div>
+        </div>
 
-        <div class="row-2col">
+        <div class="form-row-2">
             <div class="form-group">
                 <label>Reorder Level <span class="required">*</span></label>
-                <input asp-for="ReorderLevel" class="form-control" type="number" min="0" />
+                <input asp-for="ReorderLevel" type="number" min="0" class="form-control" />
                 <span asp-validation-for="ReorderLevel" class="validation-message"></span>
             </div>
             <div class="form-group">
-                <label>Quantity on Hand <span class="required">*</span></label>
-                <input asp-for="QuantityOnHand" class="form-control" type="number" min="0" />
-                <span asp-validation-for="QuantityOnHand" class="validation-message"></span>
+                <label>Current Quantity on Hand</label>
+                <input asp-for="QuantityOnHand" type="number" class="form-control" readonly />
             </div>
         </div>
 
-        <div class="row-2col">
+        <div class="form-row-2">
             <div class="form-group">
                 <label>Unit of Measure</label>
                 <input asp-for="UnitOfMeasure" class="form-control" />
             </div>
             <div class="form-group">
+                <label>Minimum Stock Level</label>
+                <input asp-for="MinimumStockLevel" type="number" min="0" class="form-control" />
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-coins"></i> Pricing &amp; Storage</h3>
+        </div>
+
+        <div class="form-row-2">
+            <div class="form-group">
                 <label>Unit Price (R)</label>
-                <input asp-for="UnitPrice" class="form-control" type="number" step="0.01" />
+                <input asp-for="UnitPrice" type="number" step="0.01" min="0" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label>Storage Location</label>
+                <input asp-for="StorageLocation" class="form-control" />
             </div>
         </div>
 
         <div class="form-group">
-            <label>Storage Location</label>
-            <input asp-for="StorageLocation" class="form-control" />
+            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; margin: 0;">
+                <input asp-for="IsActive" type="checkbox" style="width: 16px; height: 16px; accent-color: var(--brand-700);" />
+                <span>Active (unchecking archives this consumable)</span>
+            </label>
         </div>
+    </div>
 
-        <div class="checkbox-row">
-            <input asp-for="IsActive" type="checkbox" id="IsActive" />
-            <label for="IsActive" style="margin:0; font-weight:500;">Active</label>
-        </div>
-
-        <div class="form-actions">
-            <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Update Consumable</button>
-            <a href="@Url.Action("Stock")" class="btn-outline"><i class="fas fa-times"></i> Cancel</a>
-        </div>
-    </form>
-</div>
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Save Changes
+        </button>
+        <a asp-action="Stock" class="btn btn-outline">Cancel</a>
+    </div>
+</form>

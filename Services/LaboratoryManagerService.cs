@@ -16,25 +16,34 @@ namespace NMB_HLabSys.Services
         private readonly ApplicationDbContext _context;
         private readonly IEmailService _emailService;
         private readonly IPasswordGenerator _passwordGenerator;
+        private readonly IPasswordHasher _passwordHasher;
         private readonly IStockManagementService _stockService;
         private readonly IPdfReportService _pdfService;
+        private readonly ICurrentUserService _currentUser;
         private readonly ILogger<LaboratoryManagerService> _logger;
 
         public LaboratoryManagerService(
             ApplicationDbContext context,
             IEmailService emailService,
             IPasswordGenerator passwordGenerator,
+            IPasswordHasher passwordHasher,
             IStockManagementService stockService,
             IPdfReportService pdfService,
+            ICurrentUserService currentUser,
             ILogger<LaboratoryManagerService> logger)
         {
             _context = context;
             _emailService = emailService;
             _passwordGenerator = passwordGenerator;
+            _passwordHasher = passwordHasher;
             _stockService = stockService;
             _pdfService = pdfService;
+            _currentUser = currentUser;
             _logger = logger;
         }
+
+        private int CurrentUserId =>
+            _currentUser.UserId ?? throw new InvalidOperationException("No authenticated user context.");
 
         // ============================================================
         // DASHBOARD
@@ -183,15 +192,19 @@ namespace NMB_HLabSys.Services
                     .Select(t => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
                     {
                         Value = t.TechnicianID.ToString(),
-                        Text = $"{t.User.Email}"
+                        Text = $"{t.User.Name} {t.User.Surname} ({t.EmployeeNumber})"
                     }).ToListAsync(),
 
-                AvailableConsumables = await _context.Consumables
+                Consumables = await _context.Consumables
                     .Where(c => c.IsActive)
-                    .Select(c => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                    .OrderBy(c => c.ConsumableName)
+                    .Select(c => new ConsumableInputViewModel
                     {
-                        Value = c.ConsumableID.ToString(),
-                        Text = $"{c.ConsumableName} (Stock: {c.QuantityOnHand})"
+                        ConsumableID = c.ConsumableID,
+                        ConsumableName = c.ConsumableName,
+                        UnitOfMeasure = c.UnitOfMeasure,
+                        QuantityRequired = 1,
+                        IsSelected = false
                     }).ToListAsync()
             };
         }
@@ -200,14 +213,21 @@ namespace NMB_HLabSys.Services
         {
             var errors = new List<string>();
 
-            // Validate unique test name
             if (!await IsTestNameUniqueAsync(model.TestName))
                 errors.Add($"Test name '{model.TestName}' already exists.");
+
+            if (model.NormalRangeMin.HasValue && model.NormalRangeMax.HasValue
+                && model.NormalRangeMin.Value >= model.NormalRangeMax.Value)
+                errors.Add("Normal range minimum must be less than normal range maximum.");
 
             if (model.SelectedTechnicianIDs == null || !model.SelectedTechnicianIDs.Any())
                 errors.Add("At least one technician must be assigned to perform this test.");
 
-            if (model.ConsumableQuantities == null || !model.ConsumableQuantities.Any())
+            var selectedConsumables = model.Consumables?
+                .Where(c => c.IsSelected && c.QuantityRequired > 0)
+                .ToList() ?? new List<ConsumableInputViewModel>();
+
+            if (!selectedConsumables.Any())
                 errors.Add("At least one consumable must be linked to this test.");
 
             if (errors.Any())
@@ -215,10 +235,10 @@ namespace NMB_HLabSys.Services
 
             var testType = new TestType
             {
-                TestName = model.TestName,
+                TestName = model.TestName.Trim(),
                 CategoryID = model.CategoryID,
                 SampleTypeID = model.SampleTypeID,
-                UnitOfMeasurement = model.UnitOfMeasurement,
+                UnitOfMeasurement = model.UnitOfMeasurement ?? string.Empty,
                 NormalRangeMin = model.NormalRangeMin,
                 NormalRangeMax = model.NormalRangeMax,
                 TurnaroundTimeMinutes = model.TurnaroundTimeMinutes,
@@ -229,8 +249,7 @@ namespace NMB_HLabSys.Services
             _context.TestTypes.Add(testType);
             await _context.SaveChangesAsync();
 
-            // Link assigned technicians
-            foreach (var techId in model.SelectedTechnicianIDs)
+            foreach (var techId in model.SelectedTechnicianIDs.Distinct())
             {
                 _context.TechnicianTestAssignments.Add(new TechnicianTestAssignment
                 {
@@ -241,20 +260,19 @@ namespace NMB_HLabSys.Services
                 });
             }
 
-            // Link consumables with quantities
-            foreach (var item in model.ConsumableQuantities)
+            foreach (var item in selectedConsumables)
             {
                 _context.TestConsumables.Add(new TestConsumable
                 {
                     TestID = testType.TestID,
-                    ConsumableID = item.Key,
-                    QuantityRequired = item.Value
+                    ConsumableID = item.ConsumableID,
+                    QuantityRequired = item.QuantityRequired
                 });
             }
 
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation($"Test type '{testType.TestName}' created with ID {testType.TestID}");
+            _logger.LogInformation("Test type '{TestName}' created with ID {TestId}", testType.TestName, testType.TestID);
             return ServiceResult<int>.Ok(testType.TestID);
         }
 
@@ -267,6 +285,13 @@ namespace NMB_HLabSys.Services
 
             if (test == null)
                 throw new ArgumentException($"Test type with ID {testId} not found");
+
+            var allConsumables = await _context.Consumables
+                .Where(c => c.IsActive)
+                .OrderBy(c => c.ConsumableName)
+                .ToListAsync();
+
+            var linked = test.TestConsumables.ToDictionary(tc => tc.ConsumableID, tc => tc.QuantityRequired);
 
             return new EditTestTypeViewModel
             {
@@ -283,8 +308,15 @@ namespace NMB_HLabSys.Services
                     .Where(tta => tta.IsActive)
                     .Select(tta => tta.TechnicianID)
                     .ToList(),
-                ConsumableQuantities = test.TestConsumables
-                    .ToDictionary(tc => tc.ConsumableID, tc => tc.QuantityRequired),
+
+                Consumables = allConsumables.Select(c => new ConsumableInputViewModel
+                {
+                    ConsumableID = c.ConsumableID,
+                    ConsumableName = c.ConsumableName,
+                    UnitOfMeasure = c.UnitOfMeasure,
+                    IsSelected = linked.ContainsKey(c.ConsumableID),
+                    QuantityRequired = linked.TryGetValue(c.ConsumableID, out var q) ? q : 1
+                }).ToList(),
 
                 AvailableCategories = await _context.TestCategories
                     .Where(c => c.IsActive)
@@ -307,15 +339,7 @@ namespace NMB_HLabSys.Services
                     .Select(t => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
                     {
                         Value = t.TechnicianID.ToString(),
-                        Text = $"{t.User.Email}"
-                    }).ToListAsync(),
-
-                AvailableConsumables = await _context.Consumables
-                    .Where(c => c.IsActive)
-                    .Select(c => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
-                    {
-                        Value = c.ConsumableID.ToString(),
-                        Text = $"{c.ConsumableName} (Stock: {c.QuantityOnHand})"
+                        Text = $"{t.User.Name} {t.User.Surname} ({t.EmployeeNumber})"
                     }).ToListAsync()
             };
         }
@@ -326,6 +350,10 @@ namespace NMB_HLabSys.Services
 
             if (!await IsTestNameUniqueAsync(model.TestName, model.TestID))
                 errors.Add($"Test name '{model.TestName}' already exists.");
+
+            if (model.NormalRangeMin.HasValue && model.NormalRangeMax.HasValue
+                && model.NormalRangeMin.Value >= model.NormalRangeMax.Value)
+                errors.Add("Normal range minimum must be less than normal range maximum.");
 
             if (model.SelectedTechnicianIDs == null || !model.SelectedTechnicianIDs.Any())
                 errors.Add("At least one technician must be assigned to perform this test.");
@@ -341,19 +369,18 @@ namespace NMB_HLabSys.Services
             if (test == null)
                 return ServiceResult<bool>.Fail($"Test type with ID {model.TestID} not found.");
 
-            // Update test properties
-            test.TestName = model.TestName;
+            test.TestName = model.TestName.Trim();
             test.CategoryID = model.CategoryID;
             test.SampleTypeID = model.SampleTypeID;
-            test.UnitOfMeasurement = model.UnitOfMeasurement;
+            test.UnitOfMeasurement = model.UnitOfMeasurement ?? string.Empty;
             test.NormalRangeMin = model.NormalRangeMin;
             test.NormalRangeMax = model.NormalRangeMax;
             test.TurnaroundTimeMinutes = model.TurnaroundTimeMinutes;
             test.IsActive = model.IsActive;
 
-            // Update technician assignments (remove old, add new)
+            // Replace tech assignments
             _context.TechnicianTestAssignments.RemoveRange(test.TechnicianTestAssignments);
-            foreach (var techId in model.SelectedTechnicianIDs)
+            foreach (var techId in model.SelectedTechnicianIDs.Distinct())
             {
                 _context.TechnicianTestAssignments.Add(new TechnicianTestAssignment
                 {
@@ -364,21 +391,24 @@ namespace NMB_HLabSys.Services
                 });
             }
 
-            // Update consumable links
+            // Replace consumables
             _context.TestConsumables.RemoveRange(test.TestConsumables);
-            foreach (var item in model.ConsumableQuantities)
+            var selectedConsumables = model.Consumables?
+                .Where(c => c.IsSelected && c.QuantityRequired > 0)
+                .ToList() ?? new List<ConsumableInputViewModel>();
+
+            foreach (var item in selectedConsumables)
             {
                 _context.TestConsumables.Add(new TestConsumable
                 {
                     TestID = test.TestID,
-                    ConsumableID = item.Key,
-                    QuantityRequired = item.Value
+                    ConsumableID = item.ConsumableID,
+                    QuantityRequired = item.QuantityRequired
                 });
             }
 
             await _context.SaveChangesAsync();
-
-            _logger.LogInformation($"Test type '{test.TestName}' updated");
+            _logger.LogInformation("Test type '{TestName}' updated", test.TestName);
             return ServiceResult<bool>.Ok(true);
         }
 
@@ -392,14 +422,20 @@ namespace NMB_HLabSys.Services
             if (test == null)
                 return ServiceResult<bool>.Fail($"Test type with ID {testId} not found.");
 
-            // Soft delete
+            var inUse = await _context.RequestTestTypes
+                .AnyAsync(rt => rt.TestTypeID == testId
+                             && rt.Status != "Completed"
+                             && rt.Status != "Verified"
+                             && rt.Status != "Cancelled");
+            if (inUse)
+                return ServiceResult<bool>.ValidationFail("Cannot archive a test type that is in use by an in-flight request.");
+
             test.IsActive = false;
             foreach (var assignment in test.TechnicianTestAssignments)
                 assignment.IsActive = false;
 
             await _context.SaveChangesAsync();
-
-            _logger.LogInformation($"Test type '{test.TestName}' deleted (soft)");
+            _logger.LogInformation("Test type '{TestName}' archived", test.TestName);
             return ServiceResult<bool>.Ok(true);
         }
 
@@ -631,7 +667,7 @@ namespace NMB_HLabSys.Services
                 AdjustmentAmount = model.QuantityOnHand,
                 AdjustmentType = "InitialStock",
                 Reason = "Initial stock setup",
-                AdjustedBy = 0, // System
+                AdjustedBy = CurrentUserId,
                 AdjustmentDate = DateTime.Now
             });
 
@@ -697,14 +733,20 @@ namespace NMB_HLabSys.Services
             if (consumable == null)
                 return ServiceResult<bool>.Fail($"Consumable with ID {consumableId} not found.");
 
-            // Check if used in active tests
-            var inUse = await _context.TestConsumables.AnyAsync(tc => tc.ConsumableID == consumableId);
-            if (inUse)
-                return ServiceResult<bool>.ValidationFail("Cannot delete consumable that is linked to active tests.");
+            var inUseByTests = await _context.TestConsumables
+                .AnyAsync(tc => tc.ConsumableID == consumableId);
+            if (inUseByTests)
+                return ServiceResult<bool>.ValidationFail("Cannot delete consumable linked to active tests.");
+
+            var onLiveOrders = await _context.OrderItems
+                .AnyAsync(oi => oi.ConsumableID == consumableId
+                             && oi.Status != "Cancelled"
+                             && oi.Status != "Received");
+            if (onLiveOrders)
+                return ServiceResult<bool>.ValidationFail("Cannot delete consumable that appears on a live purchase order.");
 
             consumable.IsActive = false;
             await _context.SaveChangesAsync();
-
             return ServiceResult<bool>.Ok(true);
         }
 
@@ -844,14 +886,20 @@ namespace NMB_HLabSys.Services
             if (supplier == null)
                 return ServiceResult<bool>.Fail($"Supplier with ID {supplierId} not found.");
 
-            // Check if supplier has consumables
-            var hasConsumables = await _context.Consumables.AnyAsync(c => c.SupplierID == supplierId && c.IsActive);
+            var hasConsumables = await _context.Consumables
+                .AnyAsync(c => c.SupplierID == supplierId && c.IsActive);
             if (hasConsumables)
                 return ServiceResult<bool>.ValidationFail("Cannot delete supplier that has active consumables.");
 
+            var hasLiveOrders = await _context.PurchaseOrders
+                .AnyAsync(o => o.SupplierID == supplierId
+                            && o.Status != "Cancelled"
+                            && o.Status != "Complete");
+            if (hasLiveOrders)
+                return ServiceResult<bool>.ValidationFail("Cannot delete supplier that has live purchase orders.");
+
             supplier.IsActive = false;
             await _context.SaveChangesAsync();
-
             return ServiceResult<bool>.Ok(true);
         }
 
@@ -918,7 +966,7 @@ namespace NMB_HLabSys.Services
                 Statistics = new OrderStatisticsViewModel
                 {
                     TotalOrders = orders.Count,
-                    PendingOrders = orders.Count(o => o.Status == "Ordered"),
+                    PendingOrders = orders.Count(o => o.Status == "Ordered" || o.Status == "Partially complete"),
                     CompletedOrders = orders.Count(o => o.Status == "Complete"),
                     CancelledOrders = orders.Count(o => o.Status == "Cancelled"),
                     PartiallyCompleteOrders = orders.Count(o => o.Status == "Partially complete")
@@ -928,6 +976,24 @@ namespace NMB_HLabSys.Services
 
         public async Task<CreateOrderViewModel> GetCreateOrderViewModelAsync()
         {
+            var consumables = await _context.Consumables
+                .Where(c => c.IsActive)
+                .OrderBy(c => c.ConsumableName)
+                .Select(c => new OrderItemInputViewModel
+                {
+                    ConsumableID = c.ConsumableID,
+                    ConsumableName = c.ConsumableName,
+                    SupplierID = c.SupplierID,
+                    CurrentStock = c.QuantityOnHand,
+                    ReorderLevel = c.ReorderLevel,
+                    SuggestedQuantity = c.ReorderLevel > c.QuantityOnHand
+                        ? (c.ReorderLevel - c.QuantityOnHand) + c.ReorderLevel
+                        : 0,
+                    QuantityToOrder = 1,
+                    IsSelected = c.QuantityOnHand <= c.ReorderLevel * 1.10m
+                })
+                .ToListAsync();
+
             return new CreateOrderViewModel
             {
                 AvailableSuppliers = await _context.Suppliers
@@ -936,7 +1002,9 @@ namespace NMB_HLabSys.Services
                     {
                         Value = s.SupplierID.ToString(),
                         Text = s.SupplierName
-                    }).ToListAsync()
+                    }).ToListAsync(),
+
+                Items = consumables
             };
         }
 
@@ -946,30 +1014,41 @@ namespace NMB_HLabSys.Services
             if (supplier == null)
                 return ServiceResult<int>.Fail("Selected supplier not found.");
 
-            if (model.Items == null || !model.Items.Any(i => i.IsSelected && i.QuantityToOrder > 0))
+            var selectedItems = model.Items?
+                .Where(i => i.IsSelected && i.QuantityToOrder > 0)
+                .ToList() ?? new List<OrderItemInputViewModel>();
+
+            if (!selectedItems.Any())
                 return ServiceResult<int>.ValidationFail("At least one item must be ordered.");
+
+            // NEW — validate range only on selected items
+            foreach (var item in selectedItems)
+            {
+                if (item.QuantityToOrder < 1 || item.QuantityToOrder > 10000)
+                    return ServiceResult<int>.ValidationFail(
+                        $"Quantity for '{item.ConsumableName}' must be between 1 and 10,000.");
+            }
 
             var order = new PurchaseOrder
             {
-                OrderNumber = "ORD-" + Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper(),
+                OrderNumber = "ORD-" + Guid.NewGuid().ToString("N")[..8].ToUpper(),
                 SupplierID = model.SupplierID,
                 OrderDate = DateTime.Now,
                 ExpectedDeliveryDate = model.ExpectedDeliveryDate,
                 Status = "Ordered",
-                CreatedBy = 0 // TODO: Get current user ID
+                CreatedBy = CurrentUserId
             };
 
             _context.PurchaseOrders.Add(order);
             await _context.SaveChangesAsync();
 
             decimal totalAmount = 0;
-
-            foreach (var item in model.Items.Where(i => i.IsSelected && i.QuantityToOrder > 0))
+            foreach (var item in selectedItems)
             {
                 var consumable = await _context.Consumables.FindAsync(item.ConsumableID);
                 var unitPrice = consumable?.UnitPrice ?? 0;
 
-                var orderItem = new OrderItem
+                _context.OrderItems.Add(new OrderItem
                 {
                     OrderID = order.OrderID,
                     ConsumableID = item.ConsumableID,
@@ -977,26 +1056,31 @@ namespace NMB_HLabSys.Services
                     QuantityReceived = 0,
                     UnitPrice = unitPrice,
                     Status = "Ordered"
-                };
-
-                _context.OrderItems.Add(orderItem);
+                });
                 totalAmount += unitPrice * item.QuantityToOrder;
             }
 
             order.TotalAmount = totalAmount;
             await _context.SaveChangesAsync();
 
-            // Send email to supplier
+            // Reload with navigation for email
+            var fullOrder = await _context.PurchaseOrders
+                .Include(o => o.Supplier)
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Consumable)
+                .FirstAsync(o => o.OrderID == order.OrderID);
+
             try
             {
-                await _emailService.SendOrderEmailAsync(order);
+                await _emailService.SendOrderEmailAsync(fullOrder);
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Failed to send order email to supplier");
             }
 
-            _logger.LogInformation($"Purchase order {order.OrderNumber} created with {model.Items.Count(i => i.IsSelected)} items");
+            _logger.LogInformation("Purchase order {OrderNumber} created with {ItemCount} items",
+                fullOrder.OrderNumber, selectedItems.Count);
+
             return ServiceResult<int>.Ok(order.OrderID);
         }
 
@@ -1078,7 +1162,7 @@ namespace NMB_HLabSys.Services
                     AdjustmentAmount = item.QuantityOrdered,
                     AdjustmentType = "PurchaseOrderReceipt",
                     Reason = $"Received from order {item.Order.OrderNumber}",
-                    AdjustedBy = 0,
+                    AdjustedBy = CurrentUserId,
                     AdjustmentDate = DateTime.Now
                 });
             }
@@ -1197,15 +1281,16 @@ namespace NMB_HLabSys.Services
                 .Select(t => new TechnicianViewModel
                 {
                     TechnicianID = t.TechnicianID,
-                    FullName = $"{t.User.Email}",
+                    FullName = $"{t.User.Name} {t.User.Surname}".Trim(),
                     EmployeeNumber = t.EmployeeNumber,
                     SAIDNumber = t.SAIDNumber,
                     Email = t.User.Email,
-                    ContactNumber = t.User.Email, // Placeholder
+                    ContactNumber = t.User.ContactNumber,
                     Specialization = t.Specialization,
                     IsActive = t.IsActive,
                     HireDate = t.HireDate,
-                    AssignedTestsCount = _context.TechnicianTestAssignments.Count(tta => tta.TechnicianID == t.TechnicianID && tta.IsActive)
+                    AssignedTestsCount = _context.TechnicianTestAssignments
+                        .Count(tta => tta.TechnicianID == t.TechnicianID && tta.IsActive)
                 }).ToListAsync();
 
             var doctors = await _context.Doctors
@@ -1213,7 +1298,7 @@ namespace NMB_HLabSys.Services
                 .Select(d => new DoctorListViewModel
                 {
                     DoctorID = d.DoctorID,
-                    FullName = $"{d.User.Email}",
+                    FullName = $"{d.User.Name} {d.User.Surname}".Trim(),
                     HPCSANumber = d.HPCSANumber,
                     Email = d.User.Email,
                     PracticeName = d.PracticeName,
@@ -1254,7 +1339,6 @@ namespace NMB_HLabSys.Services
         {
             var errors = new List<string>();
 
-            // Validate unique constraints
             if (!await IsEmployeeNumberUniqueAsync(model.EmployeeNumber))
                 errors.Add($"Employee number '{model.EmployeeNumber}' already exists.");
 
@@ -1270,14 +1354,15 @@ namespace NMB_HLabSys.Services
             if (errors.Any())
                 return ServiceResult<int>.ValidationFail(errors);
 
-            // Generate password
             string rawPassword = _passwordGenerator.GenerateTemporaryPassword();
 
-            // Create user
             var user = new User
             {
-                Email = model.Email,
-                PasswordHash = rawPassword, // TODO: Hash properly
+                Name = model.Name?.Trim() ?? string.Empty,
+                Surname = model.Surname?.Trim() ?? string.Empty,
+                Email = model.Email.Trim().ToLower(),
+                ContactNumber = model.ContactNumber?.Trim() ?? string.Empty,
+                PasswordHash = _passwordHasher.HashPassword(rawPassword),
                 UserRole = "Technician",
                 IsActive = true,
                 IsPasswordChanged = false,
@@ -1287,14 +1372,13 @@ namespace NMB_HLabSys.Services
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            // Create technician
             var technician = new LabTechnician
             {
                 UserID = user.UserID,
-                EmployeeNumber = model.EmployeeNumber,
-                SAIDNumber = model.SAIDNumber,
-                Specialization = model.Specialization,
-                Qualification = model.Qualification,
+                EmployeeNumber = model.EmployeeNumber.Trim(),
+                SAIDNumber = model.SAIDNumber.Trim(),
+                Specialization = model.Specialization ?? string.Empty,
+                Qualification = model.Qualification ?? string.Empty,
                 YearsOfExperience = model.YearsOfExperience,
                 HireDate = DateTime.Now,
                 IsActive = true
@@ -1303,8 +1387,7 @@ namespace NMB_HLabSys.Services
             _context.LabTechnicians.Add(technician);
             await _context.SaveChangesAsync();
 
-            // Assign test types
-            foreach (var testId in model.SelectedTestTypeIDs)
+            foreach (var testId in model.SelectedTestTypeIDs.Distinct())
             {
                 _context.TechnicianTestAssignments.Add(new TechnicianTestAssignment
                 {
@@ -1317,17 +1400,17 @@ namespace NMB_HLabSys.Services
 
             await _context.SaveChangesAsync();
 
-            // Send welcome email
             try
             {
-                await _emailService.SendTechnicianWelcomeEmailAsync(model.Email, model.Name, rawPassword);
+                await _emailService.SendTechnicianWelcomeEmailAsync(
+                    user.Email, $"{user.Name} {user.Surname}".Trim(), rawPassword);
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to send welcome email to technician");
+                _logger.LogWarning(ex, "Failed to send welcome email to technician {Email}", user.Email);
             }
 
-            _logger.LogInformation($"Technician added: {model.Email}");
+            _logger.LogInformation("Technician added: {Email}", user.Email);
             return ServiceResult<int>.Ok(technician.TechnicianID);
         }
 
@@ -1344,12 +1427,12 @@ namespace NMB_HLabSys.Services
             return new EditTechnicianViewModel
             {
                 TechnicianID = technician.TechnicianID,
-                Name = technician.User.Email,
-                Surname = "",
+                Name = technician.User.Name,
+                Surname = technician.User.Surname,
                 SAIDNumber = technician.SAIDNumber,
                 EmployeeNumber = technician.EmployeeNumber,
                 Email = technician.User.Email,
-                ContactNumber = "",
+                ContactNumber = technician.User.ContactNumber,
                 Specialization = technician.Specialization,
                 Qualification = technician.Qualification,
                 YearsOfExperience = technician.YearsOfExperience,
@@ -1396,19 +1479,23 @@ namespace NMB_HLabSys.Services
                 return ServiceResult<bool>.Fail($"Technician with ID {model.TechnicianID} not found.");
 
             // Update technician
-            technician.SAIDNumber = model.SAIDNumber;
-            technician.EmployeeNumber = model.EmployeeNumber;
-            technician.Specialization = model.Specialization;
-            technician.Qualification = model.Qualification;
+            technician.SAIDNumber = model.SAIDNumber.Trim();
+            technician.EmployeeNumber = model.EmployeeNumber.Trim();
+            technician.Specialization = model.Specialization ?? string.Empty;
+            technician.Qualification = model.Qualification ?? string.Empty;
             technician.YearsOfExperience = model.YearsOfExperience;
             technician.IsActive = model.IsActive;
 
-            // Update user
+            technician.User.Name = model.Name?.Trim() ?? technician.User.Name;
+            technician.User.Surname = model.Surname?.Trim() ?? technician.User.Surname;
+            technician.User.ContactNumber = model.ContactNumber?.Trim() ?? technician.User.ContactNumber;
+            technician.User.Email = model.Email.Trim().ToLower();
             technician.User.IsActive = model.IsActive;
+            technician.User.ModifiedDate = DateTime.Now;
 
             // Update assignments
             _context.TechnicianTestAssignments.RemoveRange(technician.TestAssignments);
-            foreach (var testId in model.SelectedTestTypeIDs)
+            foreach (var testId in model.SelectedTestTypeIDs.Distinct())
             {
                 _context.TechnicianTestAssignments.Add(new TechnicianTestAssignment
                 {
@@ -1438,11 +1525,11 @@ namespace NMB_HLabSys.Services
             return new TechnicianProfileViewModel
             {
                 TechnicianID = technician.TechnicianID,
-                FullName = $"{technician.User.Email}",
+                FullName = $"{technician.User.Name} {technician.User.Surname}".Trim(),
                 EmployeeNumber = technician.EmployeeNumber,
                 SAIDNumber = technician.SAIDNumber,
                 Email = technician.User.Email,
-                ContactNumber = "",
+                ContactNumber = technician.User.ContactNumber,
                 Specialization = technician.Specialization,
                 Qualification = technician.Qualification,
                 YearsOfExperience = technician.YearsOfExperience,
@@ -1482,59 +1569,64 @@ namespace NMB_HLabSys.Services
             return ServiceResult<bool>.Ok(true);
         }
 
-        public async Task<ServiceResult<int>> AddDoctorAsync(RegisterDoctorViewModel model)
-        {
-            var errors = new List<string>();
+      public async Task<ServiceResult<int>> AddDoctorAsync(RegisterDoctorViewModel model)
+{
+    var errors = new List<string>();
 
-            if (!await IsHPCSANumberUniqueAsync(model.HPCSANumber))
-                errors.Add($"HPCSA number '{model.HPCSANumber}' already exists.");
+    if (!await IsHPCSANumberUniqueAsync(model.HPCSANumber))
+        errors.Add($"HPCSA number '{model.HPCSANumber}' already exists.");
 
-            if (!await IsEmailUniqueAsync(model.Email))
-                errors.Add($"Email '{model.Email}' already exists.");
+    if (!await IsEmailUniqueAsync(model.Email))
+        errors.Add($"Email '{model.Email}' already exists.");
 
-            if (errors.Any())
-                return ServiceResult<int>.ValidationFail(errors);
+    if (errors.Any())
+        return ServiceResult<int>.ValidationFail(errors);
 
-            string rawPassword = _passwordGenerator.GenerateTemporaryPassword();
+    string rawPassword = _passwordGenerator.GenerateTemporaryPassword();
 
-            var user = new User
-            {
-                Email = model.Email,
-                PasswordHash = rawPassword, // TODO: Hash properly
-                UserRole = "Doctor",
-                IsActive = true,
-                IsPasswordChanged = false,
-                CreatedDate = DateTime.Now
-            };
+    var user = new User
+    {
+        Name = model.Name?.Trim() ?? string.Empty,
+        Surname = model.Surname?.Trim() ?? string.Empty,
+        Email = model.Email.Trim().ToLower(),
+        ContactNumber = model.ContactNumber?.Trim() ?? string.Empty,
+        PasswordHash = _passwordHasher.HashPassword(rawPassword),
+        UserRole = "Doctor",
+        IsActive = true,
+        IsPasswordChanged = false,
+        CreatedDate = DateTime.Now
+    };
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+    _context.Users.Add(user);
+    await _context.SaveChangesAsync();
 
-            var doctor = new Doctor
-            {
-                UserID = user.UserID,
-                HPCSANumber = model.HPCSANumber,
-                PracticeName = model.PracticeName,
-                PracticeAddress = model.PracticeAddress,
-                Specialization = model.Specialization,
-                IsVerified = false,
-                RegisteredDate = DateTime.Now
-            };
+    var doctor = new Doctor
+    {
+        UserID = user.UserID,
+        HPCSANumber = model.HPCSANumber.Trim(),
+        PracticeName = model.PracticeName ?? string.Empty,
+        PracticeAddress = model.PracticeAddress ?? string.Empty,
+        Specialization = model.Specialization ?? string.Empty,
+        IsVerified = false,
+        RegisteredDate = DateTime.Now
+    };
 
-            _context.Doctors.Add(doctor);
-            await _context.SaveChangesAsync();
+    _context.Doctors.Add(doctor);
+    await _context.SaveChangesAsync();
 
-            try
-            {
-                await _emailService.SendDoctorWelcomeEmailAsync(model.Email, $"{model.Name} {model.Surname}", rawPassword);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to send welcome email to doctor");
-            }
+    try
+    {
+        await _emailService.SendDoctorWelcomeEmailAsync(
+            user.Email, $"{user.Name} {user.Surname}".Trim(), rawPassword);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogWarning(ex, "Failed to send welcome email to doctor {Email}", user.Email);
+    }
 
-            return ServiceResult<int>.Ok(doctor.DoctorID);
-        }
+    _logger.LogInformation("Doctor added: {Email}", user.Email);
+    return ServiceResult<int>.Ok(doctor.DoctorID);
+}
 
         public async Task<EditDoctorViewModel> GetEditDoctorViewModelAsync(int doctorId)
         {
@@ -1548,11 +1640,11 @@ namespace NMB_HLabSys.Services
             return new EditDoctorViewModel
             {
                 DoctorID = doctor.DoctorID,
-                Name = "",
-                Surname = "",
+                Name = doctor.User.Name,
+                Surname = doctor.User.Surname,
                 HPCSANumber = doctor.HPCSANumber,
                 Email = doctor.User.Email,
-                ContactNumber = "",
+                ContactNumber = doctor.User.ContactNumber,
                 PracticeName = doctor.PracticeName,
                 PracticeAddress = doctor.PracticeAddress,
                 Specialization = doctor.Specialization,
@@ -1576,12 +1668,18 @@ namespace NMB_HLabSys.Services
             if (doctor == null)
                 return ServiceResult<bool>.Fail($"Doctor with ID {model.DoctorID} not found.");
 
-            doctor.HPCSANumber = model.HPCSANumber;
-            doctor.PracticeName = model.PracticeName;
-            doctor.PracticeAddress = model.PracticeAddress;
-            doctor.Specialization = model.Specialization;
+            doctor.HPCSANumber = model.HPCSANumber.Trim();
+            doctor.PracticeName = model.PracticeName ?? string.Empty;
+            doctor.PracticeAddress = model.PracticeAddress ?? string.Empty;
+            doctor.Specialization = model.Specialization ?? string.Empty;
             doctor.IsVerified = model.IsVerified;
+
+            doctor.User.Name = model.Name?.Trim() ?? doctor.User.Name;
+            doctor.User.Surname = model.Surname?.Trim() ?? doctor.User.Surname;
+            doctor.User.ContactNumber = model.ContactNumber?.Trim() ?? doctor.User.ContactNumber;
+            doctor.User.Email = model.Email.Trim().ToLower();
             doctor.User.IsActive = model.IsActive;
+            doctor.User.ModifiedDate = DateTime.Now;
 
             await _context.SaveChangesAsync();
 
@@ -1664,6 +1762,65 @@ namespace NMB_HLabSys.Services
             throw new NotImplementedException("Orders report generation not yet implemented.");
         }
 
+        public async Task<ChartDataDto> GetChartDataAsync()
+        {
+            var now = DateTime.Now;
+            var start = new DateTime(now.Year, now.Month, 1).AddMonths(-5);
+            var months = Enumerable.Range(0, 6).Select(i => start.AddMonths(i)).ToList();
+
+            // ─── Tests completed per month ───
+            var completedTests = await _context.RequestTestTypes
+                .Where(rt => rt.Status == "Completed" && rt.CompletedDateTime.HasValue
+                             && rt.CompletedDateTime.Value >= start)
+                .Select(rt => rt.CompletedDateTime!.Value)
+                .ToListAsync();
+
+            // ─── Orders placed per month ───
+            var orders = await _context.PurchaseOrders
+                .Where(o => o.OrderDate >= start)
+                .Select(o => o.OrderDate)
+                .ToListAsync();
+
+            // ─── Tests grouped by category ───
+            var byCategory = await _context.RequestTestTypes
+                .Include(rt => rt.TestType).ThenInclude(tt => tt.Category)
+                .Where(rt => rt.Status == "Completed")
+                .GroupBy(rt => rt.TestType!.Category!.CategoryName)
+                .Select(g => new { Label = g.Key, Value = g.Count() })
+                .ToListAsync();
+
+            // ─── Stock status distribution ───
+            var consumables = await _context.Consumables
+                .Where(c => c.IsActive)
+                .ToListAsync();
+
+            int critical = consumables.Count(c => c.QuantityOnHand <= 0);
+            int low = consumables.Count(c => c.QuantityOnHand > 0 && c.QuantityOnHand <= c.ReorderLevel);
+            int nearReorder = consumables.Count(c => c.QuantityOnHand > c.ReorderLevel
+                                                  && c.QuantityOnHand <= c.ReorderLevel * 1.10m);
+            int normal = consumables.Count - critical - low - nearReorder;
+
+            return new ChartDataDto
+            {
+                MonthlyLabels = months.Select(d => d.ToString("MMM yyyy")).ToList(),
+                TestsCompletedByMonth = months.Select(m =>
+                    completedTests.Count(t => t.Year == m.Year && t.Month == m.Month)).ToList(),
+                OrdersByMonth = months.Select(m =>
+                    orders.Count(o => o.Year == m.Year && o.Month == m.Month)).ToList(),
+                TestsByCategory = byCategory
+                    .Select(c => new ChartSlice { Label = c.Label ?? "Uncategorized", Value = c.Value })
+                    .OrderByDescending(s => s.Value)
+                    .ToList(),
+                StockByStatus = new List<ChartSlice>
+        {
+            new() { Label = "Critical",     Value = critical },
+            new() { Label = "Low",          Value = low },
+            new() { Label = "Near Reorder", Value = nearReorder },
+            new() { Label = "Normal",       Value = normal }
+        }
+            };
+        }
+
         // ============================================================
         // UTILITY METHODS
         // ============================================================
@@ -1740,7 +1897,7 @@ namespace NMB_HLabSys.Services
         {
             if (quantity <= 0) return "Critical";
             if (quantity <= reorderLevel) return "Low";
-            if (quantity <= reorderLevel * 1.5m) return "Warning";
+            if (quantity <= reorderLevel * 1.10m) return "Near Reorder";
             return "Normal";
         }
 
@@ -1748,7 +1905,7 @@ namespace NMB_HLabSys.Services
         {
             if (quantity <= 0) return "danger";
             if (quantity <= reorderLevel) return "warning";
-            if (quantity <= reorderLevel * 1.5m) return "info";
+            if (quantity <= reorderLevel * 1.10m) return "info";
             return "success";
         }
     }

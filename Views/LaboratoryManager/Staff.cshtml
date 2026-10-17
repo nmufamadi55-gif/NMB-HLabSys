@@ -1,313 +1,425 @@
 ﻿@using NMB_HLabSys.Models.ViewModels
 @model StaffManagementIndexViewModel
-
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_ManagerLayout.cshtml";
     ViewData["Title"] = "Staff Management";
-    ViewData["RoleSubtitle"] = "Laboratory Manager";
-    ViewData["UserGreeting"] = "Manage lab staff";
-    ViewData["UserInitials"] = "LM";
-}
-
-@section SidebarMenu {
-    <li><a href="@Url.Action("Index", "LaboratoryManager")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
-    <li><a href="@Url.Action("TestCatalogue", "LaboratoryManager")"><i class="fas fa-vial"></i> <span>Test Catalogue</span></a></li>
-    <li><a href="@Url.Action("Stock", "LaboratoryManager")"><i class="fas fa-boxes"></i> <span>Stock Management</span></a></li>
-    <li><a href="@Url.Action("Suppliers", "LaboratoryManager")"><i class="fas fa-truck"></i> <span>Suppliers</span></a></li>
-    <li><a href="@Url.Action("Orders", "LaboratoryManager")"><i class="fas fa-shopping-cart"></i> <span>Purchase Orders</span></a></li>
-    <li><a href="@Url.Action("Staff", "LaboratoryManager")" class="active"><i class="fas fa-user-md"></i> <span>Staff Management</span></a></li>
-    <li><a href="@Url.Action("Reports", "LaboratoryManager")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
 }
 
 <style>
-    .page-header {
-        background: linear-gradient(135deg, #032C7D 0%, #0841C9 100%);
-        border-radius: 20px;
-        padding: 1.2rem 1.8rem;
-        margin-bottom: 1.5rem;
+    .tab-panel {
+        display: none;
+    }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+    .staff-cell {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .staff-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--brand-gradient);
         color: white;
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        flex-wrap: wrap;
-        gap: 1rem;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        flex-shrink: 0;
     }
 
-        .page-header h2 {
-            font-size: 1.3rem;
-            margin: 0;
-            color: white;
-        }
-
-        .page-header p {
-            font-size: 0.8rem;
-            margin: 0.2rem 0 0 0;
-            opacity: 0.9;
-        }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .stat-box {
-        background: white;
-        border-radius: 16px;
-        padding: 1rem;
-        border: 1px solid #E2E8F0;
-        text-align: center;
-    }
-
-        .stat-box h4 {
-            font-size: 1.6rem;
-            margin: 0;
-            color: #032C7D;
-            font-weight: 700;
-        }
-
-        .stat-box p {
-            margin: 0.2rem 0 0;
-            font-size: 0.75rem;
-            color: #5A6E7A;
-        }
-
-    .card {
-        background: white;
-        border-radius: 16px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        border: 1px solid #E2E8F0;
-    }
-
-    .card-header {
+    .staff-info {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.8rem;
+        flex-direction: column;
+        gap: 0.1rem;
+    }
+
+    .staff-name {
+        font-weight: 600;
+        color: var(--gray-900);
+        font-size: 0.85rem;
+    }
+
+    .staff-sub {
+        font-size: 0.72rem;
+        color: var(--gray-500);
+    }
+
+    .filter-bar {
+        display: flex;
         flex-wrap: wrap;
         gap: 0.5rem;
-    }
-
-        .card-header h3 {
-            font-size: 1rem;
-            margin: 0;
-            color: #032C7D;
-            font-weight: 600;
-        }
-
-    .table-container {
-        overflow-x: auto;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    th, td {
-        padding: 0.7rem 0.5rem;
-        text-align: left;
-        border-bottom: 1px solid #E2E8F0;
-        font-size: 0.8rem;
-    }
-
-    th {
-        background: #F8FAFE;
-        font-weight: 600;
-        color: #5A6E7A;
-        text-transform: uppercase;
-        font-size: 0.7rem;
-        letter-spacing: 0.03em;
-    }
-
-    tr:hover {
-        background: #F8FAFE;
-    }
-
-    .btn-sm {
-        background: linear-gradient(135deg, #0841C9, #1D97F1);
-        color: white;
-        border: none;
-        padding: 0.4rem 1rem;
-        border-radius: 40px;
-        cursor: pointer;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-decoration: none;
-        display: inline-flex;
         align-items: center;
-        gap: 0.4rem;
+        padding: 0.75rem 1rem;
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius-md);
+        margin-bottom: 1rem;
     }
 
-        .btn-sm:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(8,65,201,0.25);
-            color: white;
+        .filter-bar .search {
+            flex: 1;
+            min-width: 220px;
+            max-width: 360px;
+            position: relative;
         }
 
-    .btn-outline-sm {
-        background: transparent;
-        border: 1px solid #E2E8F0;
-        padding: 0.4rem 0.8rem;
-        border-radius: 40px;
-        cursor: pointer;
-        font-size: 0.75rem;
-        text-decoration: none;
-        color: #5A6E7A;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.3rem;
-    }
+            .filter-bar .search input {
+                width: 100%;
+                padding-left: 2rem;
+            }
 
-        .btn-outline-sm:hover {
-            border-color: #0841C9;
-            color: #0841C9;
-            background: rgba(8,65,201,0.02);
-        }
+            .filter-bar .search i {
+                position: absolute;
+                left: 0.75rem;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--gray-400);
+                font-size: 0.85rem;
+            }
 
-    .badge {
-        display: inline-block;
-        padding: 0.2rem 0.6rem;
-        border-radius: 40px;
-        font-size: 0.7rem;
-        font-weight: 600;
-    }
-
-    .badge-success {
-        background: #D4EDDA;
-        color: #155724;
-    }
-
-    .badge-danger {
-        background: #F8D7DA;
-        color: #721C24;
-    }
-
-    .badge-warning {
-        background: #FFF3CD;
-        color: #856404;
+    .row-actions {
+        display: flex;
+        gap: 0.35rem;
+        justify-content: flex-end;
     }
 </style>
 
 <div class="page-header">
     <div>
-        <h2><i class="fas fa-users"></i> Staff Management</h2>
+        <h2>Staff Management</h2>
         <p>Manage lab technicians and doctors</p>
     </div>
+    <div class="page-header-actions">
+        <a asp-action="AddTechnician" class="btn btn-primary">
+            <i class="fas fa-user-plus"></i> Add Technician
+        </a>
+        <a asp-action="AddDoctor" class="btn btn-outline">
+            <i class="fas fa-user-md"></i> Add Doctor
+        </a>
+    </div>
 </div>
 
+<!-- KPIs -->
 <div class="stats-grid">
-    <div class="stat-box"><h4>@Model.Statistics.TotalTechnicians</h4><p>Total Technicians</p></div>
-    <div class="stat-box"><h4 style="color:#10B981;">@Model.Statistics.ActiveTechnicians</h4><p>Active Technicians</p></div>
-    <div class="stat-box"><h4>@Model.Statistics.TotalDoctors</h4><p>Total Doctors</p></div>
-    <div class="stat-box"><h4 style="color:#10B981;">@Model.Statistics.ActiveDoctors</h4><p>Active Doctors</p></div>
-</div>
-
-<div class="card">
-    <div class="card-header">
-        <h3><i class="fas fa-flask"></i> Lab Technicians</h3>
-        <a href="@Url.Action("AddTechnician")" class="btn-sm"><i class="fas fa-plus"></i> Add Technician</a>
+    <div class="stat-card">
+        <div class="stat-info">
+            <h3>@Model.Statistics.TotalTechnicians</h3>
+            <p>Total Technicians</p>
+        </div>
+        <div class="stat-icon"><i class="fas fa-flask"></i></div>
     </div>
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Employee #</th>
-                    <th>SA ID</th>
-                    <th>Specialization</th>
-                    <th>Assigned Tests</th>
-                    <th>Status</th>
-                    <th style="text-align:right;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model.Technicians != null && Model.Technicians.Any())
-                {
-                    @foreach (var t in Model.Technicians)
-                    {
-                        <tr>
-                            <td><strong>@t.FullName</strong></td>
-                            <td>@t.EmployeeNumber</td>
-                            <td>@t.SAIDNumber</td>
-                            <td>@t.Specialization</td>
-                            <td>@t.AssignedTestsCount</td>
-                            <td>
-                                <span class="badge @(t.IsActive ? "badge-success" : "badge-danger")">
-                                    @(t.IsActive ? "Active" : "Inactive")
-                                </span>
-                            </td>
-                            <td style="text-align:right;">
-                                <a href="@Url.Action("TechnicianProfile", new { id = t.TechnicianID })" class="btn-outline-sm"><i class="fas fa-user"></i> Profile</a>
-                                <a href="@Url.Action("EditTechnician", new { id = t.TechnicianID })" class="btn-outline-sm"><i class="fas fa-edit"></i> Edit</a>
-                            </td>
-                        </tr>
-                    }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="7" style="text-align:center; padding:2rem; color:#5A6E7A;">
-                            <i class="fas fa-inbox" style="font-size:2rem; opacity:0.4;"></i>
-                            <p style="margin-top:0.5rem;">No technicians found.</p>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    <div class="stat-card">
+        <div class="stat-info">
+            <h3 style="color: var(--success-fg);">@Model.Statistics.ActiveTechnicians</h3>
+            <p>Active Technicians</p>
+        </div>
+        <div class="stat-icon" style="background: var(--success-bg); color: var(--success-fg);">
+            <i class="fas fa-user-check"></i>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-info">
+            <h3>@Model.Statistics.TotalDoctors</h3>
+            <p>Total Doctors</p>
+        </div>
+        <div class="stat-icon"><i class="fas fa-user-md"></i></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-info">
+            <h3 style="color: var(--success-fg);">@Model.Statistics.ActiveDoctors</h3>
+            <p>Verified Doctors</p>
+        </div>
+        <div class="stat-icon" style="background: var(--success-bg); color: var(--success-fg);">
+            <i class="fas fa-certificate"></i>
+        </div>
     </div>
 </div>
 
-<div class="card">
-    <div class="card-header">
-        <h3><i class="fas fa-user-md"></i> Doctors</h3>
-        <a href="@Url.Action("AddDoctor")" class="btn-sm"><i class="fas fa-plus"></i> Add Doctor</a>
+<!-- Tabs -->
+<div class="tab-nav">
+    <button type="button" class="tab-item active" data-tab="tech">
+        Technicians (@(Model.Technicians?.Count ?? 0))
+    </button>
+    <button type="button" class="tab-item" data-tab="doctors">
+        Doctors (@(Model.Doctors?.Count ?? 0))
+    </button>
+</div>
+
+@* ─── Technicians ─── *@
+<div class="tab-panel active" data-panel="tech">
+    <div class="filter-bar">
+        <div class="search">
+            <i class="fas fa-search"></i>
+            <input type="text" id="techSearch" class="form-control"
+                   placeholder="Search name, employee # or email..." />
+        </div>
     </div>
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>HPCSA</th>
-                    <th>Email</th>
-                    <th>Practice</th>
-                    <th>Verified</th>
-                    <th style="text-align:right;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model.Doctors != null && Model.Doctors.Any())
-                {
-                    @foreach (var d in Model.Doctors)
+
+    <div class="card">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Employee #</th>
+                        <th>SA ID</th>
+                        <th>Specialization</th>
+                        <th style="text-align:center;">Assigned Tests</th>
+                        <th>Status</th>
+                        <th style="text-align:right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Technicians != null && Model.Technicians.Any())
+                    {
+                        @foreach (var t in Model.Technicians)
+                        {
+                            var initials = string.Concat(
+                                (t.FullName ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                    .Take(2).Select(p => p.Length > 0 ? p[0].ToString() : "")
+                            ).ToUpper();
+
+                            <tr class="tech-row"
+                                data-name="@t.FullName?.ToLower()"
+                                data-emp="@t.EmployeeNumber?.ToLower()"
+                                data-email="@t.Email?.ToLower()">
+                                <td>
+                                    <div class="staff-cell">
+                                        <div class="staff-avatar">@(string.IsNullOrEmpty(initials) ? "T" : initials)</div>
+                                        <div class="staff-info">
+                                            <span class="staff-name">@t.FullName</span>
+                                            <span class="staff-sub">@t.Email</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-sm">@t.EmployeeNumber</td>
+                                <td class="text-sm text-muted">@t.SAIDNumber</td>
+                                <td class="text-sm">@t.Specialization</td>
+                                <td style="text-align:center;">
+                                    @if (t.AssignedTestsCount > 0)
+                                    {
+                                        <span class="badge badge-info">@t.AssignedTestsCount</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-danger" title="No tests assigned">0</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge @(t.IsActive ? "badge-success" : "badge-muted")">
+                                        @(t.IsActive ? "Active" : "Inactive")
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="row-actions">
+                                        <a asp-action="TechnicianProfile" asp-route-id="@t.TechnicianID"
+                                           class="btn-icon" title="View Profile">
+                                            <i class="fas fa-user"></i>
+                                        </a>
+                                        <a asp-action="EditTechnician" asp-route-id="@t.TechnicianID"
+                                           class="btn-icon" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn-icon" title="Deactivate"
+                                                style="color: var(--danger-fg);"
+                                                onclick="confirmDeleteTech('@t.TechnicianID', '@t.FullName')">
+                                            <i class="fas fa-user-slash"></i>
+                                        </button>
+                                        <form id="delTech_@t.TechnicianID"
+                                              asp-action="DeleteTechnician" method="post"
+                                              style="display:none;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@t.TechnicianID" />
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
                     {
                         <tr>
-                            <td><strong>@d.FullName</strong></td>
-                            <td>@d.HPCSANumber</td>
-                            <td>@d.Email</td>
-                            <td>@d.PracticeName</td>
-                            <td>
-                                <span class="badge @(d.IsVerified ? "badge-success" : "badge-warning")">
-                                    @(d.IsVerified ? "Verified" : "Pending")
-                                </span>
-                            </td>
-                            <td style="text-align:right;">
-                                <a href="@Url.Action("EditDoctor", new { id = d.DoctorID })" class="btn-outline-sm"><i class="fas fa-edit"></i> Edit</a>
+                            <td colspan="7">
+                                <div class="empty-state">
+                                    <i class="fas fa-flask"></i>
+                                    <h3>No Technicians Yet</h3>
+                                    <p>Add your first lab technician.</p>
+                                    <a asp-action="AddTechnician" class="btn btn-primary">
+                                        <i class="fas fa-user-plus"></i> Add Technician
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="6" style="text-align:center; padding:2rem; color:#5A6E7A;">
-                            <i class="fas fa-inbox" style="font-size:2rem; opacity:0.4;"></i>
-                            <p style="margin-top:0.5rem;">No doctors found.</p>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
+
+@* ─── Doctors ─── *@
+<div class="tab-panel" data-panel="doctors">
+    <div class="filter-bar">
+        <div class="search">
+            <i class="fas fa-search"></i>
+            <input type="text" id="doctorSearch" class="form-control"
+                   placeholder="Search name, HPCSA # or email..." />
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>HPCSA #</th>
+                        <th>Email</th>
+                        <th>Practice</th>
+                        <th>Verification</th>
+                        <th style="text-align:right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Doctors != null && Model.Doctors.Any())
+                    {
+                        @foreach (var d in Model.Doctors)
+                        {
+                            var initials = string.Concat(
+                                (d.FullName ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                    .Take(2).Select(p => p.Length > 0 ? p[0].ToString() : "")
+                            ).ToUpper();
+
+                            <tr class="doctor-row"
+                                data-name="@d.FullName?.ToLower()"
+                                data-hpcsa="@d.HPCSANumber?.ToLower()"
+                                data-email="@d.Email?.ToLower()">
+                                <td>
+                                    <div class="staff-cell">
+                                        <div class="staff-avatar" style="background: linear-gradient(135deg, #0EA5E9, #06B6D4);">
+                                            @(string.IsNullOrEmpty(initials) ? "DR" : initials)
+                                        </div>
+                                        <div class="staff-info">
+                                            <span class="staff-name">@d.FullName</span>
+                                            <span class="staff-sub">@d.Specialization</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-sm">@d.HPCSANumber</td>
+                                <td class="text-sm">
+                                    <a href="mailto:@d.Email">@d.Email</a>
+                                </td>
+                                <td class="text-sm">@d.PracticeName</td>
+                                <td>
+                                    <span class="badge @(d.IsVerified ? "badge-success" : "badge-warning")">
+                                        @(d.IsVerified ? "Verified" : "Pending")
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="row-actions">
+                                        <a asp-action="EditDoctor" asp-route-id="@d.DoctorID"
+                                           class="btn-icon" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn-icon" title="Deactivate"
+                                                style="color: var(--danger-fg);"
+                                                onclick="confirmDeleteDoctor('@d.DoctorID', '@d.FullName')">
+                                            <i class="fas fa-user-slash"></i>
+                                        </button>
+                                        <form id="delDoctor_@d.DoctorID"
+                                              asp-action="DeleteDoctor" method="post"
+                                              style="display:none;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@d.DoctorID" />
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    <i class="fas fa-user-md"></i>
+                                    <h3>No Doctors Yet</h3>
+                                    <p>Add your first doctor.</p>
+                                    <a asp-action="AddDoctor" class="btn btn-primary">
+                                        <i class="fas fa-user-plus"></i> Add Doctor
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Tabs
+        document.querySelectorAll('.tab-item').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const target = this.dataset.tab;
+                document.querySelectorAll('.tab-item').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                this.classList.add('active');
+                document.querySelector(`.tab-panel[data-panel="${target}"]`).classList.add('active');
+            });
+        });
+
+        // Technician search
+        const techSearch = document.getElementById('techSearch');
+        const techRows = Array.from(document.querySelectorAll('.tech-row'));
+        techSearch?.addEventListener('input', function () {
+            const term = this.value.toLowerCase().trim();
+            techRows.forEach(r => {
+                const n = r.dataset.name || '';
+                const e = r.dataset.emp || '';
+                const m = r.dataset.email || '';
+                r.style.display = (!term || n.includes(term) || e.includes(term) || m.includes(term)) ? '' : 'none';
+            });
+        });
+
+        // Doctor search
+        const docSearch = document.getElementById('doctorSearch');
+        const docRows = Array.from(document.querySelectorAll('.doctor-row'));
+        docSearch?.addEventListener('input', function () {
+            const term = this.value.toLowerCase().trim();
+            docRows.forEach(r => {
+                const n = r.dataset.name || '';
+                const h = r.dataset.hpcsa || '';
+                const m = r.dataset.email || '';
+                r.style.display = (!term || n.includes(term) || h.includes(term) || m.includes(term)) ? '' : 'none';
+            });
+        });
+
+        // Confirm deletes
+        window.confirmDeleteTech = async function (id, name) {
+            const ok = await confirmModal({
+                title: 'Deactivate Technician',
+                message: `Deactivate "${name}"? They will no longer be able to log in or perform tests.`,
+                okText: 'Deactivate'
+            });
+            if (ok) document.getElementById(`delTech_${id}`).submit();
+        };
+        window.confirmDeleteDoctor = async function (id, name) {
+            const ok = await confirmModal({
+                title: 'Deactivate Doctor',
+                message: `Deactivate "${name}"? They will no longer be able to submit test requests.`,
+                okText: 'Deactivate'
+            });
+            if (ok) document.getElementById(`delDoctor_${id}`).submit();
+        };
+    </script>
+}

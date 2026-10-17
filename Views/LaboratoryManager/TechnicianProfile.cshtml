@@ -1,227 +1,224 @@
 ﻿@using NMB_HLabSys.Models.ViewModels
 @model TechnicianProfileViewModel
-
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_ManagerLayout.cshtml";
     ViewData["Title"] = "Technician Profile";
-    ViewData["RoleSubtitle"] = "Laboratory Manager";
-    ViewData["UserGreeting"] = "Technician details";
-    ViewData["UserInitials"] = "LM";
-}
-
-@section SidebarMenu {
-    <li><a href="@Url.Action("Index", "LaboratoryManager")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
-    <li><a href="@Url.Action("TestCatalogue", "LaboratoryManager")"><i class="fas fa-vial"></i> <span>Test Catalogue</span></a></li>
-    <li><a href="@Url.Action("Stock", "LaboratoryManager")"><i class="fas fa-boxes"></i> <span>Stock Management</span></a></li>
-    <li><a href="@Url.Action("Suppliers", "LaboratoryManager")"><i class="fas fa-truck"></i> <span>Suppliers</span></a></li>
-    <li><a href="@Url.Action("Orders", "LaboratoryManager")"><i class="fas fa-shopping-cart"></i> <span>Purchase Orders</span></a></li>
-    <li><a href="@Url.Action("Staff", "LaboratoryManager")" class="active"><i class="fas fa-user-md"></i> <span>Staff Management</span></a></li>
-    <li><a href="@Url.Action("Reports", "LaboratoryManager")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
 }
 
 <style>
-    .page-header {
-        background: linear-gradient(135deg, #032C7D 0%, #0841C9 100%);
-        border-radius: 20px;
-        padding: 1.2rem 1.8rem;
-        margin-bottom: 1.5rem;
+    .profile-hero {
+        background: linear-gradient(135deg, var(--brand-900) 0%, var(--brand-700) 100%);
         color: white;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-        .page-header h2 {
-            font-size: 1.3rem;
-            margin: 0;
-            color: white;
-        }
-
-        .page-header p {
-            font-size: 0.8rem;
-            margin: 0.2rem 0 0 0;
-            opacity: 0.9;
-        }
-
-        .page-header .breadcrumb-back {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            padding: 0.3rem 0.9rem;
-            border-radius: 40px;
-            text-decoration: none;
-            font-size: 0.75rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-            .page-header .breadcrumb-back:hover {
-                background: rgba(255,255,255,0.3);
-            }
-
-    .card {
-        background: white;
-        border-radius: 16px;
-        padding: 1.5rem;
-        border: 1px solid #E2E8F0;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem 1.75rem;
         margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        flex-wrap: wrap;
     }
 
-        .card h3 {
-            font-size: 1rem;
-            color: #032C7D;
-            margin: 0 0 1rem 0;
-            font-weight: 600;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid #E2E8F0;
+    .profile-avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .profile-hero-text {
+        flex: 1;
+        min-width: 200px;
+    }
+
+        .profile-hero-text h2 {
+            margin: 0 0 0.25rem;
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
         }
+
+        .profile-hero-text .subtitle {
+            font-size: 0.85rem;
+            opacity: 0.85;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+    .profile-hero-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+        .profile-hero-actions .btn {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: none;
+        }
+
+            .profile-hero-actions .btn:hover {
+                background: rgba(255,255,255,0.25);
+                color: white;
+            }
 
     .info-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.8rem 1.5rem;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.25rem 1.5rem;
     }
 
-    .info-item {
-        padding: 0.5rem 0;
-    }
-
-    .info-label {
-        font-size: 0.75rem;
+    .info-item .label {
+        font-size: 0.7rem;
         font-weight: 600;
-        color: #5A6E7A;
+        color: var(--gray-500);
         text-transform: uppercase;
-        letter-spacing: 0.03em;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.25rem;
         display: block;
     }
 
-    .info-value {
+    .info-item .value {
         font-size: 0.9rem;
-        color: #1A2C3A;
-        margin-top: 0.15rem;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    th, td {
-        padding: 0.7rem 0.5rem;
-        text-align: left;
-        border-bottom: 1px solid #E2E8F0;
-        font-size: 0.8rem;
-    }
-
-    th {
-        background: #F8FAFE;
-        font-weight: 600;
-        color: #5A6E7A;
-        text-transform: uppercase;
-        font-size: 0.7rem;
-        letter-spacing: 0.03em;
-    }
-
-    tr:hover {
-        background: #F8FAFE;
-    }
-
-    .badge {
-        display: inline-block;
-        padding: 0.2rem 0.6rem;
-        border-radius: 40px;
-        font-size: 0.7rem;
-        font-weight: 600;
-    }
-
-    .badge-success {
-        background: #D4EDDA;
-        color: #155724;
-    }
-
-    .badge-danger {
-        background: #F8D7DA;
-        color: #721C24;
-    }
-
-    @@media (max-width: 768px) {
-        .info-grid {
-            grid-template-columns: 1fr;
-        }
+        color: var(--gray-900);
     }
 </style>
 
-<div class="page-header">
-    <div>
-        <h2><i class="fas fa-user-circle"></i> @Model.FullName</h2>
-        <p>Technician profile and test assignments</p>
+@{
+    var initials = string.Concat(
+        (Model.FullName ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Take(2).Select(p => p.Length > 0 ? p[0].ToString() : "")
+    ).ToUpper();
+}
+
+<div class="profile-hero">
+    <div class="profile-avatar">@(string.IsNullOrEmpty(initials) ? "T" : initials)</div>
+    <div class="profile-hero-text">
+        <h2>@Model.FullName</h2>
+        <div class="subtitle">
+            <span><i class="fas fa-id-badge"></i> @Model.EmployeeNumber</span>
+            <span>·</span>
+            <span>@Model.Specialization</span>
+            @if (Model.IsActive)
+            {
+                <span class="badge badge-success">Active</span>
+            }
+            else
+            {
+                <span class="badge badge-muted">Inactive</span>
+            }
+        </div>
     </div>
-    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-        <a href="@Url.Action("EditTechnician", new { id = Model.TechnicianID })" class="breadcrumb-back">
+    <div class="profile-hero-actions">
+        <a asp-action="EditTechnician" asp-route-id="@Model.TechnicianID" class="btn">
             <i class="fas fa-edit"></i> Edit
         </a>
-        <a href="@Url.Action("Staff")" class="breadcrumb-back">
+        <a asp-action="Staff" class="btn">
             <i class="fas fa-arrow-left"></i> Back to Staff
         </a>
     </div>
 </div>
 
 <div class="card">
-    <h3><i class="fas fa-id-card"></i> Personal Information</h3>
-    <div class="info-grid">
-        <div class="info-item"><span class="info-label">Employee #</span><span class="info-value">@Model.EmployeeNumber</span></div>
-        <div class="info-item"><span class="info-label">SA ID</span><span class="info-value">@Model.SAIDNumber</span></div>
-        <div class="info-item"><span class="info-label">Email</span><span class="info-value">@Model.Email</span></div>
-        <div class="info-item"><span class="info-label">Phone</span><span class="info-value">@Model.ContactNumber</span></div>
+    <div class="card-header">
+        <h3><i class="fas fa-id-card"></i> Personal Information</h3>
     </div>
-</div>
-
-<div class="card">
-    <h3><i class="fas fa-graduation-cap"></i> Professional Details</h3>
     <div class="info-grid">
-        <div class="info-item"><span class="info-label">Specialization</span><span class="info-value">@Model.Specialization</span></div>
-        <div class="info-item"><span class="info-label">Qualification</span><span class="info-value">@Model.Qualification</span></div>
-        <div class="info-item"><span class="info-label">Experience</span><span class="info-value">@Model.YearsOfExperience years</span></div>
-        <div class="info-item"><span class="info-label">Hire Date</span><span class="info-value">@Model.HireDate.ToString("dd MMM yyyy")</span></div>
         <div class="info-item">
-            <span class="info-label">Status</span>
-            <span class="info-value">
-                <span class="badge @(Model.IsActive ? "badge-success" : "badge-danger")">@(Model.IsActive ? "Active" : "Inactive")</span>
-            </span>
+            <span class="label">SA ID Number</span>
+            <div class="value">@Model.SAIDNumber</div>
+        </div>
+        <div class="info-item">
+            <span class="label">Email</span>
+            <div class="value">
+                <a href="mailto:@Model.Email">@Model.Email</a>
+            </div>
+        </div>
+        <div class="info-item">
+            <span class="label">Contact Number</span>
+            <div class="value">@Model.ContactNumber</div>
+        </div>
+        <div class="info-item">
+            <span class="label">Hire Date</span>
+            <div class="value">@Model.HireDate.ToString("dd MMM yyyy")</div>
         </div>
     </div>
 </div>
 
 <div class="card">
-    <h3><i class="fas fa-vial"></i> Assigned Test Types</h3>
+    <div class="card-header">
+        <h3><i class="fas fa-graduation-cap"></i> Professional Details</h3>
+    </div>
+    <div class="info-grid">
+        <div class="info-item">
+            <span class="label">Specialization</span>
+            <div class="value">@Model.Specialization</div>
+        </div>
+        <div class="info-item">
+            <span class="label">Qualification</span>
+            <div class="value">@Model.Qualification</div>
+        </div>
+        <div class="info-item">
+            <span class="label">Years of Experience</span>
+            <div class="value">@Model.YearsOfExperience years</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3>
+            <i class="fas fa-vial"></i> Assigned Test Types
+            <span class="badge badge-info">@(Model.AssignedTests?.Count ?? 0)</span>
+        </h3>
+    </div>
+
     @if (Model.AssignedTests != null && Model.AssignedTests.Any())
     {
-        <table>
-            <thead>
-                <tr>
-                    <th>Test Name</th>
-                    <th>Category</th>
-                    <th>Assigned Date</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var test in Model.AssignedTests)
-                {
+        <div class="table-container">
+            <table>
+                <thead>
                     <tr>
-                        <td>@test.TestName</td>
-                        <td>@test.CategoryName</td>
-                        <td>@test.AssignedDate.ToString("dd MMM yyyy")</td>
-                        <td><span class="badge @(test.IsActive ? "badge-success" : "badge-danger")">@(test.IsActive ? "Active" : "Inactive")</span></td>
+                        <th>Test Name</th>
+                        <th>Category</th>
+                        <th>Assigned</th>
+                        <th>Status</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var test in Model.AssignedTests)
+                    {
+                        <tr>
+                            <td><strong>@test.TestName</strong></td>
+                            <td class="text-sm">@test.CategoryName</td>
+                            <td class="text-sm text-muted">@test.AssignedDate.ToString("dd MMM yyyy")</td>
+                            <td>
+                                <span class="badge @(test.IsActive ? "badge-success" : "badge-muted")">
+                                    @(test.IsActive ? "Active" : "Archived")
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     }
     else
     {
-        <p style="color:#5A6E7A; font-size:0.85rem;">No test types assigned yet.</p>
+        <div class="empty-state">
+            <i class="fas fa-vial"></i>
+            <h3>No Tests Assigned</h3>
+            <p>This technician cannot perform any tests yet.</p>
+            <a asp-action="EditTechnician" asp-route-id="@Model.TechnicianID" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Assign Tests
+            </a>
+        </div>
     }
 </div>

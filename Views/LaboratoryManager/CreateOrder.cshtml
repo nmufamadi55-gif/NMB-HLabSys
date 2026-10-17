@@ -1,287 +1,165 @@
 ﻿@using NMB_HLabSys.Models.ViewModels
 @model CreateOrderViewModel
-
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "Create Purchase Order";
-    ViewData["RoleSubtitle"] = "Laboratory Manager";
-    ViewData["UserGreeting"] = "Create a new purchase order";
-    ViewData["UserInitials"] = "LM";
-}
-
-@section SidebarMenu {
-    <li><a href="@Url.Action("Index", "LaboratoryManager")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
-    <li><a href="@Url.Action("TestCatalogue", "LaboratoryManager")"><i class="fas fa-vial"></i> <span>Test Catalogue</span></a></li>
-    <li><a href="@Url.Action("Stock", "LaboratoryManager")"><i class="fas fa-boxes"></i> <span>Stock Management</span></a></li>
-    <li><a href="@Url.Action("Suppliers", "LaboratoryManager")"><i class="fas fa-truck"></i> <span>Suppliers</span></a></li>
-    <li><a href="@Url.Action("Orders", "LaboratoryManager")" class="active"><i class="fas fa-shopping-cart"></i> <span>Purchase Orders</span></a></li>
-    <li><a href="@Url.Action("Staff", "LaboratoryManager")"><i class="fas fa-user-md"></i> <span>Staff Management</span></a></li>
-    <li><a href="@Url.Action("Reports", "LaboratoryManager")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+    Layout = "~/Views/Shared/_ManagerLayout.cshtml";
+    ViewData["Title"] = "New Purchase Order";
 }
 
 <style>
-    /* Same shared style block as before */
-    .page-header {
-        background: linear-gradient(135deg, #032C7D 0%, #0841C9 100%);
-        border-radius: 20px;
-        padding: 1.2rem 1.8rem;
-        margin-bottom: 1.5rem;
-        color: white;
+    .order-toolbar {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
         flex-wrap: wrap;
-        gap: 1rem;
+        gap: 0.5rem;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        background: var(--gray-50);
+        border-radius: var(--radius-md);
+        margin-bottom: 0.75rem;
     }
 
-        .page-header h2 {
-            font-size: 1.3rem;
-            margin: 0;
-            color: white;
+        .order-toolbar .search {
+            flex: 1;
+            min-width: 220px;
+            max-width: 340px;
+            position: relative;
         }
 
-        .page-header p {
-            font-size: 0.8rem;
-            margin: 0.2rem 0 0 0;
-            opacity: 0.9;
-        }
-
-        .page-header .breadcrumb-back {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            padding: 0.3rem 0.9rem;
-            border-radius: 40px;
-            text-decoration: none;
-            font-size: 0.75rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-            .page-header .breadcrumb-back:hover {
-                background: rgba(255,255,255,0.3);
+            .order-toolbar .search input {
+                width: 100%;
+                padding-left: 2rem;
+                background: white;
             }
 
-    .form-card {
+            .order-toolbar .search i {
+                position: absolute;
+                left: 0.75rem;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--gray-400);
+                font-size: 0.85rem;
+            }
+
+    .filter-chip {
+        padding: 0.35rem 0.85rem;
+        border-radius: var(--radius-pill);
         background: white;
-        border-radius: 16px;
-        padding: 1.5rem;
-        border: 1px solid #E2E8F0;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-        max-width: 1000px;
-    }
-
-    .form-section-title {
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: #032C7D;
-        margin: 0 0 1rem 0;
-        padding-bottom: 0.5rem;
-        border-bottom: 1px solid #E2E8F0;
-    }
-
-    .form-group {
-        margin-bottom: 1.2rem;
-    }
-
-        .form-group label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            display: block;
-            margin-bottom: 0.4rem;
-            color: #032C7D;
-        }
-
-    .form-control {
-        width: 100%;
-        padding: 0.6rem 0.8rem;
-        border: 1px solid #E2E8F0;
-        border-radius: 12px;
-        font-size: 0.9rem;
-        font-family: 'Inter', sans-serif;
-        background: #F8FAFE;
-        transition: all 0.2s;
-    }
-
-        .form-control:focus {
-            outline: none;
-            border-color: #0841C9;
-            box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
-            background: white;
-        }
-
-    .row-2col {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-    }
-
-    .form-actions {
-        display: flex;
-        gap: 0.8rem;
-        margin-top: 1.5rem;
-        padding-top: 1.2rem;
-        border-top: 1px solid #E2E8F0;
-        flex-wrap: wrap;
-    }
-
-    .btn-primary {
-        background: linear-gradient(135deg, #0841C9, #1D97F1);
-        color: white;
-        border: none;
-        padding: 0.6rem 1.4rem;
-        border-radius: 40px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        cursor: pointer;
-        transition: all 0.2s;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        text-decoration: none;
-    }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 16px rgba(8,65,201,0.3);
-        }
-
-    .btn-outline {
-        background: transparent;
-        border: 1px solid #E2E8F0;
-        padding: 0.6rem 1.4rem;
-        border-radius: 40px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        cursor: pointer;
-        color: #5A6E7A;
-        transition: all 0.2s;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-        .btn-outline:hover {
-            border-color: #0841C9;
-            color: #0841C9;
-            background: rgba(8,65,201,0.02);
-        }
-
-    .validation-message {
-        color: #DC2626;
+        color: var(--gray-700);
         font-size: 0.75rem;
-        margin-top: 0.3rem;
-        display: block;
+        font-weight: 500;
+        border: 1px solid var(--gray-200);
+        cursor: pointer;
+        transition: all 0.15s;
     }
 
-    .alert {
-        padding: 0.8rem 1rem;
-        border-radius: 12px;
-        margin-bottom: 1rem;
-        font-size: 0.85rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .alert-error {
-        background: #FEE2E2;
-        color: #991B1B;
-        border: 1px solid #FECACA;
-    }
-
-    .required {
-        color: #DC2626;
-    }
-
-    .order-item-row {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 0.7rem 1rem;
-        border: 1px solid #E2E8F0;
-        border-radius: 12px;
-        margin-bottom: 0.5rem;
-        background: #F8FAFE;
-        transition: all 0.2s;
-    }
-
-        .order-item-row:hover {
-            border-color: #0841C9;
+        .filter-chip:hover {
+            border-color: var(--brand-500);
+            color: var(--brand-700);
         }
 
-        .order-item-row.selected {
-            background: #EFF6FF;
-            border-color: #0841C9;
+        .filter-chip.active {
+            background: var(--brand-gradient);
+            color: white;
+            border-color: transparent;
         }
 
-        .order-item-row input[type="checkbox"] {
+    .item-row {
+        transition: background 0.15s;
+    }
+
+        .item-row.selected {
+            background: var(--brand-50);
+        }
+
+        .item-row input[type="checkbox"] {
             width: 18px;
             height: 18px;
+            accent-color: var(--brand-700);
             cursor: pointer;
-            accent-color: #0841C9;
         }
 
-        .order-item-row .item-name {
-            flex: 1;
-            font-size: 0.85rem;
-        }
-
-            .order-item-row .item-name strong {
-                color: #032C7D;
-            }
-
-        .order-item-row .item-meta {
-            font-size: 0.7rem;
-            color: #5A6E7A;
-        }
-
-        .order-item-row input[type="number"] {
-            width: 90px;
-            padding: 0.4rem 0.6rem;
-            border: 1px solid #E2E8F0;
-            border-radius: 8px;
-            font-size: 0.85rem;
-        }
-
-    .alert-info {
-        background: #CDE8FF;
-        color: #004085;
-        border: 1px solid #B8DAFF;
-        padding: 0.8rem 1rem;
-        border-radius: 12px;
+    .item-qty {
+        width: 80px;
+        padding: 0.35rem 0.5rem;
+        border: 1px solid var(--gray-200);
+        border-radius: 6px;
         font-size: 0.85rem;
+        text-align: center;
+        font-variant-numeric: tabular-nums;
+    }
+
+        .item-qty:disabled {
+            background: var(--gray-100);
+            color: var(--gray-400);
+        }
+
+    .stock-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.7rem;
+        font-weight: 500;
+    }
+
+    .stock-critical {
+        color: var(--danger-fg);
+    }
+
+    .stock-low {
+        color: var(--warning-fg);
+    }
+
+    .stock-normal {
+        color: var(--success-fg);
+    }
+
+    .order-summary-bar {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding: 0.85rem 1rem;
+        background: linear-gradient(135deg, var(--brand-50) 0%, #f5f9ff 100%);
+        border: 1px solid var(--brand-500);
+        border-radius: var(--radius-md);
         margin-bottom: 1rem;
     }
 
-    @@media (max-width: 768px) {
-        .row-2col {
-            grid-template-columns: 1fr;
+        .order-summary-bar .label {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--gray-500);
+            font-weight: 600;
         }
 
-        .order-item-row {
-            flex-wrap: wrap;
+        .order-summary-bar .summary-values {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.85rem;
         }
-    }
+
+            .order-summary-bar .summary-values strong {
+                font-size: 1.05rem;
+                color: var(--brand-900);
+                font-variant-numeric: tabular-nums;
+                margin-left: 0.3rem;
+            }
 </style>
 
 <div class="page-header">
     <div>
-        <h2><i class="fas fa-shopping-cart"></i> Create Purchase Order</h2>
+        <h2>New Purchase Order</h2>
         <p>Order consumables from a supplier</p>
     </div>
-    <a href="@Url.Action("Orders")" class="breadcrumb-back">
-        <i class="fas fa-arrow-left"></i> Back to Orders
+    <a asp-action="Orders" class="btn btn-outline">
+        <i class="fas fa-arrow-left"></i> Back
     </a>
 </div>
 
 @if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Any()))
 {
-    <div class="alert alert-error">
+    <div class="alert alert-danger">
         <i class="fas fa-exclamation-circle"></i>
         <div>
             @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
@@ -292,83 +170,331 @@
     </div>
 }
 
-<div class="form-card">
-    <form method="post" action="@Url.Action("CreateOrder")">
-        @Html.AntiForgeryToken()
+<form method="post" asp-action="CreateOrder" id="orderForm">
+    @Html.AntiForgeryToken()
 
-        <h3 class="form-section-title"><i class="fas fa-truck"></i> Supplier & Delivery</h3>
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-truck-field"></i> Supplier &amp; Delivery</h3>
+        </div>
 
-        <div class="row-2col">
+        <div class="form-row-2">
             <div class="form-group">
                 <label>Supplier <span class="required">*</span></label>
-                <select asp-for="SupplierID" asp-items="Model.AvailableSuppliers" class="form-control">
-                    <option value="">-- Select Supplier --</option>
+                <select asp-for="SupplierID" asp-items="Model.AvailableSuppliers"
+                        class="form-control" id="supplierSelect">
+                    <option value="">— Select Supplier —</option>
                 </select>
+                <small class="text-muted text-xs">
+                    Only consumables from the selected supplier will be shown below.
+                </small>
                 <span asp-validation-for="SupplierID" class="validation-message"></span>
             </div>
             <div class="form-group">
                 <label>Expected Delivery Date</label>
-                <input asp-for="ExpectedDeliveryDate" class="form-control" type="date" />
+                <input asp-for="ExpectedDeliveryDate" type="date" class="form-control" />
             </div>
         </div>
+    </div>
 
-        <h3 class="form-section-title" style="margin-top:1.5rem;"><i class="fas fa-list-check"></i> Items to Order</h3>
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-list-check"></i> Items to Order</h3>
+        </div>
 
         @if (Model.Items != null && Model.Items.Any())
         {
-            <div class="alert-info">
-                <i class="fas fa-info-circle"></i> Tick items you want to order and specify quantities.
+            <div class="order-toolbar">
+                <div class="search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="itemSearch" class="form-control"
+                           placeholder="Search consumable..." />
+                </div>
+                <button type="button" class="filter-chip active" data-filter="all">All</button>
+                <button type="button" class="filter-chip" data-filter="low">
+                    <i class="fas fa-triangle-exclamation"></i> Low Stock Only
+                </button>
+                <button type="button" class="filter-chip" id="selectAllBtn">
+                    <i class="fas fa-check-square"></i> Select All
+                </button>
+                <button type="button" class="filter-chip" id="clearAllBtn">
+                    <i class="fas fa-times-circle"></i> Clear
+                </button>
             </div>
 
-            <div id="orderItemsContainer">
-                @for (int i = 0; i < Model.Items.Count; i++)
-                {
-                    var item = Model.Items[i];
-                    <div class="order-item-row @(item.IsSelected ? "selected" : "")" data-index="@i">
-                        <input type="hidden" name="Items[@i].ConsumableID" value="@item.ConsumableID" />
-                        <input type="hidden" name="Items[@i].ConsumableName" value="@item.ConsumableName" />
-                        <input type="hidden" name="Items[@i].CurrentStock" value="@item.CurrentStock" />
-                        <input type="hidden" name="Items[@i].ReorderLevel" value="@item.ReorderLevel" />
-                        <input type="checkbox"
-                               name="Items[@i].IsSelected"
-                               value="true"
-                               class="item-checkbox"
-                        @(item.IsSelected ? "checked" : "") />
-                        <div class="item-name">
-                            <strong>@item.ConsumableName</strong>
-                            <div class="item-meta">Stock: @item.CurrentStock | Reorder at: @item.ReorderLevel</div>
-                        </div>
-                        <input type="number"
-                               name="Items[@i].QuantityToOrder"
-                               class="form-control quantity-input"
-                               value="@item.QuantityToOrder"
-                               min="1"
-                               placeholder="Qty" />
-                    </div>
-                }
+            <div class="order-summary-bar" id="summaryBar" style="display:none;">
+                <div class="label">Selection Summary</div>
+                <div class="summary-values">
+                    <span>Items: <strong id="sumItems">0</strong></span>
+                    <span>Total Qty: <strong id="sumQty">0</strong></span>
+                </div>
+            </div>
+
+            <div id="noSupplierSelected" class="empty-state" style="padding: 2rem 1rem;">
+                <i class="fas fa-truck-field"></i>
+                <h3>Select a Supplier</h3>
+                <p>Choose a supplier above to see available items.</p>
+            </div>
+
+            <div id="noItemsForSupplier" class="empty-state" style="display:none; padding: 2rem 1rem;">
+                <i class="fas fa-inbox"></i>
+                <h3>No Consumables From This Supplier</h3>
+                <p>Add consumables linked to this supplier first.</p>
+            </div>
+
+            <div class="table-container" id="itemsTableWrapper" style="display:none;">
+                <table id="itemsTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px; text-align:center;">
+                                <i class="fas fa-check-double"></i>
+                            </th>
+                            <th>Consumable</th>
+                            <th style="text-align:right;">Current Stock</th>
+                            <th style="text-align:right;">Reorder Level</th>
+                            <th>Status</th>
+                            <th style="text-align:center;">Qty to Order</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.Items.Count; i++)
+                        {
+                            var item = Model.Items[i];
+                            var isCritical = item.CurrentStock <= 0;
+                            var isLow = !isCritical && item.CurrentStock <= item.ReorderLevel;
+                            var stockClass = isCritical ? "stock-critical" : isLow ? "stock-low" : "stock-normal";
+                            var stockLabel = isCritical ? "Out of Stock" : isLow ? "Low" : "OK";
+
+                            <tr class="item-row @(item.IsSelected ? "selected" : "")"
+                                data-index="@i"
+                                data-supplier="@item.SupplierID"
+                                data-name="@item.ConsumableName?.ToLower()"
+                                data-low="@((isLow || isCritical) ? "1" : "0")">
+
+                                <input type="hidden" name="Items[@i].ConsumableID" value="@item.ConsumableID" />
+                                <input type="hidden" name="Items[@i].ConsumableName" value="@item.ConsumableName" />
+                                <input type="hidden" name="Items[@i].SupplierID" value="@item.SupplierID" />
+                                <input type="hidden" name="Items[@i].CurrentStock" value="@item.CurrentStock" />
+                                <input type="hidden" name="Items[@i].ReorderLevel" value="@item.ReorderLevel" />
+
+                                <td style="text-align:center;">
+                                    <input type="hidden" name="Items[@i].IsSelected" value="false" />
+                                    <input type="checkbox"
+                                           name="Items[@i].IsSelected"
+                                           value="true"
+                                           class="item-checkbox"
+                                    @(item.IsSelected ? "checked" : "") />
+                                </td>
+                                <td>
+                                    <strong>@item.ConsumableName</strong>
+                                </td>
+                                <td style="text-align:right; font-variant-numeric: tabular-nums;">
+                                    <span class="@stockClass" style="font-weight: 600;">@item.CurrentStock</span>
+                                </td>
+                                <td style="text-align:right;" class="text-sm text-muted">@item.ReorderLevel</td>
+                                <td>
+                                    <span class="stock-badge @stockClass">
+                                        <i class="fas @(isCritical ? "fa-times-circle" : isLow ? "fa-exclamation-triangle" : "fa-check-circle")"></i>
+                                        @stockLabel
+                                    </span>
+                                </td>
+                                <td style="text-align:center;">
+                                    <input type="number"
+                                           name="Items[@i].QuantityToOrder"
+                                           class="item-qty quantity-input"
+                                           min="1" value="@(item.QuantityToOrder > 0 ? item.QuantityToOrder : 1)"
+                                           data-suggested="@item.SuggestedQuantity" />
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <div id="noItemMatches" class="empty-state" style="display:none; padding: 2rem 1rem;">
+                    <i class="fas fa-search"></i>
+                    <h3>No Matches</h3>
+                    <p>Try adjusting your search or filter.</p>
+                </div>
             </div>
         }
         else
         {
-            <div class="alert-error">
-                <i class="fas fa-exclamation-triangle"></i> No consumables available. Please add consumables first.
+            <div class="empty-state">
+                <i class="fas fa-boxes-stacked"></i>
+                <h3>No Consumables Available</h3>
+                <p>Add consumables to inventory before creating orders.</p>
+                <a asp-action="CreateConsumable" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add Consumable
+                </a>
             </div>
         }
+    </div>
 
-        <div class="form-actions">
-            <button type="submit" class="btn-primary" @(Model.Items == null || !Model.Items.Any() ? "disabled" : "")>
-                <i class="fas fa-save"></i> Create Order
-            </button>
-            <a href="@Url.Action("Orders")" class="btn-outline"><i class="fas fa-times"></i> Cancel</a>
-        </div>
-    </form>
-</div>
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary" id="submitBtn">
+            <i class="fas fa-save"></i> Create Order
+        </button>
+        <a asp-action="Orders" class="btn btn-outline">Cancel</a>
+    </div>
+</form>
 
-<script>
-    // Toggle selected styling
-    document.querySelectorAll('.item-checkbox').forEach(function (cb) {
-        cb.addEventListener('change', function () {
-            this.closest('.order-item-row').classList.toggle('selected', this.checked);
-        });
-    });
-</script>
+@section Scripts {
+    <script>
+        (function () {
+            const supplierSelect = document.getElementById('supplierSelect');
+            const rows = Array.from(document.querySelectorAll('.item-row'));
+            const searchInput = document.getElementById('itemSearch');
+            const chips = document.querySelectorAll('.filter-chip[data-filter]');
+            const selectAllBtn = document.getElementById('selectAllBtn');
+            const clearAllBtn = document.getElementById('clearAllBtn');
+            const itemsTableWrapper = document.getElementById('itemsTableWrapper');
+            const noSupplierSelected = document.getElementById('noSupplierSelected');
+            const noItemsForSupplier = document.getElementById('noItemsForSupplier');
+            const noItemMatches = document.getElementById('noItemMatches');
+            const summaryBar = document.getElementById('summaryBar');
+            const sumItems = document.getElementById('sumItems');
+            const sumQty = document.getElementById('sumQty');
+            const submitBtn = document.getElementById('submitBtn');
+
+            let activeFilter = 'all';
+
+            if (!supplierSelect) return;
+
+            function recomputeSummary() {
+                let count = 0, qty = 0;
+                rows.forEach(row => {
+                    const cb = row.querySelector('.item-checkbox');
+                    const qtyInput = row.querySelector('.quantity-input');
+                    if (cb && cb.checked && row.style.display !== 'none') {
+                        count++;
+                        qty += parseInt(qtyInput.value, 10) || 0;
+                    }
+                });
+                sumItems.textContent = count;
+                sumQty.textContent = qty;
+                summaryBar.style.display = count > 0 ? '' : 'none';
+                submitBtn.disabled = count === 0;
+            }
+
+            function applyVisibility() {
+                const supplierId = supplierSelect.value;
+                if (!supplierId) {
+                    noSupplierSelected.style.display = '';
+                    noItemsForSupplier.style.display = 'none';
+                    itemsTableWrapper.style.display = 'none';
+                    return;
+                }
+                noSupplierSelected.style.display = 'none';
+
+                const term = (searchInput?.value || '').toLowerCase().trim();
+                let supplierItemsVisible = 0;
+                let filteredVisible = 0;
+
+                rows.forEach(row => {
+                    const rowSupplier = row.dataset.supplier;
+                    const matchesSupplier = rowSupplier === supplierId;
+                    const name = row.dataset.name || '';
+                    const isLow = row.dataset.low === '1';
+
+                    const matchesSearch = !term || name.includes(term);
+                    const matchesChip = activeFilter === 'all' || (activeFilter === 'low' && isLow);
+
+                    if (!matchesSupplier) {
+                        row.style.display = 'none';
+                        // Force uncheck hidden rows
+                        const cb = row.querySelector('.item-checkbox');
+                        if (cb) cb.checked = false;
+                        row.classList.remove('selected');
+                    } else {
+                        supplierItemsVisible++;
+                        const show = matchesSearch && matchesChip;
+                        row.style.display = show ? '' : 'none';
+                        if (show) filteredVisible++;
+                    }
+                });
+
+                if (supplierItemsVisible === 0) {
+                    noItemsForSupplier.style.display = '';
+                    itemsTableWrapper.style.display = 'none';
+                } else {
+                    noItemsForSupplier.style.display = 'none';
+                    itemsTableWrapper.style.display = '';
+                }
+
+                noItemMatches.style.display = (supplierItemsVisible > 0 && filteredVisible === 0) ? '' : 'none';
+                recomputeSummary();
+            }
+
+            supplierSelect.addEventListener('change', applyVisibility);
+
+            searchInput?.addEventListener('input', applyVisibility);
+
+            chips.forEach(chip => {
+                chip.addEventListener('click', function () {
+                    chips.forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    activeFilter = this.dataset.filter;
+                    applyVisibility();
+                });
+            });
+
+            // Checkbox → row highlight
+            rows.forEach(row => {
+                const cb = row.querySelector('.item-checkbox');
+                const qty = row.querySelector('.quantity-input');
+                if (!cb || !qty) return;
+
+                qty.disabled = !cb.checked;
+
+                cb.addEventListener('change', function () {
+                    row.classList.toggle('selected', this.checked);
+                    qty.disabled = !this.checked;
+                    if (this.checked) {
+                        // Apply suggested quantity when first checked
+                        const suggested = parseInt(qty.dataset.suggested, 10) || 0;
+                        if (suggested > 0 && parseInt(qty.value, 10) <= 1) {
+                            qty.value = suggested;
+                        }
+                    }
+                    recomputeSummary();
+                });
+
+                qty.addEventListener('input', recomputeSummary);
+            });
+
+            selectAllBtn?.addEventListener('click', function () {
+                rows.forEach(row => {
+                    if (row.style.display !== 'none') {
+                        const cb = row.querySelector('.item-checkbox');
+                        const qty = row.querySelector('.quantity-input');
+                        if (cb && !cb.checked) {
+                            cb.checked = true;
+                            qty.disabled = false;
+                            row.classList.add('selected');
+                            const suggested = parseInt(qty.dataset.suggested, 10) || 0;
+                            if (suggested > 0 && parseInt(qty.value, 10) <= 1) {
+                                qty.value = suggested;
+                            }
+                        }
+                    }
+                });
+                recomputeSummary();
+            });
+
+            clearAllBtn?.addEventListener('click', function () {
+                rows.forEach(row => {
+                    const cb = row.querySelector('.item-checkbox');
+                    const qty = row.querySelector('.quantity-input');
+                    if (cb && cb.checked) {
+                        cb.checked = false;
+                        qty.disabled = true;
+                        row.classList.remove('selected');
+                    }
+                });
+                recomputeSummary();
+            });
+
+            // Initial state
+            applyVisibility();
+        })();
+    </script>
+}

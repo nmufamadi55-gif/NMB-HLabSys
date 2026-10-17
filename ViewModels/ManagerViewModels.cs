@@ -109,6 +109,15 @@ namespace NMB_HLabSys.Models.ViewModels
         public List<ConsumableSummaryViewModel> Consumables { get; set; } = new();
     }
 
+    public class ConsumableInputViewModel
+    {
+        public int ConsumableID { get; set; }
+        public string ConsumableName { get; set; } = string.Empty;
+        public string UnitOfMeasure { get; set; } = string.Empty;
+        public int QuantityRequired { get; set; } = 1;
+        public bool IsSelected { get; set; }
+    } 
+
     public class CreateTestTypeViewModel
     {
         [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Test name is required")]
@@ -130,7 +139,7 @@ namespace NMB_HLabSys.Models.ViewModels
         public int TurnaroundTimeMinutes { get; set; }
 
         public List<int>? SelectedTechnicianIDs { get; set; }
-        public Dictionary<int, int>? ConsumableQuantities { get; set; }
+        public List<ConsumableInputViewModel> Consumables { get; set; } = new();
 
         public List<SelectListItem>? AvailableCategories { get; set; }
         public List<SelectListItem>? AvailableSampleTypes { get; set; }
@@ -163,7 +172,7 @@ namespace NMB_HLabSys.Models.ViewModels
         public bool IsActive { get; set; }
 
         public List<int>? SelectedTechnicianIDs { get; set; }
-        public Dictionary<int, int>? ConsumableQuantities { get; set; }
+        public List<ConsumableInputViewModel> Consumables { get; set; } = new();
 
         public List<SelectListItem>? AvailableCategories { get; set; }
         public List<SelectListItem>? AvailableSampleTypes { get; set; }
@@ -434,12 +443,15 @@ namespace NMB_HLabSys.Models.ViewModels
     {
         public int ConsumableID { get; set; }
         public string ConsumableName { get; set; } = string.Empty;
+
+        // ─── NEW: required for client-side supplier filtering on CreateOrder ───
+        public int SupplierID { get; set; }
+
         public int CurrentStock { get; set; }
         public int ReorderLevel { get; set; }
         public int SuggestedQuantity { get; set; }
 
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Quantity is required")]
-        [System.ComponentModel.DataAnnotations.Range(1, 10000)]
+        // No [Range] annotation — we only validate selected items in the service
         public int QuantityToOrder { get; set; }
 
         public bool IsSelected { get; set; }
@@ -723,5 +735,24 @@ namespace NMB_HLabSys.Models.ViewModels
     {
         public string TestName { get; set; } = string.Empty;
         public DateTime? CompletedDate { get; set; }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // CHART DATA
+    // ═══════════════════════════════════════════════════════════
+
+    public class ChartDataDto
+    {
+        public List<string> MonthlyLabels { get; set; } = new();
+        public List<int> TestsCompletedByMonth { get; set; } = new();
+        public List<int> OrdersByMonth { get; set; } = new();
+        public List<ChartSlice> TestsByCategory { get; set; } = new();
+        public List<ChartSlice> StockByStatus { get; set; } = new();
+    }
+
+    public class ChartSlice
+    {
+        public string Label { get; set; } = string.Empty;
+        public int Value { get; set; }
     }
 }

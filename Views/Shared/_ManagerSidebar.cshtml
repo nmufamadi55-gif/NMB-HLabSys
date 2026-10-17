@@ -1,0 +1,106 @@
+﻿@{
+    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+
+    string IsActive(params string[] actions) =>
+        actions.Any(a => string.Equals(a, action, StringComparison.OrdinalIgnoreCase)) ? "active" : "";
+}
+<aside class="app-sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-icon"><i class="fas fa-flask"></i></div>
+        <div class="brand-text">
+            <div class="brand-name">NMB-HLabSys</div>
+            <div class="brand-role">Lab Manager</div>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <div class="nav-section">
+            <div class="nav-section-label">Overview</div>
+            <ul>
+                <li>
+                    <a asp-controller="LaboratoryManager" asp-action="Index" class="@IsActive("Index")">
+                        <i class="fas fa-chart-pie"></i><span>Dashboard</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-label">Test Operations</div>
+            <ul>
+                <li>
+                    <a asp-controller="LaboratoryManager" asp-action="TestCatalogue"
+                       class="@IsActive("TestCatalogue", "CreateTestType", "EditTestType", "CreateCategory", "EditCategory", "CreateSampleType", "EditSampleType")">
+                        <i class="fas fa-vial"></i><span>Test Catalogue</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-label">Inventory</div>
+            <ul>
+                <li>
+                    <a asp-controller="LaboratoryManager" asp-action="Stock"
+                       class="@IsActive("Stock", "CreateConsumable", "EditConsumable", "AdjustStock")">
+                        <i class="fas fa-boxes-stacked"></i><span>Stock Management</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="LaboratoryManager" asp-action="Suppliers"
+                       class="@IsActive("Suppliers", "CreateSupplier", "EditSupplier", "SupplierDetails")">
+                        <i class="fas fa-truck-field"></i><span>Suppliers</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="LaboratoryManager" asp-action="Orders"
+                       class="@IsActive("Orders", "CreateOrder", "OrderDetails")">
+                        <i class="fas fa-clipboard-list"></i><span>Purchase Orders</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-label">User Management</div>
+            <ul>
+                <li>
+                    <a asp-controller="LaboratoryManager" asp-action="Staff"
+                       class="@IsActive("Staff", "AddTechnician", "EditTechnician", "TechnicianProfile", "AddDoctor", "EditDoctor")">
+                        <i class="fas fa-users-gear"></i><span>Staff Management</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-label">Analytics</div>
+            <ul>
+                <li>
+                    <a asp-controller="LaboratoryManager" asp-action="Reports"
+                       class="@IsActive("Reports", "GenerateCategoryReport")">
+                        <i class="fas fa-chart-line"></i><span>Reports</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-label">Account</div>
+            <ul>
+                <li>
+                    <a asp-controller="Profile" asp-action="Index">
+                        <i class="fas fa-user-circle"></i><span>My Profile</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="footer-note">
+            <i class="fas fa-circle-info"></i>
+            <span>UN SDG 3 — Good Health</span>
+        </div>
+    </div>
+</aside>

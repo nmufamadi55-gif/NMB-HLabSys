@@ -1,13 +1,15 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NMB_HLabSys.Models.ViewModels;
 using NMB_HLabSys.Services;
+using NMB_HLabSys.Filters;
 
 namespace NMB_HLabSys.Controllers
 {
+    [ManagerOnly]
     [Route("Manager/[action]")]
     [Route("[controller]/[action]")]
     public class LaboratoryManagerController : Controller
@@ -21,6 +23,11 @@ namespace NMB_HLabSys.Controllers
         {
             _service = service;
             _logger = logger;
+        }
+
+        private void SurfaceErrors<T>(ServiceResult<T> result)
+        {
+            TempData["ErrorMessage"] = result.GetMessage();
         }
 
         // ============================================================
@@ -64,11 +71,11 @@ namespace NMB_HLabSys.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var viewModel = await _service.GetCreateTestTypeViewModelAsync();
-                model.AvailableCategories = viewModel.AvailableCategories;
-                model.AvailableSampleTypes = viewModel.AvailableSampleTypes;
-                model.AvailableTechnicians = viewModel.AvailableTechnicians;
-                model.AvailableConsumables = viewModel.AvailableConsumables;
+                var vm = await _service.GetCreateTestTypeViewModelAsync();
+                model.AvailableCategories = vm.AvailableCategories;
+                model.AvailableSampleTypes = vm.AvailableSampleTypes;
+                model.AvailableTechnicians = vm.AvailableTechnicians;
+                model.Consumables = vm.Consumables;
                 return View(model);
             }
 
@@ -79,11 +86,12 @@ namespace NMB_HLabSys.Controllers
                 {
                     foreach (var error in result.ValidationErrors)
                         ModelState.AddModelError("", error);
-                    var viewModel = await _service.GetCreateTestTypeViewModelAsync();
-                    model.AvailableCategories = viewModel.AvailableCategories;
-                    model.AvailableSampleTypes = viewModel.AvailableSampleTypes;
-                    model.AvailableTechnicians = viewModel.AvailableTechnicians;
-                    model.AvailableConsumables = viewModel.AvailableConsumables;
+
+                    var vm = await _service.GetCreateTestTypeViewModelAsync();
+                    model.AvailableCategories = vm.AvailableCategories;
+                    model.AvailableSampleTypes = vm.AvailableSampleTypes;
+                    model.AvailableTechnicians = vm.AvailableTechnicians;
+                    model.Consumables = vm.Consumables;
                     return View(model);
                 }
 
@@ -94,6 +102,12 @@ namespace NMB_HLabSys.Controllers
             {
                 _logger.LogError(ex, "Error creating test type");
                 TempData["ErrorMessage"] = "An error occurred while creating the test type.";
+
+                var vm = await _service.GetCreateTestTypeViewModelAsync();
+                model.AvailableCategories = vm.AvailableCategories;
+                model.AvailableSampleTypes = vm.AvailableSampleTypes;
+                model.AvailableTechnicians = vm.AvailableTechnicians;
+                model.Consumables = vm.Consumables;
                 return View(model);
             }
         }
@@ -118,11 +132,11 @@ namespace NMB_HLabSys.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var viewModel = await _service.GetEditTestTypeViewModelAsync(model.TestID);
-                model.AvailableCategories = viewModel.AvailableCategories;
-                model.AvailableSampleTypes = viewModel.AvailableSampleTypes;
-                model.AvailableTechnicians = viewModel.AvailableTechnicians;
-                model.AvailableConsumables = viewModel.AvailableConsumables;
+                var vm = await _service.GetEditTestTypeViewModelAsync(model.TestID);
+                model.AvailableCategories = vm.AvailableCategories;
+                model.AvailableSampleTypes = vm.AvailableSampleTypes;
+                model.AvailableTechnicians = vm.AvailableTechnicians;
+                model.Consumables = vm.Consumables;
                 return View(model);
             }
 
@@ -133,6 +147,12 @@ namespace NMB_HLabSys.Controllers
                 {
                     foreach (var error in result.ValidationErrors)
                         ModelState.AddModelError("", error);
+
+                    var vm = await _service.GetEditTestTypeViewModelAsync(model.TestID);
+                    model.AvailableCategories = vm.AvailableCategories;
+                    model.AvailableSampleTypes = vm.AvailableSampleTypes;
+                    model.AvailableTechnicians = vm.AvailableTechnicians;
+                    model.Consumables = vm.Consumables;
                     return View(model);
                 }
 
@@ -143,6 +163,12 @@ namespace NMB_HLabSys.Controllers
             {
                 _logger.LogError(ex, "Error updating test type");
                 TempData["ErrorMessage"] = "An error occurred while updating the test type.";
+
+                var vm = await _service.GetEditTestTypeViewModelAsync(model.TestID);
+                model.AvailableCategories = vm.AvailableCategories;
+                model.AvailableSampleTypes = vm.AvailableSampleTypes;
+                model.AvailableTechnicians = vm.AvailableTechnicians;
+                model.Consumables = vm.Consumables;
                 return View(model);
             }
         }
@@ -154,14 +180,8 @@ namespace NMB_HLabSys.Controllers
             try
             {
                 var result = await _service.DeleteTestTypeAsync(id);
-                if (!result.Success)
-                {
-                    TempData["ErrorMessage"] = result.ErrorMessage;
-                }
-                else
-                {
-                    TempData["SuccessMessage"] = "Test type deleted successfully.";
-                }
+                if (!result.Success) SurfaceErrors(result);
+                else TempData["SuccessMessage"] = "Test type archived successfully.";
             }
             catch (Exception ex)
             {
@@ -175,11 +195,12 @@ namespace NMB_HLabSys.Controllers
         // ============================================================
         // TEST CATEGORIES
         // ============================================================
-        // GET: /Manager/CreateCategory
+
         public IActionResult CreateCategory()
         {
             return View(new CreateTestCategoryViewModel());
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateCategory(CreateTestCategoryViewModel model)
@@ -192,7 +213,7 @@ namespace NMB_HLabSys.Controllers
                 var result = await _service.CreateCategoryAsync(model);
                 if (!result.Success)
                 {
-                    ModelState.AddModelError("", result.ErrorMessage);
+                    SurfaceErrors(result);
                     return View(model);
                 }
 
@@ -233,7 +254,7 @@ namespace NMB_HLabSys.Controllers
                 var result = await _service.EditCategoryAsync(model);
                 if (!result.Success)
                 {
-                    ModelState.AddModelError("", result.ErrorMessage);
+                    SurfaceErrors(result);
                     return View(model);
                 }
 
@@ -255,10 +276,8 @@ namespace NMB_HLabSys.Controllers
             try
             {
                 var result = await _service.DeleteCategoryAsync(id);
-                if (!result.Success)
-                    TempData["ErrorMessage"] = result.ErrorMessage;
-                else
-                    TempData["SuccessMessage"] = "Category deleted successfully.";
+                if (!result.Success) SurfaceErrors(result);
+                else TempData["SuccessMessage"] = "Category deleted successfully.";
             }
             catch (Exception ex)
             {
@@ -287,7 +306,7 @@ namespace NMB_HLabSys.Controllers
                 var result = await _service.CreateSampleTypeAsync(model);
                 if (!result.Success)
                 {
-                    ModelState.AddModelError("", result.ErrorMessage);
+                    SurfaceErrors(result);
                     return View(model);
                 }
 
@@ -328,7 +347,7 @@ namespace NMB_HLabSys.Controllers
                 var result = await _service.EditSampleTypeAsync(model);
                 if (!result.Success)
                 {
-                    ModelState.AddModelError("", result.ErrorMessage);
+                    SurfaceErrors(result);
                     return View(model);
                 }
 
@@ -350,10 +369,8 @@ namespace NMB_HLabSys.Controllers
             try
             {
                 var result = await _service.DeleteSampleTypeAsync(id);
-                if (!result.Success)
-                    TempData["ErrorMessage"] = result.ErrorMessage;
-                else
-                    TempData["SuccessMessage"] = "Sample type deleted successfully.";
+                if (!result.Success) SurfaceErrors(result);
+                else TempData["SuccessMessage"] = "Sample type deleted successfully.";
             }
             catch (Exception ex)
             {
@@ -373,20 +390,21 @@ namespace NMB_HLabSys.Controllers
             var viewModel = await _service.GetStockManagementAsync();
             return View(viewModel);
         }
-        // GET: /Manager/CreateConsumable
+
         public async Task<IActionResult> CreateConsumable()
         {
             var viewModel = await _service.GetCreateConsumableViewModelAsync();
             return View(viewModel);
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateConsumable(CreateConsumableViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                var viewModel = await _service.GetCreateConsumableViewModelAsync();
-                model.AvailableSuppliers = viewModel.AvailableSuppliers;
+                var vm = await _service.GetCreateConsumableViewModelAsync();
+                model.AvailableSuppliers = vm.AvailableSuppliers;
                 return View(model);
             }
 
@@ -395,9 +413,11 @@ namespace NMB_HLabSys.Controllers
                 var result = await _service.CreateConsumableAsync(model);
                 if (!result.Success)
                 {
-                    ModelState.AddModelError("", result.ErrorMessage);
-                    var viewModel = await _service.GetCreateConsumableViewModelAsync();
-                    model.AvailableSuppliers = viewModel.AvailableSuppliers;
+                    foreach (var error in result.ValidationErrors)
+                        ModelState.AddModelError("", error);
+
+                    var vm = await _service.GetCreateConsumableViewModelAsync();
+                    model.AvailableSuppliers = vm.AvailableSuppliers;
                     return View(model);
                 }
 
@@ -408,6 +428,9 @@ namespace NMB_HLabSys.Controllers
             {
                 _logger.LogError(ex, "Error creating consumable");
                 TempData["ErrorMessage"] = "An error occurred while creating the consumable.";
+
+                var vm = await _service.GetCreateConsumableViewModelAsync();
+                model.AvailableSuppliers = vm.AvailableSuppliers;
                 return View(model);
             }
         }
@@ -432,8 +455,8 @@ namespace NMB_HLabSys.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var viewModel = await _service.GetEditConsumableViewModelAsync(model.ConsumableID);
-                model.AvailableSuppliers = viewModel.AvailableSuppliers;
+                var vm = await _service.GetEditConsumableViewModelAsync(model.ConsumableID);
+                model.AvailableSuppliers = vm.AvailableSuppliers;
                 return View(model);
             }
 
@@ -442,9 +465,11 @@ namespace NMB_HLabSys.Controllers
                 var result = await _service.EditConsumableAsync(model);
                 if (!result.Success)
                 {
-                    ModelState.AddModelError("", result.ErrorMessage);
-                    var viewModel = await _service.GetEditConsumableViewModelAsync(model.ConsumableID);
-                    model.AvailableSuppliers = viewModel.AvailableSuppliers;
+                    foreach (var error in result.ValidationErrors)
+                        ModelState.AddModelError("", error);
+
+                    var vm = await _service.GetEditConsumableViewModelAsync(model.ConsumableID);
+                    model.AvailableSuppliers = vm.AvailableSuppliers;
                     return View(model);
                 }
 
@@ -455,6 +480,9 @@ namespace NMB_HLabSys.Controllers
             {
                 _logger.LogError(ex, "Error updating consumable");
                 TempData["ErrorMessage"] = "An error occurred while updating the consumable.";
+
+                var vm = await _service.GetEditConsumableViewModelAsync(model.ConsumableID);
+                model.AvailableSuppliers = vm.AvailableSuppliers;
                 return View(model);
             }
         }
@@ -466,10 +494,8 @@ namespace NMB_HLabSys.Controllers
             try
             {
                 var result = await _service.DeleteConsumableAsync(id);
-                if (!result.Success)
-                    TempData["ErrorMessage"] = result.ErrorMessage;
-                else
-                    TempData["SuccessMessage"] = "Consumable deleted successfully.";
+                if (!result.Success) SurfaceErrors(result);
+                else TempData["SuccessMessage"] = "Consumable deleted successfully.";
             }
             catch (Exception ex)
             {
@@ -479,12 +505,27 @@ namespace NMB_HLabSys.Controllers
 
             return RedirectToAction(nameof(Stock));
         }
+
         [HttpGet]
         public async Task<IActionResult> AdjustStock(int id)
         {
-            var viewModel = new AdjustStockViewModel { ConsumableID = id };
-            return View(viewModel);
+            var stock = await _service.GetStockManagementAsync();
+            var item = stock.Consumables.FirstOrDefault(c => c.ConsumableID == id);
+
+            if (item == null)
+            {
+                TempData["ErrorMessage"] = $"Consumable with ID {id} not found.";
+                return RedirectToAction(nameof(Stock));
+            }
+
+            return View(new AdjustStockViewModel
+            {
+                ConsumableID = item.ConsumableID,
+                ConsumableName = item.ConsumableName,
+                CurrentQuantity = item.QuantityOnHand
+            });
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AdjustStock(AdjustStockViewModel model)
@@ -497,7 +538,17 @@ namespace NMB_HLabSys.Controllers
                 var result = await _service.AdjustStockAsync(model);
                 if (!result.Success)
                 {
-                    ModelState.AddModelError("", result.ErrorMessage);
+                    foreach (var error in result.ValidationErrors)
+                        ModelState.AddModelError("", error);
+
+                    // Repopulate display fields in case user resubmits
+                    var stock = await _service.GetStockManagementAsync();
+                    var item = stock.Consumables.FirstOrDefault(c => c.ConsumableID == model.ConsumableID);
+                    if (item != null)
+                    {
+                        model.ConsumableName = item.ConsumableName;
+                        model.CurrentQuantity = item.QuantityOnHand;
+                    }
                     return View(model);
                 }
 
@@ -508,6 +559,14 @@ namespace NMB_HLabSys.Controllers
             {
                 _logger.LogError(ex, "Error adjusting stock");
                 TempData["ErrorMessage"] = "An error occurred while adjusting stock.";
+
+                var stock = await _service.GetStockManagementAsync();
+                var item = stock.Consumables.FirstOrDefault(c => c.ConsumableID == model.ConsumableID);
+                if (item != null)
+                {
+                    model.ConsumableName = item.ConsumableName;
+                    model.CurrentQuantity = item.QuantityOnHand;
+                }
                 return View(model);
             }
         }
@@ -536,7 +595,7 @@ namespace NMB_HLabSys.Controllers
                 var result = await _service.CreateSupplierAsync(model);
                 if (!result.Success)
                 {
-                    ModelState.AddModelError("", result.ErrorMessage);
+                    SurfaceErrors(result);
                     return View(model);
                 }
 
@@ -577,7 +636,7 @@ namespace NMB_HLabSys.Controllers
                 var result = await _service.EditSupplierAsync(model);
                 if (!result.Success)
                 {
-                    ModelState.AddModelError("", result.ErrorMessage);
+                    SurfaceErrors(result);
                     return View(model);
                 }
 
@@ -599,10 +658,8 @@ namespace NMB_HLabSys.Controllers
             try
             {
                 var result = await _service.DeleteSupplierAsync(id);
-                if (!result.Success)
-                    TempData["ErrorMessage"] = result.ErrorMessage;
-                else
-                    TempData["SuccessMessage"] = "Supplier deleted successfully.";
+                if (!result.Success) SurfaceErrors(result);
+                else TempData["SuccessMessage"] = "Supplier deleted successfully.";
             }
             catch (Exception ex)
             {
@@ -649,8 +706,9 @@ namespace NMB_HLabSys.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var viewModel = await _service.GetCreateOrderViewModelAsync();
-                model.AvailableSuppliers = viewModel.AvailableSuppliers;
+                var vm = await _service.GetCreateOrderViewModelAsync();
+                model.AvailableSuppliers = vm.AvailableSuppliers;
+                model.Items = vm.Items;
                 return View(model);
             }
 
@@ -661,18 +719,24 @@ namespace NMB_HLabSys.Controllers
                 {
                     foreach (var error in result.ValidationErrors)
                         ModelState.AddModelError("", error);
-                    var viewModel = await _service.GetCreateOrderViewModelAsync();
-                    model.AvailableSuppliers = viewModel.AvailableSuppliers;
+
+                    var vm = await _service.GetCreateOrderViewModelAsync();
+                    model.AvailableSuppliers = vm.AvailableSuppliers;
+                    model.Items = vm.Items;
                     return View(model);
                 }
 
-                TempData["SuccessMessage"] = $"Order #{result.Data} created successfully.";
+                TempData["SuccessMessage"] = "Order created successfully.";
                 return RedirectToAction(nameof(Orders));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating order");
                 TempData["ErrorMessage"] = "An error occurred while creating the order.";
+
+                var vm = await _service.GetCreateOrderViewModelAsync();
+                model.AvailableSuppliers = vm.AvailableSuppliers;
+                model.Items = vm.Items;
                 return View(model);
             }
         }
@@ -698,10 +762,8 @@ namespace NMB_HLabSys.Controllers
             try
             {
                 var result = await _service.ReceiveOrderItemAsync(orderItemId);
-                if (!result.Success)
-                    TempData["ErrorMessage"] = result.ErrorMessage;
-                else
-                    TempData["SuccessMessage"] = "Item received successfully.";
+                if (!result.Success) SurfaceErrors(result);
+                else TempData["SuccessMessage"] = "Item received successfully. Stock levels updated.";
             }
             catch (Exception ex)
             {
@@ -717,26 +779,24 @@ namespace NMB_HLabSys.Controllers
         public async Task<IActionResult> CancelOrder(CancelOrderViewModel model)
         {
             if (!ModelState.IsValid)
-                return View(model);
+            {
+                SurfaceErrors(ServiceResult<bool>.ValidationFail("Please provide a cancellation reason."));
+                return RedirectToAction(nameof(Orders));
+            }
 
             try
             {
                 var result = await _service.CancelOrderAsync(model);
-                if (!result.Success)
-                {
-                    ModelState.AddModelError("", result.ErrorMessage);
-                    return View(model);
-                }
-
-                TempData["SuccessMessage"] = "Order cancelled successfully.";
-                return RedirectToAction(nameof(Orders));
+                if (!result.Success) SurfaceErrors(result);
+                else TempData["SuccessMessage"] = "Order cancelled successfully.";
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error cancelling order");
                 TempData["ErrorMessage"] = "An error occurred while cancelling the order.";
-                return View(model);
             }
+
+            return RedirectToAction(nameof(Orders));
         }
 
         [HttpPost]
@@ -746,10 +806,8 @@ namespace NMB_HLabSys.Controllers
             try
             {
                 var result = await _service.CancelOrderItemAsync(orderItemId, reason);
-                if (!result.Success)
-                    TempData["ErrorMessage"] = result.ErrorMessage;
-                else
-                    TempData["SuccessMessage"] = "Order item cancelled successfully.";
+                if (!result.Success) SurfaceErrors(result);
+                else TempData["SuccessMessage"] = "Order item cancelled successfully.";
             }
             catch (Exception ex)
             {
@@ -782,8 +840,8 @@ namespace NMB_HLabSys.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var viewModel = await _service.GetAddTechnicianViewModelAsync();
-                model.AvailableTestTypes = viewModel.AvailableTestTypes;
+                var vm = await _service.GetAddTechnicianViewModelAsync();
+                model.AvailableTestTypes = vm.AvailableTestTypes;
                 return View(model);
             }
 
@@ -794,8 +852,9 @@ namespace NMB_HLabSys.Controllers
                 {
                     foreach (var error in result.ValidationErrors)
                         ModelState.AddModelError("", error);
-                    var viewModel = await _service.GetAddTechnicianViewModelAsync();
-                    model.AvailableTestTypes = viewModel.AvailableTestTypes;
+
+                    var vm = await _service.GetAddTechnicianViewModelAsync();
+                    model.AvailableTestTypes = vm.AvailableTestTypes;
                     return View(model);
                 }
 
@@ -806,6 +865,9 @@ namespace NMB_HLabSys.Controllers
             {
                 _logger.LogError(ex, "Error adding technician");
                 TempData["ErrorMessage"] = "An error occurred while adding the technician.";
+
+                var vm = await _service.GetAddTechnicianViewModelAsync();
+                model.AvailableTestTypes = vm.AvailableTestTypes;
                 return View(model);
             }
         }
@@ -821,6 +883,44 @@ namespace NMB_HLabSys.Controllers
             {
                 TempData["ErrorMessage"] = $"Technician with ID {id} not found.";
                 return RedirectToAction(nameof(Staff));
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditTechnician(EditTechnicianViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var vm = await _service.GetEditTechnicianViewModelAsync(model.TechnicianID);
+                model.AvailableTestTypes = vm.AvailableTestTypes;
+                return View(model);
+            }
+
+            try
+            {
+                var result = await _service.EditTechnicianAsync(model);
+                if (!result.Success)
+                {
+                    foreach (var error in result.ValidationErrors)
+                        ModelState.AddModelError("", error);
+
+                    var vm = await _service.GetEditTechnicianViewModelAsync(model.TechnicianID);
+                    model.AvailableTestTypes = vm.AvailableTestTypes;
+                    return View(model);
+                }
+
+                TempData["SuccessMessage"] = "Technician updated successfully.";
+                return RedirectToAction(nameof(Staff));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating technician");
+                TempData["ErrorMessage"] = "An error occurred while updating the technician.";
+
+                var vm = await _service.GetEditTechnicianViewModelAsync(model.TechnicianID);
+                model.AvailableTestTypes = vm.AvailableTestTypes;
+                return View(model);
             }
         }
 
@@ -845,10 +945,8 @@ namespace NMB_HLabSys.Controllers
             try
             {
                 var result = await _service.DeleteTechnicianAsync(id);
-                if (!result.Success)
-                    TempData["ErrorMessage"] = result.ErrorMessage;
-                else
-                    TempData["SuccessMessage"] = "Technician removed successfully.";
+                if (!result.Success) SurfaceErrors(result);
+                else TempData["SuccessMessage"] = "Technician removed successfully.";
             }
             catch (Exception ex)
             {
@@ -915,7 +1013,8 @@ namespace NMB_HLabSys.Controllers
                 var result = await _service.EditDoctorAsync(model);
                 if (!result.Success)
                 {
-                    ModelState.AddModelError("", result.ErrorMessage);
+                    foreach (var error in result.ValidationErrors)
+                        ModelState.AddModelError("", error);
                     return View(model);
                 }
 
@@ -937,10 +1036,8 @@ namespace NMB_HLabSys.Controllers
             try
             {
                 var result = await _service.DeleteDoctorAsync(id);
-                if (!result.Success)
-                    TempData["ErrorMessage"] = result.ErrorMessage;
-                else
-                    TempData["SuccessMessage"] = "Doctor removed successfully.";
+                if (!result.Success) SurfaceErrors(result);
+                else TempData["SuccessMessage"] = "Doctor removed successfully.";
             }
             catch (Exception ex)
             {
@@ -973,8 +1070,8 @@ namespace NMB_HLabSys.Controllers
             }
             catch (ArgumentException ex)
             {
-                ModelState.AddModelError("", ex.Message);
-                return View("Reports", filter);
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Reports));
             }
             catch (Exception ex)
             {
@@ -1050,6 +1147,21 @@ namespace NMB_HLabSys.Controllers
                 _logger.LogError(ex, "Error generating orders report");
                 TempData["ErrorMessage"] = "Failed to generate report.";
                 return RedirectToAction(nameof(Reports));
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ChartData()
+        {
+            try
+            {
+                var data = await _service.GetChartDataAsync();
+                return Json(data);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading chart data");
+                return Json(new ChartDataDto());
             }
         }
     }

@@ -1,237 +1,214 @@
 ﻿@using NMB_HLabSys.Models.ViewModels
 @model AdjustStockViewModel
-
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_ManagerLayout.cshtml";
     ViewData["Title"] = "Adjust Stock";
-    ViewData["RoleSubtitle"] = "Laboratory Manager";
-    ViewData["UserGreeting"] = "Manually adjust stock levels";
-    ViewData["UserInitials"] = "LM";
-}
-
-@section SidebarMenu {
-    <li><a href="@Url.Action("Index", "LaboratoryManager")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
-    <li><a href="@Url.Action("TestCatalogue", "LaboratoryManager")"><i class="fas fa-vial"></i> <span>Test Catalogue</span></a></li>
-    <li><a href="@Url.Action("Stock", "LaboratoryManager")" class="active"><i class="fas fa-boxes"></i> <span>Stock Management</span></a></li>
-    <li><a href="@Url.Action("Suppliers", "LaboratoryManager")"><i class="fas fa-truck"></i> <span>Suppliers</span></a></li>
-    <li><a href="@Url.Action("Orders", "LaboratoryManager")"><i class="fas fa-shopping-cart"></i> <span>Purchase Orders</span></a></li>
-    <li><a href="@Url.Action("Staff", "LaboratoryManager")"><i class="fas fa-user-md"></i> <span>Staff Management</span></a></li>
-    <li><a href="@Url.Action("Reports", "LaboratoryManager")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
 }
 
 <style>
-    .page-header {
-        background: linear-gradient(135deg, #032C7D 0%, #0841C9 100%);
-        border-radius: 20px;
-        padding: 1.2rem 1.8rem;
-        margin-bottom: 1.5rem;
-        color: white;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 1rem;
+    .adjust-type-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.6rem;
+        margin-bottom: 1.25rem;
     }
+    @@media (max-width: 640px) { .adjust-type-grid { grid-template-columns: 1fr; } }
 
-        .page-header h2 {
-            font-size: 1.3rem;
-            margin: 0;
-            color: white;
-        }
-
-        .page-header p {
-            font-size: 0.8rem;
-            margin: 0.2rem 0 0 0;
-            opacity: 0.9;
-        }
-
-        .page-header .breadcrumb-back {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            padding: 0.3rem 0.9rem;
-            border-radius: 40px;
-            text-decoration: none;
-            font-size: 0.75rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-            .page-header .breadcrumb-back:hover {
-                background: rgba(255,255,255,0.3);
-            }
-
-    .form-card {
+    .type-option {
+        position: relative;
+        padding: 0.85rem 0.9rem;
+        border: 2px solid var(--gray-200);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all 0.15s;
         background: white;
-        border-radius: 16px;
-        padding: 1.5rem;
-        border: 1px solid #E2E8F0;
-        max-width: 700px;
     }
-
-    .form-section-title {
-        font-size: 0.95rem;
+    .type-option:hover { border-color: var(--brand-500); }
+    .type-option input { position: absolute; opacity: 0; pointer-events: none; }
+    .type-option.selected {
+        border-color: var(--brand-700);
+        background: var(--brand-50);
+    }
+    .type-option .title {
         font-weight: 600;
-        color: #032C7D;
-        margin: 0 0 1rem 0;
-        padding-bottom: 0.5rem;
-        border-bottom: 1px solid #E2E8F0;
-    }
-
-    .form-group {
-        margin-bottom: 1.2rem;
-    }
-
-        .form-group label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            display: block;
-            margin-bottom: 0.4rem;
-            color: #032C7D;
-        }
-
-    .form-control {
-        width: 100%;
-        padding: 0.6rem 0.8rem;
-        border: 1px solid #E2E8F0;
-        border-radius: 12px;
-        font-size: 0.9rem;
-        background: #F8FAFE;
-        font-family: 'Inter', sans-serif;
-    }
-
-        .form-control:focus {
-            outline: none;
-            border-color: #0841C9;
-            box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
-            background: white;
-        }
-
-        .form-control:disabled {
-            background: #E2E8F0;
-            cursor: not-allowed;
-        }
-
-    .form-actions {
+        font-size: 0.85rem;
+        color: var(--gray-900);
         display: flex;
-        gap: 0.8rem;
-        margin-top: 1.5rem;
-        padding-top: 1.2rem;
-        border-top: 1px solid #E2E8F0;
-    }
-
-    .btn-primary {
-        background: linear-gradient(135deg, #0841C9, #1D97F1);
-        color: white;
-        border: none;
-        padding: 0.6rem 1.4rem;
-        border-radius: 40px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        cursor: pointer;
-        display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
-        text-decoration: none;
+        gap: 0.4rem;
+        margin-bottom: 0.15rem;
+    }
+    .type-option .desc {
+        font-size: 0.72rem;
+        color: var(--gray-500);
     }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 16px rgba(8,65,201,0.3);
-            color: white;
-        }
-
-    .btn-outline {
-        background: transparent;
-        border: 1px solid #E2E8F0;
-        padding: 0.6rem 1.4rem;
-        border-radius: 40px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        cursor: pointer;
-        color: #5A6E7A;
-        text-decoration: none;
-        display: inline-flex;
+    .preview-box {
+        display: flex;
         align-items: center;
-        gap: 0.5rem;
+        justify-content: space-between;
+        padding: 1rem 1.25rem;
+        background: linear-gradient(135deg, var(--brand-50) 0%, #f5f9ff 100%);
+        border: 1px solid var(--brand-500);
+        border-radius: var(--radius-md);
+        margin: 1rem 0 1.5rem;
     }
-
-        .btn-outline:hover {
-            border-color: #0841C9;
-            color: #0841C9;
-            background: rgba(8,65,201,0.02);
-        }
-
-    .validation-message {
-        color: #DC2626;
+    .preview-box .label {
         font-size: 0.75rem;
-        margin-top: 0.3rem;
-        display: block;
-    }
-
-    .required {
-        color: #DC2626;
-    }
-
-    .current-stock-badge {
-        display: inline-block;
-        background: #CDE8FF;
-        color: #004085;
-        padding: 0.2rem 0.6rem;
-        border-radius: 20px;
-        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--gray-500);
         font-weight: 600;
-        margin-left: 0.5rem;
     }
+    .preview-box .values {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-variant-numeric: tabular-nums;
+    }
+    .preview-box .current { font-size: 1.1rem; color: var(--gray-500); }
+    .preview-box .arrow { color: var(--gray-400); }
+    .preview-box .new-value { font-size: 1.5rem; font-weight: 700; color: var(--brand-900); }
+    .preview-box.warn { background: var(--danger-bg); border-color: var(--danger-fg); }
+    .preview-box.warn .new-value { color: var(--danger-fg); }
 </style>
 
 <div class="page-header">
     <div>
-        <h2><i class="fas fa-balance-scale"></i> Adjust Stock</h2>
+        <h2>Adjust Stock</h2>
         <p>@Model.ConsumableName</p>
     </div>
-    <a href="@Url.Action("Stock")" class="breadcrumb-back">
-        <i class="fas fa-arrow-left"></i> Back to Stock
+    <a asp-action="Stock" class="btn btn-outline">
+        <i class="fas fa-arrow-left"></i> Back
     </a>
 </div>
 
-<div class="form-card">
-    <h3 class="form-section-title"><i class="fas fa-edit"></i> Stock Adjustment</h3>
-    <form method="post" action="@Url.Action("AdjustStock")">
-        @Html.AntiForgeryToken()
-        <input type="hidden" asp-for="ConsumableID" />
-        <input type="hidden" asp-for="ConsumableName" />
+@if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Any()))
+{
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-circle"></i>
+        <div>
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <div>@error.ErrorMessage</div>
+            }
+        </div>
+    </div>
+}
 
-        <div class="form-group">
-            <label>Consumable <span class="current-stock-badge">Current: @Model.CurrentQuantity</span></label>
-            <input class="form-control" value="@Model.ConsumableName" disabled />
+<form method="post" asp-action="AdjustStock">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="ConsumableID" />
+    <input type="hidden" asp-for="ConsumableName" />
+    <input type="hidden" id="CurrentQuantityHidden" value="@Model.CurrentQuantity" />
+
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-scale-balanced"></i> Adjustment Type</h3>
+        </div>
+
+        <div class="adjust-type-grid">
+            <label class="type-option" data-value="increase">
+                <input type="radio" asp-for="AdjustmentType" value="increase" />
+                <div class="title"><i class="fas fa-plus"></i> Increase</div>
+                <div class="desc">Add to stock</div>
+            </label>
+            <label class="type-option" data-value="decrease">
+                <input type="radio" asp-for="AdjustmentType" value="decrease" />
+                <div class="title"><i class="fas fa-minus"></i> Decrease</div>
+                <div class="desc">Remove from stock</div>
+            </label>
+            <label class="type-option" data-value="set">
+                <input type="radio" asp-for="AdjustmentType" value="set" />
+                <div class="title"><i class="fas fa-equals"></i> Set</div>
+                <div class="desc">Replace with exact value</div>
+            </label>
+        </div>
+        <span asp-validation-for="AdjustmentType" class="validation-message"></span>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-calculator"></i> Adjustment</h3>
         </div>
 
         <div class="form-group">
-            <label>Adjustment Type <span class="required">*</span></label>
-            <select asp-for="AdjustmentType" class="form-control">
-                <option value="">-- Select Type --</option>
-                <option value="increase">Increase – Add to stock</option>
-                <option value="decrease">Decrease – Remove from stock</option>
-                <option value="set">Set – Replace with exact value</option>
-            </select>
-            <span asp-validation-for="AdjustmentType" class="validation-message"></span>
-        </div>
-
-        <div class="form-group">
-            <label>Adjustment Amount <span class="required">*</span></label>
-            <input asp-for="AdjustmentAmount" class="form-control" type="number" min="1" placeholder="e.g., 10" />
+            <label>Amount <span class="required">*</span></label>
+            <input asp-for="AdjustmentAmount" type="number" min="1" class="form-control"
+                   placeholder="e.g., 25" id="adjustAmount" />
             <span asp-validation-for="AdjustmentAmount" class="validation-message"></span>
+        </div>
+
+        <div class="preview-box" id="previewBox">
+            <div>
+                <div class="label">New Quantity on Hand</div>
+                <div class="values">
+                    <span class="current" id="previewCurrent">@Model.CurrentQuantity</span>
+                    <i class="fas fa-arrow-right arrow"></i>
+                    <span class="new-value" id="previewNew">@Model.CurrentQuantity</span>
+                </div>
+            </div>
         </div>
 
         <div class="form-group">
             <label>Reason for Adjustment</label>
-            <input asp-for="Reason" class="form-control" placeholder="e.g., Manual count, Damaged, Return" />
+            <input asp-for="Reason" class="form-control"
+                   placeholder="e.g., Manual recount, Damaged in transit, Return to supplier" />
+            <small class="text-muted text-xs">Recorded in the audit log for traceability.</small>
         </div>
+    </div>
 
-        <div class="form-actions">
-            <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Apply Adjustment</button>
-            <a href="@Url.Action("Stock")" class="btn-outline"><i class="fas fa-times"></i> Cancel</a>
-        </div>
-    </form>
-</div>
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-check"></i> Apply Adjustment
+        </button>
+        <a asp-action="Stock" class="btn btn-outline">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+<script>
+    (function () {
+        const current = parseInt(document.getElementById('CurrentQuantityHidden').value, 10) || 0;
+        const amountInput = document.getElementById('adjustAmount');
+        const typeRadios = document.querySelectorAll('input[name="AdjustmentType"]');
+        const typeLabels = document.querySelectorAll('.type-option');
+        const previewNew = document.getElementById('previewNew');
+        const previewBox = document.getElementById('previewBox');
+
+        function recalc() {
+            const selected = document.querySelector('input[name="AdjustmentType"]:checked');
+            const type = selected ? selected.value : null;
+            const amount = parseInt(amountInput.value, 10) || 0;
+            let next = current;
+
+            if (type === 'increase') next = current + amount;
+            else if (type === 'decrease') next = Math.max(0, current - amount);
+            else if (type === 'set') next = amount;
+
+            previewNew.textContent = next;
+            previewBox.classList.toggle('warn', next < 0 || (type === 'decrease' && amount > current));
+        }
+
+        typeRadios.forEach(radio => {
+            radio.addEventListener('change', function () {
+                typeLabels.forEach(l => l.classList.remove('selected'));
+                if (this.checked) this.closest('.type-option').classList.add('selected');
+                recalc();
+            });
+        });
+
+        amountInput.addEventListener('input', recalc);
+
+        // Preselect "increase" for convenience if none selected
+        if (!document.querySelector('input[name="AdjustmentType"]:checked')) {
+            const first = typeRadios[0];
+            if (first) {
+                first.checked = true;
+                first.dispatchEvent(new Event('change'));
+            }
+        }
+        recalc();
+    })();
+</script>
+}

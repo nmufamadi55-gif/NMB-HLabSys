@@ -1,226 +1,103 @@
 ﻿@using NMB_HLabSys.Models.ViewModels
 @model AddTechnicianViewModel
-
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_ManagerLayout.cshtml";
     ViewData["Title"] = "Add Technician";
-    ViewData["RoleSubtitle"] = "Laboratory Manager";
-    ViewData["UserGreeting"] = "Add a new lab technician";
-    ViewData["UserInitials"] = "LM";
-}
-
-@section SidebarMenu {
-    <li><a href="@Url.Action("Index", "LaboratoryManager")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
-    <li><a href="@Url.Action("TestCatalogue", "LaboratoryManager")"><i class="fas fa-vial"></i> <span>Test Catalogue</span></a></li>
-    <li><a href="@Url.Action("Stock", "LaboratoryManager")"><i class="fas fa-boxes"></i> <span>Stock Management</span></a></li>
-    <li><a href="@Url.Action("Suppliers", "LaboratoryManager")"><i class="fas fa-truck"></i> <span>Suppliers</span></a></li>
-    <li><a href="@Url.Action("Orders", "LaboratoryManager")"><i class="fas fa-shopping-cart"></i> <span>Purchase Orders</span></a></li>
-    <li><a href="@Url.Action("Staff", "LaboratoryManager")" class="active"><i class="fas fa-user-md"></i> <span>Staff Management</span></a></li>
-    <li><a href="@Url.Action("Reports", "LaboratoryManager")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
 }
 
 <style>
-    /* Same shared style block as before */
-    .page-header {
-        background: linear-gradient(135deg, #032C7D 0%, #0841C9 100%);
-        border-radius: 20px;
-        padding: 1.2rem 1.8rem;
-        margin-bottom: 1.5rem;
-        color: white;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 1rem;
+    .test-picker {
+        max-height: 320px;
+        overflow-y: auto;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius-md);
+        padding: 0.5rem;
+        background: var(--gray-50);
     }
 
-        .page-header h2 {
-            font-size: 1.3rem;
-            margin: 0;
-            color: white;
+    .test-picker-search {
+        position: relative;
+        margin-bottom: 0.75rem;
+    }
+
+        .test-picker-search input {
+            width: 100%;
+            padding-left: 2rem;
         }
 
-        .page-header p {
-            font-size: 0.8rem;
-            margin: 0.2rem 0 0 0;
-            opacity: 0.9;
-        }
-
-        .page-header .breadcrumb-back {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            padding: 0.3rem 0.9rem;
-            border-radius: 40px;
-            text-decoration: none;
-            font-size: 0.75rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-            .page-header .breadcrumb-back:hover {
-                background: rgba(255,255,255,0.3);
-            }
-
-    .form-card {
-        background: white;
-        border-radius: 16px;
-        padding: 1.5rem;
-        border: 1px solid #E2E8F0;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-        max-width: 900px;
-    }
-
-    .form-section-title {
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: #032C7D;
-        margin: 0 0 1rem 0;
-        padding-bottom: 0.5rem;
-        border-bottom: 1px solid #E2E8F0;
-    }
-
-    .form-group {
-        margin-bottom: 1.2rem;
-    }
-
-        .form-group label {
+        .test-picker-search i {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
             font-size: 0.85rem;
-            font-weight: 600;
-            display: block;
-            margin-bottom: 0.4rem;
-            color: #032C7D;
         }
 
-    .form-control {
-        width: 100%;
-        padding: 0.6rem 0.8rem;
-        border: 1px solid #E2E8F0;
-        border-radius: 12px;
-        font-size: 0.9rem;
-        font-family: 'Inter', sans-serif;
-        background: #F8FAFE;
-        transition: all 0.2s;
+    .test-item {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.5rem 0.7rem;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: background 0.1s;
+        margin-bottom: 1px;
     }
 
-        .form-control:focus {
-            outline: none;
-            border-color: #0841C9;
-            box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
+        .test-item:hover {
             background: white;
         }
 
-    .row-2col {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-    }
+        .test-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--brand-700);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
 
-    .form-actions {
-        display: flex;
-        gap: 0.8rem;
-        margin-top: 1.5rem;
-        padding-top: 1.2rem;
-        border-top: 1px solid #E2E8F0;
-        flex-wrap: wrap;
-    }
+        .test-item label {
+            margin: 0;
+            font-size: 0.85rem;
+            color: var(--gray-900);
+            cursor: pointer;
+            flex: 1;
+        }
 
-    .btn-primary {
-        background: linear-gradient(135deg, #0841C9, #1D97F1);
-        color: white;
-        border: none;
-        padding: 0.6rem 1.4rem;
-        border-radius: 40px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        cursor: pointer;
-        transition: all 0.2s;
+    .selection-counter {
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
-        text-decoration: none;
-    }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 16px rgba(8,65,201,0.3);
-        }
-
-    .btn-outline {
-        background: transparent;
-        border: 1px solid #E2E8F0;
-        padding: 0.6rem 1.4rem;
-        border-radius: 40px;
+        gap: 0.35rem;
+        padding: 0.2rem 0.7rem;
+        background: var(--brand-50);
+        color: var(--brand-700);
+        font-size: 0.72rem;
         font-weight: 600;
+        border-radius: var(--radius-pill);
+    }
+
+    .empty-tests {
+        padding: 2rem 1rem;
+        text-align: center;
+        color: var(--gray-500);
         font-size: 0.85rem;
-        cursor: pointer;
-        color: #5A6E7A;
-        transition: all 0.2s;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-        .btn-outline:hover {
-            border-color: #0841C9;
-            color: #0841C9;
-            background: rgba(8,65,201,0.02);
-        }
-
-    .validation-message {
-        color: #DC2626;
-        font-size: 0.75rem;
-        margin-top: 0.3rem;
-        display: block;
-    }
-
-    .alert {
-        padding: 0.8rem 1rem;
-        border-radius: 12px;
-        margin-bottom: 1rem;
-        font-size: 0.85rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .alert-error {
-        background: #FEE2E2;
-        color: #991B1B;
-        border: 1px solid #FECACA;
-    }
-
-    .alert-info {
-        background: #CDE8FF;
-        color: #004085;
-        border: 1px solid #B8DAFF;
-    }
-
-    .required {
-        color: #DC2626;
-    }
-
-    @@media (max-width: 768px) {
-        .row-2col {
-            grid-template-columns: 1fr;
-        }
     }
 </style>
 
 <div class="page-header">
     <div>
-        <h2><i class="fas fa-user-plus"></i> Add Lab Technician</h2>
+        <h2>Add Lab Technician</h2>
         <p>Register a new technician and assign test types</p>
     </div>
-    <a href="@Url.Action("Staff")" class="breadcrumb-back">
-        <i class="fas fa-arrow-left"></i> Back to Staff
+    <a asp-action="Staff" class="btn btn-outline">
+        <i class="fas fa-arrow-left"></i> Back
     </a>
 </div>
 
 @if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Any()))
 {
-    <div class="alert alert-error">
+    <div class="alert alert-danger">
         <i class="fas fa-exclamation-circle"></i>
         <div>
             @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
@@ -231,80 +108,170 @@
     </div>
 }
 
-<div class="form-card">
-    <form method="post" action="@Url.Action("AddTechnician")">
-        @Html.AntiForgeryToken()
+<div class="alert alert-info">
+    <i class="fas fa-envelope"></i>
+    <div>
+        Login credentials are auto-generated and emailed to the technician. They'll be required to change their password on first login.
+    </div>
+</div>
 
-        <h3 class="form-section-title"><i class="fas fa-user"></i> Personal Information</h3>
-        <div class="row-2col">
+<form method="post" asp-action="AddTechnician">
+    @Html.AntiForgeryToken()
+
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-user"></i> Personal Information</h3>
+        </div>
+
+        <div class="form-row-2">
             <div class="form-group">
-                <label>Name <span class="required">*</span></label>
-                <input asp-for="Name" class="form-control" placeholder="First name" />
+                <label>First Name <span class="required">*</span></label>
+                <input asp-for="Name" class="form-control" placeholder="e.g., Thandiwe" />
                 <span asp-validation-for="Name" class="validation-message"></span>
             </div>
             <div class="form-group">
                 <label>Surname <span class="required">*</span></label>
-                <input asp-for="Surname" class="form-control" placeholder="Last name" />
+                <input asp-for="Surname" class="form-control" placeholder="e.g., Mkhize" />
                 <span asp-validation-for="Surname" class="validation-message"></span>
             </div>
         </div>
 
-        <div class="row-2col">
+        <div class="form-row-2">
             <div class="form-group">
                 <label>SA ID Number <span class="required">*</span></label>
-                <input asp-for="SAIDNumber" class="form-control" maxlength="13" placeholder="13-digit ID" />
+                <input asp-for="SAIDNumber" class="form-control" maxlength="13"
+                       placeholder="13-digit ID number" />
                 <span asp-validation-for="SAIDNumber" class="validation-message"></span>
             </div>
             <div class="form-group">
                 <label>Employee Number <span class="required">*</span></label>
-                <input asp-for="EmployeeNumber" class="form-control" placeholder="e.g., T2025001" />
+                <input asp-for="EmployeeNumber" class="form-control"
+                       placeholder="e.g., T2025001" />
                 <span asp-validation-for="EmployeeNumber" class="validation-message"></span>
             </div>
         </div>
 
-        <div class="row-2col">
+        <div class="form-row-2">
             <div class="form-group">
                 <label>Email Address <span class="required">*</span></label>
-                <input asp-for="Email" class="form-control" type="email" placeholder="tech@nmblab.co.za" />
+                <input asp-for="Email" type="email" class="form-control"
+                       placeholder="tech@nmblab.co.za" />
                 <span asp-validation-for="Email" class="validation-message"></span>
             </div>
             <div class="form-group">
                 <label>Contact Number <span class="required">*</span></label>
-                <input asp-for="ContactNumber" class="form-control" placeholder="082 123 4567" />
+                <input asp-for="ContactNumber" class="form-control"
+                       placeholder="082 123 4567" />
                 <span asp-validation-for="ContactNumber" class="validation-message"></span>
             </div>
         </div>
+    </div>
 
-        <h3 class="form-section-title" style="margin-top:1.5rem;"><i class="fas fa-graduation-cap"></i> Professional Details</h3>
-        <div class="row-2col">
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-graduation-cap"></i> Professional Details</h3>
+        </div>
+
+        <div class="form-row-2">
             <div class="form-group">
                 <label>Specialization</label>
-                <input asp-for="Specialization" class="form-control" placeholder="e.g., Haematology" />
+                <input asp-for="Specialization" class="form-control"
+                       placeholder="e.g., Haematology" />
             </div>
             <div class="form-group">
                 <label>Qualification</label>
-                <input asp-for="Qualification" class="form-control" placeholder="e.g., BSc Medical Lab Science" />
+                <input asp-for="Qualification" class="form-control"
+                       placeholder="e.g., BSc Medical Laboratory Science" />
             </div>
         </div>
 
         <div class="form-group">
             <label>Years of Experience</label>
-            <input asp-for="YearsOfExperience" class="form-control" type="number" min="0" max="50" />
+            <input asp-for="YearsOfExperience" type="number" min="0" max="50" class="form-control" />
         </div>
+    </div>
 
-        <h3 class="form-section-title" style="margin-top:1.5rem;"><i class="fas fa-vial"></i> Test Type Assignment</h3>
-        <div class="alert-info">
-            <i class="fas fa-info-circle"></i> At least one test type must be assigned. Hold <strong>Ctrl</strong> (Windows) or <strong>Cmd</strong> (Mac) to select multiple.
+    <div class="card">
+        <div class="card-header">
+            <h3>
+                <i class="fas fa-vial"></i> Test Type Assignment
+                <span class="selection-counter" id="selectionCounter">
+                    <i class="fas fa-check-circle"></i>
+                    <span id="selectionCount">0</span> selected
+                </span>
+            </h3>
         </div>
-        <div class="form-group">
-            <label>Assign Test Types <span class="required">*</span></label>
-            <select asp-for="SelectedTestTypeIDs" asp-items="Model.AvailableTestTypes" class="form-control" multiple size="6"></select>
+        <p class="text-muted text-sm" style="margin:0 0 0.75rem;">
+            At least one test type must be assigned. You can modify this later from the technician's profile.
+        </p>
+
+        @if (Model.AvailableTestTypes != null && Model.AvailableTestTypes.Any())
+        {
+            <div class="test-picker-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="testSearch" class="form-control"
+                       placeholder="Filter tests..." />
+            </div>
+            <div class="test-picker" id="testPicker">
+                @foreach (var test in Model.AvailableTestTypes)
+                {
+                    var isSelected = Model.SelectedTestTypeIDs != null &&
+                                     Model.SelectedTestTypeIDs.Contains(int.Parse(test.Value));
+                    <div class="test-item" data-name="@test.Text?.ToLower()">
+                        <input type="checkbox"
+                               name="SelectedTestTypeIDs"
+                               value="@test.Value"
+                               id="test_@test.Value"
+                        @(isSelected ? "checked" : "") />
+                        <label for="test_@test.Value">@test.Text</label>
+                    </div>
+                }
+            </div>
             <span asp-validation-for="SelectedTestTypeIDs" class="validation-message"></span>
-        </div>
+        }
+        else
+        {
+            <div class="empty-tests">
+                <i class="fas fa-info-circle"></i> No test types exist yet.
+                <a asp-action="CreateTestType">Create one first</a>.
+            </div>
+        }
+    </div>
 
-        <div class="form-actions">
-            <button type="submit" class="btn-primary"><i class="fas fa-user-plus"></i> Add Technician</button>
-            <a href="@Url.Action("Staff")" class="btn-outline"><i class="fas fa-times"></i> Cancel</a>
-        </div>
-    </form>
-</div>
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-user-plus"></i> Add Technician
+        </button>
+        <a asp-action="Staff" class="btn btn-outline">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        (function () {
+            const picker = document.getElementById('testPicker');
+            if (!picker) return;
+
+            const checkboxes = picker.querySelectorAll('input[type="checkbox"]');
+            const counter = document.getElementById('selectionCount');
+
+            function updateCount() {
+                const n = Array.from(checkboxes).filter(cb => cb.checked).length;
+                counter.textContent = n;
+            }
+
+            checkboxes.forEach(cb => cb.addEventListener('change', updateCount));
+            updateCount();
+
+            // Search filter
+            const search = document.getElementById('testSearch');
+            search?.addEventListener('input', function () {
+                const term = this.value.toLowerCase().trim();
+                picker.querySelectorAll('.test-item').forEach(item => {
+                    const name = item.dataset.name || '';
+                    item.style.display = (!term || name.includes(term)) ? '' : 'none';
+                });
+            });
+        })();
+    </script>
+}

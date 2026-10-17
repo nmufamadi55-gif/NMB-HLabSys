@@ -1,240 +1,156 @@
 ﻿@using NMB_HLabSys.Models.ViewModels
 @model SupplierDetailsViewModel
-
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_ManagerLayout.cshtml";
     ViewData["Title"] = "Supplier Details";
-    ViewData["RoleSubtitle"] = "Laboratory Manager";
-    ViewData["UserGreeting"] = "Supplier information";
-    ViewData["UserInitials"] = "LM";
-}
-
-@section SidebarMenu {
-    <li><a href="@Url.Action("Index", "LaboratoryManager")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
-    <li><a href="@Url.Action("TestCatalogue", "LaboratoryManager")"><i class="fas fa-vial"></i> <span>Test Catalogue</span></a></li>
-    <li><a href="@Url.Action("Stock", "LaboratoryManager")"><i class="fas fa-boxes"></i> <span>Stock Management</span></a></li>
-    <li><a href="@Url.Action("Suppliers", "LaboratoryManager")" class="active"><i class="fas fa-truck"></i> <span>Suppliers</span></a></li>
-    <li><a href="@Url.Action("Orders", "LaboratoryManager")"><i class="fas fa-shopping-cart"></i> <span>Purchase Orders</span></a></li>
-    <li><a href="@Url.Action("Staff", "LaboratoryManager")"><i class="fas fa-user-md"></i> <span>Staff Management</span></a></li>
-    <li><a href="@Url.Action("Reports", "LaboratoryManager")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
 }
 
 <style>
-    .page-header {
-        background: linear-gradient(135deg, #032C7D 0%, #0841C9 100%);
-        border-radius: 20px;
-        padding: 1.2rem 1.8rem;
-        margin-bottom: 1.5rem;
-        color: white;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-        .page-header h2 {
-            font-size: 1.3rem;
-            margin: 0;
-            color: white;
-        }
-
-        .page-header p {
-            font-size: 0.8rem;
-            margin: 0.2rem 0 0 0;
-            opacity: 0.9;
-        }
-
-        .page-header .breadcrumb-back {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            padding: 0.3rem 0.9rem;
-            border-radius: 40px;
-            text-decoration: none;
-            font-size: 0.75rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-            .page-header .breadcrumb-back:hover {
-                background: rgba(255,255,255,0.3);
-            }
-
-    .card {
-        background: white;
-        border-radius: 16px;
-        padding: 1.5rem;
-        border: 1px solid #E2E8F0;
-        margin-bottom: 1rem;
-    }
-
-        .card h3 {
-            font-size: 1rem;
-            color: #032C7D;
-            margin: 0 0 1rem 0;
-            font-weight: 600;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid #E2E8F0;
-        }
-
     .info-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.8rem 1.5rem;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.25rem 1.5rem;
     }
 
-    .info-item {
-        padding: 0.5rem 0;
-    }
-
-    .info-label {
-        font-size: 0.75rem;
+    .info-item .label {
+        font-size: 0.7rem;
         font-weight: 600;
-        color: #5A6E7A;
+        color: var(--gray-500);
         text-transform: uppercase;
-        letter-spacing: 0.03em;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.25rem;
         display: block;
     }
 
-    .info-value {
+    .info-item .value {
         font-size: 0.9rem;
-        color: #1A2C3A;
-        margin-top: 0.15rem;
+        color: var(--gray-900);
     }
 
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    th, td {
-        padding: 0.7rem 0.5rem;
-        text-align: left;
-        border-bottom: 1px solid #E2E8F0;
-        font-size: 0.8rem;
-    }
-
-    th {
-        background: #F8FAFE;
-        font-weight: 600;
-        color: #5A6E7A;
-        text-transform: uppercase;
-        font-size: 0.7rem;
-        letter-spacing: 0.03em;
-    }
-
-    tr:hover {
-        background: #F8FAFE;
-    }
-
-    .btn-sm {
-        background: linear-gradient(135deg, #0841C9, #1D97F1);
-        color: white;
-        border: none;
-        padding: 0.5rem 1.2rem;
-        border-radius: 40px;
-        cursor: pointer;
-        font-size: 0.8rem;
-        font-weight: 600;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-    }
-
-        .btn-sm:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(8,65,201,0.25);
-            color: white;
+        .info-item .value a {
+            color: var(--brand-700);
         }
-
-    .badge {
-        display: inline-block;
-        padding: 0.2rem 0.6rem;
-        border-radius: 40px;
-        font-size: 0.7rem;
-        font-weight: 600;
-    }
-
-    .badge-success {
-        background: #D4EDDA;
-        color: #155724;
-    }
-
-    .badge-danger {
-        background: #F8D7DA;
-        color: #721C24;
-    }
-
-    @@media (max-width: 768px) {
-        .info-grid {
-            grid-template-columns: 1fr;
-        }
-    }
 </style>
 
 <div class="page-header">
     <div>
-        <h2><i class="fas fa-truck"></i> @Model.SupplierName</h2>
-        <p>Supplier details and consumables</p>
+        <h2>@Model.SupplierName</h2>
+        <p>
+            Supplier details
+            @if (Model.IsPreferred)
+            {
+                <span class="badge badge-success" style="margin-left: 0.5rem;">
+                    <i class="fas fa-star"></i> Preferred
+                </span>
+            }
+            @if (!Model.IsActive)
+            {
+                <span class="badge badge-muted" style="margin-left: 0.5rem;">Inactive</span>
+            }
+        </p>
     </div>
-    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-        <a href="@Url.Action("EditSupplier", new { id = Model.SupplierID })" class="breadcrumb-back">
-            <i class="fas fa-edit"></i> Edit Supplier
+    <div class="page-header-actions">
+        <a asp-action="EditSupplier" asp-route-id="@Model.SupplierID" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Edit
         </a>
-        <a href="@Url.Action("Suppliers")" class="breadcrumb-back">
-            <i class="fas fa-arrow-left"></i> Back to Suppliers
+        <a asp-action="Suppliers" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
 </div>
 
 <div class="card">
-    <h3><i class="fas fa-info-circle"></i> Supplier Information</h3>
+    <div class="card-header">
+        <h3><i class="fas fa-address-card"></i> Contact Information</h3>
+    </div>
     <div class="info-grid">
-        <div class="info-item"><span class="info-label">Contact Person</span><span class="info-value">@Model.ContactPerson</span></div>
-        <div class="info-item"><span class="info-label">Email</span><span class="info-value">@Model.EmailAddress</span></div>
-        <div class="info-item"><span class="info-label">Phone</span><span class="info-value">@Model.PhoneNumber</span></div>
-        <div class="info-item"><span class="info-label">Address</span><span class="info-value">@Model.Address</span></div>
-        <div class="info-item"><span class="info-label">Preferred</span><span class="info-value">@(Model.IsPreferred ? "Yes ⭐" : "No")</span></div>
         <div class="info-item">
-            <span class="info-label">Active</span><span class="info-value">
-                <span class="badge @(Model.IsActive ? "badge-success" : "badge-danger")">@(Model.IsActive ? "Active" : "Inactive")</span>
-            </span>
+            <span class="label">Contact Person</span>
+            <div class="value">@Model.ContactPerson</div>
         </div>
-        <div class="info-item"><span class="info-label">Total Consumables</span><span class="info-value">@Model.ConsumableCount</span></div>
-        <div class="info-item"><span class="info-label">Created</span><span class="info-value">@Model.CreatedAt.ToString("dd MMM yyyy")</span></div>
+        <div class="info-item">
+            <span class="label">Email</span>
+            <div class="value">
+                <a href="mailto:@Model.EmailAddress">@Model.EmailAddress</a>
+            </div>
+        </div>
+        <div class="info-item">
+            <span class="label">Phone</span>
+            <div class="value">@Model.PhoneNumber</div>
+        </div>
+        <div class="info-item" style="grid-column: 1 / -1;">
+            <span class="label">Address</span>
+            <div class="value">@Model.Address</div>
+        </div>
+        <div class="info-item">
+            <span class="label">Added On</span>
+            <div class="value">@Model.CreatedAt.ToString("dd MMM yyyy")</div>
+        </div>
     </div>
 </div>
 
 <div class="card">
-    <h3><i class="fas fa-boxes"></i> Consumables Supplied</h3>
+    <div class="card-header">
+        <h3><i class="fas fa-boxes-stacked"></i> Consumables Supplied (@Model.ConsumableCount)</h3>
+    </div>
+
     @if (Model.Consumables != null && Model.Consumables.Any())
     {
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Qty On Hand</th>
-                    <th>Reorder Level</th>
-                    <th>Unit</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var c in Model.Consumables)
-                {
+        <div class="table-container">
+            <table>
+                <thead>
                     <tr>
-                        <td>@c.ConsumableName</td>
-                        <td>@c.QuantityOnHand</td>
-                        <td>@c.ReorderLevel</td>
-                        <td>@c.UnitOfMeasure</td>
+                        <th>Consumable</th>
+                        <th style="text-align:right;">On Hand</th>
+                        <th style="text-align:right;">Reorder Level</th>
+                        <th>Unit</th>
+                        <th>Status</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var c in Model.Consumables)
+                    {
+                        var isCritical = c.QuantityOnHand <= 0;
+                        var isLow = !isCritical && c.QuantityOnHand <= c.ReorderLevel;
+
+                        <tr>
+                            <td><strong>@c.ConsumableName</strong></td>
+                            <td style="text-align:right; font-variant-numeric: tabular-nums;">
+                                <span style="font-weight:600; color: @(isCritical ? "var(--danger-fg)" : isLow ? "var(--warning-fg)" : "var(--gray-900)");">
+                                    @c.QuantityOnHand
+                                </span>
+                            </td>
+                            <td style="text-align:right;" class="text-sm text-muted">@c.ReorderLevel</td>
+                            <td class="text-sm">@c.UnitOfMeasure</td>
+                            <td>
+                                @if (isCritical)
+                                {
+                                    <span class="badge badge-danger">Critical</span>
+                                }
+                                else if (isLow)
+                                {
+                                    <span class="badge badge-warning">Low</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-success">Normal</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     }
     else
     {
-        <p style="color:#5A6E7A; font-size:0.85rem;">No consumables supplied by this supplier yet.</p>
+        <div class="empty-state">
+            <i class="fas fa-boxes-stacked"></i>
+            <h3>No Consumables</h3>
+            <p>This supplier has no consumables linked yet.</p>
+            <a asp-action="CreateConsumable" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Consumable
+            </a>
+        </div>
     }
 </div>

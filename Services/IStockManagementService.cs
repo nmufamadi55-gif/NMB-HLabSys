@@ -17,12 +17,20 @@ namespace NMB_HLabSys.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<StockManagementService> _logger;
+        private readonly ICurrentUserService _currentUser;
 
-        public StockManagementService(ApplicationDbContext context, ILogger<StockManagementService> logger)
+        public StockManagementService(
+            ApplicationDbContext context,
+            ILogger<StockManagementService> logger,
+            ICurrentUserService currentUser)
         {
             _context = context;
             _logger = logger;
+            _currentUser = currentUser;
         }
+
+        private int CurrentUserId =>
+            _currentUser.UserId ?? throw new InvalidOperationException("No authenticated user context.");
 
         public async Task<Consumable> AdjustStockAsync(int consumableId, int adjustmentAmount, string adjustmentType, string reason, int adjustedBy)
         {
@@ -64,7 +72,7 @@ namespace NMB_HLabSys.Services
                                      adjustmentType == "ManualIncrease" ? adjustmentAmount : -adjustmentAmount,
                     AdjustmentType = adjustmentType,
                     Reason = reason,
-                    AdjustedBy = adjustedBy,
+                    AdjustedBy = adjustedBy > 0 ? adjustedBy : CurrentUserId,
                     AdjustmentDate = DateTime.Now
                 };
 
@@ -175,7 +183,7 @@ namespace NMB_HLabSys.Services
         {
             if (quantity <= 0) return "Critical";
             if (quantity <= reorderLevel) return "Low";
-            if (quantity <= reorderLevel * 1.5m) return "Warning";
+            if (quantity <= reorderLevel * 1.10m) return "Near Reorder";
             return "Normal";
         }
 
@@ -183,7 +191,7 @@ namespace NMB_HLabSys.Services
         {
             if (quantity <= 0) return "danger";
             if (quantity <= reorderLevel) return "warning";
-            if (quantity <= reorderLevel * 1.5m) return "info";
+            if (quantity <= reorderLevel * 1.10m) return "info";
             return "success";
         }
     }

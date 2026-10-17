@@ -1,5 +1,4 @@
-﻿// File: Services/CurrentUserService.cs
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using NMB_HLabSys.Data;
 
@@ -18,33 +17,20 @@ namespace NMB_HLabSys.Services
 
         public int? UserId => _http.HttpContext?.Session.GetInt32("UserID");
         public string? UserRole => _http.HttpContext?.Session.GetString("UserRole");
-        public string? Email => _http.HttpContext?.Session.GetString("Email");
+        public string? Email => _http.HttpContext?.Session.GetString("UserEmail");
         public bool IsAuthenticated => UserId.HasValue;
 
         public int? DoctorId
         {
             get
             {
-                // Real login path (used once login subsystem is wired up)
-                if (UserId.HasValue && UserRole == "Doctor")
-                {
-                    var id = _context.Doctors
-                        .Where(d => d.UserID == UserId.Value)
-                        .Select(d => (int?)d.DoctorID)
-                        .FirstOrDefault();
+                if (!UserId.HasValue || UserRole != "Doctor")
+                    return null;
 
-                    if (id.HasValue) return id.Value;
-                }
-
-                // DEV FALLBACK — first doctor in DB. Remove when login works.
-#if DEBUG
                 return _context.Doctors
-                    .OrderBy(d => d.DoctorID)
+                    .Where(d => d.UserID == UserId.Value)
                     .Select(d => (int?)d.DoctorID)
                     .FirstOrDefault();
-#else
-                return null;
-#endif
             }
         }
     }

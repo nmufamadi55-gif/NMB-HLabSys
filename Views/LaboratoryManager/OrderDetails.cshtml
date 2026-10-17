@@ -1,372 +1,372 @@
 ﻿@using NMB_HLabSys.Models.ViewModels
 @model OrderDetailViewModel
-
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "Order Details";
-    ViewData["RoleSubtitle"] = "Laboratory Manager";
-    ViewData["UserGreeting"] = "Order details";
-    ViewData["UserInitials"] = "LM";
-}
-
-@section SidebarMenu {
-    <li><a href="@Url.Action("Index", "LaboratoryManager")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
-    <li><a href="@Url.Action("TestCatalogue", "LaboratoryManager")"><i class="fas fa-vial"></i> <span>Test Catalogue</span></a></li>
-    <li><a href="@Url.Action("Stock", "LaboratoryManager")"><i class="fas fa-boxes"></i> <span>Stock Management</span></a></li>
-    <li><a href="@Url.Action("Suppliers", "LaboratoryManager")"><i class="fas fa-truck"></i> <span>Suppliers</span></a></li>
-    <li><a href="@Url.Action("Orders", "LaboratoryManager")" class="active"><i class="fas fa-shopping-cart"></i> <span>Purchase Orders</span></a></li>
-    <li><a href="@Url.Action("Staff", "LaboratoryManager")"><i class="fas fa-user-md"></i> <span>Staff Management</span></a></li>
-    <li><a href="@Url.Action("Reports", "LaboratoryManager")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+    Layout = "~/Views/Shared/_ManagerLayout.cshtml";
+    ViewData["Title"] = $"Order {Model.OrderNumber}";
 }
 
 <style>
-    .page-header {
-        background: linear-gradient(135deg, #032C7D 0%, #0841C9 100%);
-        border-radius: 20px;
-        padding: 1.2rem 1.8rem;
-        margin-bottom: 1.5rem;
+    .order-header-card {
+        background: linear-gradient(135deg, var(--brand-900) 0%, var(--brand-700) 100%);
         color: white;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-        .page-header h2 {
-            font-size: 1.3rem;
-            margin: 0;
-            color: white;
-        }
-
-        .page-header p {
-            font-size: 0.8rem;
-            margin: 0.2rem 0 0 0;
-            opacity: 0.9;
-        }
-
-        .page-header .breadcrumb-back {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            padding: 0.3rem 0.9rem;
-            border-radius: 40px;
-            text-decoration: none;
-            font-size: 0.75rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-            .page-header .breadcrumb-back:hover {
-                background: rgba(255,255,255,0.3);
-            }
-
-    .card {
-        background: white;
-        border-radius: 16px;
-        padding: 1.5rem;
-        border: 1px solid #E2E8F0;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem 1.75rem;
         margin-bottom: 1rem;
     }
-
-        .card h3 {
-            font-size: 1rem;
-            color: #032C7D;
-            margin: 0 0 1rem 0;
-            font-weight: 600;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid #E2E8F0;
-        }
+    .order-header-card h2 {
+        margin: 0;
+        font-size: 1.4rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+    .order-header-card .meta {
+        display: flex; flex-wrap: wrap; gap: 1.5rem;
+        margin-top: 0.75rem; font-size: 0.82rem; opacity: 0.9;
+    }
+    .order-header-card .meta strong { font-weight: 600; }
+    .order-header-card .actions {
+        display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1.25rem;
+    }
+    .order-header-card .btn {
+        background: rgba(255,255,255,0.15);
+        color: white;
+        border: none;
+    }
+    .order-header-card .btn:hover {
+        background: rgba(255,255,255,0.25);
+        color: white;
+    }
 
     .info-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.8rem 1.5rem;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.25rem 1.5rem;
     }
-
-    .info-item {
-        padding: 0.4rem 0;
-    }
-
-    .info-label {
-        font-size: 0.75rem;
+    .info-item .label {
+        font-size: 0.7rem;
         font-weight: 600;
-        color: #5A6E7A;
+        color: var(--gray-500);
         text-transform: uppercase;
-        letter-spacing: 0.03em;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.25rem;
         display: block;
     }
+    .info-item .value { font-size: 0.9rem; color: var(--gray-900); }
 
-    .info-value {
-        font-size: 0.9rem;
-        color: #1A2C3A;
-        margin-top: 0.15rem;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    th, td {
-        padding: 0.7rem 0.5rem;
-        text-align: left;
-        border-bottom: 1px solid #E2E8F0;
-        font-size: 0.8rem;
-    }
-
-    th {
-        background: #F8FAFE;
-        font-weight: 600;
-        color: #5A6E7A;
-        text-transform: uppercase;
-        font-size: 0.7rem;
-        letter-spacing: 0.03em;
-    }
-
-    tr:hover {
-        background: #F8FAFE;
-    }
-
-    .btn-success-sm {
-        background: #10B981;
-        color: white;
-        border: none;
-        padding: 0.35rem 0.8rem;
-        border-radius: 30px;
-        cursor: pointer;
-        font-size: 0.7rem;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.3rem;
-        text-decoration: none;
-    }
-
-        .btn-success-sm:hover {
-            background: #059669;
-            color: white;
-        }
-
-    .btn-danger-sm {
-        background: #DC2626;
-        color: white;
-        border: none;
-        padding: 0.35rem 0.8rem;
-        border-radius: 30px;
-        cursor: pointer;
-        font-size: 0.7rem;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.3rem;
-    }
-
-        .btn-danger-sm:hover {
-            background: #B91C1C;
-        }
-
-    .btn-outline-sm {
-        background: transparent;
-        border: 1px solid #E2E8F0;
-        padding: 0.35rem 0.8rem;
-        border-radius: 30px;
-        cursor: pointer;
-        font-size: 0.7rem;
-        color: #5A6E7A;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.3rem;
-    }
-
-        .btn-outline-sm:hover {
-            border-color: #0841C9;
-            color: #0841C9;
-        }
-
-    .badge {
+    .item-status { font-variant-numeric: tabular-nums; }
+    .progress-bar-mini {
         display: inline-block;
-        padding: 0.2rem 0.6rem;
-        border-radius: 40px;
-        font-size: 0.7rem;
-        font-weight: 600;
+        height: 4px;
+        width: 60px;
+        background: var(--gray-200);
+        border-radius: 2px;
+        overflow: hidden;
+        vertical-align: middle;
+        margin-right: 0.5rem;
+    }
+    .progress-bar-mini span {
+        display: block;
+        height: 100%;
+        background: var(--brand-700);
     }
 
-    .badge-success {
-        background: #D4EDDA;
-        color: #155724;
+    .cancel-order-card {
+        border-color: var(--danger-bg);
+        background: #FEF7F7;
     }
-
-    .badge-danger {
-        background: #F8D7DA;
-        color: #721C24;
-    }
-
-    .badge-warning {
-        background: #FFF3CD;
-        color: #856404;
-    }
-
-    .badge-info {
-        background: #CDE8FF;
-        color: #004085;
-    }
-
-    .form-actions {
-        display: flex;
-        gap: 0.8rem;
-        margin-top: 1rem;
-    }
-
-    @@media (max-width: 768px) {
-        .info-grid {
-            grid-template-columns: 1fr;
-        }
-    }
+    .cancel-order-card .card-header h3 { color: var(--danger-fg); }
+    .cancel-order-card .card-header h3 i { color: var(--danger-fg); }
 </style>
 
-<div class="page-header">
-    <div>
-        <h2><i class="fas fa-receipt"></i> Order @Model.OrderNumber</h2>
-        <p>Order details and item management</p>
-    </div>
-    <a href="@Url.Action("Orders")" class="breadcrumb-back">
-        <i class="fas fa-arrow-left"></i> Back to Orders
-    </a>
-</div>
-
-<div class="card">
-    <h3><i class="fas fa-info-circle"></i> Order Information</h3>
-    <div class="info-grid">
-        <div class="info-item"><span class="info-label">Supplier</span><span class="info-value">@Model.SupplierName</span></div>
-        <div class="info-item"><span class="info-label">Order Date</span><span class="info-value">@Model.OrderDate.ToString("dd MMM yyyy")</span></div>
-        <div class="info-item"><span class="info-label">Expected Delivery</span><span class="info-value">@(Model.ExpectedDeliveryDate?.ToString("dd MMM yyyy") ?? "N/A")</span></div>
-        <div class="info-item">
-            <span class="info-label">Status</span>
-            <span class="info-value">
-                @{
-                    var badgeClass = Model.StatusColor == "success" ? "badge-success" :
-                    Model.StatusColor == "danger" ? "badge-danger" :
-                    Model.StatusColor == "warning" ? "badge-warning" : "badge-info";
+@* ─── Header card ─── *@
+<div class="order-header-card">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem;">
+        <div>
+            <h2>@Model.OrderNumber</h2>
+            <div class="meta">
+                <span><strong>Supplier:</strong> @Model.SupplierName</span>
+                <span><strong>Placed:</strong> @Model.OrderDate.ToString("dd MMM yyyy")</span>
+                @if (Model.ExpectedDeliveryDate.HasValue)
+                {
+                    <span><strong>Expected:</strong> @Model.ExpectedDeliveryDate.Value.ToString("dd MMM yyyy")</span>
                 }
-                <span class="badge @badgeClass">@Model.Status</span>
+                <span><strong>Total:</strong> R@((Model.TotalAmount ?? 0).ToString("N2"))</span>
+            </div>
+        </div>
+        <div>
+            @{
+                var statusBadge = Model.Status switch
+                {
+                    "Complete" => "badge-success",
+                    "Cancelled" => "badge-danger",
+                    "Partially complete" => "badge-info",
+                    _ => "badge-warning"
+                };
+            }
+            <span class="badge @statusBadge" style="font-size: 0.8rem; padding: 0.35rem 0.9rem;">
+                @Model.Status
             </span>
         </div>
-        <div class="info-item"><span class="info-label">Total Amount</span><span class="info-value">R@(Model.TotalAmount?.ToString("N2") ?? "0.00")</span></div>
-        @if (!string.IsNullOrEmpty(Model.CancellationReason))
+    </div>
+    <div class="actions">
+        <a asp-action="Orders" class="btn">
+            <i class="fas fa-arrow-left"></i> Back to Orders
+        </a>
+    </div>
+</div>
+
+@* ─── Order info ─── *@
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-info-circle"></i> Order Information</h3>
+    </div>
+    <div class="info-grid">
+        <div class="info-item">
+            <span class="label">Supplier Contact</span>
+            <div class="value">@Model.SupplierContact</div>
+        </div>
+        <div class="info-item">
+            <span class="label">Supplier Email</span>
+            <div class="value">
+                @if (!string.IsNullOrWhiteSpace(Model.SupplierEmail))
+                {
+                    <a href="mailto:@Model.SupplierEmail">@Model.SupplierEmail</a>
+                }
+                else
+                {
+                    <span class="text-muted">—</span>
+                }
+            </div>
+        </div>
+        @if (Model.DateCompleted.HasValue)
         {
-            <div class="info-item"><span class="info-label">Cancellation Reason</span><span class="info-value" style="color:#DC2626;">@Model.CancellationReason</span></div>
+            <div class="info-item">
+                <span class="label">Completed On</span>
+                <div class="value">@Model.DateCompleted.Value.ToString("dd MMM yyyy HH:mm")</div>
+            </div>
+        }
+        @if (Model.DateCancelled.HasValue)
+        {
+            <div class="info-item">
+                <span class="label">Cancelled On</span>
+                <div class="value" style="color: var(--danger-fg);">
+                    @Model.DateCancelled.Value.ToString("dd MMM yyyy HH:mm")
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrWhiteSpace(Model.CancellationReason))
+        {
+            <div class="info-item" style="grid-column: 1 / -1;">
+                <span class="label">Cancellation Reason</span>
+                <div class="value" style="color: var(--danger-fg);">@Model.CancellationReason</div>
+            </div>
         }
     </div>
 </div>
 
+@* ─── Items ─── *@
 <div class="card">
-    <h3><i class="fas fa-list"></i> Order Items</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>Item</th>
-                <th>Ordered</th>
-                <th>Received</th>
-                <th>Unit Price</th>
-                <th>Total</th>
-                <th>Status</th>
-                <th style="text-align:right;">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model.Items)
-            {
-                var itemBadge = item.StatusColor == "success" ? "badge-success" :
-                item.StatusColor == "danger" ? "badge-danger" :
-                item.StatusColor == "warning" ? "badge-warning" : "badge-info";
+    <div class="card-header">
+        <h3><i class="fas fa-list"></i> Order Items (@Model.Items.Count)</h3>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
                 <tr>
-                    <td><strong>@item.ConsumableName</strong></td>
-                    <td>@item.QuantityOrdered</td>
-                    <td>@item.QuantityReceived</td>
-                    <td>R@(item.UnitPrice?.ToString("N2") ?? "0.00")</td>
-                    <td>R@((item.UnitPrice * item.QuantityOrdered)?.ToString("N2") ?? "0.00")</td>
-                    <td><span class="badge @itemBadge">@item.Status</span></td>
-                    <td style="text-align:right;">
-                        @if (item.Status != "Received" && item.Status != "Cancelled" && Model.CanReceive)
-                        {
-                            <form method="post" action="@Url.Action("ReceiveOrderItem")" style="display:inline;">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="orderItemId" value="@item.OrderItemID" />
-                                <button type="submit" class="btn-success-sm"><i class="fas fa-check"></i> Receive</button>
-                            </form>
-                        }
-                        @if (item.Status != "Received" && item.Status != "Cancelled" && Model.CanCancel)
-                        {
-                            <button class="btn-danger-sm" onclick="cancelItem(@item.OrderItemID, '@item.ConsumableName')">
-                                <i class="fas fa-times"></i> Cancel
-                            </button>
-                        }
-                    </td>
+                    <th>Consumable</th>
+                    <th style="text-align:right;">Ordered</th>
+                    <th style="text-align:right;">Received</th>
+                    <th style="text-align:right;">Unit Price</th>
+                    <th style="text-align:right;">Line Total</th>
+                    <th>Status</th>
+                    <th style="text-align:right;">Actions</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @if (Model.Items != null && Model.Items.Any())
+                {
+                    @foreach (var item in Model.Items)
+                    {
+                        var itemBadge = item.Status switch
+                        {
+                            "Received" => "badge-success",
+                            "Cancelled" => "badge-danger",
+                            _ => "badge-warning"
+                        };
+                        var progressPct = item.QuantityOrdered > 0
+                            ? (int)Math.Round((double)item.QuantityReceived / item.QuantityOrdered * 100)
+                            : 0;
+
+                        <tr>
+                            <td><strong>@item.ConsumableName</strong></td>
+                            <td style="text-align:right;" class="item-status">@item.QuantityOrdered</td>
+                            <td style="text-align:right;" class="item-status">
+                                <span class="progress-bar-mini"><span style="width:@(progressPct)%;"></span></span>
+                                @item.QuantityReceived
+                            </td>
+                            <td style="text-align:right;" class="text-sm">
+                                R@((item.UnitPrice ?? 0).ToString("N2"))
+                            </td>
+                            <td style="text-align:right;" class="text-sm">
+                                R@(((item.UnitPrice ?? 0) * item.QuantityOrdered).ToString("N2"))
+                            </td>
+                            <td>
+                                <span class="badge @itemBadge">@item.Status</span>
+                            </td>
+                            <td style="text-align:right; white-space:nowrap;">
+                                @if (item.Status != "Received" && item.Status != "Cancelled" && Model.CanReceive)
+                                {
+                                    <form id="receive_@item.OrderItemID"
+                                          asp-action="ReceiveOrderItem" method="post"
+                                          style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="orderItemId" value="@item.OrderItemID" />
+                                    </form>
+                                    <button type="button" class="btn btn-sm btn-success"
+                                            onclick="receiveItem('@item.OrderItemID', '@item.ConsumableName', @item.QuantityOrdered)">
+                                        <i class="fas fa-check"></i> Receive
+                                    </button>
+                                }
+                                @if (item.Status != "Received" && item.Status != "Cancelled" && Model.CanCancel)
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline"
+                                            style="color: var(--danger-fg); border-color: var(--danger-bg);"
+                                            onclick="cancelItem('@item.OrderItemID', '@item.ConsumableName')">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <h3>No Items</h3>
+                                <p>This order has no items.</p>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </div>
 
+@* ─── Cancel entire order ─── *@
 @if (Model.CanCancel)
 {
-    <div class="card">
-        <h3><i class="fas fa-ban"></i> Cancel Entire Order</h3>
-        <form method="post" action="@Url.Action("CancelOrder")">
+    <div class="card cancel-order-card">
+        <div class="card-header">
+            <h3><i class="fas fa-ban"></i> Cancel Entire Order</h3>
+        </div>
+        <p class="text-sm text-muted" style="margin-top:0;">
+            Any items already received will remain in stock. Only outstanding items will be cancelled.
+        </p>
+
+        <form method="post" asp-action="CancelOrder" id="cancelOrderForm">
             @Html.AntiForgeryToken()
             <input type="hidden" name="OrderID" value="@Model.OrderID" />
             <input type="hidden" name="OrderNumber" value="@Model.OrderNumber" />
-            <div class="form-group" style="margin-bottom:1rem;">
-                <label style="font-size:0.85rem; font-weight:600; color:#032C7D; display:block; margin-bottom:0.4rem;">
-                    Cancellation Reason <span style="color:#DC2626;">*</span>
+
+            <div class="form-group">
+                <label>Cancellation Reason <span class="required">*</span></label>
+                <textarea name="CancellationReason" required rows="2" class="form-control"
+                          placeholder="Why is this order being cancelled?"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; margin: 0;">
+                    <input type="checkbox" name="NotifySupplier" value="true" checked
+                           style="width: 16px; height: 16px; accent-color: var(--brand-700);" />
+                    <span>Email the supplier about this cancellation</span>
                 </label>
-                <input name="CancellationReason" class="form-control" required style="width:100%; padding:0.6rem 0.8rem; border:1px solid #E2E8F0; border-radius:12px; font-size:0.9rem;" />
+                <input type="hidden" name="NotifySupplier" value="false" />
             </div>
-            <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem;">
-                <input type="checkbox" name="NotifySupplier" checked id="notifySupplier" style="width:18px; height:18px; accent-color:#0841C9;" />
-                <label for="notifySupplier" style="font-size:0.85rem; margin:0;">Notify supplier via email</label>
-            </div>
-            <div class="form-actions">
-                <button type="submit" class="btn-danger-sm"><i class="fas fa-ban"></i> Cancel Order</button>
-                <a href="@Url.Action("Orders")" class="btn-outline-sm"><i class="fas fa-times"></i> Cancel</a>
-            </div>
+
+            <button type="button" class="btn btn-danger" onclick="submitCancelOrder()">
+                <i class="fas fa-ban"></i> Cancel Order
+            </button>
         </form>
     </div>
 }
 
-<!-- Modal for canceling individual item -->
-<div id="cancelItemModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center;">
-    <div style="background:white; border-radius:16px; padding:1.5rem; max-width:450px; width:90%;">
-        <h3 style="color:#032C7D; margin-bottom:1rem;"><i class="fas fa-ban"></i> Cancel Item</h3>
-        <p id="cancelItemName" style="font-size:0.85rem; color:#5A6E7A; margin-bottom:1rem;"></p>
-        <form method="post" action="@Url.Action("CancelOrderItem")" id="cancelItemForm">
-            @Html.AntiForgeryToken()
-            <input type="hidden" name="orderItemId" id="cancelItemId" />
-            <div class="form-group" style="margin-bottom:1rem;">
-                <label style="font-size:0.85rem; font-weight:600; color:#032C7D; display:block; margin-bottom:0.4rem;">
-                    Reason <span style="color:#DC2626;">*</span>
-                </label>
-                <input name="reason" required style="width:100%; padding:0.6rem 0.8rem; border:1px solid #E2E8F0; border-radius:12px; font-size:0.9rem;" />
-            </div>
-            <div style="display:flex; gap:0.8rem; justify-content:flex-end;">
-                <button type="button" class="btn-outline-sm" onclick="closeCancelModal()">Cancel</button>
-                <button type="submit" class="btn-danger-sm"><i class="fas fa-check"></i> Confirm</button>
-            </div>
-        </form>
+@* ─── Cancel-item modal ─── *@
+<div id="cancelItemModal" class="modal-overlay" style="display:none;">
+    <div class="modal" role="dialog" aria-modal="true">
+        <div class="modal-header">
+            <h3>Cancel Item</h3>
+        </div>
+        <div class="modal-body">
+            <p id="cancelItemMessage" style="margin-bottom: 1rem;"></p>
+            <form method="post" asp-action="CancelOrderItem" id="cancelItemForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="orderItemId" id="cancelItemId" />
+                <div class="form-group">
+                    <label>Reason <span class="required">*</span></label>
+                    <input type="text" name="reason" required class="form-control"
+                           placeholder="Why is this item being cancelled?" />
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeCancelModal()">Back</button>
+            <button type="submit" form="cancelItemForm" class="btn btn-danger">
+                Confirm Cancel
+            </button>
+        </div>
     </div>
 </div>
 
+@section Scripts {
 <script>
-    function cancelItem(id, name) {
-        document.getElementById('cancelItemId').value = id;
-        document.getElementById('cancelItemName').textContent = 'Are you sure you want to cancel "' + name + '"?';
-        var modal = document.getElementById('cancelItemModal');
-        modal.style.display = 'flex';
-    }
+    // ─── Receive single item ───
+    window.receiveItem = async function (itemId, name, qty) {
+        const ok = await confirmModal({
+            title: 'Receive Item',
+            message: `Mark "${name}" (qty ${qty}) as received? Stock on hand will be updated automatically.`,
+            okText: 'Receive',
+            danger: false
+        });
+        if (ok) document.getElementById(`receive_${itemId}`).submit();
+    };
 
-    function closeCancelModal() {
+    // ─── Cancel single item ───
+    window.cancelItem = function (itemId, name) {
+        document.getElementById('cancelItemId').value = itemId;
+        document.getElementById('cancelItemMessage').textContent =
+            `Cancel "${name}"? Enter a reason below. The supplier will not be notified for a single item.`;
+        const modal = document.getElementById('cancelItemModal');
+        modal.style.display = 'flex';
+    };
+
+    window.closeCancelModal = function () {
         document.getElementById('cancelItemModal').style.display = 'none';
-    }
+    };
+
+    // Close modal on overlay click
+    document.getElementById('cancelItemModal')?.addEventListener('click', function (e) {
+        if (e.target === this) closeCancelModal();
+    });
+
+    // ─── Cancel entire order ───
+    window.submitCancelOrder = async function () {
+        const reasonField = document.querySelector('textarea[name="CancellationReason"]');
+        if (!reasonField.value.trim()) {
+            toast('A cancellation reason is required.', 'warning');
+            reasonField.focus();
+            return;
+        }
+
+        const ok = await confirmModal({
+            title: 'Cancel Order',
+            message: 'Cancel this order? Any received items will remain in stock.',
+            okText: 'Cancel Order'
+        });
+        if (ok) document.getElementById('cancelOrderForm').submit();
+    };
 </script>
+}

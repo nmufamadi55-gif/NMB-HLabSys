@@ -1,0 +1,135 @@
+﻿@using Microsoft.AspNetCore.Http
+@{
+    var userName = Context.Session.GetString("UserName") ?? "Lab Manager";
+    var roleLabel = "Laboratory Manager";
+    var initials = string.Concat(
+        userName.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Take(2)
+                .Select(p => p.Length > 0 ? p[0].ToString() : "")
+    ).ToUpper();
+    if (string.IsNullOrEmpty(initials)) initials = "LM";
+
+    var pageTitle = ViewData["Title"]?.ToString() ?? "Dashboard";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@pageTitle — NMB-HLabSys</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+    <link rel="stylesheet" href="~/css/manager.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="app-body">
+
+    <div class="app-shell">
+        @await Html.PartialAsync("_ManagerSidebar")
+
+        <div class="app-main">
+            <header class="app-header">
+                <div class="header-left">
+                    <button type="button" class="btn-icon" id="sidebar-toggle"
+                            aria-label="Toggle navigation"
+                            style="display:none; margin-right:0.6rem;">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div style="display:inline-block; vertical-align:middle;">
+                        <h1>@pageTitle</h1>
+                        <span class="header-subtitle">@roleLabel</span>
+                    </div>
+                </div>
+
+                <div class="header-right">
+                    <div class="user-chip">
+                        <div class="user-avatar">@initials</div>
+                        <div class="user-meta">
+                            <div class="user-name">@userName</div>
+                            <div class="user-role">@roleLabel</div>
+                        </div>
+                    </div>
+                    <form asp-controller="Account" asp-action="Logout" method="post" style="margin:0;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn-icon" title="Sign out" aria-label="Sign out">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </form>
+                </div>
+            </header>
+
+            <main class="app-content">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="toast-trigger"
+                         data-toast-type="success"
+                         data-toast-message="@TempData["SuccessMessage"]"></div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="toast-trigger"
+                         data-toast-type="error"
+                         data-toast-message="@TempData["ErrorMessage"]"></div>
+                }
+                @if (TempData["InfoMessage"] != null)
+                {
+                    <div class="toast-trigger"
+                         data-toast-type="info"
+                         data-toast-message="@TempData["InfoMessage"]"></div>
+                }
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <div id="confirm-modal" class="modal-overlay" style="display:none;">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
+            <div class="modal-header">
+                <h3 id="confirm-modal-title">Confirm</h3>
+            </div>
+            <div class="modal-body">
+                <p id="confirm-modal-message"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" id="confirm-modal-cancel">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirm-modal-ok">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/js/manager.js" asp-append-version="true"></script>
+    <script>
+            (function () {
+                var toggleBtn = document.getElementById('sidebar-toggle');
+                var sidebar = document.querySelector('.app-sidebar');
+                if (!toggleBtn || !sidebar) return;
+
+                function syncVisibility() {
+                    toggleBtn.style.display = window.innerWidth <= 900 ? 'inline-flex' : 'none';
+                }
+                window.addEventListener('resize', syncVisibility);
+                syncVisibility();
+
+                toggleBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('open');
+                });
+
+                document.addEventListener('click', function (e) {
+                    if (window.innerWidth > 900) return;
+                    if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+                        sidebar.classList.remove('open');
+                    }
+                });
+            })();
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

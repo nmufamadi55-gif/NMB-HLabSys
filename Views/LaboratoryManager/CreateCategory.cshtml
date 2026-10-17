@@ -1,203 +1,60 @@
 ﻿@using NMB_HLabSys.Models.ViewModels
 @model CreateTestCategoryViewModel
-
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "Create Test Category";
-    ViewData["RoleSubtitle"] = "Laboratory Manager";
-    ViewData["UserGreeting"] = "Add a new test category";
-    ViewData["UserInitials"] = "LM";
+    Layout = "~/Views/Shared/_ManagerLayout.cshtml";
+    ViewData["Title"] = "New Test Category";
 }
-
-@section SidebarMenu {
-    <li><a href="@Url.Action("Index", "LaboratoryManager")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
-    <li><a href="@Url.Action("TestCatalogue", "LaboratoryManager")" class="active"><i class="fas fa-vial"></i> <span>Test Catalogue</span></a></li>
-    <li><a href="@Url.Action("Stock", "LaboratoryManager")"><i class="fas fa-boxes"></i> <span>Stock Management</span></a></li>
-    <li><a href="@Url.Action("Suppliers", "LaboratoryManager")"><i class="fas fa-truck"></i> <span>Suppliers</span></a></li>
-    <li><a href="@Url.Action("Orders", "LaboratoryManager")"><i class="fas fa-shopping-cart"></i> <span>Purchase Orders</span></a></li>
-    <li><a href="@Url.Action("Staff", "LaboratoryManager")"><i class="fas fa-user-md"></i> <span>Staff Management</span></a></li>
-    <li><a href="@Url.Action("Reports", "LaboratoryManager")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
-}
-
-<style>
-    .page-header {
-        background: linear-gradient(135deg, #032C7D 0%, #0841C9 100%);
-        border-radius: 20px;
-        padding: 1.2rem 1.8rem;
-        margin-bottom: 1.5rem;
-        color: white;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-        .page-header h2 {
-            font-size: 1.3rem;
-            margin: 0;
-            color: white;
-        }
-
-        .page-header p {
-            font-size: 0.8rem;
-            margin: 0.2rem 0 0 0;
-            opacity: 0.9;
-        }
-
-        .page-header .breadcrumb-back {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            padding: 0.3rem 0.9rem;
-            border-radius: 40px;
-            text-decoration: none;
-            font-size: 0.75rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-            .page-header .breadcrumb-back:hover {
-                background: rgba(255,255,255,0.3);
-            }
-
-    .form-card {
-        background: white;
-        border-radius: 16px;
-        padding: 1.5rem;
-        border: 1px solid #E2E8F0;
-        max-width: 900px;
-    }
-
-    .form-section-title {
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: #032C7D;
-        margin: 0 0 1rem 0;
-        padding-bottom: 0.5rem;
-        border-bottom: 1px solid #E2E8F0;
-    }
-
-    .form-group {
-        margin-bottom: 1.2rem;
-    }
-
-        .form-group label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            display: block;
-            margin-bottom: 0.4rem;
-            color: #032C7D;
-        }
-
-    .form-control {
-        width: 100%;
-        padding: 0.6rem 0.8rem;
-        border: 1px solid #E2E8F0;
-        border-radius: 12px;
-        font-size: 0.9rem;
-        background: #F8FAFE;
-        font-family: 'Inter', sans-serif;
-    }
-
-        .form-control:focus {
-            outline: none;
-            border-color: #0841C9;
-            box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
-            background: white;
-        }
-
-    .form-actions {
-        display: flex;
-        gap: 0.8rem;
-        margin-top: 1.5rem;
-        padding-top: 1.2rem;
-        border-top: 1px solid #E2E8F0;
-    }
-
-    .btn-primary {
-        background: linear-gradient(135deg, #0841C9, #1D97F1);
-        color: white;
-        border: none;
-        padding: 0.6rem 1.4rem;
-        border-radius: 40px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        text-decoration: none;
-    }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 16px rgba(8,65,201,0.3);
-            color: white;
-        }
-
-    .btn-outline {
-        background: transparent;
-        border: 1px solid #E2E8F0;
-        padding: 0.6rem 1.4rem;
-        border-radius: 40px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        cursor: pointer;
-        color: #5A6E7A;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-        .btn-outline:hover {
-            border-color: #0841C9;
-            color: #0841C9;
-            background: rgba(8,65,201,0.02);
-        }
-
-    .validation-message {
-        color: #DC2626;
-        font-size: 0.75rem;
-        margin-top: 0.3rem;
-        display: block;
-    }
-
-    .required {
-        color: #DC2626;
-    }
-</style>
 
 <div class="page-header">
     <div>
-        <h2><i class="fas fa-tag"></i> Create Test Category</h2>
-        <p>Add a new category to organize tests</p>
+        <h2>New Test Category</h2>
+        <p>Organise tests into a category</p>
     </div>
-    <a href="@Url.Action("TestCatalogue")" class="breadcrumb-back">
-        <i class="fas fa-arrow-left"></i> Back to Test Catalogue
+    <a asp-action="TestCatalogue" class="btn btn-outline">
+        <i class="fas fa-arrow-left"></i> Back
     </a>
 </div>
 
-<div class="form-card">
-    <h3 class="form-section-title"><i class="fas fa-info-circle"></i> Category Details</h3>
-    <form method="post" action="@Url.Action("CreateCategory")">
-        @Html.AntiForgeryToken()
+@if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Any()))
+{
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-circle"></i>
+        <div>
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <div>@error.ErrorMessage</div>
+            }
+        </div>
+    </div>
+}
+
+<form method="post" asp-action="CreateCategory">
+    @Html.AntiForgeryToken()
+
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-tag"></i> Category Details</h3>
+        </div>
 
         <div class="form-group">
             <label>Category Name <span class="required">*</span></label>
-            <input asp-for="CategoryName" class="form-control" placeholder="e.g., Full Blood Count" />
+            <input asp-for="CategoryName" class="form-control"
+                   placeholder="e.g., Full Blood Count, Coagulation Studies" />
+            <small class="text-muted text-xs">Must be unique across all categories.</small>
             <span asp-validation-for="CategoryName" class="validation-message"></span>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" style="margin:0;">
             <label>Description</label>
-            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Brief description"></textarea>
+            <textarea asp-for="Description" rows="3" class="form-control"
+                      placeholder="Briefly describe what tests belong in this category."></textarea>
         </div>
+    </div>
 
-        <div class="form-actions">
-            <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Create Category</button>
-            <a href="@Url.Action("TestCatalogue")" class="btn-outline"><i class="fas fa-times"></i> Cancel</a>
-        </div>
-    </form>
-</div>
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Create Category
+        </button>
+        <a asp-action="TestCatalogue" class="btn btn-outline">Cancel</a>
+    </div>
+</form>

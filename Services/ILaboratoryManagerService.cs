@@ -85,5 +85,10 @@ namespace NMB_HLabSys.Services
         Task<bool> IsSAIDNumberUniqueAsync(string saidNumber, int? excludeTechnicianId = null);
         Task<bool> IsHPCSANumberUniqueAsync(string hpcsaNumber, int? excludeDoctorId = null);
         Task<bool> IsEmailUniqueAsync(string email, int? excludeUserId = null);
+
+        // ═══════════════════════════════════════════════════════════
+        // CHART DATA
+        // ═══════════════════════════════════════════════════════════
+        Task<ChartDataDto> GetChartDataAsync();
     }
 }

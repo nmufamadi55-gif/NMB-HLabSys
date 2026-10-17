@@ -1,185 +1,124 @@
 ﻿@using NMB_HLabSys.Models.ViewModels
 @model List<SupplierViewModel>
-
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_ManagerLayout.cshtml";
     ViewData["Title"] = "Suppliers";
-    ViewData["RoleSubtitle"] = "Laboratory Manager";
-    ViewData["UserGreeting"] = "Manage suppliers";
-    ViewData["UserInitials"] = "LM";
-}
-
-@section SidebarMenu {
-    <li><a href="@Url.Action("Index", "LaboratoryManager")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
-    <li><a href="@Url.Action("TestCatalogue", "LaboratoryManager")"><i class="fas fa-vial"></i> <span>Test Catalogue</span></a></li>
-    <li><a href="@Url.Action("Stock", "LaboratoryManager")"><i class="fas fa-boxes"></i> <span>Stock Management</span></a></li>
-    <li><a href="@Url.Action("Suppliers", "LaboratoryManager")" class="active"><i class="fas fa-truck"></i> <span>Suppliers</span></a></li>
-    <li><a href="@Url.Action("Orders", "LaboratoryManager")"><i class="fas fa-shopping-cart"></i> <span>Purchase Orders</span></a></li>
-    <li><a href="@Url.Action("Staff", "LaboratoryManager")"><i class="fas fa-user-md"></i> <span>Staff Management</span></a></li>
-    <li><a href="@Url.Action("Reports", "LaboratoryManager")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
 }
 
 <style>
-    .page-header {
-        background: linear-gradient(135deg, #032C7D 0%, #0841C9 100%);
-        border-radius: 20px;
-        padding: 1.2rem 1.8rem;
-        margin-bottom: 1.5rem;
-        color: white;
+    .filter-bar {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-        .page-header h2 {
-            font-size: 1.3rem;
-            margin: 0;
-            color: white;
-        }
-
-        .page-header p {
-            font-size: 0.8rem;
-            margin: 0.2rem 0 0 0;
-            opacity: 0.9;
-        }
-
-    .card {
-        background: white;
-        border-radius: 16px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        border: 1px solid #E2E8F0;
-    }
-
-    .card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.8rem;
         flex-wrap: wrap;
         gap: 0.5rem;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius-md);
+        margin-bottom: 1rem;
     }
 
-        .card-header h3 {
-            font-size: 1rem;
-            margin: 0;
-            color: #032C7D;
-            font-weight: 600;
+        .filter-bar .search {
+            flex: 1;
+            min-width: 220px;
+            max-width: 360px;
+            position: relative;
         }
 
-    .table-container {
-        overflow-x: auto;
-    }
+            .filter-bar .search input {
+                width: 100%;
+                padding-left: 2rem;
+            }
 
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
+            .filter-bar .search i {
+                position: absolute;
+                left: 0.75rem;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--gray-400);
+                font-size: 0.85rem;
+            }
 
-    th, td {
-        padding: 0.7rem 0.5rem;
-        text-align: left;
-        border-bottom: 1px solid #E2E8F0;
-        font-size: 0.8rem;
-    }
-
-    th {
-        background: #F8FAFE;
-        font-weight: 600;
-        color: #5A6E7A;
-        text-transform: uppercase;
-        font-size: 0.7rem;
-        letter-spacing: 0.03em;
-    }
-
-    tr:hover {
-        background: #F8FAFE;
-    }
-
-    .btn-sm {
-        background: linear-gradient(135deg, #0841C9, #1D97F1);
-        color: white;
-        border: none;
-        padding: 0.4rem 1rem;
-        border-radius: 40px;
-        cursor: pointer;
+    .filter-chip {
+        padding: 0.35rem 0.85rem;
+        border-radius: var(--radius-pill);
+        background: var(--gray-100);
+        color: var(--gray-700);
         font-size: 0.75rem;
-        font-weight: 600;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: all 0.15s;
     }
 
-        .btn-sm:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(8,65,201,0.25);
+        .filter-chip:hover {
+            background: var(--brand-50);
+            color: var(--brand-700);
+        }
+
+        .filter-chip.active {
+            background: var(--brand-gradient);
             color: white;
         }
 
-    .btn-outline-sm {
-        background: transparent;
-        border: 1px solid #E2E8F0;
-        padding: 0.4rem 0.8rem;
-        border-radius: 40px;
-        cursor: pointer;
-        font-size: 0.75rem;
-        text-decoration: none;
-        color: #5A6E7A;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.3rem;
+    .supplier-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
     }
 
-        .btn-outline-sm:hover {
-            border-color: #0841C9;
-            color: #0841C9;
-            background: rgba(8,65,201,0.02);
-        }
-
-    .badge {
-        display: inline-block;
-        padding: 0.2rem 0.6rem;
-        border-radius: 40px;
-        font-size: 0.7rem;
+    .supplier-name {
         font-weight: 600;
+        color: var(--gray-900);
+        font-size: 0.85rem;
     }
 
-    .badge-success {
-        background: #D4EDDA;
-        color: #155724;
+    .supplier-sub {
+        font-size: 0.72rem;
+        color: var(--gray-500);
     }
 
-    .badge-warning {
-        background: #FFF3CD;
-        color: #856404;
+    .row-actions {
+        display: flex;
+        gap: 0.35rem;
+        justify-content: flex-end;
     }
 </style>
 
 <div class="page-header">
     <div>
-        <h2><i class="fas fa-truck"></i> Suppliers</h2>
-        <p>Manage your supplier directory</p>
+        <h2>Suppliers</h2>
+        <p>Manage the supplier directory</p>
+    </div>
+    <div class="page-header-actions">
+        <a asp-action="CreateSupplier" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New Supplier
+        </a>
     </div>
 </div>
 
-<div class="card">
-    <div class="card-header">
-        <h3><i class="fas fa-list"></i> All Suppliers</h3>
-        <a href="@Url.Action("CreateSupplier")" class="btn-sm"><i class="fas fa-plus"></i> Add Supplier</a>
+<div class="filter-bar">
+    <div class="search">
+        <i class="fas fa-search"></i>
+        <input type="text" id="supplierSearch" class="form-control"
+               placeholder="Search name, contact person or email..." />
     </div>
+    <button type="button" class="filter-chip active" data-filter="all">All</button>
+    <button type="button" class="filter-chip" data-filter="preferred">Preferred</button>
+    <button type="button" class="filter-chip" data-filter="inactive">Inactive</button>
+</div>
+
+<div class="card">
     <div class="table-container">
-        <table>
+        <table id="supplierTable">
             <thead>
                 <tr>
-                    <th>Name</th>
+                    <th>Supplier</th>
                     <th>Contact Person</th>
                     <th>Email</th>
                     <th>Phone</th>
-                    <th>Consumables</th>
-                    <th>Preferred</th>
+                    <th style="text-align:center;">Consumables</th>
+                    <th>Status</th>
                     <th style="text-align:right;">Actions</th>
                 </tr>
             </thead>
@@ -188,21 +127,71 @@
                 {
                     @foreach (var s in Model)
                     {
-                        <tr>
-                            <td><strong>@s.SupplierName</strong></td>
-                            <td>@s.ContactPerson</td>
-                            <td>@s.EmailAddress</td>
-                            <td>@s.PhoneNumber</td>
-                            <td>@s.ConsumableCount</td>
+                        var statusKey = !s.IsActive ? "inactive" : s.IsPreferred ? "preferred" : "normal";
+                        <tr class="supplier-row"
+                            data-name="@s.SupplierName?.ToLower()"
+                            data-contact="@s.ContactPerson?.ToLower()"
+                            data-email="@s.EmailAddress?.ToLower()"
+                            data-flag="@statusKey">
                             <td>
-                                @if (s.IsPreferred)
+                                <div class="supplier-cell">
+                                    <span class="supplier-name">
+                                        @s.SupplierName
+                                        @if (s.IsPreferred)
+                                        {
+                                            <i class="fas fa-star" style="color:#F59E0B; font-size:0.7rem; margin-left:0.25rem;" title="Preferred"></i>
+                                        }
+                                    </span>
+                                    @if (!string.IsNullOrWhiteSpace(s.Address))
+                                    {
+                                        <span class="supplier-sub">@s.Address</span>
+                                    }
+                                </div>
+                            </td>
+                            <td class="text-sm">@s.ContactPerson</td>
+                            <td class="text-sm">
+                                <a href="mailto:@s.EmailAddress">@s.EmailAddress</a>
+                            </td>
+                            <td class="text-sm">@s.PhoneNumber</td>
+                            <td style="text-align:center;">
+                                <span class="badge badge-muted">@s.ConsumableCount</span>
+                            </td>
+                            <td>
+                                @if (!s.IsActive)
                                 {
-                                    <span class="badge badge-success">⭐ Preferred</span>
+                                    <span class="badge badge-muted">Inactive</span>
+                                }
+                                else if (s.IsPreferred)
+                                {
+                                    <span class="badge badge-success">Preferred</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-info">Active</span>
                                 }
                             </td>
-                            <td style="text-align:right;">
-                                <a href="@Url.Action("SupplierDetails", new { id = s.SupplierID })" class="btn-outline-sm"><i class="fas fa-info-circle"></i> Details</a>
-                                <a href="@Url.Action("EditSupplier", new { id = s.SupplierID })" class="btn-outline-sm"><i class="fas fa-edit"></i> Edit</a>
+                            <td>
+                                <div class="row-actions">
+                                    <a asp-action="SupplierDetails" asp-route-id="@s.SupplierID"
+                                       class="btn-icon" title="View Details">
+                                        <i class="fas fa-info-circle"></i>
+                                    </a>
+                                    <a asp-action="EditSupplier" asp-route-id="@s.SupplierID"
+                                       class="btn-icon" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn-icon" title="Delete"
+                                            style="color: var(--danger-fg);"
+                                            onclick="confirmDeleteSupplier('@s.SupplierID', '@s.SupplierName')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    <form id="delSupplier_@s.SupplierID"
+                                          asp-action="DeleteSupplier" method="post"
+                                          style="display:none;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@s.SupplierID" />
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     }
@@ -210,13 +199,78 @@
                 else
                 {
                     <tr>
-                        <td colspan="7" style="text-align:center; padding:2rem; color:#5A6E7A;">
-                            <i class="fas fa-inbox" style="font-size:2rem; opacity:0.4;"></i>
-                            <p style="margin-top:0.5rem;">No suppliers found. Add your first supplier!</p>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <i class="fas fa-truck-field"></i>
+                                <h3>No Suppliers Yet</h3>
+                                <p>Add your first supplier to start ordering consumables.</p>
+                                <a asp-action="CreateSupplier" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> New Supplier
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 }
             </tbody>
         </table>
+        <div id="noSupplierResults" class="empty-state" style="display:none;">
+            <i class="fas fa-search"></i>
+            <h3>No Matches</h3>
+            <p>Try adjusting your search or filter.</p>
+        </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const searchInput = document.getElementById('supplierSearch');
+            const chips = document.querySelectorAll('.filter-chip');
+            const rows = Array.from(document.querySelectorAll('.supplier-row'));
+            const noResults = document.getElementById('noSupplierResults');
+            let activeFilter = 'all';
+
+            function applyFilters() {
+                const term = (searchInput.value || '').toLowerCase().trim();
+                let visible = 0;
+
+                rows.forEach(row => {
+                    const n = row.dataset.name || '';
+                    const c = row.dataset.contact || '';
+                    const e = row.dataset.email || '';
+                    const flag = row.dataset.flag || 'normal';
+
+                    const matchesSearch = !term || n.includes(term) || c.includes(term) || e.includes(term);
+                    let matchesFilter = true;
+                    if (activeFilter === 'preferred') matchesFilter = flag === 'preferred';
+                    else if (activeFilter === 'inactive') matchesFilter = flag === 'inactive';
+
+                    const show = matchesSearch && matchesFilter;
+                    row.style.display = show ? '' : 'none';
+                    if (show) visible++;
+                });
+
+                noResults.style.display = (visible === 0 && rows.length > 0) ? '' : 'none';
+            }
+
+            searchInput.addEventListener('input', applyFilters);
+            chips.forEach(chip => {
+                chip.addEventListener('click', function () {
+                    chips.forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    activeFilter = this.dataset.filter;
+                    applyFilters();
+                });
+            });
+
+            window.confirmDeleteSupplier = async function (id, name) {
+                const ok = await confirmModal({
+                    title: 'Delete Supplier',
+                    message: `Delete "${name}"? This only succeeds if it has no active consumables or live orders.`,
+                    okText: 'Delete'
+                });
+                if (ok) document.getElementById(`delSupplier_${id}`).submit();
+            };
+        })();
+    </script>
+}

@@ -1,352 +1,334 @@
 ﻿@using NMB_HLabSys.Models.ViewModels
 @model TestCatalogueIndexViewModel
-
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_ManagerLayout.cshtml";
     ViewData["Title"] = "Test Catalogue";
-    ViewData["RoleSubtitle"] = "Laboratory Manager";
-    ViewData["UserGreeting"] = "Manage your test catalogue";
-    ViewData["UserInitials"] = "LM";
-}
-
-@section SidebarMenu {
-    <li><a href="@Url.Action("Index", "LaboratoryManager")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
-    <li><a href="@Url.Action("TestCatalogue", "LaboratoryManager")" class="active"><i class="fas fa-vial"></i> <span>Test Catalogue</span></a></li>
-    <li><a href="@Url.Action("Stock", "LaboratoryManager")"><i class="fas fa-boxes"></i> <span>Stock Management</span></a></li>
-    <li><a href="@Url.Action("Suppliers", "LaboratoryManager")"><i class="fas fa-truck"></i> <span>Suppliers</span></a></li>
-    <li><a href="@Url.Action("Orders", "LaboratoryManager")"><i class="fas fa-shopping-cart"></i> <span>Purchase Orders</span></a></li>
-    <li><a href="@Url.Action("Staff", "LaboratoryManager")"><i class="fas fa-user-md"></i> <span>Staff Management</span></a></li>
-    <li><a href="@Url.Action("Reports", "LaboratoryManager")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
 }
 
 <style>
-    .page-header {
-        background: linear-gradient(135deg, #032C7D 0%, #0841C9 100%);
-        border-radius: 20px;
-        padding: 1.2rem 1.8rem;
-        margin-bottom: 1.5rem;
-        color: white;
+    .tab-panel {
+        display: none;
+    }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+    .chip-list {
         display: flex;
-        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+
+    .chip {
+        display: inline-flex;
         align-items: center;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-        .page-header h2 {
-            font-size: 1.3rem;
-            margin: 0;
-            color: white;
-        }
-
-        .page-header p {
-            font-size: 0.8rem;
-            margin: 0.2rem 0 0 0;
-            opacity: 0.9;
-        }
-
-    .card {
-        background: white;
-        border-radius: 16px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        border: 1px solid #E2E8F0;
-    }
-
-    .card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.8rem;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
-        .card-header h3 {
-            font-size: 1rem;
-            margin: 0;
-            color: #032C7D;
-            font-weight: 600;
-        }
-
-    .action-bar {
-        display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-    }
-
-    .table-container {
-        overflow-x: auto;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    th, td {
-        padding: 0.7rem 0.5rem;
-        text-align: left;
-        border-bottom: 1px solid #E2E8F0;
-        font-size: 0.8rem;
-    }
-
-    th {
-        background: #F8FAFE;
-        font-weight: 600;
-        color: #5A6E7A;
-        text-transform: uppercase;
+        padding: 0.15rem 0.55rem;
+        background: var(--brand-50);
+        color: var(--brand-700);
         font-size: 0.7rem;
-        letter-spacing: 0.03em;
-    }
-
-    tr:hover {
-        background: #F8FAFE;
-    }
-
-    .btn-sm {
-        background: linear-gradient(135deg, #0841C9, #1D97F1);
-        color: white;
-        border: none;
-        padding: 0.4rem 1rem;
-        border-radius: 40px;
-        cursor: pointer;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-    }
-
-        .btn-sm:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(8,65,201,0.25);
-            color: white;
-        }
-
-    .btn-outline-sm {
-        background: transparent;
-        border: 1px solid #E2E8F0;
-        padding: 0.4rem 0.8rem;
-        border-radius: 40px;
-        cursor: pointer;
-        font-size: 0.75rem;
-        text-decoration: none;
-        color: #5A6E7A;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.3rem;
-    }
-
-        .btn-outline-sm:hover {
-            border-color: #0841C9;
-            color: #0841C9;
-            background: rgba(8,65,201,0.02);
-        }
-
-    .btn-danger-sm {
-        background: #DC2626;
-        color: white;
-        border: none;
-        padding: 0.4rem 0.8rem;
-        border-radius: 40px;
-        cursor: pointer;
-        font-size: 0.75rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.3rem;
-    }
-
-        .btn-danger-sm:hover {
-            background: #B91C1C;
-        }
-
-    .badge {
-        display: inline-block;
-        padding: 0.2rem 0.6rem;
-        border-radius: 40px;
-        font-size: 0.7rem;
-        font-weight: 600;
-    }
-
-    .badge-success {
-        background: #D4EDDA;
-        color: #155724;
-    }
-
-    .badge-danger {
-        background: #F8D7DA;
-        color: #721C24;
+        font-weight: 500;
+        border-radius: var(--radius-pill);
     }
 </style>
 
 <div class="page-header">
     <div>
-        <h2><i class="fas fa-vial"></i> Test Catalogue</h2>
-        <p>Manage test types, categories, and sample types</p>
+        <h2>Test Catalogue</h2>
+        <p>Manage test types, categories and sample types</p>
+    </div>
+    <div class="page-header-actions">
+        <a asp-action="CreateTestType" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New Test
+        </a>
+        <a asp-action="CreateCategory" class="btn btn-outline">
+            <i class="fas fa-tag"></i> New Category
+        </a>
+        <a asp-action="CreateSampleType" class="btn btn-outline">
+            <i class="fas fa-flask"></i> New Sample Type
+        </a>
     </div>
 </div>
 
-<div class="card">
-    <div class="card-header">
-        <h3><i class="fas fa-vial"></i> Test Types</h3>
-        <div class="action-bar">
-            <a href="@Url.Action("CreateTestType")" class="btn-sm"><i class="fas fa-plus"></i> Add Test</a>
-            <a href="@Url.Action("CreateCategory")" class="btn-outline-sm"><i class="fas fa-tag"></i> Add Category</a>
-            <a href="@Url.Action("CreateSampleType")" class="btn-outline-sm"><i class="fas fa-flask"></i> Add Sample Type</a>
+<div class="tab-nav">
+    <button type="button" class="tab-item active" data-tab="tests">
+        Test Types (@(Model.TestTypes?.Count ?? 0))
+    </button>
+    <button type="button" class="tab-item" data-tab="categories">
+        Categories (@(Model.Categories?.Count ?? 0))
+    </button>
+    <button type="button" class="tab-item" data-tab="samples">
+        Sample Types (@(Model.SampleTypes?.Count ?? 0))
+    </button>
+</div>
+
+<!-- ─── Test Types ─── -->
+<div class="tab-panel active" data-panel="tests">
+    <div class="card">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Test Name</th>
+                        <th>Category</th>
+                        <th>Sample Type</th>
+                        <th>Turnaround</th>
+                        <th>Technicians</th>
+                        <th>Consumables</th>
+                        <th>Status</th>
+                        <th style="text-align:right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.TestTypes != null && Model.TestTypes.Any())
+                    {
+                        @foreach (var test in Model.TestTypes)
+                        {
+                            <tr>
+                                <td><strong>@test.TestName</strong></td>
+                                <td>@test.CategoryName</td>
+                                <td>@test.SampleTypeName</td>
+                                <td>@test.TurnaroundTimeMinutes min</td>
+                                <td>
+                                    @if (test.AssignedTechnicians != null && test.AssignedTechnicians.Any())
+                                    {
+                                        <div class="chip-list">
+                                            @foreach (var t in test.AssignedTechnicians.Take(2))
+                                            {
+                                                <span class="chip">@t</span>
+                                            }
+                                            @if (test.AssignedTechnicians.Count > 2)
+                                            {
+                                                <span class="chip">+@(test.AssignedTechnicians.Count - 2)</span>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted text-xs">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="text-sm">@(test.Consumables?.Count ?? 0) linked</span>
+                                </td>
+                                <td>
+                                    <span class="badge @(test.IsActive ? "badge-success" : "badge-muted")">
+                                        @(test.IsActive ? "Active" : "Archived")
+                                    </span>
+                                </td>
+                                <td style="text-align:right; white-space:nowrap;">
+                                    <a asp-action="EditTestType" asp-route-id="@test.TestID"
+                                       class="btn btn-sm btn-outline">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline"
+                                            style="color: var(--danger-fg);"
+                                            onclick="confirmDeleteTest('@test.TestID', '@test.TestName')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    <form id="deleteTest_@test.TestID"
+                                          asp-action="DeleteTestType" method="post"
+                                          style="display:none;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@test.TestID" />
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8">
+                                <div class="empty-state">
+                                    <i class="fas fa-vial"></i>
+                                    <h3>No Test Types Yet</h3>
+                                    <p>Add your first test to the catalogue.</p>
+                                    <a asp-action="CreateTestType" class="btn btn-primary">
+                                        <i class="fas fa-plus"></i> New Test
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Test Name</th>
-                    <th>Category</th>
-                    <th>Sample Type</th>
-                    <th>Turnaround</th>
-                    <th>Status</th>
-                    <th style="text-align:right;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model.TestTypes != null && Model.TestTypes.Any())
-                {
-                    @foreach (var test in Model.TestTypes)
-                    {
-                        <tr>
-                            <td><strong>@test.TestName</strong></td>
-                            <td>@test.CategoryName</td>
-                            <td>@test.SampleTypeName</td>
-                            <td>@test.TurnaroundTimeMinutes min</td>
-                            <td>
-                                <span class="badge @(test.IsActive ? "badge-success" : "badge-danger")">
-                                    @(test.IsActive ? "Active" : "Inactive")
-                                </span>
-                            </td>
-                            <td style="text-align:right;">
-                                <a href="@Url.Action("EditTestType", new { id = test.TestID })" class="btn-outline-sm">
-                                    <i class="fas fa-edit"></i> Edit
-                                </a>
-                                <form method="post" action="@Url.Action("DeleteTestType")" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this test?');">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="id" value="@test.TestID" />
-                                    <button type="submit" class="btn-danger-sm">
-                                        <i class="fas fa-trash"></i> Delete
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                    }
-                }
-                else
-                {
+</div>
+
+<!-- ─── Categories ─── -->
+<div class="tab-panel" data-panel="categories">
+    <div class="card">
+        <div class="table-container">
+            <table>
+                <thead>
                     <tr>
-                        <td colspan="6" style="text-align:center; padding:2rem; color:#5A6E7A;">
-                            <i class="fas fa-inbox" style="font-size:2rem; opacity:0.4;"></i>
-                            <p style="margin-top:0.5rem;">No test types found. Add your first test!</p>
-                        </td>
+                        <th>Category Name</th>
+                        <th>Description</th>
+                        <th>Tests</th>
+                        <th>Status</th>
+                        <th style="text-align:right;">Actions</th>
                     </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<div class="card">
-    <div class="card-header">
-        <h3><i class="fas fa-tags"></i> Test Categories</h3>
-    </div>
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Category Name</th>
-                    <th>Description</th>
-                    <th>Tests</th>
-                    <th>Status</th>
-                    <th style="text-align:right;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model.Categories != null && Model.Categories.Any())
-                {
-                    @foreach (var cat in Model.Categories)
+                </thead>
+                <tbody>
+                    @if (Model.Categories != null && Model.Categories.Any())
+                    {
+                        @foreach (var cat in Model.Categories)
+                        {
+                            <tr>
+                                <td><strong>@cat.CategoryName</strong></td>
+                                <td class="text-sm text-muted">@cat.Description</td>
+                                <td>@cat.TestCount</td>
+                                <td>
+                                    <span class="badge @(cat.IsActive ? "badge-success" : "badge-muted")">
+                                        @(cat.IsActive ? "Active" : "Archived")
+                                    </span>
+                                </td>
+                                <td style="text-align:right; white-space:nowrap;">
+                                    <a asp-action="EditCategory" asp-route-id="@cat.CategoryID"
+                                       class="btn btn-sm btn-outline">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline"
+                                            style="color: var(--danger-fg);"
+                                            onclick="confirmDeleteCategory('@cat.CategoryID', '@cat.CategoryName')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    <form id="deleteCat_@cat.CategoryID"
+                                          asp-action="DeleteCategory" method="post"
+                                          style="display:none;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@cat.CategoryID" />
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
                     {
                         <tr>
-                            <td><strong>@cat.CategoryName</strong></td>
-                            <td>@cat.Description</td>
-                            <td>@cat.TestCount</td>
-                            <td>
-                                <span class="badge @(cat.IsActive ? "badge-success" : "badge-danger")">
-                                    @(cat.IsActive ? "Active" : "Inactive")
-                                </span>
-                            </td>
-                            <td style="text-align:right;">
-                                <a href="@Url.Action("EditCategory", new { id = cat.CategoryID })" class="btn-outline-sm">
-                                    <i class="fas fa-edit"></i> Edit
-                                </a>
-                                <form method="post" action="@Url.Action("DeleteCategory")" style="display:inline;" onsubmit="return confirm('Delete this category?');">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="id" value="@cat.CategoryID" />
-                                    <button type="submit" class="btn-danger-sm"><i class="fas fa-trash"></i> Delete</button>
-                                </form>
+                            <td colspan="5">
+                                <div class="empty-state">
+                                    <i class="fas fa-tag"></i>
+                                    <h3>No Categories</h3>
+                                    <p>Create your first test category.</p>
+                                    <a asp-action="CreateCategory" class="btn btn-primary">
+                                        <i class="fas fa-plus"></i> New Category
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     }
-                }
-                else
-                {
-                    <tr><td colspan="5" style="text-align:center; padding:1.5rem; color:#5A6E7A;">No categories yet.</td></tr>
-                }
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
-<div class="card">
-    <div class="card-header">
-        <h3><i class="fas fa-flask"></i> Sample Types</h3>
-    </div>
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Sample Type</th>
-                    <th>Description</th>
-                    <th>Collection Tube</th>
-                    <th>Storage</th>
-                    <th style="text-align:right;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model.SampleTypes != null && Model.SampleTypes.Any())
-                {
-                    @foreach (var st in Model.SampleTypes)
+<!-- ─── Sample Types ─── -->
+<div class="tab-panel" data-panel="samples">
+    <div class="card">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sample Type</th>
+                        <th>Description</th>
+                        <th>Collection Tube</th>
+                        <th>Storage</th>
+                        <th style="text-align:right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.SampleTypes != null && Model.SampleTypes.Any())
+                    {
+                        @foreach (var st in Model.SampleTypes)
+                        {
+                            <tr>
+                                <td><strong>@st.SampleTypeName</strong></td>
+                                <td class="text-sm text-muted">@st.Description</td>
+                                <td>@st.CollectionTubeType</td>
+                                <td class="text-sm">@st.StorageRequirements</td>
+                                <td style="text-align:right; white-space:nowrap;">
+                                    <a asp-action="EditSampleType" asp-route-id="@st.SampleTypeID"
+                                       class="btn btn-sm btn-outline">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline"
+                                            style="color: var(--danger-fg);"
+                                            onclick="confirmDeleteSample('@st.SampleTypeID', '@st.SampleTypeName')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    <form id="deleteSample_@st.SampleTypeID"
+                                          asp-action="DeleteSampleType" method="post"
+                                          style="display:none;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@st.SampleTypeID" />
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
                     {
                         <tr>
-                            <td><strong>@st.SampleTypeName</strong></td>
-                            <td>@st.Description</td>
-                            <td>@st.CollectionTubeType</td>
-                            <td>@st.StorageRequirements</td>
-                            <td style="text-align:right;">
-                                <a href="@Url.Action("EditSampleType", new { id = st.SampleTypeID })" class="btn-outline-sm">
-                                    <i class="fas fa-edit"></i> Edit
-                                </a>
-                                <form method="post" action="@Url.Action("DeleteSampleType")" style="display:inline;" onsubmit="return confirm('Delete this sample type?');">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="id" value="@st.SampleTypeID" />
-                                    <button type="submit" class="btn-danger-sm"><i class="fas fa-trash"></i> Delete</button>
-                                </form>
+                            <td colspan="5">
+                                <div class="empty-state">
+                                    <i class="fas fa-flask"></i>
+                                    <h3>No Sample Types</h3>
+                                    <p>Add your first sample type.</p>
+                                    <a asp-action="CreateSampleType" class="btn btn-primary">
+                                        <i class="fas fa-plus"></i> New Sample Type
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     }
-                }
-                else
-                {
-                    <tr><td colspan="5" style="text-align:center; padding:1.5rem; color:#5A6E7A;">No sample types yet.</td></tr>
-                }
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab-item').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const target = this.dataset.tab;
+                document.querySelectorAll('.tab-item').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                this.classList.add('active');
+                document.querySelector(`.tab-panel[data-panel="${target}"]`).classList.add('active');
+            });
+        });
+
+        // Confirm-delete helpers (uses the global confirmModal from manager.js)
+        async function confirmDeleteTest(id, name) {
+            const ok = await confirmModal({
+                title: 'Archive Test Type',
+                message: `Archive "${name}"? It will no longer appear in the catalogue.`,
+                okText: 'Archive'
+            });
+            if (ok) document.getElementById(`deleteTest_${id}`).submit();
+        }
+        async function confirmDeleteCategory(id, name) {
+            const ok = await confirmModal({
+                title: 'Delete Category',
+                message: `Delete category "${name}"? This only succeeds if it has no active tests.`,
+                okText: 'Delete'
+            });
+            if (ok) document.getElementById(`deleteCat_${id}`).submit();
+        }
+        async function confirmDeleteSample(id, name) {
+            const ok = await confirmModal({
+                title: 'Delete Sample Type',
+                message: `Delete "${name}"? This only succeeds if it's not in use by any active test.`,
+                okText: 'Delete'
+            });
+            if (ok) document.getElementById(`deleteSample_${id}`).submit();
+        }
+    </script>
+}
