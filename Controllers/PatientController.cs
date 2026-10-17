@@ -4,6 +4,7 @@ using NMB_HLabSys.Data;
 using NMB_HLabSys.Helpers;
 using NMB_HLabSys.Models;
 using NMB_HLabSys.ViewModels.PatientViewModels;
+using NMB_HLabSys.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,12 +15,13 @@ namespace NMB_HLabSys.Controllers
     public class PatientController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IPdfReportService _pdfReportService;
 
-        public PatientController(ApplicationDbContext context)
+        public PatientController(ApplicationDbContext context, IPdfReportService pdfReportService)
         {
             _context = context;
+            _pdfReportService = pdfReportService;
         }
-
         // GET LOGGED-IN PATIENT
         private async Task<Patient> GetLoggedInPatient()
         {
@@ -30,7 +32,48 @@ namespace NMB_HLabSys.Controllers
                 .Include(p => p.User)
                 .FirstOrDefaultAsync(p => p.UserID == userId.Value && p.IsActive);
         }
-       
+        // ============================================
+        // DOWNLOAD TEST RESULTS PDF
+        // ============================================
+        public async Task<IActionResult> DownloadTestResultsPDF(DateTime? fromDate, DateTime? toDate)
+        {
+            var patient = await GetLoggedInPatient();
+            if (patient == null) return RedirectToAction("Login", "Account");
+
+            var from = fromDate ?? DateTime.Now.AddMonths(-6);
+            var to = toDate ?? DateTime.Now;
+
+            try
+            {
+                var pdfBytes = _pdfReportService.GeneratePatientTestResultsPdf(patient, from, to);
+                return File(pdfBytes, "application/pdf", $"TestResults_{patient.SAIDNumber}_{DateTime.Now:yyyyMMdd}.pdf");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error generating PDF: {ex.Message}";
+                return RedirectToAction("Dashboard");
+            }
+        }
+
+        // ============================================
+        // DOWNLOAD MEDICAL HISTORY PDF
+        // ============================================
+        public async Task<IActionResult> DownloadMedicalHistoryPDF()
+        {
+            var patient = await GetLoggedInPatient();
+            if (patient == null) return RedirectToAction("Login", "Account");
+
+            try
+            {
+                var pdfBytes = _pdfReportService.GeneratePatientMedicalHistoryPdf(patient);
+                return File(pdfBytes, "application/pdf", $"MedicalHistory_{patient.SAIDNumber}_{DateTime.Now:yyyyMMdd}.pdf");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error generating PDF: {ex.Message}";
+                return RedirectToAction("MedicalHistory");
+            }
+        }
         // ============================================
         // DASHBOARD - with real data
         // ============================================

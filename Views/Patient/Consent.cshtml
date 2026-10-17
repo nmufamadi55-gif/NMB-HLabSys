@@ -5,49 +5,79 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Consent Management";
     ViewData["RoleSubtitle"] = "Patient Portal";
-    ViewData["UserGreeting"] = $"🩺 {Model.FullName} (ID: {Model.PatientID})";
+    ViewData["UserGreeting"] = $"{Model.FullName} (ID: {Model.PatientID})";
     ViewData["UserInitials"] = Model.FullName.Substring(0, 1);
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Patient")">📋 My Results</a></li>
-    <li><a href="@Url.Action("MedicalHistory", "Patient")">📝 Medical History</a></li>
-    <li><a href="@Url.Action("Consent", "Patient")" class="active">🔐 Consent Management</a></li>
-    <li><a href="@Url.Action("Trends", "Patient")">📈 Track Trends</a></li>
+    <li><a href="@Url.Action("Dashboard", "Patient")"><i class="fas fa-notes-medical"></i> <span>My Results</span></a></li>
+    <li><a href="@Url.Action("MedicalHistory", "Patient")"><i class="fas fa-history"></i> <span>Medical History</span></a></li>
+    <li><a href="@Url.Action("Consent", "Patient")" class="active"><i class="fas fa-hand-peace"></i> <span>Consent</span></a></li>
+    <li><a href="@Url.Action("Trends", "Patient")"><i class="fas fa-chart-line"></i> <span>Trends</span></a></li>
     <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
 <style>
+    .profile-card {
+        background: white;
+        border-radius: 20px;
+        border: 1px solid #E2E8F0;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+    }
+
+    .profile-card-header {
+        background: linear-gradient(135deg, #F8FAFE, #FFFFFF);
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #E2E8F0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        .profile-card-header h3 {
+            margin: 0;
+            color: #032C7D;
+            font-size: 1.1rem;
+        }
+
+    .profile-card-body {
+        padding: 1.5rem;
+    }
+
     .security-badge {
         display: inline-block;
         padding: 5px 12px;
         border-radius: 20px;
-        background: #DCFCE7;
-        color: #166534;
+        background: #D1FAE5;
+        color: #065F46;
         font-size: 0.75rem;
         font-weight: 600;
         margin-right: 8px;
     }
 
-    .doctor-card {
-        transition: 0.25s;
+    .info-box {
+        background: #EFF6FF;
+        padding: 1rem 1.5rem;
+        border-radius: 16px;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #0841C9;
     }
 
-        .doctor-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        .info-box strong {
+            color: #032C7D;
         }
 
     .status-pill {
         padding: 5px 12px;
         border-radius: 20px;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: 600;
     }
 
     .status-active {
-        background: #DCFCE7;
-        color: #166534;
+        background: #D1FAE5;
+        color: #065F46;
     }
 
     .status-revoked {
@@ -55,12 +85,33 @@
         color: #991B1B;
     }
 
-    .info-box {
-        background: #EFF6FF;
-        padding: 1rem;
-        border-radius: 16px;
-        margin-bottom: 1.5rem;
+    .activity-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
     }
+
+        .activity-table thead th {
+            text-align: left;
+            padding: 10px 12px;
+            color: #5A6E7A;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #E2E8F0;
+        }
+
+        .activity-table tbody td {
+            padding: 12px;
+            color: #1F2937;
+            border-bottom: 1px solid #F3F4F6;
+            vertical-align: middle;
+        }
+
+        .activity-table tbody tr:hover {
+            background: #F8FAFE;
+        }
 
     .form-group {
         margin-bottom: 1rem;
@@ -68,56 +119,147 @@
 
         .form-group label {
             display: block;
-            font-weight: 500;
-            margin-bottom: 0.25rem;
-            color: #374151;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #032C7D;
+            margin-bottom: 0.3rem;
         }
 
-        .form-group input, .form-group select {
+        .form-group select, .form-group textarea, .form-group input {
             width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #D1D5DB;
+            padding: 10px 14px;
             border-radius: 12px;
-            font-size: 0.875rem;
-        }
-
-        .form-group textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #D1D5DB;
-            border-radius: 12px;
-            font-size: 0.875rem;
+            border: 1px solid #E2E8F0;
+            font-size: 0.85rem;
             font-family: inherit;
         }
+
+            .form-group select:focus, .form-group textarea:focus, .form-group input:focus {
+                outline: none;
+                border-color: #0841C9;
+                box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
+            }
+
+    .btn-primary {
+        background: #0841C9;
+        color: white;
+        border: none;
+        padding: 0.5rem 1.2rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+        .btn-primary:hover {
+            background: #032C7D;
+            color: white;
+        }
+
+    .btn-outline {
+        background: transparent;
+        border: 1px solid #E2E8F0;
+        padding: 0.4rem 1rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        color: #032C7D;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        transition: all 0.2s;
+    }
+
+        .btn-outline:hover {
+            background: #F8FAFE;
+            border-color: #0841C9;
+            color: #0841C9;
+        }
+
+    .btn-danger {
+        color: #DC2626;
+        border-color: #FCA5A5;
+    }
+
+        .btn-danger:hover {
+            background: #FEE2E2;
+            border-color: #DC2626;
+        }
+
+    .alert-success {
+        background: #D1FAE5;
+        color: #065F46;
+        padding: 0.8rem 1rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .alert-error {
+        background: #FEE2E2;
+        color: #991B1B;
+        padding: 0.8rem 1rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .no-data {
+        text-align: center;
+        color: #9CA3AF;
+        padding: 2rem;
+        font-size: 0.85rem;
+    }
 </style>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert-success">
+        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert-error">
+        <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+    </div>
+}
 
 <!-- Info -->
 <div class="info-box">
-    <strong>🔐 About Consent Management</strong>
-    <p style="margin-top:10px;">
+    <strong><i class="fas fa-shield-alt"></i> About Consent Management</strong>
+    <p style="margin-top:10px; color: #5A6E7A;">
         You control which healthcare professionals can access your laboratory records.
         Access can be granted, modified, or revoked at any time.
     </p>
     <div style="margin-top:10px;">
-        <span class="security-badge">POPIA Compliant</span>
-        <span class="security-badge">Secure Sharing</span>
-        <span class="security-badge">Encrypted Access</span>
+        <span class="security-badge"><i class="fas fa-lock"></i> POPIA Compliant</span>
+        <span class="security-badge"><i class="fas fa-share-alt"></i> Secure Sharing</span>
+        <span class="security-badge"><i class="fas fa-key"></i> Encrypted Access</span>
     </div>
 </div>
 
-<!-- Access Tables -->
-<div class="grid-2col">
-    <!-- Doctors With Access -->
-    <div class="card-modern doctor-card">
-        <div class="card-header-flex">
-            <h3>✅ Doctors with Access</h3>
-            <button class="btn-sm-lab" onclick="showDemoAlert('Doctor access invitation sent successfully')">
-                + Grant Access
-            </button>
-        </div>
-
-        <div class="table-container">
-            <table>
+<!-- Doctors With Access -->
+<div class="profile-card">
+    <div class="profile-card-header">
+        <h3><i class="fas fa-user-check"></i> Doctors with Access</h3>
+    </div>
+    <div class="profile-card-body" style="padding: 0;">
+        @if (Model.ActiveConsents != null && Model.ActiveConsents.Any())
+        {
+            <table class="activity-table">
                 <thead>
                     <tr>
                         <th>Doctor</th>
@@ -128,110 +270,100 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @if (Model.ActiveConsents != null && Model.ActiveConsents.Any())
-                    {
-                        @foreach (var consent in Model.ActiveConsents)
-                        {
-                            <tr>
-                                <td>
-                                    <strong>@consent.DoctorName</strong>
-                                </td>
-                                <td>@consent.DoctorEmail</td>
-                                <td>
-                                    <span class="status-pill @(consent.IsActive ? "status-active" : "status-revoked")">
-                                        @(consent.IsActive ? "Active" : "Revoked")
-                                    </span>
-                                </td>
-                                <td>@consent.GrantedDate.ToString("dd MMM yyyy")</td>
-                                <td>
-                                    <button class="btn-outline-lab" style="color:red; border-color:red;"
-                                            onclick="confirmRevoke('@consent.DoctorName', @consent.ConsentID)">
-                                        Revoke
-                                    </button>
-                                </td>
-                            </tr>
-                        }
-                    }
-                    else
+                    @foreach (var consent in Model.ActiveConsents)
                     {
                         <tr>
-                            <td colspan="5" style="text-align:center; padding:1rem; color:#9CA3AF;">
-                                No active consents
+                            <td><strong>@consent.DoctorName</strong></td>
+                            <td>@consent.DoctorEmail</td>
+                            <td>
+                                <span class="status-pill @(consent.IsActive ? "status-active" : "status-revoked")">
+                                    @(consent.IsActive ? "Active" : "Revoked")
+                                </span>
+                            </td>
+                            <td>@consent.GrantedDate.ToString("dd MMM yyyy")</td>
+                            <td>
+                                <button class="btn-outline btn-danger"
+                                        onclick="confirmRevoke('@consent.DoctorName', @consent.ConsentID)">
+                                    <i class="fas fa-ban"></i> Revoke
+                                </button>
                             </td>
                         </tr>
                     }
                 </tbody>
             </table>
-        </div>
+        }
+        else
+        {
+            <p class="no-data">
+                <i class="fas fa-user-shield" style="font-size: 2rem; display: block; margin-bottom: 0.5rem; opacity: 0.5;"></i>
+                No active consents. Grant access below.
+            </p>
+        }
     </div>
+</div>
 
-    <!-- Grant Access -->
-    <div class="card-modern doctor-card">
-        <h3>🔐 Grant New Access</h3>
+<!-- Grant New Access -->
+<div class="profile-card">
+    <div class="profile-card-header">
+        <h3><i class="fas fa-plus-circle"></i> Grant New Access</h3>
+    </div>
+    <div class="profile-card-body">
+        @if (Model.AvailableDoctors != null && Model.AvailableDoctors.Any())
+        {
+            <form method="post" action="@Url.Action("GrantConsent", "Patient")">
+                @Html.AntiForgeryToken()
 
-        <div class="form-group">
-            <label><strong>Select Doctor</strong></label>
-            <select id="doctorSelect">
-                @if (Model.AvailableDoctors != null && Model.AvailableDoctors.Any())
-                {
-                    @foreach (var doctor in Model.AvailableDoctors)
-                    {
-                        <option value="@doctor.DoctorID">@doctor.FullName - @doctor.Email</option>
-                    }
-                }
-                else
-                {
-                    <option value="">No doctors available</option>
-                }
-            </select>
-        </div>
+                <div class="form-group">
+                    <label>Select Doctor</label>
+                    <select name="doctorId" required>
+                        <option value="">-- Select a doctor --</option>
+                        @foreach (var doctor in Model.AvailableDoctors)
+                        {
+                            <option value="@doctor.DoctorID">@doctor.FullName - @doctor.Specialization</option>
+                        }
+                    </select>
+                </div>
 
-        <div class="form-group">
-            <label><strong>Select Test Requests to Share</strong></label>
-            <div style="border:1px solid #E2E8F0; border-radius:12px; padding:10px; max-height:150px; overflow-y:auto;">
-                @if (Model.AvailableTestRequests != null && Model.AvailableTestRequests.Any())
-                {
-                    @foreach (var request in Model.AvailableTestRequests)
-                    {
-                        <label style="display:block; padding:4px 0;">
-                            <input type="checkbox" name="testRequests" value="@request.TestRequestID">
-                            REQ-@request.TestRequestID - @request.RequestDate.ToString("dd MMM yyyy") (@request.Status)
-                        </label>
-                    }
-                }
-                else
-                {
-                    <span style="color:#9CA3AF;">No test requests available</span>
-                }
-            </div>
-        </div>
+                <div class="form-group">
+                    <label>Notes (Optional)</label>
+                    <textarea name="notes" rows="3" placeholder="e.g., Full access to all results"></textarea>
+                </div>
 
-        <div class="form-group">
-            <label><strong>Notes (Optional)</strong></label>
-            <textarea id="consentNotes" rows="2" placeholder="Add any notes..."></textarea>
-        </div>
-
-        <button class="btn-sm-lab" onclick="grantConsent()">Grant Access</button>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-check"></i> Grant Access
+                </button>
+            </form>
+        }
+        else
+        {
+            <p class="no-data">
+                <i class="fas fa-user-slash" style="font-size: 2rem; display: block; margin-bottom: 0.5rem; opacity: 0.5;"></i>
+                No doctors available to grant access to.
+            </p>
+        }
     </div>
 </div>
 
 <script>
-    function grantConsent() {
-        var doctorId = document.getElementById('doctorSelect').value;
-        if (!doctorId) {
-            alert('Please select a doctor');
-            return;
-        }
-        alert('✅ Access granted successfully');
-    }
-
     function confirmRevoke(doctorName, consentId) {
         if (confirm('Are you sure you want to revoke access from ' + doctorName + '?')) {
-            alert('🚫 Access revoked successfully');
+            fetch('@Url.Action("RevokeConsent", "Patient")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'consentId=' + consentId
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(err => alert('Error: ' + err));
         }
-    }
-
-    function showDemoAlert(msg) {
-        alert('✅ ' + msg);
     }
 </script>

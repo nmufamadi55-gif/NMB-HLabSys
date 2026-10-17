@@ -200,7 +200,12 @@
         <div><h3>@Model.Medications?.Count ?? 0</h3><p>Medications</p></div>
     </div>
 </div>
-
+<!-- Download PDF Button -->
+<div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
+    <a href="@Url.Action("DownloadMedicalHistoryPDF", "Patient")" class="btn-primary">
+        <i class="fas fa-download"></i> Download Medical History PDF
+    </a>
+</div>
 <!-- Conditions -->
 <div class="card-modern history-section">
     <h3>
