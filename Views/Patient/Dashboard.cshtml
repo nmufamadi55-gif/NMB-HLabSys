@@ -5,84 +5,143 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "My Health Portal";
     ViewData["RoleSubtitle"] = "Patient Portal";
-    ViewData["UserGreeting"] = $"🩺 {Model.FullName} (ID: {Model.SAIDNumber})";
+    ViewData["UserGreeting"] = $"{Model.FullName} (ID: {Model.SAIDNumber})";
     ViewData["UserInitials"] = Model.FirstName.Substring(0, 1) + Model.LastName.Substring(0, 1);
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Patient")" class="active">📋 My Results</a></li>
-    <li><a href="@Url.Action("MedicalHistory", "Patient")">📝 Medical History</a></li>
-    <li><a href="@Url.Action("Consent", "Patient")">🔐 Consent Management</a></li>
-    <li><a href="@Url.Action("Trends", "Patient")">📈 Track Trends</a></li>
-    <li>
-        <a href="@Url.Action("Index", "Profile")">
-            <i class="fas fa-user-circle"></i>
-            <span>My Profile</span>
-        </a>
-    </li>
+    <li><a href="@Url.Action("Dashboard", "Patient")" class="active"><i class="fas fa-notes-medical"></i> <span>My Results</span></a></li>
+    <li><a href="@Url.Action("MedicalHistory", "Patient")"><i class="fas fa-history"></i> <span>Medical History</span></a></li>
+    <li><a href="@Url.Action("Consent", "Patient")"><i class="fas fa-hand-peace"></i> <span>Consent</span></a></li>
+    <li><a href="@Url.Action("Trends", "Patient")"><i class="fas fa-chart-line"></i> <span>Trends</span></a></li>
+    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
 <style>
-    .dashboard-card {
-        transition: 0.25s;
+    .profile-card {
+        background: white;
+        border-radius: 20px;
+        border: 1px solid #E2E8F0;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
     }
 
-        .dashboard-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    .profile-card-header {
+        background: linear-gradient(135deg, #F8FAFE, #FFFFFF);
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #E2E8F0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+        .profile-card-header h3 {
+            margin: 0;
+            color: #032C7D;
+            font-size: 1.1rem;
         }
 
-    .health-score {
-        background: linear-gradient(135deg, #2C8C6E, #4ADE80);
-        color: white;
-        border-radius: 20px;
-        padding: 20px;
-        margin-top: 1rem;
+    .profile-card-body {
+        padding: 1.5rem;
     }
 
-    .mini-chart {
-        height: 120px;
-        background: #F4F7FC;
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .stat-box {
+        background: #F8FAFE;
         border-radius: 16px;
+        padding: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.2s;
+    }
+
+        .stat-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(8,65,201,0.08);
+        }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #0841C9, #1D97F1);
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 1rem 0;
-        flex-direction: column;
+        color: white;
+        font-size: 1.2rem;
+        flex-shrink: 0;
     }
 
+    .stat-info h3 {
+        margin: 0;
+        color: #032C7D;
+        font-size: 1.6rem;
+        font-weight: 700;
+    }
+
+    .stat-info p {
+        margin: 0;
+        color: #5A6E7A;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    .health-score-box {
+        background: linear-gradient(135deg, #032C7D, #0841C9);
+        color: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+    }
+
+        .health-score-box h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1rem;
+            color: white;
+        }
+
+        .health-score-box .score {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .health-score-box .status-msg {
+            margin: 0.5rem 0 0 0;
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
     .progress-container {
-        background: #E2E8F0;
+        background: rgba(255,255,255,0.2);
         border-radius: 20px;
         height: 10px;
         overflow: hidden;
         margin-top: 10px;
     }
 
-    .progress-bar-green {
+    .progress-bar-white {
         height: 10px;
-        background: #22C55E;
-    }
-
-    .progress-bar-orange {
-        height: 10px;
-        background: #F59E0B;
-    }
-
-    .abnormal-row {
-        background: #FEF2F2;
+        background: #4ADE80;
     }
 
     .status-pill {
-        padding: 5px 12px;
+        display: inline-block;
+        padding: 4px 12px;
         border-radius: 20px;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: 600;
     }
 
     .status-normal {
-        background: #DCFCE7;
-        color: #166534;
+        background: #D1FAE5;
+        color: #065F46;
     }
 
     .status-warning {
@@ -94,76 +153,213 @@
         background: #FEE2E2;
         color: #991B1B;
     }
+
+    .abnormal-row {
+        background: #FEF2F2;
+    }
+
+    .activity-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+
+        .activity-table thead th {
+            text-align: left;
+            padding: 10px 12px;
+            color: #5A6E7A;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #E2E8F0;
+        }
+
+        .activity-table tbody td {
+            padding: 12px;
+            color: #1F2937;
+            border-bottom: 1px solid #F3F4F6;
+        }
+
+        .activity-table tbody tr:hover {
+            background: #F8FAFE;
+        }
+
+    .btn-primary {
+        background: #0841C9;
+        color: white;
+        border: none;
+        padding: 0.5rem 1.2rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+        .btn-primary:hover {
+            background: #032C7D;
+            color: white;
+        }
+
+    .btn-outline {
+        background: transparent;
+        border: 1px solid #E2E8F0;
+        padding: 0.4rem 1rem;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        color: #032C7D;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        transition: all 0.2s;
+    }
+
+        .btn-outline:hover {
+            background: #F8FAFE;
+            border-color: #0841C9;
+            color: #0841C9;
+        }
+
+    .upcoming-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #F8FAFE;
+        padding: 12px 16px;
+        border-radius: 12px;
+        margin-bottom: 8px;
+        font-size: 0.85rem;
+    }
+
+    .no-data {
+        text-align: center;
+        color: #9CA3AF;
+        padding: 2rem;
+        font-size: 0.85rem;
+    }
+
+    .alert-success {
+        background: #D1FAE5;
+        color: #065F46;
+        padding: 0.8rem 1rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .alert-error {
+        background: #FEE2E2;
+        color: #991B1B;
+        padding: 0.8rem 1rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    @@media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
 </style>
 
-<!-- Stats -->
-<div class="stat-cards">
-    <div class="stat-item dashboard-card">
-        <div class="stat-icon-lg">📋</div>
-        <div>
-            <h3>@Model.TotalTestRequests</h3>
-            <p>Total Tests</p>
-        </div>
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert-success">
+        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
     </div>
-    <div class="stat-item dashboard-card">
-        <div class="stat-icon-lg">⚠️</div>
-        <div>
-            <h3>@Model.AbnormalResultsCount</h3>
-            <p>Abnormal Results</p>
-        </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert-error">
+        <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
     </div>
-    <div class="stat-item dashboard-card">
-        <div class="stat-icon-lg">📄</div>
-        <div>
-            <h3>@Model.ReportsAvailable</h3>
-            <p>Reports Available</p>
+}
+
+<!-- STAT CARDS -->
+<div class="profile-card">
+    <div class="profile-card-header">
+        <h3><i class="fas fa-chart-bar"></i> Health Overview</h3>
+    </div>
+    <div class="profile-card-body">
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-icon"><i class="fas fa-vial"></i></div>
+                <div class="stat-info">
+                    <h3>@Model.TotalTestRequests</h3>
+                    <p>Total Tests</p>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="stat-info">
+                    <h3>@Model.AbnormalResultsCount</h3>
+                    <p>Abnormal Results</p>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
+                <div class="stat-info">
+                    <h3>@Model.ReportsAvailable</h3>
+                    <p>Reports Available</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Health Score -->
-<div class="health-score">
-    <h3>💚 Overall Health Status</h3>
-    <h1 style="margin-top:10px;">@Model.HealthScore%</h1>
-    <p>@Model.HealthStatusMessage</p>
+<!-- HEALTH SCORE -->
+<div class="health-score-box">
+    <h3><i class="fas fa-heartbeat"></i> Overall Health Status</h3>
+    <p class="score">@Model.HealthScore%</p>
+    <p class="status-msg">@Model.HealthStatusMessage</p>
     <div class="progress-container">
-        <div class="progress-bar-green" style="width: @Model.HealthScore%;"></div>
+        <div class="progress-bar-white" style="width: @Model.HealthScore%;"></div>
     </div>
 </div>
 
-<!-- Test Results -->
-<div class="card-modern">
-    <div class="card-header-flex">
-        <h3>📋 Recent Test Results</h3>
-        <button class="btn-outline-lab" onclick="showDemoAlert('All reports downloaded successfully')">
-            Download All
-        </button>
+<!-- TEST RESULTS -->
+<div class="profile-card" style="margin-top: 1.5rem;">
+    <div class="profile-card-header">
+        <h3><i class="fas fa-notes-medical"></i> Recent Test Results</h3>
+        <a href="@Url.Action("DownloadTestResultsPDF", "Patient")" class="btn-primary">
+            <i class="fas fa-download"></i> Download PDF
+        </a>
     </div>
-
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Test Name</th>
-                    <th>Result</th>
-                    <th>Normal Range</th>
-                    <th>Status</th>
-                    <th>Doctor</th>
-                    <th>Report</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model.RecentTestResults != null && Model.RecentTestResults.Any())
-                {
+    <div class="profile-card-body" style="padding: 0;">
+        @if (Model.RecentTestResults != null && Model.RecentTestResults.Any())
+        {
+            <table class="activity-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Test Name</th>
+                        <th>Result</th>
+                        <th>Normal Range</th>
+                        <th>Status</th>
+                        <th>Doctor</th>
+                    </tr>
+                </thead>
+                <tbody>
                     @foreach (var test in Model.RecentTestResults)
                     {
                         <tr class="@(test.IsAbnormal ? "abnormal-row" : "")">
-                            <td>@test.RequestDate.ToString("yyyy-MM-dd")</td>
-                            <td>@test.TestName</td>
-                            <td>
-                                <strong>@test.ResultValue</strong>
-                            </td>
+                            <td>@test.RequestDate.ToString("dd MMM yyyy")</td>
+                            <td><strong>@test.TestName</strong></td>
+                            <td>@test.ResultValue</td>
                             <td>@test.NormalRange</td>
                             <td>
                                 @{
@@ -176,433 +372,63 @@
                                 <span class="status-pill @statusClass">@test.Status</span>
                             </td>
                             <td>@test.DoctorName</td>
-                            <td>
-                                <button class="btn-sm-lab" onclick="showDemoAlert('PDF report downloaded successfully')">
-                                    PDF
-                                </button>
-                            </td>
                         </tr>
                     }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="7" style="text-align:center; padding:2rem; color:#9CA3AF;">
-                            No test results found
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p class="no-data">
+                <i class="fas fa-inbox" style="font-size: 2rem; display: block; margin-bottom: 0.5rem; opacity: 0.5;"></i>
+                No test results found
+            </p>
+        }
     </div>
 </div>
 
-<!-- Bottom Cards -->
-<div class="grid-2col">
-    <!-- Trends -->
-    <div class="card-modern dashboard-card">
-        <h3>📊 Health Summary</h3>
-        <div class="mini-chart">
-            <div style="font-size:2rem;">📈</div>
-            <p>
-                Cholesterol Trend:
-                <strong>@Model.CholesterolTrend</strong>
-            </p>
-            <div class="progress-container" style="width:80%;">
-                <div class="progress-bar-orange" style="width:75%;"></div>
-            </div>
+<!-- TRENDS + UPCOMING -->
+<div class="profile-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
+    <div class="profile-card">
+        <div class="profile-card-header">
+            <h3><i class="fas fa-chart-line"></i> Health Trends</h3>
         </div>
-        <button class="btn-outline-lab" onclick="window.location.href='@Url.Action("Trends", "Patient")'">
-            View Full Trends
-        </button>
+        <div class="profile-card-body">
+            <p style="color: #5A6E7A; font-size: 0.85rem;">
+                Track your test results over time to see how your health is progressing.
+            </p>
+            <p style="color: #032C7D; font-weight: 600; margin: 1rem 0;">
+                Latest trend: <strong>@Model.CholesterolTrend</strong>
+            </p>
+            <a href="@Url.Action("Trends", "Patient")" class="btn-primary">
+                <i class="fas fa-chart-line"></i> View Full Trends
+            </a>
+        </div>
     </div>
 
-    <!-- Pending -->
-    <div class="card-modern dashboard-card">
-        <h3>📅 Upcoming / Pending Tests</h3>
-        <ul style="margin-top:1rem;">
+    <div class="profile-card">
+        <div class="profile-card-header">
+            <h3><i class="fas fa-calendar-alt"></i> Upcoming Tests</h3>
+        </div>
+        <div class="profile-card-body">
             @if (Model.UpcomingTests != null && Model.UpcomingTests.Any())
             {
                 @foreach (var test in Model.UpcomingTests)
                 {
-                    <li>
-                        🔬 @test.TestName
-                        <br />
-                        <small>@test.RequestDate.ToString("MMM dd, yyyy")</small>
-                    </li>
-                    <br />
+                    <div class="upcoming-item">
+                        <div>
+                            <strong style="color: #032C7D;">@test.TestName</strong>
+                            <br />
+                            <small style="color: #5A6E7A;">@test.RequestDate.ToString("dd MMM yyyy")</small>
+                        </div>
+                        <i class="fas fa-flask" style="color: #0841C9;"></i>
+                    </div>
                 }
             }
             else
             {
-                <li style="color:#9CA3AF;">No upcoming tests</li>
+                <p class="no-data">No upcoming tests</p>
             }
-        </ul>
-        <button class="btn-outline-lab" style="margin-top:1rem;" onclick="showDemoAlert('New test request submitted successfully')">
-            Request New Test
-        </button>
-    </div>
-</div>
-
-<script>
-    function showDemoAlert(msg) {
-        alert('✅ ' + msg);
-    }
-</script>
-@* @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "My Health Portal";
-    ViewData["RoleSubtitle"] = "Patient Portal";
-    ViewData["UserGreeting"] = $"🩺 {@ViewBag.PatientName} (ID: {@ViewBag.PatientID})";
-    ViewData["UserInitials"] = "TM";
-}
-
-@section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Patient")" class="active">📋 My Results</a></li>
-    <li><a href="@Url.Action("MedicalHistory", "Patient")">📝 Medical History</a></li>
-    <li><a href="@Url.Action("Consent", "Patient")">🔐 Consent Management</a></li>
-    <li><a href="@Url.Action("Trends", "Patient")">📈 Track Trends</a></li>
-    <li>
-        <a href="@Url.Action("Index", "Profile")">
-            <i class="fas fa-user-circle"></i>
-            <span>My Profile</span>
-        </a>
-    </li>
-}
-
-<style>
-
-    .dashboard-card {
-        transition: 0.25s;
-    }
-
-        .dashboard-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-        }
-
-    .health-score {
-        background: linear-gradient(135deg, #2C8C6E, #4ADE80);
-        color: white;
-        border-radius: 20px;
-        padding: 20px;
-        margin-top: 1rem;
-    }
-
-    .mini-chart {
-        height: 120px;
-        background: #F4F7FC;
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 1rem 0;
-        flex-direction: column;
-    }
-
-    .progress-container {
-        background: #E2E8F0;
-        border-radius: 20px;
-        height: 10px;
-        overflow: hidden;
-        margin-top: 10px;
-    }
-
-    .progress-bar-green {
-        height: 10px;
-        width: 82%;
-        background: #22C55E;
-    }
-
-    .progress-bar-orange {
-        height: 10px;
-        width: 65%;
-        background: #F59E0B;
-    }
-
-    .abnormal-row {
-        background: #FEF2F2;
-    }
-
-    .status-pill {
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-
-    .status-normal {
-        background: #DCFCE7;
-        color: #166534;
-    }
-
-    .status-warning {
-        background: #FEF3C7;
-        color: #92400E;
-    }
-</style>
-
-<!-- Stats -->
-
-<div class="stat-cards">
-
-    <div class="stat-item dashboard-card">
-        <div class="stat-icon-lg">📋</div>
-        <div>
-            <h3>6</h3>
-            <p>Total Tests</p>
         </div>
     </div>
-
-    <div class="stat-item dashboard-card">
-        <div class="stat-icon-lg">⚠️</div>
-        <div>
-            <h3>1</h3>
-            <p>Abnormal Results</p>
-        </div>
-    </div>
-
-    <div class="stat-item dashboard-card">
-        <div class="stat-icon-lg">📄</div>
-        <div>
-            <h3>4</h3>
-            <p>Reports Available</p>
-        </div>
-    </div>
-
 </div>
-
-<!-- Health Score -->
-
-<div class="health-score">
-
-    <h3>💚 Overall Health Status</h3>
-
-    <h1 style="margin-top:10px;">82%</h1>
-
-    <p>Stable condition with improving cholesterol levels.</p>
-
-    <div class="progress-container">
-        <div class="progress-bar-green"></div>
-    </div>
-
-</div>
-
-<!-- Test Results -->
-
-<div class="card-modern">
-
-    <div class="card-header-flex">
-
-        <h3>📋 Recent Test Results</h3>
-
-        <button class="btn-outline-lab"
-                onclick="showDemoAlert('All reports downloaded successfully')">
-            Download All
-        </button>
-
-    </div>
-
-    <div class="table-container">
-
-        <table>
-
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Test Name</th>
-                    <th>Result</th>
-                    <th>Normal Range</th>
-                    <th>Status</th>
-                    <th>Doctor</th>
-                    <th>Report</th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-                <tr>
-                    <td>2025-04-05</td>
-                    <td>Full Blood Count - Haemoglobin</td>
-                    <td>13.2 g/dL</td>
-                    <td>12-16 g/dL</td>
-
-                    <td>
-                        <span class="status-pill status-normal">
-                            Normal
-                        </span>
-                    </td>
-
-                    <td>Dr. Sarah Johnson</td>
-
-                    <td>
-                        <button class="btn-sm-lab"
-                                onclick="showDemoAlert('PDF report downloaded successfully')">
-                            PDF
-                        </button>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>2025-04-05</td>
-                    <td>Full Blood Count - WCC</td>
-                    <td>7.5 x10³/µL</td>
-                    <td>4-11 x10³/µL</td>
-
-                    <td>
-                        <span class="status-pill status-normal">
-                            Normal
-                        </span>
-                    </td>
-
-                    <td>Dr. Sarah Johnson</td>
-
-                    <td>
-                        <button class="btn-sm-lab"
-                                onclick="showDemoAlert('PDF report downloaded successfully')">
-                            PDF
-                        </button>
-                    </td>
-                </tr>
-
-                <tr class="abnormal-row">
-
-                    <td>2025-03-20</td>
-
-                    <td>
-                        <strong>Lipid Profile - Cholesterol</strong>
-                    </td>
-
-                    <td>
-                        <strong>5.2 mmol/L</strong>
-                    </td>
-
-                    <td>&lt;5.0 mmol/L</td>
-
-                    <td>
-                        <span class="status-pill status-warning">
-                            Borderline High
-                        </span>
-                    </td>
-
-                    <td>Dr. Michael Brown</td>
-
-                    <td>
-                        <button class="btn-sm-lab"
-                                onclick="showDemoAlert('Doctor report opened successfully')">
-                            View
-                        </button>
-                    </td>
-
-                </tr>
-
-                <tr>
-
-                    <td>2025-03-20</td>
-
-                    <td>Lipid Profile - Triglycerides</td>
-
-                    <td>1.8 mmol/L</td>
-
-                    <td>&lt;1.7 mmol/L</td>
-
-                    <td>
-                        <span class="status-pill status-warning">
-                            Elevated
-                        </span>
-                    </td>
-
-                    <td>Dr. Michael Brown</td>
-
-                    <td>
-                        <button class="btn-sm-lab"
-                                onclick="showDemoAlert('PDF report downloaded successfully')">
-                            PDF
-                        </button>
-                    </td>
-
-                </tr>
-
-            </tbody>
-
-        </table>
-
-    </div>
-
-</div>
-
-<!-- Bottom Cards -->
-
-<div class="grid-2col">
-
-    <!-- Trends -->
-
-    <div class="card-modern dashboard-card">
-
-        <h3>📊 Health Summary</h3>
-
-        <div class="mini-chart">
-
-            <div style="font-size:2rem;">📈</div>
-
-            <p>
-                Cholesterol Trend:
-                <strong>6.2 → 5.8 → 5.5 → 5.2</strong>
-            </p>
-
-            <div class="progress-container" style="width:80%;">
-                <div class="progress-bar-orange"></div>
-            </div>
-
-        </div>
-
-        <button class="btn-outline-lab"
-                onclick="showDemoAlert('Detailed trend analysis opened successfully')">
-            View Full Trends
-        </button>
-
-    </div>
-
-    <!-- Pending -->
-
-    <div class="card-modern dashboard-card">
-
-        <h3>📅 Upcoming / Pending Tests</h3>
-
-        <ul style="margin-top:1rem;">
-
-            <li>
-                🔬 FBC Follow-up
-                <br />
-                <small>Requested Apr 10, 2025</small>
-            </li>
-
-            <br />
-
-            <li>
-                🩸 Lipid Profile
-                <br />
-                <small>Due for annual check (May 2025)</small>
-            </li>
-
-        </ul>
-
-        <button class="btn-outline-lab"
-                style="margin-top:1rem;"
-                onclick="showDemoAlert('New test request submitted successfully')">
-            Request New Test
-        </button>
-
-    </div>
-
-</div>
-
-<script>
-
-    function showDemoAlert(msg) {
-
-        alert('✅ ' + msg);
-
-    }
-
-</script> *@
