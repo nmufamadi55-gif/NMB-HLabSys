@@ -1,51 +1,64 @@
 ﻿@{
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    var role = Context.Session.GetString("UserRole");
+    var sessionName = Context.Session.GetString("UserName") ?? "";
+    var sessionEmail = Context.Session.GetString("UserEmail") ?? "";
+    
+    // Split name for the form fields if ViewBag isn't available
+    var nameParts = sessionName.Split(' ', 2);
+    var firstName = ViewBag.Name ?? (nameParts.Length > 0 ? nameParts[0] : "");
+    var lastName = ViewBag.Surname ?? (nameParts.Length > 1 ? nameParts[1] : "");
+    var email = ViewBag.Email ?? sessionEmail;
+    
+    // Dynamically assign layout based on role
+    Layout = role == "Manager" ? "~/Views/Shared/_ManagerLayout.cshtml" : "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "My Profile";
-    ViewData["RoleSubtitle"] = @ViewBag.UserRole + " Portal";
-    ViewData["UserGreeting"] = @ViewBag.UserGreeting;
-    ViewData["UserInitials"] = @ViewBag.UserInitials;
-    ViewData["UserName"] = @ViewBag.UserName;
+
+    if (role != "Manager")
+    {
+        ViewData["RoleSubtitle"] = role + " Portal";
+        ViewData["UserGreeting"] = $"Welcome back, {sessionName}";
+        ViewData["UserInitials"] = ViewBag.UserInitials ?? "U";
+        ViewData["UserName"] = sessionName;
+    }
 }
 
-@section SidebarMenu {
-    @if (ViewBag.UserRole == "Doctor")
-    {
-        <li><a href="@Url.Action("Dashboard", "Doctor")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
-        <li><a href="@Url.Action("TestRequests", "Doctor")"><i class="fas fa-notes-medical"></i> <span>Test Requests</span></a></li>
-        <li><a href="@Url.Action("Patients", "Doctor")"><i class="fas fa-users"></i> <span>My Patients</span></a></li>
-        <li><a href="@Url.Action("Alerts", "Doctor")"><i class="fas fa-bell"></i> <span>Alerts</span></a></li>
-        <li><a href="@Url.Action("Results", "Doctor")"><i class="fas fa-chart-line"></i> <span>Results</span></a></li>
-        <li><a href="@Url.Action("Reports", "Doctor")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
-        <li><a href="@Url.Action("Index", "Profile")" class="active"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
-    }
-    else if (ViewBag.UserRole == "Technician")
-    {
-        <li><a href="@Url.Action("Dashboard", "Technician")"><i class="fas fa-tachometer-alt"></i> <span>Workload</span></a></li>
-        <li><a href="@Url.Action("ReceiveSamples", "Technician")"><i class="fas fa-boxes"></i> <span>Receive Samples</span></a></li>
-        <li><a href="@Url.Action("PerformTests", "Technician")"><i class="fas fa-microscope"></i> <span>Perform Tests</span></a></li>
-        <li><a href="@Url.Action("Verification", "Technician")"><i class="fas fa-check-double"></i> <span>Verification</span></a></li>
-        <li><a href="@Url.Action("Index", "Profile")" class="active"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
-    }
-    @{
-        Layout = Context.Session.GetString("UserRole") == "Manager"
-            ? "~/Views/Shared/_ManagerLayout.cshtml"
-            : "~/Views/Shared/_Layout.cshtml";
-    }
-    else if (ViewBag.UserRole == "Patient")
-    {
-        <li><a href="@Url.Action("Dashboard", "Patient")"><i class="fas fa-notes-medical"></i> <span>My Results</span></a></li>
-        <li><a href="@Url.Action("MedicalHistory", "Patient")"><i class="fas fa-history"></i> <span>Medical History</span></a></li>
-        <li><a href="@Url.Action("Consent", "Patient")"><i class="fas fa-hand-peace"></i> <span>Consent</span></a></li>
-        <li><a href="@Url.Action("Trends", "Patient")"><i class="fas fa-chart-line"></i> <span>Trends</span></a></li>
-        <li><a href="@Url.Action("Index", "Profile")" class="active"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
-    }
-    else if (ViewBag.UserRole == "Admin")
-    {
-        <li><a href="@Url.Action("Dashboard", "Admin")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
-        <li><a href="@Url.Action("Conditions", "Admin")"><i class="fas fa-database"></i> <span>Conditions</span></a></li>
-        <li><a href="@Url.Action("Allergies", "Admin")"><i class="fas fa-allergies"></i> <span>Allergies</span></a></li>
-        <li><a href="@Url.Action("Medications", "Admin")"><i class="fas fa-capsules"></i> <span>Medications</span></a></li>
-        <li><a href="@Url.Action("Index", "Profile")" class="active"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+@if (role != "Manager")
+{
+    @section SidebarMenu {
+        @if (role == "Doctor")
+        {
+            <li><a href="@Url.Action("Dashboard", "Doctor")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+            <li><a href="@Url.Action("TestRequests", "Doctor")"><i class="fas fa-notes-medical"></i> <span>Test Requests</span></a></li>
+            <li><a href="@Url.Action("Patients", "Doctor")"><i class="fas fa-users"></i> <span>My Patients</span></a></li>
+            <li><a href="@Url.Action("Alerts", "Doctor")"><i class="fas fa-bell"></i> <span>Alerts</span></a></li>
+            <li><a href="@Url.Action("Results", "Doctor")"><i class="fas fa-chart-line"></i> <span>Results</span></a></li>
+            <li><a href="@Url.Action("Reports", "Doctor")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+            <li><a href="@Url.Action("Index", "Profile")" class="active"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+        }
+        else if (role == "Technician")
+        {
+            <li><a href="@Url.Action("Dashboard", "Technician")"><i class="fas fa-tachometer-alt"></i> <span>Workload</span></a></li>
+            <li><a href="@Url.Action("ReceiveSamples", "Technician")"><i class="fas fa-boxes"></i> <span>Receive Samples</span></a></li>
+            <li><a href="@Url.Action("PerformTests", "Technician")"><i class="fas fa-microscope"></i> <span>Perform Tests</span></a></li>
+            <li><a href="@Url.Action("Verification", "Technician")"><i class="fas fa-check-double"></i> <span>Verification</span></a></li>
+            <li><a href="@Url.Action("Index", "Profile")" class="active"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+        }
+        else if (role == "Patient")
+        {
+            <li><a href="@Url.Action("Dashboard", "Patient")"><i class="fas fa-notes-medical"></i> <span>My Results</span></a></li>
+            <li><a href="@Url.Action("MedicalHistory", "Patient")"><i class="fas fa-history"></i> <span>Medical History</span></a></li>
+            <li><a href="@Url.Action("Consent", "Patient")"><i class="fas fa-hand-peace"></i> <span>Consent</span></a></li>
+            <li><a href="@Url.Action("Trends", "Patient")"><i class="fas fa-chart-line"></i> <span>Trends</span></a></li>
+            <li><a href="@Url.Action("Index", "Profile")" class="active"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+        }
+        else if (role == "Admin")
+        {
+            <li><a href="@Url.Action("Dashboard", "Admin")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+            <li><a href="@Url.Action("Conditions", "Admin")"><i class="fas fa-database"></i> <span>Conditions</span></a></li>
+            <li><a href="@Url.Action("Allergies", "Admin")"><i class="fas fa-allergies"></i> <span>Allergies</span></a></li>
+            <li><a href="@Url.Action("Medications", "Admin")"><i class="fas fa-capsules"></i> <span>Medications</span></a></li>
+            <li><a href="@Url.Action("Index", "Profile")" class="active"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+        }
     }
 }
 
@@ -105,6 +118,21 @@
             border-color: #0841C9;
             box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
         }
+
+    /* Password Eye Icon Styling */
+    .password-wrapper { position: relative; }
+    .password-toggle {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #94A3B8;
+        background: none;
+        border: none;
+        padding: 0;
+    }
+    .password-toggle:hover { color: #0841C9; }
 
     .btn-primary {
         background: #0841C9;
@@ -246,24 +274,25 @@
         </div>
         <div class="profile-card-body">
             <form method="post" action="@Url.Action("UpdateProfile", "Profile")">
+                @Html.AntiForgeryToken()
                 <div class="row-2col">
                     <div class="form-group">
                         <label>First Name</label>
-                        <input type="text" name="name" class="form-control" value="@(ViewBag.UserName?.Split(' ')[0] ?? "")" placeholder="First name">
+                        <input type="text" name="name" class="form-control" value="@firstName" placeholder="First name" required>
                     </div>
                     <div class="form-group">
                         <label>Last Name</label>
-                        <input type="text" name="surname" class="form-control" value="@(ViewBag.UserName?.Split(' ').Length > 1 ? ViewBag.UserName.Split(' ')[1] : "")" placeholder="Last name">
+                        <input type="text" name="surname" class="form-control" value="@lastName" placeholder="Last name" required>
                     </div>
                 </div>
                 <div class="form-group">
                     <label>Email Address (Username)</label>
-                    <input type="email" name="email" class="form-control" value="@ViewBag.UserEmail" placeholder="email@example.com">
+                    <input type="email" name="email" class="form-control" value="@email" placeholder="email@example.com" required>
                     <small style="font-size:0.65rem; color:#5A6E7A;">This is your login username</small>
                 </div>
                 <div class="form-group">
                     <label>Phone Number</label>
-                    <input type="tel" name="phone" class="form-control" placeholder="082 123 4567">
+                    <input type="tel" name="phone" class="form-control" value="@ViewBag.ContactNumber" placeholder="082 123 4567">
                 </div>
                 <div class="form-group">
                     <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Save Changes</button>
@@ -279,13 +308,22 @@
         </div>
         <div class="profile-card-body">
             <form method="post" action="@Url.Action("ChangePassword", "Profile")">
+                @Html.AntiForgeryToken()
+                
                 <div class="form-group">
                     <label>Current Password</label>
-                    <input type="password" name="currentPassword" class="form-control" placeholder="Enter current password" required>
+                    <div class="password-wrapper">
+                        <input type="password" name="currentPassword" id="currentPassword" class="form-control" placeholder="Enter current password" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('currentPassword', 'eye1')"><i class="fas fa-eye" id="eye1"></i></button>
+                    </div>
                 </div>
+                
                 <div class="form-group">
                     <label>New Password</label>
-                    <input type="password" name="newPassword" id="newPassword" class="form-control" placeholder="Enter new password" required>
+                    <div class="password-wrapper">
+                        <input type="password" name="newPassword" id="newPassword" class="form-control" placeholder="Enter new password" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('newPassword', 'eye2')"><i class="fas fa-eye" id="eye2"></i></button>
+                    </div>
                     <div class="password-requirements" id="passwordRequirements">
                         <i class="fas fa-circle" style="font-size:0.5rem;" id="reqLength"></i> At least 8 characters<br>
                         <i class="fas fa-circle" style="font-size:0.5rem;" id="reqUpper"></i> One uppercase letter<br>
@@ -293,11 +331,16 @@
                         <i class="fas fa-circle" style="font-size:0.5rem;" id="reqSpecial"></i> One special character (!@@#$%^&*)
                     </div>
                 </div>
+                
                 <div class="form-group">
                     <label>Confirm New Password</label>
-                    <input type="password" name="confirmPassword" id="confirmPassword" class="form-control" placeholder="Confirm new password" required>
+                    <div class="password-wrapper">
+                        <input type="password" name="confirmPassword" id="confirmPassword" class="form-control" placeholder="Confirm new password" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword', 'eye3')"><i class="fas fa-eye" id="eye3"></i></button>
+                    </div>
                     <div id="matchMessage" class="password-requirements"></div>
                 </div>
+                
                 <div class="form-group">
                     <button type="submit" class="btn-primary" id="changePasswordBtn"><i class="fas fa-key"></i> Update Password</button>
                 </div>
@@ -306,7 +349,7 @@
     </div>
 </div>
 
-<div class="profile-card margin-top-0">
+<div class="profile-card margin-top-0" style="margin-top: 1.5rem;">
     <div class="profile-card-header">
         <h3><i class="fas fa-shield-alt"></i> Account Security</h3>
     </div>
@@ -325,14 +368,30 @@
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
             <div>
                 <strong>Recent Login Activity</strong><br>
-                <small style="color:#5A6E7A;">Last login: Today at 09:45 AM from Gqeberha, SA</small>
+                <small style="color:#5A6E7A;">Last login: Today from your current device</small>
             </div>
-            <button class="btn-outline" onclick="alert('View all login history')">View History</button>
+            <button type="button" class="btn-outline" onclick="alert('View all login history')">View History</button>
         </div>
     </div>
 </div>
 
 <script type="text/javascript">
+    // Eye Icon Toggle
+    function togglePassword(inputId, iconId) {
+        var input = document.getElementById(inputId);
+        var icon = document.getElementById(iconId);
+        
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.remove("fa-eye");
+            icon.classList.add("fa-eye-slash");
+        } else {
+            input.type = "password";
+            icon.classList.remove("fa-eye-slash");
+            icon.classList.add("fa-eye");
+        }
+    }
+
     function checkPasswordStrength() {
         var password = document.getElementById('newPassword').value;
 
@@ -346,26 +405,10 @@
         document.getElementById('reqNumber').style.color = numberOk ? '#10B981' : '#5A6E7A';
         document.getElementById('reqSpecial').style.color = specialOk ? '#10B981' : '#5A6E7A';
 
-        if (lengthOk) {
-            document.getElementById('reqLength').className = 'fas fa-check-circle';
-        } else {
-            document.getElementById('reqLength').className = 'fas fa-circle';
-        }
-        if (upperOk) {
-            document.getElementById('reqUpper').className = 'fas fa-check-circle';
-        } else {
-            document.getElementById('reqUpper').className = 'fas fa-circle';
-        }
-        if (numberOk) {
-            document.getElementById('reqNumber').className = 'fas fa-check-circle';
-        } else {
-            document.getElementById('reqNumber').className = 'fas fa-circle';
-        }
-        if (specialOk) {
-            document.getElementById('reqSpecial').className = 'fas fa-check-circle';
-        } else {
-            document.getElementById('reqSpecial').className = 'fas fa-circle';
-        }
+        document.getElementById('reqLength').className = lengthOk ? 'fas fa-check-circle' : 'fas fa-circle';
+        document.getElementById('reqUpper').className = upperOk ? 'fas fa-check-circle' : 'fas fa-circle';
+        document.getElementById('reqNumber').className = numberOk ? 'fas fa-check-circle' : 'fas fa-circle';
+        document.getElementById('reqSpecial').className = specialOk ? 'fas fa-check-circle' : 'fas fa-circle';
 
         return lengthOk && upperOk && numberOk && specialOk;
     }
@@ -397,7 +440,6 @@
         }
     }
 
-    // Attach event listeners
     document.getElementById('newPassword').oninput = function() {
         checkPasswordStrength();
         checkPasswordMatch();
