@@ -1,0 +1,92 @@
+﻿@{
+    Layout = null;
+    ViewData["Title"] = "Access Denied";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Denied - NMBHDL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #F5F7FC;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 3rem 2.5rem;
+            max-width: 440px;
+            text-align: center;
+            box-shadow: 0 25px 60px rgba(15, 23, 42, 0.15);
+        }
+
+        .icon {
+            width: 64px;
+            height: 64px;
+            background: #FEE2E2;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 1.8rem;
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            color: #0F172A;
+            font-weight: 700;
+            margin-bottom: 0.6rem;
+        }
+
+        p {
+            color: #64748B;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 1.8rem;
+        }
+
+        a {
+            display: inline-block;
+            background: linear-gradient(135deg, #2563EB, #06B6D4);
+            color: white;
+            padding: 0.8rem 1.8rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+            a:hover {
+                opacity: 0.9;
+            }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon">🚫</div>
+        <h1>Access Denied</h1>
+        <p>
+            You don't have permission to access this area.<br />
+            This subsystem isn't available for your account role.
+        </p>
+        <a href="@Url.Action("Login", "Account")">Back to Login</a>
+    </div>
+</body>
+</html>

@@ -51,10 +51,12 @@ namespace NMB_HLabSys.Controllers
                     return View(model);
                 }
 
-                if (user == null)
+                // ─── Silent rehash: upgrade legacy SHA256 → PBKDF2 on successful login ───
+                if (_passwordHasher.NeedsRehash(user.PasswordHash))
                 {
-                    ModelState.AddModelError("", "Invalid email or password");
-                    return View(model);
+                    user.PasswordHash = _passwordHasher.HashPassword(model.Password);
+                    user.ModifiedDate = DateTime.Now;
+                    await _context.SaveChangesAsync();
                 }
 
                 // Set session
@@ -65,25 +67,15 @@ namespace NMB_HLabSys.Controllers
 
                 // Redirect based on role
                 if (user.UserRole == "Patient")
-                {
                     return RedirectToAction("Dashboard", "Patient");
-                }
                 else if (user.UserRole == "Admin")
-                {
                     return RedirectToAction("Dashboard", "Admin");
-                }
                 else if (user.UserRole == "Doctor")
-                {
                     return RedirectToAction("Index", "Home");
-                }
                 else if (user.UserRole == "Technician")
-                {
                     return RedirectToAction("Index", "Home");
-                }
                 else if (user.UserRole == "Manager")
-                {
                     return RedirectToAction("Index", "LaboratoryManager");
-                }
 
                 return RedirectToAction("Index", "Home");
             }

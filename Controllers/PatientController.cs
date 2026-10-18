@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NMB_HLabSys.Data;
-using NMB_HLabSys.Helpers;
 using NMB_HLabSys.Models;
 using NMB_HLabSys.ViewModels.PatientViewModels;
 using NMB_HLabSys.Services;
@@ -16,12 +15,15 @@ namespace NMB_HLabSys.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IPdfReportService _pdfReportService;
+        private readonly IPasswordHasher _passwordHasher;
 
-        public PatientController(ApplicationDbContext context, IPdfReportService pdfReportService)
+        public PatientController(ApplicationDbContext context, IPdfReportService pdfReportService, IPasswordHasher passwordHasher)
         {
             _context = context;
             _pdfReportService = pdfReportService;
+            _passwordHasher = passwordHasher;
         }
+
         // GET LOGGED-IN PATIENT
         private async Task<Patient> GetLoggedInPatient()
         {
@@ -32,6 +34,7 @@ namespace NMB_HLabSys.Controllers
                 .Include(p => p.User)
                 .FirstOrDefaultAsync(p => p.UserID == userId.Value && p.IsActive);
         }
+
         // ============================================
         // DOWNLOAD TEST RESULTS PDF
         // ============================================
@@ -74,24 +77,20 @@ namespace NMB_HLabSys.Controllers
                 return RedirectToAction("MedicalHistory");
             }
         }
+
         // ============================================
-        // DASHBOARD - with real data
+        // DASHBOARD
         // ============================================
         public async Task<IActionResult> Dashboard()
         {
             var patient = await GetLoggedInPatient();
-            if (patient == null)
-            {
-                return RedirectToAction("Login", "Account");
-            }
+            if (patient == null) return RedirectToAction("Login", "Account");
 
             try
             {
-                // Count total test requests
                 var totalTests = await _context.TestRequests
                     .CountAsync(tr => tr.PatientID == patient.PatientID);
 
-                // Count abnormal results
                 var abnormalResults = await _context.TestResults
                     .Include(tr => tr.RequestTestType)
                         .ThenInclude(rtt => rtt.TestRequest)
@@ -101,7 +100,6 @@ namespace NMB_HLabSys.Controllers
                               && tr.IsAbnormal)
                     .CountAsync();
 
-                // Count completed test results (reports available)
                 var reportsAvailable = await _context.TestResults
                     .Include(tr => tr.RequestTestType)
                         .ThenInclude(rtt => rtt.TestRequest)
@@ -110,7 +108,6 @@ namespace NMB_HLabSys.Controllers
                               && tr.RequestTestType.TestRequest.PatientID == patient.PatientID)
                     .CountAsync();
 
-                // Get recent test results (last 5)
                 var recentResults = await _context.TestResults
                     .Include(tr => tr.RequestTestType)
                         .ThenInclude(rtt => rtt.TestType)
@@ -144,7 +141,6 @@ namespace NMB_HLabSys.Controllers
                     })
                     .ToListAsync();
 
-                // Get upcoming/pending tests
                 var upcomingTests = await _context.TestRequests
                     .Where(tr => tr.PatientID == patient.PatientID
                               && (tr.Status == "Submitted" || tr.Status == "Sample Received" || tr.Status == "In Progress"))
@@ -180,7 +176,6 @@ namespace NMB_HLabSys.Controllers
             }
             catch (Exception ex)
             {
-                // If anything fails, return empty dashboard
                 var viewModel = new PatientDashboardViewModel
                 {
                     PatientID = patient.PatientID,
@@ -203,9 +198,6 @@ namespace NMB_HLabSys.Controllers
             }
         }
 
-        // ============================================
-        // HELPER METHODS FOR DASHBOARD
-        // ============================================
         private int CalculateHealthScore(int abnormalCount, int totalResults)
         {
             if (totalResults == 0) return 100;
@@ -403,7 +395,6 @@ namespace NMB_HLabSys.Controllers
             return Json(new { success = true, message = "Condition added!" });
         }
 
-        // REMOVE CONDITION
         [HttpPost]
         public async Task<IActionResult> RemoveCondition(int patientConditionId)
         {
@@ -419,7 +410,6 @@ namespace NMB_HLabSys.Controllers
             return Json(new { success = true, message = "Condition removed!" });
         }
 
-        // ADD ALLERGY
         [HttpPost]
         public async Task<IActionResult> AddAllergy(int allergyId, string severity, string notes)
         {
@@ -442,7 +432,6 @@ namespace NMB_HLabSys.Controllers
             return Json(new { success = true, message = "Allergy added!" });
         }
 
-        // REMOVE ALLERGY
         [HttpPost]
         public async Task<IActionResult> RemoveAllergy(int patientAllergyId)
         {
@@ -458,7 +447,6 @@ namespace NMB_HLabSys.Controllers
             return Json(new { success = true, message = "Allergy removed!" });
         }
 
-        // ADD MEDICATION
         [HttpPost]
         public async Task<IActionResult> AddMedication(int medicationId, string dosage, string frequency, DateTime? startDate, DateTime? endDate, string notes)
         {
@@ -485,7 +473,6 @@ namespace NMB_HLabSys.Controllers
             return Json(new { success = true, message = "Medication added!" });
         }
 
-        // REMOVE MEDICATION
         [HttpPost]
         public async Task<IActionResult> RemoveMedication(int patientMedicationId)
         {
@@ -577,40 +564,23 @@ namespace NMB_HLabSys.Controllers
             await _context.SaveChangesAsync();
             return Json(new { success = true, message = "Consent revoked!" });
         }
-        // ============================================
-        // TRENDS (with real database data + date range)
-        // ============================================
+
+        // TRENDS
         public async Task<IActionResult> Trends(string testType = null, DateTime? fromDate = null, DateTime? toDate = null)
         {
             var patient = await GetLoggedInPatient();
-            if (patient == null)
-            {
-                return RedirectToAction("Login", "Account");
-            }
+            if (patient == null) return RedirectToAction("Login", "Account");
 
             var availableTestTypes = new List<string>
-    {
-        "Haemoglobin",
-        "Platelet",
-        "White Cell",
-        "Ferritin",
-        "Folate",
-        "Vitamin B12",
-        "Neutrophils",
-        "Lymphocytes",
-        "APTT",
-        "D-Dimer",
-        "ESR",
-        "INR"
-    };
+            {
+                "Haemoglobin", "Platelet", "White Cell", "Ferritin", "Folate",
+                "Vitamin B12", "Neutrophils", "Lymphocytes", "APTT", "D-Dimer", "ESR", "INR"
+            };
 
             var selectedType = testType ?? "Haemoglobin";
-
-            // ✅ Default date range: last 6 months
             var from = fromDate ?? DateTime.Now.AddMonths(-6);
             var to = toDate ?? DateTime.Now;
 
-            // Ensure from is before to
             if (from > to)
             {
                 var temp = from;
@@ -671,7 +641,9 @@ namespace NMB_HLabSys.Controllers
             return View(viewModel);
         }
 
-        // REGISTER
+        // ============================================
+        // REGISTER (FIXED — uses _passwordHasher)
+        // ============================================
         public IActionResult Register()
         {
             return View(new PatientRegistrationViewModel());
@@ -700,7 +672,7 @@ namespace NMB_HLabSys.Controllers
                 Name = model.FirstName.Trim(),
                 Surname = model.LastName.Trim(),
                 Email = model.Email.Trim().ToLower(),
-                PasswordHash = PasswordHelper.HashPassword(model.Password),
+                PasswordHash = _passwordHasher.HashPassword(model.Password),   // ✅ FIXED
                 UserRole = "Patient",
                 ContactNumber = model.Cellphone,
                 IsActive = true,
