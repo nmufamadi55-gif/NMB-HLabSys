@@ -24,155 +24,272 @@
             --border: #E2E8F0;
         }
 
-        body {
+        html, body {
+            height: 100%;
             font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            position: relative;
             overflow: hidden;
-            background: #F5F7FC;
         }
 
-        body::before {
-            content: '';
+        /* ─── Video background behind everything ─── */
+        .login-video {
             position: fixed;
-            inset: 0;
-            background:
-                radial-gradient(circle at 15% 20%, rgba(37, 99, 235, 0.20), transparent 45%),
-                radial-gradient(circle at 85% 15%, rgba(6, 182, 212, 0.18), transparent 45%),
-                radial-gradient(circle at 80% 85%, rgba(124, 58, 237, 0.14), transparent 45%),
-                radial-gradient(circle at 20% 90%, rgba(5, 150, 105, 0.12), transparent 45%);
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
             z-index: 0;
         }
 
-        .login-card {
-            position: relative;
+        .login-overlay {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(
+                135deg,
+                rgba(15, 23, 42, 0.75) 0%,
+                rgba(15, 23, 42, 0.55) 50%,
+                rgba(37, 99, 235, 0.45) 100%
+            );
             z-index: 1;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.9);
-            border-radius: 24px;
-            max-width: 440px;
-            width: 100%;
-            box-shadow: 0 25px 60px rgba(15, 23, 42, 0.15);
-            overflow: hidden;
         }
 
-        .login-header {
-            padding: 2.4rem 2.4rem 1.2rem;
-            text-align: center;
-            border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+        /* ─── Centering wrapper ─── */
+        .login-wrap {
             position: relative;
+            z-index: 2;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
         }
 
-        .login-header::before {
+        /* ─── Split-screen card ─── */
+        .login-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            width: 100%;
+            max-width: 960px;
+            height: 580px;
+            border-radius: 28px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(20px);
+            animation: cardIn 0.5s ease-out;
+        }
+
+        @@keyframes cardIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ─── Left panel: picture ─── */
+        .login-visual {
+            position: relative;
+            background-image: url('https://images.unsplash.com/photo-1579154204601-01588f351e67?w=1000&q=80');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 2.5rem;
+            color: white;
+        }
+
+        .login-visual::before {
             content: '';
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 4px;
-            background: var(--accent-grad);
+            inset: 0;
+            background: linear-gradient(
+                to top,
+                rgba(15, 23, 42, 0.92) 0%,
+                rgba(37, 99, 235, 0.55) 50%,
+                rgba(6, 182, 212, 0.25) 100%
+            );
         }
 
-        .logo-icon {
-            width: 56px; height: 56px;
-            margin: 0 auto 1rem;
-            border-radius: 16px;
-            display: flex; align-items: center; justify-content: center;
-            background: var(--accent-grad);
-            color: white;
-            font-size: 1.5rem;
-            box-shadow: 0 10px 24px rgba(37, 99, 235, 0.35);
+        .visual-content {
+            position: relative;
+            z-index: 1;
         }
 
-        .login-header h1 {
-            font-size: 1.5rem;
-            color: var(--text-primary);
+        .visual-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(10px);
+            padding: 0.4rem 0.9rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 1.2rem;
+        }
+
+        .visual-content h2 {
+            font-size: 2rem;
             font-weight: 800;
+            line-height: 1.15;
             letter-spacing: -0.02em;
+            margin-bottom: 0.8rem;
         }
 
-        .login-header p {
+        .visual-content p {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.9);
+            max-width: 320px;
+        }
+
+        .visual-logo {
+            position: absolute;
+            top: 2rem;
+            left: 2.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1;
+            color: white;
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+
+        .visual-logo i {
+            width: 36px; height: 36px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.95rem;
+        }
+
+        /* ─── Right panel: form ─── */
+        .login-form-panel {
+            padding: 3rem 2.8rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .back-home {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.8rem;
             color: var(--text-secondary);
-            font-size: 0.82rem;
-            margin-top: 0.3rem;
+            text-decoration: none;
+            font-size: 0.78rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            transition: 0.2s;
+        }
+
+        .back-home:hover { color: #2563EB; }
+
+        .form-head { margin-bottom: 1.8rem; }
+
+        .form-head h1 {
+            font-size: 1.7rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            margin-bottom: 0.4rem;
+        }
+
+        .form-head p {
+            color: var(--text-secondary);
+            font-size: 0.88rem;
             line-height: 1.5;
         }
 
-        .login-body { padding: 1.8rem 2.4rem 2.4rem; }
-
-        .form-group { margin-bottom: 1.1rem; }
+        .form-group { margin-bottom: 1rem; }
 
         .form-group label {
             display: block;
             font-weight: 600;
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             color: #334155;
             margin-bottom: 0.4rem;
         }
 
-        .form-group input[type="email"],
-        .form-group input[type="password"],
-        .form-group input[type="text"] {
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-wrap i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94A3B8;
+            font-size: 0.85rem;
+        }
+
+        .input-wrap input {
             width: 100%;
-            padding: 0.8rem 1rem;
+            padding: 0.85rem 1rem 0.85rem 2.6rem;
             border: 1px solid var(--border);
             border-radius: 10px;
             font-size: 0.92rem;
             font-family: inherit;
+            background: #F8FAFC;
             transition: 0.2s;
-            background: white;
         }
 
-        .form-group input:focus {
+        .input-wrap input:focus {
             outline: none;
+            background: white;
             border-color: #2563EB;
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
         }
 
         .field-error {
             color: #DC2626;
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             margin-top: 0.3rem;
             display: block;
         }
 
-        .forgot-link {
-            text-align: right;
-            margin-bottom: 1rem;
-            font-size: 0.8rem;
+        .form-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.3rem;
+            font-size: 0.82rem;
         }
-
-        .forgot-link a {
-            color: #2563EB;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .forgot-link a:hover { text-decoration: underline; }
 
         .remember-row {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 1.2rem;
+            gap: 7px;
         }
 
         .remember-row input[type="checkbox"] {
-            width: 16px; height: 16px;
+            width: 15px; height: 15px;
             accent-color: #2563EB;
             cursor: pointer;
         }
 
         .remember-row label {
-            font-size: 0.85rem;
             color: var(--text-secondary);
             font-weight: 500;
             cursor: pointer;
             margin: 0;
         }
+
+        .forgot-link {
+            color: #2563EB;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .forgot-link:hover { text-decoration: underline; }
 
         .btn-login {
             width: 100%;
@@ -186,18 +303,22 @@
             cursor: pointer;
             transition: 0.2s;
             font-family: inherit;
-            box-shadow: 0 8px 22px rgba(37, 99, 235, 0.32);
+            box-shadow: 0 8px 22px rgba(37, 99, 235, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
         .btn-login:hover {
             transform: translateY(-1px);
-            box-shadow: 0 12px 28px rgba(37, 99, 235, 0.42);
+            box-shadow: 0 12px 28px rgba(37, 99, 235, 0.45);
         }
 
         .alert {
-            padding: 0.8rem 1rem;
+            padding: 0.75rem 1rem;
             border-radius: 10px;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             margin-bottom: 1rem;
             display: flex;
             align-items: flex-start;
@@ -207,110 +328,148 @@
         .alert-success { background: #DCFCE7; color: #166534; border-left: 4px solid #059669; }
         .alert-error { background: #FEE2E2; color: #991B1B; border-left: 4px solid #DC2626; }
 
-        .login-footer {
-            margin-top: 1.4rem;
-            padding-top: 1.2rem;
-            border-top: 1px solid rgba(226, 232, 240, 0.7);
+        .form-footer {
+            margin-top: 1.5rem;
+            padding-top: 1.3rem;
+            border-top: 1px solid var(--border);
             text-align: center;
             font-size: 0.85rem;
             color: var(--text-secondary);
         }
 
-        .login-footer a { color: #2563EB; text-decoration: none; font-weight: 600; }
-        .login-footer a:hover { text-decoration: underline; }
-
-        .back-home {
-            position: absolute;
-            top: 1.5rem;
-            left: 1.5rem;
-            z-index: 2;
-            color: var(--text-secondary);
+        .form-footer a {
+            color: #2563EB;
             text-decoration: none;
-            font-size: 0.85rem;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.5rem 1rem;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            transition: 0.2s;
+            font-weight: 600;
         }
 
-        .back-home:hover { color: #2563EB; border-color: #2563EB; }
+        .form-footer a:hover { text-decoration: underline; }
+
+        /* ─── Responsive ─── */
+        @@media (max-width: 860px) {
+            html, body { overflow: auto; }
+            .login-split {
+                grid-template-columns: 1fr;
+                height: auto;
+                max-height: none;
+            }
+            .login-visual {
+                min-height: 220px;
+                padding: 2rem;
+            }
+            .visual-logo { position: static; margin-bottom: 1.5rem; }
+            .visual-content h2 { font-size: 1.5rem; }
+            .login-form-panel { padding: 2rem; }
+        }
 
         @@media (max-width: 480px) {
-            .login-header, .login-body { padding-left: 1.5rem; padding-right: 1.5rem; }
+            .login-wrap { padding: 1rem; }
+            .login-form-panel { padding: 1.8rem 1.5rem; }
+            .form-head h1 { font-size: 1.4rem; }
         }
     </style>
 </head>
 <body>
-    <a href="@Url.Action("Index", "Home")" class="back-home">
-        <i class="fas fa-arrow-left"></i> Back to Home
-    </a>
 
-    <div class="login-card">
-        <div class="login-header">
-            <div class="logo-icon"><i class="fas fa-microscope"></i></div>
-            <h1>NMBHDL</h1>
-            <p>Nelson Mandela Bay Haematology Diagnostic Laboratories</p>
-        </div>
+    <!-- ─── Video background ─── -->
+    <video autoplay muted loop playsinline class="login-video">
+        <source src="~/videos/262188_medium.mp4" type="video/mp4">
+    </video>
+    <div class="login-overlay"></div>
 
-        <div class="login-body">
-            @if (TempData["SuccessMessage"] != null)
-            {
-                <div class="alert alert-success">
-                    <i class="fas fa-check-circle" style="margin-top:2px;"></i>
-                    <span>@TempData["SuccessMessage"]</span>
+    <!-- ─── Centered split-screen ─── -->
+    <div class="login-wrap">
+        <div class="login-split">
+
+            <!-- Left: picture panel -->
+            <div class="login-visual">
+                <div class="visual-logo">
+                    <i class="fas fa-microscope"></i>
+                    <span>NMBHDL</span>
                 </div>
-            }
 
-            @if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Any()))
-            {
-                <div class="alert alert-error">
-                    <i class="fas fa-exclamation-circle" style="margin-top:2px;"></i>
-                    <div>
-                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-                        {
-                            <div>@error.ErrorMessage</div>
-                        }
+                <div class="visual-content">
+                    <div class="visual-badge">
+                        <i class="fas fa-shield-alt"></i> Secure Access
                     </div>
+                    <h2>Welcome back to your lab portal.</h2>
+                    <p>Access verified haematology results, track trends, and manage consent — all in one secure place.</p>
                 </div>
-            }
-
-            <form method="post" asp-action="Login">
-                @Html.AntiForgeryToken()
-
-                <div class="form-group">
-                    <label asp-for="Email">Email Address</label>
-                    <input asp-for="Email" type="email" placeholder="you@email.com" required autocomplete="email" />
-                    <span asp-validation-for="Email" class="field-error"></span>
-                </div>
-
-                <div class="form-group">
-                    <label asp-for="Password">Password</label>
-                    <input asp-for="Password" type="password" placeholder="Enter your password" required autocomplete="current-password" />
-                    <span asp-validation-for="Password" class="field-error"></span>
-                </div>
-
-                <div class="forgot-link">
-                    <a href="@Url.Action("ForgotPassword", "Account")">Forgot password?</a>
-                </div>
-
-                <div class="remember-row">
-                    <input asp-for="RememberMe" type="checkbox" id="rememberMe" />
-                    <label asp-for="RememberMe" for="rememberMe">Remember me</label>
-                </div>
-
-                <button type="submit" class="btn-login">Sign In</button>
-            </form>
-
-            <div class="login-footer">
-                Don't have an account? <a href="@Url.Action("Register", "Patient")">Register as Patient</a>
             </div>
+
+            <!-- Right: login form -->
+            <div class="login-form-panel">
+                <a href="@Url.Action("Index", "Home")" class="back-home">
+                    <i class="fas fa-arrow-left"></i> Back to Home
+                </a>
+
+                <div class="form-head">
+                    <h1>Sign In</h1>
+                    <p>Enter your credentials to continue.</p>
+                </div>
+
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle" style="margin-top:2px;"></i>
+                        <span>@TempData["SuccessMessage"]</span>
+                    </div>
+                }
+
+                @if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Any()))
+                {
+                    <div class="alert alert-error">
+                        <i class="fas fa-exclamation-circle" style="margin-top:2px;"></i>
+                        <div>
+                            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            {
+                                <div>@error.ErrorMessage</div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <form method="post" asp-action="Login">
+                    @Html.AntiForgeryToken()
+
+                    <div class="form-group">
+                        <label asp-for="Email">Email Address</label>
+                        <div class="input-wrap">
+                            <i class="fas fa-envelope"></i>
+                            <input asp-for="Email" type="email" placeholder="you@email.com" required autocomplete="email" />
+                        </div>
+                        <span asp-validation-for="Email" class="field-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Password">Password</label>
+                        <div class="input-wrap">
+                            <i class="fas fa-lock"></i>
+                            <input asp-for="Password" type="password" placeholder="Enter your password" required autocomplete="current-password" />
+                        </div>
+                        <span asp-validation-for="Password" class="field-error"></span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="remember-row">
+                            <input asp-for="RememberMe" type="checkbox" id="rememberMe" />
+                            <label asp-for="RememberMe" for="rememberMe">Remember me</label>
+                        </div>
+                        <a href="@Url.Action("ForgotPassword", "Account")" class="forgot-link">Forgot password?</a>
+                    </div>
+
+                    <button type="submit" class="btn-login">
+                        <i class="fas fa-sign-in-alt"></i> Sign In
+                    </button>
+                </form>
+
+                <div class="form-footer">
+                    Don't have an account? <a href="@Url.Action("Register", "Patient")">Register as Patient</a>
+                </div>
+            </div>
+
         </div>
     </div>
+
 </body>
 </html>
