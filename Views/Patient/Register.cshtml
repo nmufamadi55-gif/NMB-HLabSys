@@ -12,236 +12,683 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NMBHDL - Patient Registration</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --accent-grad: linear-gradient(135deg, #2563EB 0%, #06B6D4 100%);
+            --text-primary: #0F172A;
+            --text-secondary: #475569;
+            --border: #E2E8F0;
         }
 
-        body {
+        html, body {
+            height: 100%;
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0F172A, #1E293B);
+            overflow: hidden;
+        }
+
+        .register-video {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            z-index: 0;
+        }
+
+        .register-overlay {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(
+                135deg,
+                rgba(15, 23, 42, 0.78) 0%,
+                rgba(15, 23, 42, 0.6) 50%,
+                rgba(37, 99, 235, 0.5) 100%
+            );
+            z-index: 1;
+        }
+
+        .register-wrap {
+            position: relative;
+            z-index: 2;
             min-height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
-            padding: 20px;
+            justify-content: center;
+            padding: 2rem;
         }
 
-        .register-container {
-            background: white;
-            border-radius: 24px;
-            padding: 40px;
-            max-width: 520px;
+        .register-split {
+            display: grid;
+            grid-template-columns: 1fr 1.15fr;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-height: 90vh;
+            max-width: 1080px;
+            height: 88vh;
+            max-height: 720px;
+            border-radius: 28px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+            animation: cardIn 0.5s ease-out;
+        }
+
+        @@keyframes cardIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .register-visual {
+            position: relative;
+            background-image: url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1000&q=80');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 2.5rem;
+            color: white;
+        }
+
+        .register-visual::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                to top,
+                rgba(15, 23, 42, 0.94) 0%,
+                rgba(37, 99, 235, 0.6) 55%,
+                rgba(6, 182, 212, 0.3) 100%
+            );
+        }
+
+        .visual-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .visual-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(10px);
+            padding: 0.4rem 0.9rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 1.2rem;
+        }
+
+        .visual-content h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.8rem;
+        }
+
+        .visual-content p {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.9);
+            max-width: 320px;
+        }
+
+        .visual-logo {
+            position: absolute;
+            top: 2rem;
+            left: 2.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1;
+            color: white;
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+
+        .visual-logo i {
+            width: 36px; height: 36px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.95rem;
+        }
+
+        .register-form-panel {
+            padding: 2.5rem 2.8rem;
+            display: flex;
+            flex-direction: column;
             overflow-y: auto;
+            position: relative;
         }
 
-        .logo {
-            text-align: center;
-            margin-bottom: 24px;
+        .register-form-panel::-webkit-scrollbar { width: 6px; }
+        .register-form-panel::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 3px;
         }
 
-            .logo h1 {
-                font-size: 24px;
-                color: #0F172A;
-                font-weight: 700;
-            }
-
-            .logo p {
-                color: #64748B;
-                font-size: 14px;
-                margin-top: 4px;
-            }
-
-        .form-group {
-            margin-bottom: 16px;
+        .back-home {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.8rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.78rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            transition: 0.2s;
+            z-index: 1;
         }
 
-            .form-group label {
-                display: block;
-                font-weight: 500;
-                font-size: 14px;
-                color: #334155;
-                margin-bottom: 4px;
-            }
+        .back-home:hover { color: #2563EB; }
 
-            .form-group input {
-                width: 100%;
-                padding: 10px 14px;
-                border: 1px solid #E2E8F0;
-                border-radius: 10px;
-                font-size: 14px;
-                transition: 0.2s;
-            }
+        .form-head { margin-bottom: 1.6rem; }
 
-                .form-group input:focus {
-                    outline: none;
-                    border-color: #4F46E5;
-                    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-                }
+        .form-head h1 {
+            font-size: 1.7rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            margin-bottom: 0.4rem;
+        }
+
+        .form-head p {
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            line-height: 1.5;
+        }
+
+        .form-group { margin-bottom: 0.95rem; }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #334155;
+            margin-bottom: 0.35rem;
+        }
+
+        .required { color: #DC2626; }
+
+        .input-wrap { position: relative; }
+
+        .input-wrap i.input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94A3B8;
+            font-size: 0.85rem;
+            pointer-events: none;
+        }
+
+        .input-wrap input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.6rem;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            background: #F8FAFC;
+            transition: 0.2s;
+        }
+
+        .input-wrap input:focus {
+            outline: none;
+            background: white;
+            border-color: #2563EB;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        .input-wrap.password-wrap input {
+            padding-right: 3rem;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #64748B;
+            cursor: pointer;
+            font-size: 0.95rem;
+            padding: 0.3rem;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .password-toggle:hover { color: #2563EB; }
+
+        .field-error {
+            color: #DC2626;
+            font-size: 0.75rem;
+            margin-top: 0.3rem;
+            display: block;
+        }
 
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 16px;
+            gap: 12px;
         }
+
+        .alert {
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            font-size: 0.82rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .alert-success { background: #DCFCE7; color: #166534; border-left: 4px solid #059669; }
+        .alert-error { background: #FEE2E2; color: #991B1B; border-left: 4px solid #DC2626; }
+
+        .password-hint {
+            font-size: 0.7rem;
+            color: #64748B;
+            margin-top: 0.25rem;
+            display: block;
+        }
+
+        /* DOB field turns green when auto-filled from SA ID */
+        .input-wrap input.auto-filled {
+            background: #ECFDF5;
+            border-color: #10B981;
+            color: #065F46;
+            font-weight: 600;
+        }
+
+        .dob-badge {
+            display: none;
+            font-size: 0.68rem;
+            color: #059669;
+            font-weight: 600;
+            margin-top: 0.25rem;
+        }
+
+        .dob-badge.visible { display: block; }
 
         .btn-register {
             width: 100%;
-            padding: 14px;
-            background: #4F46E5;
+            padding: 0.9rem;
+            background: var(--accent-grad);
             color: white;
             border: none;
-            border-radius: 12px;
-            font-size: 16px;
+            border-radius: 10px;
+            font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
             transition: 0.2s;
-            margin-top: 8px;
+            font-family: inherit;
+            box-shadow: 0 8px 22px rgba(37, 99, 235, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
         }
 
-            .btn-register:hover {
-                background: #4338CA;
-            }
+        .btn-register:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 28px rgba(37, 99, 235, 0.45);
+        }
 
-        .login-link {
+        .btn-register:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .form-footer {
+            margin-top: 1.3rem;
+            padding-top: 1.2rem;
+            border-top: 1px solid var(--border);
             text-align: center;
-            margin-top: 16px;
-            font-size: 14px;
-            color: #64748B;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
         }
 
-            .login-link a {
-                color: #4F46E5;
-                text-decoration: none;
-                font-weight: 500;
+        .form-footer a {
+            color: #2563EB;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .form-footer a:hover { text-decoration: underline; }
+
+        @@media (max-width: 900px) {
+            html, body { overflow: auto; }
+            .register-split {
+                grid-template-columns: 1fr;
+                height: auto;
+                max-height: none;
             }
-
-                .login-link a:hover {
-                    text-decoration: underline;
-                }
-
-        .error-message {
-            background: #FEE2E2;
-            color: #991B1B;
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 14px;
-            margin-bottom: 16px;
+            .register-visual {
+                min-height: 220px;
+                padding: 2rem;
+            }
+            .visual-logo { position: static; margin-bottom: 1.5rem; }
+            .visual-content h2 { font-size: 1.5rem; }
+            .register-form-panel { padding: 2rem; }
         }
 
-        .validation-error {
-            color: #DC2626;
-            font-size: 13px;
-            margin-top: 2px;
-        }
-
-        .alert-success {
-            background: #DCFCE7;
-            color: #166534;
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 14px;
-            margin-bottom: 16px;
-        }
-
-        .required {
-            color: #DC2626;
+        @@media (max-width: 480px) {
+            .register-wrap { padding: 1rem; }
+            .register-form-panel { padding: 1.8rem 1.5rem; }
+            .form-head h1 { font-size: 1.4rem; }
+            .form-row { grid-template-columns: 1fr; gap: 0; }
         }
     </style>
 </head>
 <body>
-    <div class="register-container">
-        <div class="logo">
-            <h1>🏥 NMBHDL</h1>
-            <p>Patient Registration</p>
-        </div>
 
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <div class="alert-success">✅ @TempData["SuccessMessage"]</div>
-        }
+    <video autoplay muted loop playsinline class="register-video">
+        <source src="~/videos/262188_medium.mp4" type="video/mp4">
+    </video>
+    <div class="register-overlay"></div>
 
-        @if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Any()))
-        {
-            <div class="error-message">
-                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+    <div class="register-wrap">
+        <div class="register-split">
+
+            <div class="register-visual">
+                <div class="visual-logo">
+                    <i class="fas fa-microscope"></i>
+                    <span>NMBHDL</span>
+                </div>
+
+                <div class="visual-content">
+                    <div class="visual-badge">
+                        <i class="fas fa-heartbeat"></i> Patient Portal
+                    </div>
+                    <h2>Your health, in your hands.</h2>
+                    <p>Create your account to view verified results, track your health trends, and share securely with your doctor.</p>
+                </div>
+            </div>
+
+            <div class="register-form-panel">
+                <a href="@Url.Action("Index", "Home")" class="back-home">
+                    <i class="fas fa-arrow-left"></i> Back to Home
+                </a>
+
+                <div class="form-head">
+                    <h1>Create your account</h1>
+                    <p>Join the patient portal in under a minute.</p>
+                </div>
+
+                @if (TempData["SuccessMessage"] != null)
                 {
-                    <div>❌ @error.ErrorMessage</div>
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle" style="margin-top:2px;"></i>
+                        <span>@TempData["SuccessMessage"]</span>
+                    </div>
                 }
-            </div>
-        }
 
-        <form method="post" asp-action="Register">
-            @Html.AntiForgeryToken()
+                @if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Any()))
+                {
+                    <div class="alert alert-error">
+                        <i class="fas fa-exclamation-circle" style="margin-top:2px;"></i>
+                        <div>
+                            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            {
+                                <div>@error.ErrorMessage</div>
+                            }
+                        </div>
+                    </div>
+                }
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label asp-for="FirstName">First Name <span class="required">*</span></label>
-                    <input asp-for="FirstName" placeholder="Enter first name" required />
-                    <span asp-validation-for="FirstName" class="validation-error"></span>
+                <form method="post" asp-action="Register" id="registerForm">
+                    @Html.AntiForgeryToken()
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label asp-for="FirstName">First Name <span class="required">*</span></label>
+                            <div class="input-wrap">
+                                <i class="fas fa-user input-icon"></i>
+                                <input asp-for="FirstName" placeholder="First name" required autocomplete="given-name" />
+                            </div>
+                            <span asp-validation-for="FirstName" class="field-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="LastName">Last Name <span class="required">*</span></label>
+                            <div class="input-wrap">
+                                <i class="fas fa-user input-icon"></i>
+                                <input asp-for="LastName" placeholder="Last name" required autocomplete="family-name" />
+                            </div>
+                            <span asp-validation-for="LastName" class="field-error"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="SAIDNumber">SA ID Number <span class="required">*</span></label>
+                        <div class="input-wrap">
+                            <i class="fas fa-id-card input-icon"></i>
+                            <input asp-for="SAIDNumber" id="saIdInput"
+                                   placeholder="13 digits (e.g. 8001015009087)"
+                                   pattern="[0-9]{13}" maxlength="13" inputmode="numeric"
+                                   title="SA ID must be exactly 13 digits"
+                                   required autocomplete="off" />
+                        </div>
+                        <span asp-validation-for="SAIDNumber" class="field-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Email">Email Address <span class="required">*</span></label>
+                        <div class="input-wrap">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input asp-for="Email" type="email" placeholder="you@email.com"
+                                   required autocomplete="email" />
+                        </div>
+                        <span asp-validation-for="Email" class="field-error"></span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label asp-for="Cellphone">Cellphone <span class="required">*</span></label>
+                            <div class="input-wrap">
+                                <i class="fas fa-phone input-icon"></i>
+                                <input asp-for="Cellphone" placeholder="0821234567"
+                                       pattern="[0-9]{10}" maxlength="10" inputmode="numeric"
+                                       title="Cellphone must be exactly 10 digits"
+                                       required autocomplete="tel" />
+                            </div>
+                            <span asp-validation-for="Cellphone" class="field-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="DateOfBirth">Date of Birth <span class="required">*</span></label>
+                            <div class="input-wrap">
+                                <i class="fas fa-calendar input-icon"></i>
+                                <input asp-for="DateOfBirth" id="dobInput" type="date" required
+                                       max="@DateTime.Now.ToString("yyyy-MM-dd")"
+                                       min="1900-01-01" />
+                            </div>
+                            <span class="dob-badge" id="dobBadge">
+                                <i class="fas fa-magic"></i> Auto-filled from your SA ID
+                            </span>
+                            <span asp-validation-for="DateOfBirth" class="field-error"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="HomeAddress">Home Address</label>
+                        <div class="input-wrap">
+                            <i class="fas fa-map-marker-alt input-icon"></i>
+                            <input asp-for="HomeAddress" placeholder="123 Street, City" autocomplete="street-address" />
+                        </div>
+                        <span asp-validation-for="HomeAddress" class="field-error"></span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label asp-for="Password">Password <span class="required">*</span></label>
+                            <div class="input-wrap password-wrap">
+                                <i class="fas fa-lock input-icon"></i>
+                                <input asp-for="Password" type="password" id="passwordInput"
+                                       placeholder="Create a password" required
+                                       minlength="8" autocomplete="new-password" />
+                                <button type="button" class="password-toggle" id="togglePassword"
+                                        aria-label="Show password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <span class="password-hint">Min 8 characters, include uppercase & number</span>
+                            <span asp-validation-for="Password" class="field-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="ConfirmPassword">Confirm Password <span class="required">*</span></label>
+                            <div class="input-wrap password-wrap">
+                                <i class="fas fa-lock input-icon"></i>
+                                <input asp-for="ConfirmPassword" type="password" id="confirmPasswordInput"
+                                       placeholder="Confirm password" required
+                                       minlength="8" autocomplete="new-password" />
+                                <button type="button" class="password-toggle" id="toggleConfirmPassword"
+                                        aria-label="Show password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="ConfirmPassword" class="field-error"></span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-register" id="registerBtn">
+                        <i class="fas fa-user-plus"></i> Create Account
+                    </button>
+                </form>
+
+                <div class="form-footer">
+                    Already have an account? <a href="@Url.Action("Login", "Account")">Login here</a>
                 </div>
-                <div class="form-group">
-                    <label asp-for="LastName">Last Name <span class="required">*</span></label>
-                    <input asp-for="LastName" placeholder="Enter last name" required />
-                    <span asp-validation-for="LastName" class="validation-error"></span>
-                </div>
             </div>
 
-            <div class="form-group">
-                <label asp-for="SAIDNumber">SA ID Number <span class="required">*</span></label>
-                <input asp-for="SAIDNumber" placeholder="8001015009087" required />
-                <span asp-validation-for="SAIDNumber" class="validation-error"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Email">Email Address <span class="required">*</span></label>
-                <input asp-for="Email" type="email" placeholder="you@email.com" required />
-                <span asp-validation-for="Email" class="validation-error"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Cellphone">Cellphone <span class="required">*</span></label>
-                <input asp-for="Cellphone" placeholder="0821234567" required />
-                <span asp-validation-for="Cellphone" class="validation-error"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="DateOfBirth">Date of Birth <span class="required">*</span></label>
-                <input asp-for="DateOfBirth" type="date" required />
-                <span asp-validation-for="DateOfBirth" class="validation-error"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="HomeAddress">Home Address</label>
-                <input asp-for="HomeAddress" placeholder="123 Street, City" />
-                <span asp-validation-for="HomeAddress" class="validation-error"></span>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label asp-for="Password">Password <span class="required">*</span></label>
-                    <input asp-for="Password" type="password" placeholder="Min 8 chars" required />
-                    <span asp-validation-for="Password" class="validation-error"></span>
-                </div>
-                <div class="form-group">
-                    <label asp-for="ConfirmPassword">Confirm Password <span class="required">*</span></label>
-                    <input asp-for="ConfirmPassword" type="password" placeholder="Confirm password" required />
-                    <span asp-validation-for="ConfirmPassword" class="validation-error"></span>
-                </div>
-            </div>
-
-            <button type="submit" class="btn-register">Create Account</button>
-        </form>
-
-        <div class="login-link">
-            Already have an account? <a href="@Url.Action("Login", "Account")">Login here</a>
         </div>
     </div>
+
+    <script>
+        // ─── Password show/hide toggles ───
+        function setupPasswordToggle(toggleId, inputId) {
+            const toggle = document.getElementById(toggleId);
+            const input = document.getElementById(inputId);
+            if (!toggle || !input) return;
+
+            toggle.addEventListener('click', function () {
+                const isPassword = input.type === 'password';
+                input.type = isPassword ? 'text' : 'password';
+                const icon = toggle.querySelector('i');
+                icon.classList.toggle('fa-eye', !isPassword);
+                icon.classList.toggle('fa-eye-slash', isPassword);
+                toggle.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+            });
+        }
+
+        setupPasswordToggle('togglePassword', 'passwordInput');
+        setupPasswordToggle('toggleConfirmPassword', 'confirmPasswordInput');
+
+        // ─── SA ID → DOB auto-fill ───
+        const saIdInput = document.getElementById('saIdInput');
+        const dobInput = document.getElementById('dobInput');
+        const dobBadge = document.getElementById('dobBadge');
+
+        function extractDobFromSaId(saId) {
+            if (!/^\d{13}$/.test(saId)) return null;
+
+            const yy = parseInt(saId.substring(0, 2), 10);
+            const mm = parseInt(saId.substring(2, 4), 10);
+            const dd = parseInt(saId.substring(4, 6), 10);
+
+            const currentYY = new Date().getFullYear() % 100;
+            const century = yy <= currentYY ? 2000 : 1900;
+            const fullYear = century + yy;
+
+            const date = new Date(fullYear, mm - 1, dd);
+            if (
+                date.getFullYear() !== fullYear ||
+                date.getMonth() !== mm - 1 ||
+                date.getDate() !== dd
+            ) {
+                return null;
+            }
+
+            return `${fullYear}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+        }
+
+        saIdInput.addEventListener('input', function () {
+            this.value = this.value.replace(/\D/g, '').slice(0, 13);
+
+            if (this.value.length === 13) {
+                const dob = extractDobFromSaId(this.value);
+                if (dob) {
+                    dobInput.value = dob;
+                    dobInput.classList.add('auto-filled');
+                    dobBadge.classList.add('visible');
+                } else {
+                    dobInput.value = '';
+                    dobInput.classList.remove('auto-filled');
+                    dobBadge.classList.remove('visible');
+                }
+            } else {
+                dobInput.classList.remove('auto-filled');
+                dobBadge.classList.remove('visible');
+            }
+        });
+
+        // If the user manually edits DOB, drop the "auto-filled" style
+        dobInput.addEventListener('change', function () {
+            const fromId = extractDobFromSaId(saIdInput.value);
+            if (fromId !== this.value) {
+                this.classList.remove('auto-filled');
+                dobBadge.classList.remove('visible');
+            }
+        });
+
+        // ─── Confirm password + DOB vs ID checks before submit ───
+        document.getElementById('registerForm').addEventListener('submit', function (e) {
+            const pwd = document.getElementById('passwordInput').value;
+            const confirm = document.getElementById('confirmPasswordInput').value;
+
+            if (pwd !== confirm) {
+                e.preventDefault();
+                alert('Passwords do not match. Please check and try again.');
+                document.getElementById('confirmPasswordInput').focus();
+                return false;
+            }
+
+            const dob = extractDobFromSaId(saIdInput.value);
+            if (!dob) {
+                e.preventDefault();
+                alert('Please enter a valid 13-digit SA ID number with a real date of birth.');
+                saIdInput.focus();
+                return false;
+            }
+
+            if (dobInput.value !== dob) {
+                e.preventDefault();
+                alert('Date of Birth does not match the SA ID number. Please check the ID or update the date.');
+                dobInput.focus();
+                return false;
+            }
+        });
+
+        // ─── Cellphone: digits only ───
+        document.querySelector('input[name="Cellphone"]').addEventListener('input', function () {
+            this.value = this.value.replace(/\D/g, '').slice(0, 10);
+        });
+    </script>
+
 </body>
 </html>

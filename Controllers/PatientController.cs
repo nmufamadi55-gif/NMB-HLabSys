@@ -7,6 +7,7 @@ using NMB_HLabSys.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace NMB_HLabSys.Controllers
@@ -642,7 +643,7 @@ namespace NMB_HLabSys.Controllers
         }
 
         // ============================================
-        // REGISTER (FIXED — uses _passwordHasher)
+        // REGISTER (validates DOB against SA ID)
         // ============================================
         public IActionResult Register()
         {
@@ -655,6 +656,23 @@ namespace NMB_HLabSys.Controllers
         {
             if (!ModelState.IsValid) return View(model);
 
+            // ─── DOB must match SA ID ───
+            var expectedDob = ExtractDobFromSaId(model.SAIDNumber);
+            if (expectedDob == null)
+            {
+                ModelState.AddModelError("SAIDNumber",
+                    "SA ID number is not valid — it must be 13 digits with a real date of birth.");
+                return View(model);
+            }
+
+            if (model.DateOfBirth.Date != expectedDob.Value.Date)
+            {
+                ModelState.AddModelError("DateOfBirth",
+                    $"Date of birth must match the SA ID number (the ID indicates {expectedDob.Value:yyyy-MM-dd}).");
+                return View(model);
+            }
+
+            // ─── Uniqueness checks ───
             if (await _context.Users.AnyAsync(u => u.Email == model.Email))
             {
                 ModelState.AddModelError("Email", "Email already registered");
@@ -667,12 +685,13 @@ namespace NMB_HLabSys.Controllers
                 return View(model);
             }
 
+            // ─── Create user (PBKDF2 hash) ───
             var user = new User
             {
                 Name = model.FirstName.Trim(),
                 Surname = model.LastName.Trim(),
                 Email = model.Email.Trim().ToLower(),
-                PasswordHash = _passwordHasher.HashPassword(model.Password),   // ✅ FIXED
+                PasswordHash = _passwordHasher.HashPassword(model.Password),
                 UserRole = "Patient",
                 ContactNumber = model.Cellphone,
                 IsActive = true,
@@ -688,7 +707,7 @@ namespace NMB_HLabSys.Controllers
                 FirstName = model.FirstName.Trim(),
                 LastName = model.LastName.Trim(),
                 SAIDNumber = model.SAIDNumber,
-                DateOfBirth = model.DateOfBirth,
+                DateOfBirth = expectedDob.Value.Date,   // use verified DOB from ID
                 Cellphone = model.Cellphone,
                 HomeAddress = model.HomeAddress?.Trim(),
                 Email = model.Email.Trim().ToLower(),
@@ -699,6 +718,30 @@ namespace NMB_HLabSys.Controllers
 
             TempData["SuccessMessage"] = "Registration successful! Please login.";
             return RedirectToAction("Login", "Account");
+        }
+
+        // ─── Extract DOB from SA ID ───
+        private DateTime? ExtractDobFromSaId(string saId)
+        {
+            if (string.IsNullOrWhiteSpace(saId) || !Regex.IsMatch(saId, @"^\d{13}$"))
+                return null;
+
+            int yy = int.Parse(saId.Substring(0, 2));
+            int mm = int.Parse(saId.Substring(2, 2));
+            int dd = int.Parse(saId.Substring(4, 2));
+
+            // Century rule: 00–currentYY → 2000s, otherwise 1900s
+            int currentYY = DateTime.Now.Year % 100;
+            int fullYear = (yy <= currentYY ? 2000 : 1900) + yy;
+
+            try
+            {
+                return new DateTime(fullYear, mm, dd);
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 
