@@ -7,144 +7,67 @@
 
 <style>
     .order-toolbar {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        align-items: center;
-        padding: 0.75rem 1rem;
-        background: var(--gray-50);
-        border-radius: var(--radius-md);
-        margin-bottom: 0.75rem;
+        display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+        padding: 0.75rem 1rem; background: var(--gray-50);
+        border-radius: var(--radius-md); margin-bottom: 0.75rem;
     }
-
-        .order-toolbar .search {
-            flex: 1;
-            min-width: 220px;
-            max-width: 340px;
-            position: relative;
-        }
-
-            .order-toolbar .search input {
-                width: 100%;
-                padding-left: 2rem;
-                background: white;
-            }
-
-            .order-toolbar .search i {
-                position: absolute;
-                left: 0.75rem;
-                top: 50%;
-                transform: translateY(-50%);
-                color: var(--gray-400);
-                font-size: 0.85rem;
-            }
-
+    .order-toolbar .search { flex: 1; min-width: 220px; max-width: 340px; position: relative; }
+    .order-toolbar .search input { width: 100%; padding-left: 2rem; background: white; }
+    .order-toolbar .search i {
+        position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%);
+        color: var(--gray-400); font-size: 0.85rem;
+    }
     .filter-chip {
-        padding: 0.35rem 0.85rem;
-        border-radius: var(--radius-pill);
-        background: white;
-        color: var(--gray-700);
-        font-size: 0.75rem;
-        font-weight: 500;
-        border: 1px solid var(--gray-200);
-        cursor: pointer;
+        padding: 0.35rem 0.85rem; border-radius: var(--radius-pill);
+        background: white; color: var(--gray-700);
+        font-size: 0.75rem; font-weight: 500;
+        border: 1px solid var(--gray-200); cursor: pointer;
         transition: all 0.15s;
     }
+    .filter-chip:hover { border-color: var(--brand-500); color: var(--brand-700); }
+    .filter-chip.active { background: var(--brand-gradient); color: white; border-color: transparent; }
 
-        .filter-chip:hover {
-            border-color: var(--brand-500);
-            color: var(--brand-700);
-        }
-
-        .filter-chip.active {
-            background: var(--brand-gradient);
-            color: white;
-            border-color: transparent;
-        }
-
-    .item-row {
-        transition: background 0.15s;
+    .item-row { transition: background 0.15s; }
+    .item-row.selected { background: var(--brand-50); }
+    .item-row input[type="checkbox"] {
+        width: 18px; height: 18px; accent-color: var(--brand-700); cursor: pointer;
     }
-
-        .item-row.selected {
-            background: var(--brand-50);
-        }
-
-        .item-row input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: var(--brand-700);
-            cursor: pointer;
-        }
-
     .item-qty {
-        width: 80px;
-        padding: 0.35rem 0.5rem;
-        border: 1px solid var(--gray-200);
-        border-radius: 6px;
-        font-size: 0.85rem;
-        text-align: center;
+        width: 80px; padding: 0.35rem 0.5rem;
+        border: 1px solid var(--gray-200); border-radius: 6px;
+        font-size: 0.85rem; text-align: center;
         font-variant-numeric: tabular-nums;
     }
-
-        .item-qty:disabled {
-            background: var(--gray-100);
-            color: var(--gray-400);
-        }
-
+    .item-qty:disabled { background: var(--gray-100); color: var(--gray-400); }
     .stock-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-        font-size: 0.7rem;
-        font-weight: 500;
+        display: inline-flex; align-items: center; gap: 0.25rem;
+        font-size: 0.7rem; font-weight: 500;
     }
-
-    .stock-critical {
-        color: var(--danger-fg);
-    }
-
-    .stock-low {
-        color: var(--warning-fg);
-    }
-
-    .stock-normal {
-        color: var(--success-fg);
-    }
+    .stock-critical { color: var(--danger-fg); }
+    .stock-low { color: var(--warning-fg); }
+    .stock-normal { color: var(--success-fg); }
 
     .order-summary-bar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 1rem;
+        display: flex; align-items: center; justify-content: space-between;
+        flex-wrap: wrap; gap: 1rem;
         padding: 0.85rem 1rem;
         background: linear-gradient(135deg, var(--brand-50) 0%, #f5f9ff 100%);
         border: 1px solid var(--brand-500);
         border-radius: var(--radius-md);
         margin-bottom: 1rem;
     }
-
-        .order-summary-bar .label {
-            font-size: 0.72rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--gray-500);
-            font-weight: 600;
-        }
-
-        .order-summary-bar .summary-values {
-            display: flex;
-            gap: 1.5rem;
-            font-size: 0.85rem;
-        }
-
-            .order-summary-bar .summary-values strong {
-                font-size: 1.05rem;
-                color: var(--brand-900);
-                font-variant-numeric: tabular-nums;
-                margin-left: 0.3rem;
-            }
+    .order-summary-bar .label {
+        font-size: 0.72rem; text-transform: uppercase;
+        letter-spacing: 0.05em; color: var(--gray-500); font-weight: 600;
+    }
+    .order-summary-bar .summary-values {
+        display: flex; gap: 1.5rem; font-size: 0.85rem;
+    }
+    .order-summary-bar .summary-values strong {
+        font-size: 1.05rem; color: var(--brand-900);
+        font-variant-numeric: tabular-nums;
+        margin-left: 0.3rem;
+    }
 </style>
 
 <div class="page-header">
@@ -278,12 +201,12 @@
                                 <input type="hidden" name="Items[@i].ReorderLevel" value="@item.ReorderLevel" />
 
                                 <td style="text-align:center;">
-                                    <input type="hidden" name="Items[@i].IsSelected" value="false" />
+                                    <!-- Standard checkbox, no hidden input -->
                                     <input type="checkbox"
                                            name="Items[@i].IsSelected"
                                            value="true"
                                            class="item-checkbox"
-                                    @(item.IsSelected ? "checked" : "") />
+                                           @(item.IsSelected ? "checked" : "") />
                                 </td>
                                 <td>
                                     <strong>@item.ConsumableName</strong>
@@ -338,163 +261,173 @@
 </form>
 
 @section Scripts {
-    <script>
-        (function () {
-            const supplierSelect = document.getElementById('supplierSelect');
-            const rows = Array.from(document.querySelectorAll('.item-row'));
-            const searchInput = document.getElementById('itemSearch');
-            const chips = document.querySelectorAll('.filter-chip[data-filter]');
-            const selectAllBtn = document.getElementById('selectAllBtn');
-            const clearAllBtn = document.getElementById('clearAllBtn');
-            const itemsTableWrapper = document.getElementById('itemsTableWrapper');
-            const noSupplierSelected = document.getElementById('noSupplierSelected');
-            const noItemsForSupplier = document.getElementById('noItemsForSupplier');
-            const noItemMatches = document.getElementById('noItemMatches');
-            const summaryBar = document.getElementById('summaryBar');
-            const sumItems = document.getElementById('sumItems');
-            const sumQty = document.getElementById('sumQty');
-            const submitBtn = document.getElementById('submitBtn');
+<script>
+    (function () {
+        const supplierSelect = document.getElementById('supplierSelect');
+        const rows = Array.from(document.querySelectorAll('.item-row'));
+        const searchInput = document.getElementById('itemSearch');
+        const chips = document.querySelectorAll('.filter-chip[data-filter]');
+        const selectAllBtn = document.getElementById('selectAllBtn');
+        const clearAllBtn = document.getElementById('clearAllBtn');
+        const itemsTableWrapper = document.getElementById('itemsTableWrapper');
+        const noSupplierSelected = document.getElementById('noSupplierSelected');
+        const noItemsForSupplier = document.getElementById('noItemsForSupplier');
+        const noItemMatches = document.getElementById('noItemMatches');
+        const summaryBar = document.getElementById('summaryBar');
+        const sumItems = document.getElementById('sumItems');
+        const sumQty = document.getElementById('sumQty');
+        const submitBtn = document.getElementById('submitBtn');
 
-            let activeFilter = 'all';
+        let activeFilter = 'all';
 
-            if (!supplierSelect) return;
+        if (!supplierSelect) return;
 
-            function recomputeSummary() {
-                let count = 0, qty = 0;
-                rows.forEach(row => {
-                    const cb = row.querySelector('.item-checkbox');
-                    const qtyInput = row.querySelector('.quantity-input');
-                    if (cb && cb.checked && row.style.display !== 'none') {
-                        count++;
-                        qty += parseInt(qtyInput.value, 10) || 0;
-                    }
-                });
-                sumItems.textContent = count;
-                sumQty.textContent = qty;
-                summaryBar.style.display = count > 0 ? '' : 'none';
-                submitBtn.disabled = count === 0;
-            }
-
-            function applyVisibility() {
-                const supplierId = supplierSelect.value;
-                if (!supplierId) {
-                    noSupplierSelected.style.display = '';
-                    noItemsForSupplier.style.display = 'none';
-                    itemsTableWrapper.style.display = 'none';
-                    return;
-                }
-                noSupplierSelected.style.display = 'none';
-
-                const term = (searchInput?.value || '').toLowerCase().trim();
-                let supplierItemsVisible = 0;
-                let filteredVisible = 0;
-
-                rows.forEach(row => {
-                    const rowSupplier = row.dataset.supplier;
-                    const matchesSupplier = rowSupplier === supplierId;
-                    const name = row.dataset.name || '';
-                    const isLow = row.dataset.low === '1';
-
-                    const matchesSearch = !term || name.includes(term);
-                    const matchesChip = activeFilter === 'all' || (activeFilter === 'low' && isLow);
-
-                    if (!matchesSupplier) {
-                        row.style.display = 'none';
-                        // Force uncheck hidden rows
-                        const cb = row.querySelector('.item-checkbox');
-                        if (cb) cb.checked = false;
-                        row.classList.remove('selected');
-                    } else {
-                        supplierItemsVisible++;
-                        const show = matchesSearch && matchesChip;
-                        row.style.display = show ? '' : 'none';
-                        if (show) filteredVisible++;
-                    }
-                });
-
-                if (supplierItemsVisible === 0) {
-                    noItemsForSupplier.style.display = '';
-                    itemsTableWrapper.style.display = 'none';
-                } else {
-                    noItemsForSupplier.style.display = 'none';
-                    itemsTableWrapper.style.display = '';
-                }
-
-                noItemMatches.style.display = (supplierItemsVisible > 0 && filteredVisible === 0) ? '' : 'none';
-                recomputeSummary();
-            }
-
-            supplierSelect.addEventListener('change', applyVisibility);
-
-            searchInput?.addEventListener('input', applyVisibility);
-
-            chips.forEach(chip => {
-                chip.addEventListener('click', function () {
-                    chips.forEach(c => c.classList.remove('active'));
-                    this.classList.add('active');
-                    activeFilter = this.dataset.filter;
-                    applyVisibility();
-                });
-            });
-
-            // Checkbox → row highlight
+        function recomputeSummary() {
+            let count = 0, qty = 0;
             rows.forEach(row => {
                 const cb = row.querySelector('.item-checkbox');
-                const qty = row.querySelector('.quantity-input');
-                if (!cb || !qty) return;
+                const qtyInput = row.querySelector('.quantity-input');
+                if (cb && cb.checked && row.style.display !== 'none') {
+                    count++;
+                    qty += parseInt(qtyInput.value, 10) || 0;
+                }
+            });
+            sumItems.textContent = count;
+            sumQty.textContent = qty;
+            summaryBar.style.display = count > 0 ? '' : 'none';
+            // Do not disable submit here; let the backend validate, or allow the click to show the toast
+        }
 
-                qty.disabled = !cb.checked;
+        function applyVisibility() {
+            const supplierId = supplierSelect.value;
+            if (!supplierId) {
+                noSupplierSelected.style.display = '';
+                noItemsForSupplier.style.display = 'none';
+                itemsTableWrapper.style.display = 'none';
+                return;
+            }
+            noSupplierSelected.style.display = 'none';
 
-                cb.addEventListener('change', function () {
-                    row.classList.toggle('selected', this.checked);
-                    qty.disabled = !this.checked;
-                    if (this.checked) {
-                        // Apply suggested quantity when first checked
+            const term = (searchInput?.value || '').toLowerCase().trim();
+            let supplierItemsVisible = 0;
+            let filteredVisible = 0;
+
+            rows.forEach(row => {
+                const rowSupplier = row.dataset.supplier;
+                const matchesSupplier = rowSupplier === supplierId;
+                const name = row.dataset.name || '';
+                const isLow = row.dataset.low === '1';
+
+                const matchesSearch = !term || name.includes(term);
+                const matchesChip = activeFilter === 'all' || (activeFilter === 'low' && isLow);
+
+                if (!matchesSupplier) {
+                    row.style.display = 'none';
+                    // Force uncheck hidden rows and DISABLE the qty input so it doesn't submit
+                    const cb = row.querySelector('.item-checkbox');
+                    const qty = row.querySelector('.quantity-input');
+                    if (cb) cb.checked = false;
+                    if (qty) {
+                        qty.value = 1;
+                        qty.disabled = true; 
+                    }
+                    row.classList.remove('selected');
+                } else {
+                    supplierItemsVisible++;
+                    const show = matchesSearch && matchesChip;
+                    row.style.display = show ? '' : 'none';
+                    if (show) {
+                        filteredVisible++;
+                        // Re-enable based on checkbox state
+                        const cb = row.querySelector('.item-checkbox');
+                        const qty = row.querySelector('.quantity-input');
+                        if (cb && qty) qty.disabled = !cb.checked;
+                    }
+                }
+            });
+
+            if (supplierItemsVisible === 0) {
+                noItemsForSupplier.style.display = '';
+                itemsTableWrapper.style.display = 'none';
+            } else {
+                noItemsForSupplier.style.display = 'none';
+                itemsTableWrapper.style.display = '';
+            }
+
+            noItemMatches.style.display = (supplierItemsVisible > 0 && filteredVisible === 0) ? '' : 'none';
+            recomputeSummary();
+        }
+
+        supplierSelect.addEventListener('change', applyVisibility);
+        searchInput?.addEventListener('input', applyVisibility);
+
+        chips.forEach(chip => {
+            chip.addEventListener('click', function () {
+                chips.forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                activeFilter = this.dataset.filter;
+                applyVisibility();
+            });
+        });
+
+        // Checkbox → row highlight
+        rows.forEach(row => {
+            const cb = row.querySelector('.item-checkbox');
+            const qty = row.querySelector('.quantity-input');
+            if (!cb || !qty) return;
+
+            qty.disabled = !cb.checked;
+
+            cb.addEventListener('change', function () {
+                row.classList.toggle('selected', this.checked);
+                qty.disabled = !this.checked;
+                if (this.checked) {
+                    // Apply suggested quantity when first checked
+                    const suggested = parseInt(qty.dataset.suggested, 10) || 0;
+                    if (suggested > 0 && parseInt(qty.value, 10) <= 1) {
+                        qty.value = suggested;
+                    }
+                }
+                recomputeSummary();
+            });
+
+            qty.addEventListener('input', recomputeSummary);
+        });
+
+        selectAllBtn?.addEventListener('click', function () {
+            rows.forEach(row => {
+                if (row.style.display !== 'none') {
+                    const cb = row.querySelector('.item-checkbox');
+                    const qty = row.querySelector('.quantity-input');
+                    if (cb && !cb.checked) {
+                        cb.checked = true;
+                        qty.disabled = false;
+                        row.classList.add('selected');
                         const suggested = parseInt(qty.dataset.suggested, 10) || 0;
                         if (suggested > 0 && parseInt(qty.value, 10) <= 1) {
                             qty.value = suggested;
                         }
                     }
-                    recomputeSummary();
-                });
-
-                qty.addEventListener('input', recomputeSummary);
+                }
             });
+            recomputeSummary();
+        });
 
-            selectAllBtn?.addEventListener('click', function () {
-                rows.forEach(row => {
-                    if (row.style.display !== 'none') {
-                        const cb = row.querySelector('.item-checkbox');
-                        const qty = row.querySelector('.quantity-input');
-                        if (cb && !cb.checked) {
-                            cb.checked = true;
-                            qty.disabled = false;
-                            row.classList.add('selected');
-                            const suggested = parseInt(qty.dataset.suggested, 10) || 0;
-                            if (suggested > 0 && parseInt(qty.value, 10) <= 1) {
-                                qty.value = suggested;
-                            }
-                        }
-                    }
-                });
-                recomputeSummary();
+        clearAllBtn?.addEventListener('click', function () {
+            rows.forEach(row => {
+                const cb = row.querySelector('.item-checkbox');
+                const qty = row.querySelector('.quantity-input');
+                if (cb && cb.checked) {
+                    cb.checked = false;
+                    qty.disabled = true;
+                    row.classList.remove('selected');
+                }
             });
+            recomputeSummary();
+        });
 
-            clearAllBtn?.addEventListener('click', function () {
-                rows.forEach(row => {
-                    const cb = row.querySelector('.item-checkbox');
-                    const qty = row.querySelector('.quantity-input');
-                    if (cb && cb.checked) {
-                        cb.checked = false;
-                        qty.disabled = true;
-                        row.classList.remove('selected');
-                    }
-                });
-                recomputeSummary();
-            });
-
-            // Initial state
-            applyVisibility();
-        })();
-    </script>
+        // Initial state
+        applyVisibility();
+    })();
+</script>
 }
