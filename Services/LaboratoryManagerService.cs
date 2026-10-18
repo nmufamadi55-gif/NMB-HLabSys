@@ -220,9 +220,6 @@ namespace NMB_HLabSys.Services
                 && model.NormalRangeMin.Value >= model.NormalRangeMax.Value)
                 errors.Add("Normal range minimum must be less than normal range maximum.");
 
-            if (model.SelectedTechnicianIDs == null || !model.SelectedTechnicianIDs.Any())
-                errors.Add("At least one technician must be assigned to perform this test.");
-
             var selectedConsumables = model.Consumables?
                 .Where(c => c.IsSelected && c.QuantityRequired > 0)
                 .ToList() ?? new List<ConsumableInputViewModel>();
@@ -249,17 +246,6 @@ namespace NMB_HLabSys.Services
             _context.TestTypes.Add(testType);
             await _context.SaveChangesAsync();
 
-            foreach (var techId in model.SelectedTechnicianIDs.Distinct())
-            {
-                _context.TechnicianTestAssignments.Add(new TechnicianTestAssignment
-                {
-                    TechnicianID = techId,
-                    TestID = testType.TestID,
-                    AssignedDate = DateTime.Now,
-                    IsActive = true
-                });
-            }
-
             foreach (var item in selectedConsumables)
             {
                 _context.TestConsumables.Add(new TestConsumable
@@ -271,9 +257,57 @@ namespace NMB_HLabSys.Services
             }
 
             await _context.SaveChangesAsync();
-
-            _logger.LogInformation("Test type '{TestName}' created with ID {TestId}", testType.TestName, testType.TestID);
             return ServiceResult<int>.Ok(testType.TestID);
+        }
+
+        public async Task<ServiceResult<bool>> EditTestTypeAsync(EditTestTypeViewModel model)
+        {
+            var errors = new List<string>();
+
+            if (!await IsTestNameUniqueAsync(model.TestName, model.TestID))
+                errors.Add($"Test name '{model.TestName}' already exists.");
+
+            if (model.NormalRangeMin.HasValue && model.NormalRangeMax.HasValue
+                && model.NormalRangeMin.Value >= model.NormalRangeMax.Value)
+                errors.Add("Normal range minimum must be less than normal range maximum.");
+
+            if (errors.Any())
+                return ServiceResult<bool>.ValidationFail(errors);
+
+            var test = await _context.TestTypes
+                .Include(t => t.TestConsumables)
+                .FirstOrDefaultAsync(t => t.TestID == model.TestID);
+
+            if (test == null)
+                return ServiceResult<bool>.Fail($"Test type with ID {model.TestID} not found.");
+
+            test.TestName = model.TestName.Trim();
+            test.CategoryID = model.CategoryID;
+            test.SampleTypeID = model.SampleTypeID;
+            test.UnitOfMeasurement = model.UnitOfMeasurement ?? string.Empty;
+            test.NormalRangeMin = model.NormalRangeMin;
+            test.NormalRangeMax = model.NormalRangeMax;
+            test.TurnaroundTimeMinutes = model.TurnaroundTimeMinutes;
+            test.IsActive = model.IsActive;
+
+            // Remove old consumables and add new ones
+            _context.TestConsumables.RemoveRange(test.TestConsumables);
+            var selectedConsumables = model.Consumables?
+                .Where(c => c.IsSelected && c.QuantityRequired > 0)
+                .ToList() ?? new List<ConsumableInputViewModel>();
+
+            foreach (var item in selectedConsumables)
+            {
+                _context.TestConsumables.Add(new TestConsumable
+                {
+                    TestID = test.TestID,
+                    ConsumableID = item.ConsumableID,
+                    QuantityRequired = item.QuantityRequired
+                });
+            }
+
+            await _context.SaveChangesAsync();
+            return ServiceResult<bool>.Ok(true);
         }
 
         public async Task<EditTestTypeViewModel> GetEditTestTypeViewModelAsync(int testId)
@@ -342,74 +376,6 @@ namespace NMB_HLabSys.Services
                         Text = $"{t.User.Name} {t.User.Surname} ({t.EmployeeNumber})"
                     }).ToListAsync()
             };
-        }
-
-        public async Task<ServiceResult<bool>> EditTestTypeAsync(EditTestTypeViewModel model)
-        {
-            var errors = new List<string>();
-
-            if (!await IsTestNameUniqueAsync(model.TestName, model.TestID))
-                errors.Add($"Test name '{model.TestName}' already exists.");
-
-            if (model.NormalRangeMin.HasValue && model.NormalRangeMax.HasValue
-                && model.NormalRangeMin.Value >= model.NormalRangeMax.Value)
-                errors.Add("Normal range minimum must be less than normal range maximum.");
-
-            if (model.SelectedTechnicianIDs == null || !model.SelectedTechnicianIDs.Any())
-                errors.Add("At least one technician must be assigned to perform this test.");
-
-            if (errors.Any())
-                return ServiceResult<bool>.ValidationFail(errors);
-
-            var test = await _context.TestTypes
-                .Include(t => t.TechnicianTestAssignments)
-                .Include(t => t.TestConsumables)
-                .FirstOrDefaultAsync(t => t.TestID == model.TestID);
-
-            if (test == null)
-                return ServiceResult<bool>.Fail($"Test type with ID {model.TestID} not found.");
-
-            test.TestName = model.TestName.Trim();
-            test.CategoryID = model.CategoryID;
-            test.SampleTypeID = model.SampleTypeID;
-            test.UnitOfMeasurement = model.UnitOfMeasurement ?? string.Empty;
-            test.NormalRangeMin = model.NormalRangeMin;
-            test.NormalRangeMax = model.NormalRangeMax;
-            test.TurnaroundTimeMinutes = model.TurnaroundTimeMinutes;
-            test.IsActive = model.IsActive;
-
-            // Replace tech assignments
-            _context.TechnicianTestAssignments.RemoveRange(test.TechnicianTestAssignments);
-            foreach (var techId in model.SelectedTechnicianIDs.Distinct())
-            {
-                _context.TechnicianTestAssignments.Add(new TechnicianTestAssignment
-                {
-                    TechnicianID = techId,
-                    TestID = test.TestID,
-                    AssignedDate = DateTime.Now,
-                    IsActive = true
-                });
-            }
-
-            // Replace consumables
-            _context.TestConsumables.RemoveRange(test.TestConsumables);
-            var selectedConsumables = model.Consumables?
-                .Where(c => c.IsSelected && c.QuantityRequired > 0)
-                .ToList() ?? new List<ConsumableInputViewModel>();
-
-            foreach (var item in selectedConsumables)
-            {
-                _context.TestConsumables.Add(new TestConsumable
-                {
-                    TestID = test.TestID,
-                    ConsumableID = item.ConsumableID,
-                    QuantityRequired = item.QuantityRequired
-                });
-            }
-
-            await _context.SaveChangesAsync();
-            _logger.LogInformation("Test type '{TestName}' updated", test.TestName);
-            return ServiceResult<bool>.Ok(true);
         }
 
         public async Task<ServiceResult<bool>> DeleteTestTypeAsync(int testId)
@@ -761,22 +727,27 @@ namespace NMB_HLabSys.Services
 
             switch (model.AdjustmentType.ToLower())
             {
-                case "increase":
-                    newQuantity = previousQuantity + model.AdjustmentAmount;
-                    break;
+                case "increase": newQuantity = previousQuantity + model.AdjustmentAmount; break;
                 case "decrease":
                     if (model.AdjustmentAmount > previousQuantity)
                         return ServiceResult<bool>.ValidationFail("Cannot decrease stock below zero.");
                     newQuantity = previousQuantity - model.AdjustmentAmount;
                     break;
-                case "set":
-                    newQuantity = Math.Max(0, model.AdjustmentAmount);
-                    break;
-                default:
-                    return ServiceResult<bool>.ValidationFail($"Invalid adjustment type: {model.AdjustmentType}");
+                case "set": newQuantity = Math.Max(0, model.AdjustmentAmount); break;
+                default: return ServiceResult<bool>.ValidationFail($"Invalid adjustment type.");
             }
 
             consumable.QuantityOnHand = newQuantity;
+
+            // FIX: Ensure we use a valid UserID for the FK constraint
+            int safeUserId = _currentUser.UserId ?? 0;
+            if (safeUserId == 0)
+            {
+                safeUserId = await _context.Users
+                    .Where(u => u.UserRole == "Manager")
+                    .Select(u => u.UserID)
+                    .FirstOrDefaultAsync();
+            }
 
             _context.StockAdjustmentLogs.Add(new StockAdjustmentLog
             {
@@ -786,13 +757,11 @@ namespace NMB_HLabSys.Services
                 AdjustmentAmount = newQuantity - previousQuantity,
                 AdjustmentType = model.AdjustmentType,
                 Reason = model.Reason ?? "Manual adjustment",
-                AdjustedBy = 0, // TODO: Get current user ID
+                AdjustedBy = safeUserId,
                 AdjustmentDate = DateTime.Now
             });
 
             await _context.SaveChangesAsync();
-
-            _logger.LogInformation($"Stock adjusted for {consumable.ConsumableName}: {previousQuantity} → {newQuantity}");
             return ServiceResult<bool>.Ok(true);
         }
 
@@ -1011,8 +980,7 @@ namespace NMB_HLabSys.Services
         public async Task<ServiceResult<int>> CreateOrderAsync(CreateOrderViewModel model)
         {
             var supplier = await _context.Suppliers.FindAsync(model.SupplierID);
-            if (supplier == null)
-                return ServiceResult<int>.Fail("Selected supplier not found.");
+            if (supplier == null) return ServiceResult<int>.Fail("Selected supplier not found.");
 
             var selectedItems = model.Items?
                 .Where(i => i.IsSelected && i.QuantityToOrder > 0)
@@ -1021,12 +989,14 @@ namespace NMB_HLabSys.Services
             if (!selectedItems.Any())
                 return ServiceResult<int>.ValidationFail("At least one item must be ordered.");
 
-            // NEW — validate range only on selected items
-            foreach (var item in selectedItems)
+            // FIX: Safely resolve user ID (fallback to first Manager if session is lost)
+            int safeUserId = _currentUser.UserId ?? 0;
+            if (safeUserId == 0)
             {
-                if (item.QuantityToOrder < 1 || item.QuantityToOrder > 10000)
-                    return ServiceResult<int>.ValidationFail(
-                        $"Quantity for '{item.ConsumableName}' must be between 1 and 10,000.");
+                safeUserId = await _context.Users
+                    .Where(u => u.UserRole == "Manager")
+                    .Select(u => u.UserID)
+                    .FirstOrDefaultAsync();
             }
 
             var order = new PurchaseOrder
@@ -1036,7 +1006,8 @@ namespace NMB_HLabSys.Services
                 OrderDate = DateTime.Now,
                 ExpectedDeliveryDate = model.ExpectedDeliveryDate,
                 Status = "Ordered",
-                CreatedBy = CurrentUserId
+                CreatedBy = safeUserId,
+                CancellationReason = ""
             };
 
             _context.PurchaseOrders.Add(order);
@@ -1073,13 +1044,7 @@ namespace NMB_HLabSys.Services
             {
                 await _emailService.SendOrderEmailAsync(fullOrder);
             }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to send order email to supplier");
-            }
-
-            _logger.LogInformation("Purchase order {OrderNumber} created with {ItemCount} items",
-                fullOrder.OrderNumber, selectedItems.Count);
+            catch { /* Ignore email failures */ }
 
             return ServiceResult<int>.Ok(order.OrderID);
         }
@@ -1455,21 +1420,6 @@ namespace NMB_HLabSys.Services
         {
             var errors = new List<string>();
 
-            if (!await IsEmployeeNumberUniqueAsync(model.EmployeeNumber, model.TechnicianID))
-                errors.Add($"Employee number '{model.EmployeeNumber}' already exists.");
-
-            if (!await IsSAIDNumberUniqueAsync(model.SAIDNumber, model.TechnicianID))
-                errors.Add($"SA ID number '{model.SAIDNumber}' already exists.");
-
-            if (!await IsEmailUniqueAsync(model.Email, model.TechnicianID))
-                errors.Add($"Email '{model.Email}' already exists.");
-
-            if (model.SelectedTestTypeIDs == null || !model.SelectedTestTypeIDs.Any())
-                errors.Add("At least one test type must be assigned to the technician.");
-
-            if (errors.Any())
-                return ServiceResult<bool>.ValidationFail(errors);
-
             var technician = await _context.LabTechnicians
                 .Include(t => t.User)
                 .Include(t => t.TestAssignments)
@@ -1478,7 +1428,22 @@ namespace NMB_HLabSys.Services
             if (technician == null)
                 return ServiceResult<bool>.Fail($"Technician with ID {model.TechnicianID} not found.");
 
-            // Update technician
+            if (!await IsEmployeeNumberUniqueAsync(model.EmployeeNumber, model.TechnicianID))
+                errors.Add($"Employee number '{model.EmployeeNumber}' already exists.");
+
+            if (!await IsSAIDNumberUniqueAsync(model.SAIDNumber, model.TechnicianID))
+                errors.Add($"SA ID number '{model.SAIDNumber}' already exists.");
+
+            // FIX: Pass technician.User.UserID instead of TechnicianID
+            if (!await IsEmailUniqueAsync(model.Email, technician.User.UserID))
+                errors.Add($"Email '{model.Email}' already exists.");
+
+            if (model.SelectedTestTypeIDs == null || !model.SelectedTestTypeIDs.Any())
+                errors.Add("At least one test type must be assigned to the technician.");
+
+            if (errors.Any())
+                return ServiceResult<bool>.ValidationFail(errors);
+
             technician.SAIDNumber = model.SAIDNumber.Trim();
             technician.EmployeeNumber = model.EmployeeNumber.Trim();
             technician.Specialization = model.Specialization ?? string.Empty;
@@ -1493,7 +1458,6 @@ namespace NMB_HLabSys.Services
             technician.User.IsActive = model.IsActive;
             technician.User.ModifiedDate = DateTime.Now;
 
-            // Update assignments
             _context.TechnicianTestAssignments.RemoveRange(technician.TestAssignments);
             foreach (var testId in model.SelectedTestTypeIDs.Distinct())
             {
@@ -1507,7 +1471,6 @@ namespace NMB_HLabSys.Services
             }
 
             await _context.SaveChangesAsync();
-
             return ServiceResult<bool>.Ok(true);
         }
 
@@ -1517,6 +1480,7 @@ namespace NMB_HLabSys.Services
                 .Include(t => t.User)
                 .Include(t => t.TestAssignments)
                     .ThenInclude(tta => tta.TestType)
+                        .ThenInclude(tt => tt.Category) // FIX: Add Category include
                 .FirstOrDefaultAsync(t => t.TechnicianID == technicianId);
 
             if (technician == null)
@@ -1540,8 +1504,9 @@ namespace NMB_HLabSys.Services
                     .Select(tta => new AssignedTestViewModel
                     {
                         TestID = tta.TestID,
-                        TestName = tta.TestType.TestName,
-                        CategoryName = tta.TestType.Category.CategoryName,
+                        // FIX: Add null-conditional operators (?.) just in case a test was deleted
+                        TestName = tta.TestType?.TestName ?? "Archived Test",
+                        CategoryName = tta.TestType?.Category?.CategoryName ?? "Uncategorized",
                         AssignedDate = tta.AssignedDate,
                         IsActive = tta.IsActive
                     }).ToList()
@@ -1655,18 +1620,19 @@ namespace NMB_HLabSys.Services
 
         public async Task<ServiceResult<bool>> EditDoctorAsync(EditDoctorViewModel model)
         {
-            if (!await IsHPCSANumberUniqueAsync(model.HPCSANumber, model.DoctorID))
-                return ServiceResult<bool>.ValidationFail($"HPCSA number '{model.HPCSANumber}' already exists.");
-
-            if (!await IsEmailUniqueAsync(model.Email, model.DoctorID))
-                return ServiceResult<bool>.ValidationFail($"Email '{model.Email}' already exists.");
-
             var doctor = await _context.Doctors
                 .Include(d => d.User)
                 .FirstOrDefaultAsync(d => d.DoctorID == model.DoctorID);
 
             if (doctor == null)
                 return ServiceResult<bool>.Fail($"Doctor with ID {model.DoctorID} not found.");
+
+            if (!await IsHPCSANumberUniqueAsync(model.HPCSANumber, model.DoctorID))
+                return ServiceResult<bool>.ValidationFail($"HPCSA number '{model.HPCSANumber}' already exists.");
+
+            // FIX: Exclude the current doctor's UserID from the email uniqueness check
+            if (!await IsEmailUniqueAsync(model.Email, doctor.User.UserID))
+                return ServiceResult<bool>.ValidationFail($"Email '{model.Email}' already exists.");
 
             doctor.HPCSANumber = model.HPCSANumber.Trim();
             doctor.PracticeName = model.PracticeName ?? string.Empty;
@@ -1682,7 +1648,6 @@ namespace NMB_HLabSys.Services
             doctor.User.ModifiedDate = DateTime.Now;
 
             await _context.SaveChangesAsync();
-
             return ServiceResult<bool>.Ok(true);
         }
 

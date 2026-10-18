@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NMB_HLabSys.Data;
-using NMB_HLabSys.Helpers;
 using NMB_HLabSys.Models;
 using NMB_HLabSys.ViewModels.AdminViewModels;
 using NMB_HLabSys.ViewModels.SharedViewModels;
@@ -65,15 +64,21 @@ namespace NMB_HLabSys.Controllers
                 HttpContext.Session.SetString("UserName", $"{user.Name} {user.Surname}");
                 HttpContext.Session.SetString("UserEmail", user.Email);
 
+                // ✅ ADD THIS: Force password change if it's their first time
+                if (!user.IsPasswordChanged && (user.UserRole == "Doctor" || user.UserRole == "Technician"))
+                {
+                    return RedirectToAction("Index", "Profile"); // Or wherever your ChangePassword page is located
+                }
+
                 // Redirect based on role
                 if (user.UserRole == "Patient")
                     return RedirectToAction("Dashboard", "Patient");
                 else if (user.UserRole == "Admin")
                     return RedirectToAction("Dashboard", "Admin");
                 else if (user.UserRole == "Doctor")
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Dashboard", "Doctor");       // ✅ Fixed
                 else if (user.UserRole == "Technician")
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Dashboard", "Technician");   // ✅ Fixed
                 else if (user.UserRole == "Manager")
                     return RedirectToAction("Index", "LaboratoryManager");
 

@@ -708,7 +708,13 @@ namespace NMB_HLabSys.Controllers
             {
                 var vm = await _service.GetCreateOrderViewModelAsync();
                 model.AvailableSuppliers = vm.AvailableSuppliers;
-                model.Items = vm.Items;
+
+                // FIX: Do not overwrite model.Items if they were posted
+                if (model.Items == null || !model.Items.Any())
+                {
+                    model.Items = vm.Items;
+                }
+
                 return View(model);
             }
 
@@ -722,7 +728,13 @@ namespace NMB_HLabSys.Controllers
 
                     var vm = await _service.GetCreateOrderViewModelAsync();
                     model.AvailableSuppliers = vm.AvailableSuppliers;
-                    model.Items = vm.Items;
+
+                    // FIX: Keep user's posted checkboxes on service failure
+                    if (model.Items == null || !model.Items.Any())
+                    {
+                        model.Items = vm.Items;
+                    }
+
                     return View(model);
                 }
 
@@ -732,11 +744,16 @@ namespace NMB_HLabSys.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating order");
-                TempData["ErrorMessage"] = "An error occurred while creating the order.";
+                TempData["ErrorMessage"] = "Error: " + ex.Message;
 
                 var vm = await _service.GetCreateOrderViewModelAsync();
                 model.AvailableSuppliers = vm.AvailableSuppliers;
-                model.Items = vm.Items;
+
+                if (model.Items == null || !model.Items.Any())
+                {
+                    model.Items = vm.Items;
+                }
+
                 return View(model);
             }
         }
