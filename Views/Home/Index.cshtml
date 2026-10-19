@@ -11,1059 +11,1117 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
 
-        :root {
-            --bg-page: #F5F7FC;
-            --bg-card: #FFFFFF;
-            --bg-card-alt: #F8FAFC;
-            --accent: #2563EB;
-            --accent-light: #3B82F6;
-            --accent-grad: linear-gradient(135deg, #2563EB 0%, #06B6D4 100%);
-            --teal: #06B6D4;
-            --violet: #7C3AED;
-            --success: #059669;
-            --text-primary: #0F172A;
-            --text-secondary: #475569;
-            --text-muted: #94A3B8;
-            --border: #E2E8F0;
-            --border-strong: #CBD5E1;
-        }
+            :root {
+                --bg-page: #F5F7FC;
+                --bg-card: #FFFFFF;
+                --bg-card-alt: #F8FAFC;
+                --accent: #2563EB;
+                --accent-light: #3B82F6;
+                --accent-grad: linear-gradient(135deg, #2563EB 0%, #06B6D4 100%);
+                --teal: #06B6D4;
+                --violet: #7C3AED;
+                --success: #059669;
+                --text-primary: #0F172A;
+                --text-secondary: #475569;
+                --text-muted: #94A3B8;
+                --border: #E2E8F0;
+                --border-strong: #CBD5E1;
+            }
 
-        html { scroll-behavior: smooth; }
+            html {
+                scroll-behavior: smooth;
+            }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-page);
-            color: var(--text-primary);
-            overflow-x: hidden;
-            position: relative;
-            min-height: 100vh;
-        }
+            body {
+                font-family: 'Inter', sans-serif;
+                background-color: var(--bg-page);
+                color: var(--text-primary);
+                overflow-x: hidden;
+                position: relative;
+                min-height: 100vh;
+            }
 
-        /* ---- Colored mesh gradient backdrop (gives character without darkness) ---- */
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background:
-                radial-gradient(circle at 12% 8%, rgba(37, 99, 235, 0.14), transparent 42%),
-                radial-gradient(circle at 88% 12%, rgba(6, 182, 212, 0.13), transparent 40%),
-                radial-gradient(circle at 78% 88%, rgba(124, 58, 237, 0.10), transparent 45%),
-                radial-gradient(circle at 18% 92%, rgba(5, 150, 105, 0.09), transparent 40%);
-            z-index: 0;
-            pointer-events: none;
-        }
+                /* ---- Colored mesh gradient backdrop (gives character without darkness) ---- */
+                body::before {
+                    content: '';
+                    position: fixed;
+                    inset: 0;
+                    background: radial-gradient(circle at 12% 8%, rgba(37, 99, 235, 0.14), transparent 42%), radial-gradient(circle at 88% 12%, rgba(6, 182, 212, 0.13), transparent 40%), radial-gradient(circle at 78% 88%, rgba(124, 58, 237, 0.10), transparent 45%), radial-gradient(circle at 18% 92%, rgba(5, 150, 105, 0.09), transparent 40%);
+                    z-index: 0;
+                    pointer-events: none;
+                }
 
-        /* Faint lab image texture on top of the mesh */
-        body::after {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background-image: url('https://images.unsplash.com/photo-1579154204601-01588f351e67?w=1920&q=40');
-            background-size: cover;
-            background-position: center;
-            opacity: 0.035;
-            z-index: 0;
-            pointer-events: none;
-            mix-blend-mode: multiply;
-        }
+                /* Faint lab image texture on top of the mesh */
+                body::after {
+                    content: '';
+                    position: fixed;
+                    inset: 0;
+                    background-image: url('https://images.unsplash.com/photo-1579154204601-01588f351e67?w=1920&q=40');
+                    background-size: cover;
+                    background-position: center;
+                    opacity: 0.035;
+                    z-index: 0;
+                    pointer-events: none;
+                    mix-blend-mode: multiply;
+                }
 
-        .content-wrapper {
-            position: relative;
-            z-index: 1;
-        }
+            .content-wrapper {
+                position: relative;
+                z-index: 1;
+            }
 
-        /* ============================================
-           NAVBAR (glass)
-           ============================================ */
-        .navbar {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            z-index: 1000;
-            background: rgba(255, 255, 255, 0.72);
-            backdrop-filter: blur(18px) saturate(140%);
-            -webkit-backdrop-filter: blur(18px) saturate(140%);
-            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-            padding: 1rem 0;
-            transition: all 0.3s;
-        }
+            /* ============================================
+                       NAVBAR (glass)
+                       ============================================ */
+            .navbar {
+                position: fixed;
+                top: 0;
+                width: 100%;
+                z-index: 1000;
+                background: rgba(255, 255, 255, 0.72);
+                backdrop-filter: blur(18px) saturate(140%);
+                -webkit-backdrop-filter: blur(18px) saturate(140%);
+                border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+                padding: 1rem 0;
+                transition: all 0.3s;
+            }
 
-        .nav-container {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+            .nav-container {
+                max-width: 1280px;
+                margin: 0 auto;
+                padding: 0 2rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            text-decoration: none;
-        }
+            .logo {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 1.25rem;
+                font-weight: 700;
+                color: var(--text-primary);
+                text-decoration: none;
+            }
 
-        .logo i {
-            font-size: 1.4rem;
-            background: var(--accent-grad);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+                .logo i {
+                    font-size: 1.4rem;
+                    background: var(--accent-grad);
+                    -webkit-background-clip: text;
+                    background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
 
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-            align-items: center;
-            list-style: none;
-        }
+            .nav-links {
+                display: flex;
+                gap: 2rem;
+                align-items: center;
+                list-style: none;
+            }
 
-        .nav-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.875rem;
-            transition: 0.2s;
-        }
+                .nav-links a {
+                    color: var(--text-secondary);
+                    text-decoration: none;
+                    font-weight: 500;
+                    font-size: 0.875rem;
+                    transition: 0.2s;
+                }
 
-        .nav-links a:hover { color: var(--accent); }
+                    .nav-links a:hover {
+                        color: var(--accent);
+                    }
 
-        .nav-actions { display: flex; gap: 12px; align-items: center; }
+            .nav-actions {
+                display: flex;
+                gap: 12px;
+                align-items: center;
+            }
 
-        .btn-nav-login {
-            color: var(--text-secondary);
-            font-weight: 500;
-            font-size: 0.875rem;
-            padding: 0.5rem 1rem;
-            transition: 0.2s;
-            cursor: pointer;
-            background: none;
-            border: none;
-            font-family: inherit;
-        }
+            .btn-nav-login {
+                color: var(--text-secondary);
+                font-weight: 500;
+                font-size: 0.875rem;
+                padding: 0.5rem 1rem;
+                transition: 0.2s;
+                cursor: pointer;
+                background: none;
+                border: none;
+                font-family: inherit;
+                text-decoration: none;
+            }
 
-        .btn-nav-login:hover { color: var(--accent); }
+                .btn-nav-login:hover {
+                    color: var(--accent);
+                }
 
-        .btn-nav-register {
-            background: var(--accent-grad);
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.875rem;
-            padding: 0.55rem 1.3rem;
-            border-radius: 8px;
-            transition: 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
-        }
+            .btn-nav-register {
+                background: var(--accent-grad);
+                color: white;
+                text-decoration: none;
+                font-weight: 600;
+                font-size: 0.875rem;
+                padding: 0.55rem 1.3rem;
+                border-radius: 8px;
+                transition: 0.2s;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.4rem;
+                box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+            }
 
-        .btn-nav-register:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
-        }
+                .btn-nav-register:hover {
+                    transform: translateY(-1px);
+                    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
+                }
 
         
-        /* ============================================
-           HERO — video clearly visible, light tint
-           ============================================ */
-        .hero {
-            position: relative;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 8rem 2rem 4rem;
-            overflow: hidden;
-            text-align: center;
-        }
-
-        .hero-video {
-            position: absolute;
-            inset: 0;
-            width: 100%; height: 100%;
-            object-fit: cover;
-            z-index: 0;
-            opacity: 1; /* fully visible */
-        }
-
-        /* Light tint — blue at top, mostly clear in middle, fades to page bg at bottom */
-        .hero-overlay {
-            position: absolute;
-            inset: 0;
-            background:
-                linear-gradient(
-                    180deg,
-                    rgba(37, 99, 235, 0.35) 0%,
-                    rgba(6, 182, 212, 0.12) 35%,
-                    rgba(245, 247, 252, 0.10) 60%,
-                    rgba(245, 247, 252, 0.92) 92%,
-                    rgba(245, 247, 252, 1) 100%
-                );
-            z-index: 1;
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 2;
-            max-width: 900px;
-            margin: 0 auto;
-            /* glass card so text stays readable over video */
-            padding: 3rem 2.5rem 2.5rem;
-            border-radius: 28px;
-            background: rgba(255, 255, 255, 0.18);
-            backdrop-filter: blur(10px) saturate(130%);
-            -webkit-backdrop-filter: blur(10px) saturate(130%);
-            border: 1px solid rgba(255, 255, 255, 0.35);
-            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.15);
-        }
-
-        .hero-kicker {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255, 255, 255, 0.9);
-            color: var(--accent);
-            padding: 0.45rem 1.1rem;
-            border-radius: 30px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            letter-spacing: 0.02em;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.15);
-        }
-
-        .hero h1 {
-            font-size: 3.6rem;
-            font-weight: 800;
-            line-height: 1.05;
-            margin-bottom: 1.2rem;
-            color: #0B1220;
-            letter-spacing: -0.03em;
-            text-shadow: 0 2px 20px rgba(255,255,255,0.6);
-        }
-
-        .hero-subtitle {
-            font-size: 1.12rem;
-            color: #1E293B;
-            max-width: 620px;
-            margin: 0 auto 2.5rem;
-            line-height: 1.7;
-            font-weight: 500;
-            text-shadow: 0 1px 10px rgba(255,255,255,0.5);
-        }
-
-        .hero-cta {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-bottom: 3rem;
-        }
-
-        .btn-primary-large {
-            background: var(--accent-grad);
-            color: white;
-            padding: 0.95rem 2rem;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
-            border: none;
-            cursor: pointer;
-            font-family: inherit;
-        }
-
-        .btn-primary-large:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 30px rgba(37, 99, 235, 0.5);
-        }
-
-        .btn-secondary-large {
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid rgba(226, 232, 240, 1);
-            color: var(--text-primary);
-            padding: 0.95rem 2rem;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
-        }
-
-        .btn-secondary-large:hover {
-            transform: translateY(-2px);
-            border-color: var(--accent);
-            box-shadow: 0 8px 22px rgba(15, 23, 42, 0.12);
-        }
-
-        /* Stats */
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 1rem;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .stat-card {
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            border-radius: 16px;
-            padding: 1.5rem 1rem;
-            text-align: center;
-            transition: all 0.25s;
-            box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
-            backdrop-filter: blur(10px);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 14px 32px rgba(37, 99, 235, 0.18);
-            border-color: rgba(37, 99, 235, 0.3);
-        }
-
-        .stat-icon-wrap {
-            width: 44px; height: 44px;
-            margin: 0 auto 0.7rem;
-            border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            background: var(--accent-grad);
-            color: white;
-            font-size: 1.1rem;
-            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
-        }
-
-        .stat-card h2 {
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--text-primary);
-            margin-bottom: 0.2rem;
-            letter-spacing: -0.02em;
-        }
-
-        .stat-card p {
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* ============================================
-           SECTIONS — each gets its own soft color
-           ============================================ */
-        .section-white {
-            padding: 7rem 2rem;
-            position: relative;
-        }
-
-        .section-container {
-            max-width: 1280px;
-            margin: 0 auto;
-        }
-
-        /* Section variants */
-        .section-features { background: linear-gradient(180deg, rgba(37,99,235,0.05) 0%, rgba(255,255,255,0) 100%); }
-        .section-how { background: linear-gradient(180deg, rgba(6,182,212,0.08) 0%, rgba(6,182,212,0.02) 100%); border-top: 1px solid rgba(6,182,212,0.15); border-bottom: 1px solid rgba(6,182,212,0.15); }
-        .section-team { background: linear-gradient(180deg, rgba(124,58,237,0.05) 0%, rgba(255,255,255,0) 100%); }
-        .section-security { background: linear-gradient(180deg, rgba(5,150,105,0.07) 0%, rgba(5,150,105,0.02) 100%); border-top: 1px solid rgba(5,150,105,0.15); }
-
-        .section-header {
-            text-align: center;
-            margin-bottom: 4rem;
-        }
-
-        .section-kicker {
-            display: inline-block;
-            font-size: 0.72rem;
-            font-weight: 700;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            color: var(--accent);
-            margin-bottom: 0.8rem;
-            padding: 0.35rem 0.9rem;
-            border-radius: 20px;
-            background: rgba(37, 99, 235, 0.08);
-            border: 1px solid rgba(37, 99, 235, 0.15);
-        }
-
-        .section-header h2 {
-            font-size: 2.3rem;
-            font-weight: 800;
-            margin-bottom: 0.8rem;
-            letter-spacing: -0.025em;
-            color: var(--text-primary);
-        }
-
-        .section-header p {
-            font-size: 1rem;
-            max-width: 600px;
-            margin: 0 auto;
-            color: var(--text-secondary);
-        }
-
-        /* Features — glass cards */
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .feature-card {
-            background: rgba(255, 255, 255, 0.75);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            border: 1px solid rgba(255, 255, 255, 0.9);
-            border-radius: 20px;
-            padding: 2rem;
-            transition: all 0.28s;
-            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 3px;
-            background: var(--accent-grad);
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.3s;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 18px 40px rgba(37, 99, 235, 0.12);
-            border-color: rgba(37, 99, 235, 0.25);
-        }
-
-        .feature-card:hover::before { transform: scaleX(1); }
-
-        .feature-icon {
-            width: 54px;
-            height: 54px;
-            background: var(--accent-grad);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-            color: white;
-            margin-bottom: 1.2rem;
-            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
-        }
-
-        .feature-card h3 {
-            font-size: 1.05rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
-        }
-
-        .feature-card p {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            line-height: 1.65;
-        }
-
-        /* How It Works */
-        .steps-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .step-card {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(6, 182, 212, 0.15);
-            border-radius: 20px;
-            padding: 2rem;
-            text-align: center;
-            transition: all 0.25s;
-            box-shadow: 0 4px 20px rgba(6, 182, 212, 0.06);
-        }
-
-        .step-card:hover {
-            border-color: rgba(6, 182, 212, 0.4);
-            transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(6, 182, 212, 0.15);
-        }
-
-        .step-number {
-            width: 56px;
-            height: 56px;
-            background: var(--accent-grad);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-            font-weight: 800;
-            color: white;
-            margin: 0 auto 1.2rem;
-            box-shadow: 0 8px 22px rgba(37, 99, 235, 0.35);
-            position: relative;
-        }
-
-        .step-number::after {
-            content: '';
-            position: absolute;
-            inset: -6px;
-            border-radius: 50%;
-            border: 2px solid rgba(6, 182, 212, 0.2);
-        }
-
-        .step-card h3 {
-            font-size: 1rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
-        }
-
-        .step-card p {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            line-height: 1.6;
-        }
-
-        /* Team */
-        .team-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .team-card {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(14px);
-            border: 1px solid rgba(124, 58, 237, 0.12);
-            border-radius: 20px;
-            padding: 2rem 1.5rem;
-            text-align: center;
-            transition: all 0.28s;
-            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.05);
-        }
-
-        .team-card:hover {
-            border-color: rgba(124, 58, 237, 0.35);
-            transform: translateY(-6px);
-            box-shadow: 0 18px 40px rgba(124, 58, 237, 0.15);
-        }
-
-        .team-avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            margin: 0 auto 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            font-weight: 700;
-            color: white;
-            border: 3px solid white;
-            overflow: hidden;
-            box-shadow: 0 8px 22px rgba(124, 58, 237, 0.25);
-        }
-
-        .team-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .team-card h3 {
-            font-size: 1.05rem;
-            font-weight: 700;
-            margin-bottom: 0.2rem;
-            color: var(--text-primary);
-        }
-
-        .team-role {
-            color: var(--violet);
-            font-size: 0.8rem;
-            font-weight: 700;
-            margin-bottom: 0.8rem;
-        }
-
-        .team-description {
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            line-height: 1.55;
-        }
-
-        /* Security */
-        .security-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .security-badge-large {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(5, 150, 105, 0.15);
-            border-radius: 20px;
-            padding: 2rem;
-            text-align: center;
-            transition: all 0.25s;
-            box-shadow: 0 4px 20px rgba(5, 150, 105, 0.06);
-        }
-
-        .security-badge-large:hover {
-            border-color: rgba(5, 150, 105, 0.4);
-            transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(5, 150, 105, 0.15);
-        }
-
-        .security-badge-large .badge-icon {
-            width: 54px; height: 54px;
-            margin: 0 auto 1rem;
-            border-radius: 14px;
-            display: flex; align-items: center; justify-content: center;
-            background: linear-gradient(135deg, #059669 0%, #10B981 100%);
-            color: white;
-            font-size: 1.3rem;
-            box-shadow: 0 8px 20px rgba(5, 150, 105, 0.3);
-        }
-
-        .security-badge-large h3 {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 0.4rem;
-        }
-
-        .security-badge-large p {
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            line-height: 1.6;
-        }
-
-        /* Footer */
-        .footer {
-            background: #0F172A;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            padding: 3rem 2rem 2rem;
-            color: #CBD5E1;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .footer::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 3px;
-            background: var(--accent-grad);
-        }
-
-        .footer-container {
-            max-width: 1280px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .footer-column h4 {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: #F8FAFC;
-            margin-bottom: 1rem;
-        }
-
-        .footer-column ul { list-style: none; padding: 0; }
-        .footer-column ul li { margin-bottom: 0.5rem; }
-
-        .footer-column ul li a {
-            color: #CBD5E1;
-            text-decoration: none;
-            font-size: 0.8rem;
-            transition: 0.2s;
-        }
-
-        .footer-column ul li a:hover { color: var(--accent-light); }
-
-        .footer-bottom {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding-top: 2rem;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
-        }
-
-        .footer-bottom p {
-            color: #94A3B8;
-            font-size: 0.8rem;
-        }
-
-        /* ============================================
-           RESPONSIVE
-           ============================================ */
-        @@media (max-width: 900px) {
-            .hero h1 { font-size: 2.2rem; }
-            .hero-subtitle { font-size: 1rem; }
-            .hero { padding: 6rem 1rem 3rem; }
-            .hero-content { padding: 2rem 1.4rem 1.6rem; border-radius: 22px; }
-            .section-white { padding: 4rem 1rem; }
-            .section-header h2 { font-size: 1.7rem; }
-            .stats-row { grid-template-columns: repeat(2, 1fr); }
-            .nav-links { display: none; }
-            .btn-nav-login { display: none; }
-
-            .portal-container {
-                grid-template-columns: 1fr;
-                height: auto;
-                max-height: 90vh;
-                overflow-y: auto;
+            /* ============================================
+                       HERO — video clearly visible, light tint
+                       ============================================ */
+            .hero {
+                position: relative;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 8rem 2rem 4rem;
+                overflow: hidden;
+                text-align: center;
             }
-            .portal-visual { display: none; }
-            .portal-form { padding: 2rem; }
-        }
 
-        @@media (max-width: 500px) {
-            .stats-row { grid-template-columns: 1fr; }
-            .hero h1 { font-size: 1.75rem; }
-            .btn-primary-large, .btn-secondary-large {
-                padding: 0.8rem 1.5rem;
+            .hero-video {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                z-index: 0;
+                opacity: 1; /* fully visible */
+            }
+
+            /* Light tint — blue at top, mostly clear in middle, fades to page bg at bottom */
+            .hero-overlay {
+                position: absolute;
+                inset: 0;
+                background: linear-gradient( 180deg, rgba(37, 99, 235, 0.35) 0%, rgba(6, 182, 212, 0.12) 35%, rgba(245, 247, 252, 0.10) 60%, rgba(245, 247, 252, 0.92) 92%, rgba(245, 247, 252, 1) 100% );
+                z-index: 1;
+            }
+
+            .hero-content {
+                position: relative;
+                z-index: 2;
+                max-width: 900px;
+                margin: 0 auto;
+                /* glass card so text stays readable over video */
+                padding: 3rem 2.5rem 2.5rem;
+                border-radius: 28px;
+                background: rgba(255, 255, 255, 0.18);
+                backdrop-filter: blur(10px) saturate(130%);
+                -webkit-backdrop-filter: blur(10px) saturate(130%);
+                border: 1px solid rgba(255, 255, 255, 0.35);
+                box-shadow: 0 20px 60px rgba(15, 23, 42, 0.15);
+            }
+
+            .hero-kicker {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                background: rgba(255, 255, 255, 0.9);
+                color: var(--accent);
+                padding: 0.45rem 1.1rem;
+                border-radius: 30px;
+                font-size: 0.75rem;
+                font-weight: 700;
+                letter-spacing: 0.02em;
+                margin-bottom: 1.5rem;
+                box-shadow: 0 4px 14px rgba(37, 99, 235, 0.15);
+            }
+
+            .hero h1 {
+                font-size: 3.6rem;
+                font-weight: 800;
+                line-height: 1.05;
+                margin-bottom: 1.2rem;
+                color: #0B1220;
+                letter-spacing: -0.03em;
+                text-shadow: 0 2px 20px rgba(255,255,255,0.6);
+            }
+
+            .hero-subtitle {
+                font-size: 1.12rem;
+                color: #1E293B;
+                max-width: 620px;
+                margin: 0 auto 2.5rem;
+                line-height: 1.7;
+                font-weight: 500;
+                text-shadow: 0 1px 10px rgba(255,255,255,0.5);
+            }
+
+            .hero-cta {
+                display: flex;
+                gap: 1rem;
+                justify-content: center;
+                flex-wrap: wrap;
+                margin-bottom: 3rem;
+            }
+
+            .btn-primary-large {
+                background: var(--accent-grad);
+                color: white;
+                padding: 0.95rem 2rem;
+                border-radius: 12px;
+                text-decoration: none;
+                font-weight: 600;
+                font-size: 0.95rem;
+                transition: all 0.2s;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+                border: none;
+                cursor: pointer;
+                font-family: inherit;
+            }
+
+                .btn-primary-large:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 12px 30px rgba(37, 99, 235, 0.5);
+                }
+
+            .btn-secondary-large {
+                background: rgba(255, 255, 255, 0.95);
+                border: 1px solid rgba(226, 232, 240, 1);
+                color: var(--text-primary);
+                padding: 0.95rem 2rem;
+                border-radius: 12px;
+                text-decoration: none;
+                font-weight: 600;
+                font-size: 0.95rem;
+                transition: all 0.2s;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+            }
+
+                .btn-secondary-large:hover {
+                    transform: translateY(-2px);
+                    border-color: var(--accent);
+                    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.12);
+                }
+
+            /* Stats */
+            .stats-row {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+                gap: 1rem;
+                max-width: 1000px;
+                margin: 0 auto;
+            }
+
+            .stat-card {
+                background: rgba(255, 255, 255, 0.95);
+                border: 1px solid rgba(255, 255, 255, 0.8);
+                border-radius: 16px;
+                padding: 1.5rem 1rem;
+                text-align: center;
+                transition: all 0.25s;
+                box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
+                backdrop-filter: blur(10px);
+            }
+
+                .stat-card:hover {
+                    transform: translateY(-4px);
+                    box-shadow: 0 14px 32px rgba(37, 99, 235, 0.18);
+                    border-color: rgba(37, 99, 235, 0.3);
+                }
+
+            .stat-icon-wrap {
+                width: 44px;
+                height: 44px;
+                margin: 0 auto 0.7rem;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: var(--accent-grad);
+                color: white;
+                font-size: 1.1rem;
+                box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
+            }
+
+            .stat-card h2 {
+                font-size: 2rem;
+                font-weight: 800;
+                color: var(--text-primary);
+                margin-bottom: 0.2rem;
+                letter-spacing: -0.02em;
+            }
+
+            .stat-card p {
+                font-size: 0.7rem;
+                color: var(--text-secondary);
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+
+            /* ============================================
+                       SECTIONS — each gets its own soft color
+                       ============================================ */
+            .section-white {
+                padding: 7rem 2rem;
+                position: relative;
+            }
+
+            .section-container {
+                max-width: 1280px;
+                margin: 0 auto;
+            }
+
+            /* Section variants */
+            .section-features {
+                background: linear-gradient(180deg, rgba(37,99,235,0.05) 0%, rgba(255,255,255,0) 100%);
+            }
+
+            .section-how {
+                background: linear-gradient(180deg, rgba(6,182,212,0.08) 0%, rgba(6,182,212,0.02) 100%);
+                border-top: 1px solid rgba(6,182,212,0.15);
+                border-bottom: 1px solid rgba(6,182,212,0.15);
+            }
+
+            .section-team {
+                background: linear-gradient(180deg, rgba(124,58,237,0.05) 0%, rgba(255,255,255,0) 100%);
+            }
+
+            .section-security {
+                background: linear-gradient(180deg, rgba(5,150,105,0.07) 0%, rgba(5,150,105,0.02) 100%);
+                border-top: 1px solid rgba(5,150,105,0.15);
+            }
+
+            .section-header {
+                text-align: center;
+                margin-bottom: 4rem;
+            }
+
+            .section-kicker {
+                display: inline-block;
+                font-size: 0.72rem;
+                font-weight: 700;
+                letter-spacing: 0.14em;
+                text-transform: uppercase;
+                color: var(--accent);
+                margin-bottom: 0.8rem;
+                padding: 0.35rem 0.9rem;
+                border-radius: 20px;
+                background: rgba(37, 99, 235, 0.08);
+                border: 1px solid rgba(37, 99, 235, 0.15);
+            }
+
+            .section-header h2 {
+                font-size: 2.3rem;
+                font-weight: 800;
+                margin-bottom: 0.8rem;
+                letter-spacing: -0.025em;
+                color: var(--text-primary);
+            }
+
+            .section-header p {
+                font-size: 1rem;
+                max-width: 600px;
+                margin: 0 auto;
+                color: var(--text-secondary);
+            }
+
+            /* Features — glass cards */
+            .features-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+                gap: 1.5rem;
+            }
+
+            .feature-card {
+                background: rgba(255, 255, 255, 0.75);
+                backdrop-filter: blur(14px);
+                -webkit-backdrop-filter: blur(14px);
+                border: 1px solid rgba(255, 255, 255, 0.9);
+                border-radius: 20px;
+                padding: 2rem;
+                transition: all 0.28s;
+                box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+                position: relative;
+                overflow: hidden;
+            }
+
+                .feature-card::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 3px;
+                    background: var(--accent-grad);
+                    transform: scaleX(0);
+                    transform-origin: left;
+                    transition: transform 0.3s;
+                }
+
+                .feature-card:hover {
+                    transform: translateY(-6px);
+                    box-shadow: 0 18px 40px rgba(37, 99, 235, 0.12);
+                    border-color: rgba(37, 99, 235, 0.25);
+                }
+
+                    .feature-card:hover::before {
+                        transform: scaleX(1);
+                    }
+
+            .feature-icon {
+                width: 54px;
+                height: 54px;
+                background: var(--accent-grad);
+                border-radius: 14px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.3rem;
+                color: white;
+                margin-bottom: 1.2rem;
+                box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+            }
+
+            .feature-card h3 {
+                font-size: 1.05rem;
+                font-weight: 700;
+                margin-bottom: 0.5rem;
+                color: var(--text-primary);
+            }
+
+            .feature-card p {
+                color: var(--text-secondary);
+                font-size: 0.875rem;
+                line-height: 1.65;
+            }
+
+            /* How It Works */
+            .steps-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: 1.5rem;
+            }
+
+            .step-card {
+                background: rgba(255, 255, 255, 0.85);
+                backdrop-filter: blur(12px);
+                border: 1px solid rgba(6, 182, 212, 0.15);
+                border-radius: 20px;
+                padding: 2rem;
+                text-align: center;
+                transition: all 0.25s;
+                box-shadow: 0 4px 20px rgba(6, 182, 212, 0.06);
+            }
+
+                .step-card:hover {
+                    border-color: rgba(6, 182, 212, 0.4);
+                    transform: translateY(-5px);
+                    box-shadow: 0 15px 35px rgba(6, 182, 212, 0.15);
+                }
+
+            .step-number {
+                width: 56px;
+                height: 56px;
+                background: var(--accent-grad);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.3rem;
+                font-weight: 800;
+                color: white;
+                margin: 0 auto 1.2rem;
+                box-shadow: 0 8px 22px rgba(37, 99, 235, 0.35);
+                position: relative;
+            }
+
+                .step-number::after {
+                    content: '';
+                    position: absolute;
+                    inset: -6px;
+                    border-radius: 50%;
+                    border: 2px solid rgba(6, 182, 212, 0.2);
+                }
+
+            .step-card h3 {
+                font-size: 1rem;
+                font-weight: 700;
+                margin-bottom: 0.5rem;
+                color: var(--text-primary);
+            }
+
+            .step-card p {
+                color: var(--text-secondary);
+                font-size: 0.875rem;
+                line-height: 1.6;
+            }
+
+            /* Team */
+            .team-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                gap: 1.5rem;
+            }
+
+            .team-card {
+                background: rgba(255, 255, 255, 0.8);
+                backdrop-filter: blur(14px);
+                border: 1px solid rgba(124, 58, 237, 0.12);
+                border-radius: 20px;
+                padding: 2rem 1.5rem;
+                text-align: center;
+                transition: all 0.28s;
+                box-shadow: 0 4px 20px rgba(124, 58, 237, 0.05);
+            }
+
+                .team-card:hover {
+                    border-color: rgba(124, 58, 237, 0.35);
+                    transform: translateY(-6px);
+                    box-shadow: 0 18px 40px rgba(124, 58, 237, 0.15);
+                }
+
+            .team-avatar {
+                width: 100px;
+                height: 100px;
+                border-radius: 50%;
+                margin: 0 auto 1rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 2rem;
+                font-weight: 700;
+                color: white;
+                border: 3px solid white;
+                overflow: hidden;
+                box-shadow: 0 8px 22px rgba(124, 58, 237, 0.25);
+            }
+
+                .team-avatar img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+
+            .team-card h3 {
+                font-size: 1.05rem;
+                font-weight: 700;
+                margin-bottom: 0.2rem;
+                color: var(--text-primary);
+            }
+
+            .team-role {
+                color: var(--violet);
+                font-size: 0.8rem;
+                font-weight: 700;
+                margin-bottom: 0.8rem;
+            }
+
+            .team-description {
+                color: var(--text-secondary);
+                font-size: 0.8rem;
+                line-height: 1.55;
+            }
+
+            /* Security */
+            .security-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: 1.5rem;
+            }
+
+            .security-badge-large {
+                background: rgba(255, 255, 255, 0.85);
+                backdrop-filter: blur(12px);
+                border: 1px solid rgba(5, 150, 105, 0.15);
+                border-radius: 20px;
+                padding: 2rem;
+                text-align: center;
+                transition: all 0.25s;
+                box-shadow: 0 4px 20px rgba(5, 150, 105, 0.06);
+            }
+
+                .security-badge-large:hover {
+                    border-color: rgba(5, 150, 105, 0.4);
+                    transform: translateY(-5px);
+                    box-shadow: 0 15px 35px rgba(5, 150, 105, 0.15);
+                }
+
+                .security-badge-large .badge-icon {
+                    width: 54px;
+                    height: 54px;
+                    margin: 0 auto 1rem;
+                    border-radius: 14px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+                    color: white;
+                    font-size: 1.3rem;
+                    box-shadow: 0 8px 20px rgba(5, 150, 105, 0.3);
+                }
+
+                .security-badge-large h3 {
+                    font-size: 0.95rem;
+                    font-weight: 700;
+                    color: var(--text-primary);
+                    margin-bottom: 0.4rem;
+                }
+
+                .security-badge-large p {
+                    color: var(--text-secondary);
+                    font-size: 0.8rem;
+                    line-height: 1.6;
+                }
+
+            /* Footer */
+            .footer {
+                background: #0F172A;
+                border-top: 1px solid rgba(255,255,255,0.1);
+                padding: 3rem 2rem 2rem;
+                color: #CBD5E1;
+                position: relative;
+                overflow: hidden;
+            }
+
+                .footer::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 3px;
+                    background: var(--accent-grad);
+                }
+
+            .footer-container {
+                max-width: 1280px;
+                margin: 0 auto;
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 2rem;
+                margin-bottom: 2rem;
+            }
+
+            .footer-column h4 {
                 font-size: 0.9rem;
+                font-weight: 700;
+                color: #F8FAFC;
+                margin-bottom: 1rem;
             }
-        }
+
+            .footer-column ul {
+                list-style: none;
+                padding: 0;
+            }
+
+                .footer-column ul li {
+                    margin-bottom: 0.5rem;
+                }
+
+                    .footer-column ul li a {
+                        color: #CBD5E1;
+                        text-decoration: none;
+                        font-size: 0.8rem;
+                        transition: 0.2s;
+                    }
+
+                        .footer-column ul li a:hover {
+                            color: var(--accent-light);
+                        }
+
+            .footer-bottom {
+                max-width: 1280px;
+                margin: 0 auto;
+                padding-top: 2rem;
+                border-top: 1px solid rgba(255,255,255,0.1);
+                text-align: center;
+            }
+
+                .footer-bottom p {
+                    color: #94A3B8;
+                    font-size: 0.8rem;
+                }
+
+            /* ============================================
+                       RESPONSIVE
+                       ============================================ */
+            @@media (max-width: 900px) {
+                .hero h1 {
+                    font-size: 2.2rem;
+                }
+
+                .hero-subtitle {
+                    font-size: 1rem;
+                }
+
+                .hero {
+                    padding: 6rem 1rem 3rem;
+                }
+
+                .hero-content {
+                    padding: 2rem 1.4rem 1.6rem;
+                    border-radius: 22px;
+                }
+
+                .section-white {
+                    padding: 4rem 1rem;
+                }
+
+                .section-header h2 {
+                    font-size: 1.7rem;
+                }
+
+                .stats-row {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+
+                .nav-links {
+                    display: none;
+                }
+
+                .btn-nav-login {
+                    display: none;
+                }
+
+                .portal-container {
+                    grid-template-columns: 1fr;
+                    height: auto;
+                    max-height: 90vh;
+                    overflow-y: auto;
+                }
+
+                .portal-visual {
+                    display: none;
+                }
+
+                .portal-form {
+                    padding: 2rem;
+                }
+            }
+
+            @@media (max-width: 500px) {
+                .stats-row {
+                    grid-template-columns: 1fr;
+                }
+
+                .hero h1 {
+                    font-size: 1.75rem;
+                }
+
+                .btn-primary-large, .btn-secondary-large {
+                    padding: 0.8rem 1.5rem;
+                    font-size: 0.9rem;
+                }
+            }
     </style>
 </head>
 <body>
 
-<div class="content-wrapper">
+    <div class="content-wrapper">
 
-    <!-- NAVBAR -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="/" class="logo">
-                <i class="fas fa-microscope"></i>
-                <span>NMB-HLabSys</span>
-            </a>
-
-            <ul class="nav-links">
-                <li><a href="#features">Features</a></li>
-                <li><a href="#how-it-works">How It Works</a></li>
-                <li><a href="#team">Our Team</a></li>
-                <li><a href="#security">Security</a></li>
-            </ul>
-
-            <div class="nav-actions">
-                    <a href="@Url.Action("Login", "Account")" class="btn-nav-login">
-                        <i class="fas fa-sign-in-alt"></i> Login
-                    </a>
-                <a href="@Url.Action("Register", "Patient")" class="btn-nav-register">
-                    <i class="fas fa-user-plus"></i> Register
+        <!-- NAVBAR -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <a href="/" class="logo">
+                    <i class="fas fa-microscope"></i>
+                    <span>NMB-HLabSys</span>
                 </a>
-            </div>
-        </div>
-    </nav>
 
-    
-
-    <!-- HERO -->
-    <section class="hero">
-        <video autoplay muted loop playsinline class="hero-video">
-            <source src="~/videos/262188_medium.mp4" type="video/mp4">
-        </video>
-        <div class="hero-overlay"></div>
-
-        <div class="hero-content">
-            <div class="hero-kicker">
-                <i class="fas fa-flask"></i> Haematology Diagnostics
-            </div>
-
-            <h1>Nelson Mandela Bay<br />Haematology Laboratory</h1>
-
-            <p class="hero-subtitle">
-                A modern laboratory test request management system for haematology diagnostics.
-                Real-time results, patient empowerment, and secure data sharing.
-            </p>
-
-            <div class="hero-cta">
-                    <a href="@Url.Action("Login", "Account")" class="btn-primary-large">
-                        <i class="fas fa-sign-in-alt"></i> Login to Your Account
-                    </a>
-                <a href="@Url.Action("Register", "Patient")" class="btn-secondary-large">
-                    <i class="fas fa-user-plus"></i> Register as Patient
-                </a>
-            </div>
-
-            <div class="stats-row">
-                <div class="stat-card">
-                    <div class="stat-icon-wrap"><i class="fas fa-users"></i></div>
-                    <h2>@ViewBag.TotalPatients</h2>
-                    <p>Patients</p>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon-wrap"><i class="fas fa-user-md"></i></div>
-                    <h2>@ViewBag.TotalDoctors</h2>
-                    <p>Doctors</p>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon-wrap"><i class="fas fa-vial"></i></div>
-                    <h2>@ViewBag.TotalTestTypes</h2>
-                    <p>Test Types</p>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon-wrap"><i class="fas fa-clipboard-check"></i></div>
-                    <h2>@ViewBag.TotalTestsPerformed</h2>
-                    <p>Tests Performed</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- FEATURES -->
-    <section class="section-white section-features" id="features">
-        <div class="section-container">
-            <div class="section-header">
-                <div class="section-kicker">Capabilities</div>
-                <h2>Everything You Need</h2>
-                <p>A complete solution for modern haematology diagnostics</p>
-            </div>
-
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-flask"></i></div>
-                    <h3>Test Requests</h3>
-                    <p>Doctors can submit digital test requests, track progress, and receive results instantly.</p>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
-                    <h3>Real-Time Results</h3>
-                    <p>Patients view results as soon as they're verified, with trends and PDF reports.</p>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
-                    <h3>Secure Access</h3>
-                    <p>Role-based access control with POPIA-compliant consent management.</p>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-users-cog"></i></div>
-                    <h3>Full Admin Control</h3>
-                    <p>Manage conditions, allergies, medications, and categories from a single dashboard.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- HOW IT WORKS -->
-    <section class="section-white section-how" id="how-it-works">
-        <div class="section-container">
-            <div class="section-header">
-                <div class="section-kicker">The Process</div>
-                <h2>How It Works</h2>
-                <p>Simple steps to manage your laboratory tests</p>
-            </div>
-
-            <div class="steps-grid">
-                <div class="step-card">
-                    <div class="step-number">1</div>
-                    <h3>Register</h3>
-                    <p>Create your patient account in seconds with your SA ID and email.</p>
-                </div>
-
-                <div class="step-card">
-                    <div class="step-number">2</div>
-                    <h3>View Results</h3>
-                    <p>Access your verified test results anytime, anywhere, securely.</p>
-                </div>
-
-                <div class="step-card">
-                    <div class="step-number">3</div>
-                    <h3>Track Trends</h3>
-                    <p>See how your health is progressing over time with interactive charts.</p>
-                </div>
-
-                <div class="step-card">
-                    <div class="step-number">4</div>
-                    <h3>Share Securely</h3>
-                    <p>Grant consent to doctors with full control. Revoke anytime.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- TEAM -->
-    <section class="section-white section-team" id="team">
-        <div class="section-container">
-            <div class="section-header">
-                <div class="section-kicker">The Builders</div>
-                <h2>Meet Our Team</h2>
-                <p>The developers behind NMB-HLabSys</p>
-            </div>
-
-            <div class="team-grid">
-                <div class="team-card">
-                    <div class="team-avatar">
-                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face" alt="Morakane Tshokotshela" />
-                    </div>
-                    <h3>Morakane Tshokotshela</h3>
-                    <p class="team-role">Patient & Admin Subsystem</p>
-                    <p class="team-description">
-                        Developed the Patient portal and Admin management system, including trends charts, consent management, and PDF reports.
-                    </p>
-                </div>
-
-                <div class="team-card">
-                    <div class="team-avatar">
-                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face" alt="Nkopodie Ndhlebe" />
-                    </div>
-                    <h3>Nkopodie Ndhlebe</h3>
-                    <p class="team-role">Doctor Subsystem</p>
-                    <p class="team-description">
-                        Built the Doctor interface for submitting test requests, tracking progress, and reviewing patient results.
-                    </p>
-                </div>
-
-                <div class="team-card">
-                    <div class="team-avatar">
-                        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop&crop=face" alt="Lab Technician" />
-                    </div>
-                    <h3>Lab Technician</h3>
-                    <p class="team-role">Technician Subsystem</p>
-                    <p class="team-description">
-                        Developed the Technician interface for receiving samples, performing tests, and capturing results.
-                    </p>
-                </div>
-
-                <div class="team-card">
-                    <div class="team-avatar">
-                        <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&h=200&fit=crop&crop=face" alt="Lab Manager" />
-                    </div>
-                    <h3>Lab Manager</h3>
-                    <p class="team-role">Manager Subsystem</p>
-                    <p class="team-description">
-                        Built the Manager dashboard for test catalogue management, staff management, and consumable stock tracking.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- SECURITY -->
-    <section class="section-white section-security" id="security">
-        <div class="section-container">
-            <div class="section-header">
-                <div class="section-kicker">Trust</div>
-                <h2>Security & Compliance</h2>
-                <p>Your data is safe with us</p>
-            </div>
-
-            <div class="security-grid">
-                <div class="security-badge-large">
-                    <div class="badge-icon"><i class="fas fa-lock"></i></div>
-                    <h3>POPIA Compliant</h3>
-                    <p>Fully compliant with South Africa's Protection of Personal Information Act.</p>
-                </div>
-
-                <div class="security-badge-large">
-                    <div class="badge-icon"><i class="fas fa-key"></i></div>
-                    <h3>Encrypted Data</h3>
-                    <p>All passwords and sensitive data are securely encrypted.</p>
-                </div>
-
-                <div class="security-badge-large">
-                    <div class="badge-icon"><i class="fas fa-user-shield"></i></div>
-                    <h3>Role-Based Access</h3>
-                    <p>Different user roles have different permissions and access levels.</p>
-                </div>
-
-                <div class="security-badge-large">
-                    <div class="badge-icon"><i class="fas fa-hand-peace"></i></div>
-                    <h3>Consent Management</h3>
-                    <p>Patients control who can access their test results.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- FOOTER -->
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-column">
-                <h4><i class="fas fa-microscope"></i> NMB-HLabSys</h4>
-                <p style="color: #CBD5E1; font-size: 0.8rem; line-height: 1.6; margin-top: 0.5rem;">
-                    Nelson Mandela Bay Haematology Diagnostic Laboratories — A modern laboratory test request management system.
-                </p>
-            </div>
-
-            <div class="footer-column">
-                <h4>Quick Links</h4>
-                <ul>
+                <ul class="nav-links">
                     <li><a href="#features">Features</a></li>
                     <li><a href="#how-it-works">How It Works</a></li>
                     <li><a href="#team">Our Team</a></li>
                     <li><a href="#security">Security</a></li>
                 </ul>
-            </div>
 
-            <div class="footer-column">
-                <h4>For Users</h4>
-                <ul>
+                <!-- CHANGED: Replaced Login/Register with FAQs and User Manual -->
+                <div class="nav-actions">
+                    <a asp-controller="Home" asp-action="FAQs" class="btn-nav-login">
+                        <i class="fas fa-question-circle"></i> FAQs
+                    </a>
+                    <a href="~/docs/User Manual.pdf" download class="btn-nav-register">
+                        <i class="fas fa-file-download"></i> User Manual
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+    
+
+        <!-- HERO -->
+        <section class="hero">
+            <video autoplay muted loop playsinline class="hero-video">
+                <source src="~/videos/262188_medium.mp4" type="video/mp4">
+            </video>
+            <div class="hero-overlay"></div>
+
+            <div class="hero-content">
+                <div class="hero-kicker">
+                    <i class="fas fa-flask"></i> Haematology Diagnostics
+                </div>
+
+                <h1>Nelson Mandela Bay<br />Haematology Laboratory</h1>
+
+                <p class="hero-subtitle">
+                    A modern laboratory test request management system for haematology diagnostics.
+                    Real-time results, patient empowerment, and secure data sharing.
+                </p>
+
+                <div class="hero-cta">
+                    <a href="@Url.Action("Login", "Account")" class="btn-primary-large">
+                        <i class="fas fa-sign-in-alt"></i> Login to Your Account
+                    </a>
+                    <a href="@Url.Action("Register", "Patient")" class="btn-secondary-large">
+                        <i class="fas fa-user-plus"></i> Register as Patient
+                    </a>
+                </div>
+
+                <!-- CHANGED: Removed the Stats Row completely -->
+            </div>
+        </section>
+
+        <!-- FEATURES -->
+        <section class="section-white section-features" id="features">
+            <div class="section-container">
+                <div class="section-header">
+                    <div class="section-kicker">Capabilities</div>
+                    <h2>Everything You Need</h2>
+                    <p>A complete solution for modern haematology diagnostics</p>
+                </div>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-flask"></i></div>
+                        <h3>Test Requests</h3>
+                        <p>Doctors can submit digital test requests, track progress, and receive results instantly.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                        <h3>Real-Time Results</h3>
+                        <p>Patients view results as soon as they're verified, with trends and PDF reports.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+                        <h3>Secure Access</h3>
+                        <p>Role-based access control with POPIA-compliant consent management.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-users-cog"></i></div>
+                        <h3>Full Admin Control</h3>
+                        <p>Manage conditions, allergies, medications, and categories from a single dashboard.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HOW IT WORKS -->
+        <section class="section-white section-how" id="how-it-works">
+            <div class="section-container">
+                <div class="section-header">
+                    <div class="section-kicker">The Process</div>
+                    <h2>How It Works</h2>
+                    <p>Simple steps to manage your laboratory tests</p>
+                </div>
+
+                <div class="steps-grid">
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <h3>Register</h3>
+                        <p>Create your patient account in seconds with your SA ID and email.</p>
+                    </div>
+
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <h3>View Results</h3>
+                        <p>Access your verified test results anytime, anywhere, securely.</p>
+                    </div>
+
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <h3>Track Trends</h3>
+                        <p>See how your health is progressing over time with interactive charts.</p>
+                    </div>
+
+                    <div class="step-card">
+                        <div class="step-number">4</div>
+                        <h3>Share Securely</h3>
+                        <p>Grant consent to doctors with full control. Revoke anytime.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TEAM -->
+        <section class="section-white section-team" id="team">
+            <div class="section-container">
+                <div class="section-header">
+                    <div class="section-kicker">The Builders</div>
+                    <h2>Meet Our Team</h2>
+                    <p>The developers behind NMB-HLabSys</p>
+                </div>
+
+                <div class="team-grid">
+                    <div class="team-card">
+                        <div class="team-avatar">
+                            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face" alt="Morakane Tshokotshela" />
+                        </div>
+                        <h3>Morakane Tshokotshela</h3>
+                        <p class="team-role">Patient & Admin Subsystem</p>
+                        <p class="team-description">
+                            Developed the Patient portal and Admin management system, including trends charts, consent management, and PDF reports.
+                        </p>
+                    </div>
+
+                    <div class="team-card">
+                        <div class="team-avatar">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face" alt="Nkopodie Ndhlebe" />
+                        </div>
+                        <h3>Nkopodie Ndhlebe</h3>
+                        <p class="team-role">Doctor Subsystem</p>
+                        <p class="team-description">
+                            Built the Doctor interface for submitting test requests, tracking progress, and reviewing patient results.
+                        </p>
+                    </div>
+
+                    <div class="team-card">
+                        <div class="team-avatar">
+                            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop&crop=face" alt="Lab Technician" />
+                        </div>
+                        <h3>Lab Technician</h3>
+                        <p class="team-role">Technician Subsystem</p>
+                        <p class="team-description">
+                            Developed the Technician interface for receiving samples, performing tests, and capturing results.
+                        </p>
+                    </div>
+
+                    <div class="team-card">
+                        <div class="team-avatar">
+                            <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&h=200&fit=crop&crop=face" alt="Lab Manager" />
+                        </div>
+                        <h3>Lab Manager</h3>
+                        <p class="team-role">Manager Subsystem</p>
+                        <p class="team-description">
+                            Built the Manager dashboard for test catalogue management, staff management, and consumable stock tracking.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECURITY -->
+        <section class="section-white section-security" id="security">
+            <div class="section-container">
+                <div class="section-header">
+                    <div class="section-kicker">Trust</div>
+                    <h2>Security & Compliance</h2>
+                    <p>Your data is safe with us</p>
+                </div>
+
+                <div class="security-grid">
+                    <div class="security-badge-large">
+                        <div class="badge-icon"><i class="fas fa-lock"></i></div>
+                        <h3>POPIA Compliant</h3>
+                        <p>Fully compliant with South Africa's Protection of Personal Information Act.</p>
+                    </div>
+
+                    <div class="security-badge-large">
+                        <div class="badge-icon"><i class="fas fa-key"></i></div>
+                        <h3>Encrypted Data</h3>
+                        <p>All passwords and sensitive data are securely encrypted.</p>
+                    </div>
+
+                    <div class="security-badge-large">
+                        <div class="badge-icon"><i class="fas fa-user-shield"></i></div>
+                        <h3>Role-Based Access</h3>
+                        <p>Different user roles have different permissions and access levels.</p>
+                    </div>
+
+                    <div class="security-badge-large">
+                        <div class="badge-icon"><i class="fas fa-hand-peace"></i></div>
+                        <h3>Consent Management</h3>
+                        <p>Patients control who can access their test results.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <div class="footer-container">
+                <div class="footer-column">
+                    <h4><i class="fas fa-microscope"></i> NMB-HLabSys</h4>
+                    <p style="color: #CBD5E1; font-size: 0.8rem; line-height: 1.6; margin-top: 0.5rem;">
+                        Nelson Mandela Bay Haematology Diagnostic Laboratories — A modern laboratory test request management system.
+                    </p>
+                </div>
+
+                <div class="footer-column">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#how-it-works">How It Works</a></li>
+                        <li><a href="#team">Our Team</a></li>
+                        <li><a href="#security">Security</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-column">
+                    <h4>For Users</h4>
+                    <ul>
                         <li><a href="@Url.Action("Login", "Account")">Login</a></li>
                         <li><a href="@Url.Action("Register", "Patient")">Register as Patient</a></li>
-                    <li><a href="@Url.Action("RegisterAdmin", "Account")">Admin Registration</a></li>
-                </ul>
+                        <li><a href="@Url.Action("RegisterAdmin", "Account")">Admin Registration</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-column">
+                    <h4>Contact</h4>
+                    <ul>
+                        <li><a href="mailto:info@nmblab.co.za"><i class="fas fa-envelope"></i> info@nmblab.co.za</a></li>
+                        <li><a href="tel:+27415041234"><i class="fas fa-phone"></i> +27 41 504 1234</a></li>
+                        <li><i class="fas fa-map-marker-alt"></i> Port Elizabeth, SA</li>
+                    </ul>
+                </div>
             </div>
 
-            <div class="footer-column">
-                <h4>Contact</h4>
-                <ul>
-                    <li><a href="mailto:info@nmblab.co.za"><i class="fas fa-envelope"></i> info@nmblab.co.za</a></li>
-                    <li><a href="tel:+27415041234"><i class="fas fa-phone"></i> +27 41 504 1234</a></li>
-                    <li><i class="fas fa-map-marker-alt"></i> Port Elizabeth, SA</li>
-                </ul>
+            <div class="footer-bottom">
+                <p>© @DateTime.Now.Year Nelson Mandela Bay Haematology Diagnostic Laboratories. All rights reserved.</p>
             </div>
-        </div>
+        </footer>
 
-        <div class="footer-bottom">
-            <p>© @DateTime.Now.Year Nelson Mandela Bay Haematology Diagnostic Laboratories. All rights reserved.</p>
-        </div>
-    </footer>
+    </div>
 
-</div>
+    <script>
 
-<script>
    
-
-    window.addEventListener('scroll', () => {
-        const navbar = document.querySelector('.navbar');
-        if (window.scrollY > 50) {
-            navbar.style.background = 'rgba(255, 255, 255, 0.92)';
-            navbar.style.boxShadow = '0 4px 20px rgba(15, 23, 42, 0.06)';
-        } else {
-            navbar.style.background = 'rgba(255, 255, 255, 0.72)';
-            navbar.style.boxShadow = 'none';
-        }
-    });
-</script>
+            window.addEventListener('scroll', () => {
+                const navbar = document.querySelector('.navbar');
+                if (window.scrollY > 50) {
+                    navbar.style.background = 'rgba(255, 255, 255, 0.92)';
+                    navbar.style.boxShadow = '0 4px 20px rgba(15, 23, 42, 0.06)';
+                } else {
+                    navbar.style.background = 'rgba(255, 255, 255, 0.72)';
+                    navbar.style.boxShadow = 'none';
+                }
+            });
+    </script>
 </body>
 </html>

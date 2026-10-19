@@ -1,12 +1,9 @@
 ﻿@model NMB_HLabSys.Models.ViewModels.DoctorDashboardViewModel
 @{
-
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Doctor Dashboard";
     ViewData["RoleSubtitle"] = "Doctor Portal";
     ViewData["UserGreeting"] = "Overview of your practice";
-    ViewData["UserInitials"] = "SJ";
-    ViewData["UserName"] = "Sarah Johnson";
 
     var doctorName = ViewBag.DoctorName as string ?? "Doctor";
 }

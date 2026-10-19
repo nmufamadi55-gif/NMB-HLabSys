@@ -1,12 +1,13 @@
 ﻿@{
     var action = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
 
     string IsActive(params string[] actions) =>
         actions.Any(a => string.Equals(a, action, StringComparison.OrdinalIgnoreCase)) ? "active" : "";
 }
 <aside class="app-sidebar">
     <div class="sidebar-brand">
-        <div class="brand-icon"><i class="fas fa-flask"></i></div>
+        <div class="brand-icon"><i class="fas fa-microscope"></i></div>
         <div class="brand-text">
             <div class="brand-name">NMB-HLabSys</div>
             <div class="brand-role">Lab Manager</div>
@@ -89,7 +90,10 @@
             <div class="nav-section-label">Account</div>
             <ul>
                 <li>
-                    <a asp-controller="Profile" asp-action="Index">
+                    @{
+                        var isProfileActive = currentController == "Profile" ? "active" : "";
+                    }
+                    <a asp-controller="Profile" asp-action="Index" class="@isProfileActive">
                         <i class="fas fa-user-circle"></i><span>My Profile</span>
                     </a>
                 </li>
@@ -99,7 +103,7 @@
 
     <div class="sidebar-footer">
         <div class="footer-note">
-            <i class="fas fa-circle-info"></i>
+            <i class="fas fa-heartbeat text-danger" style="color: #EF4444 !important; margin-right: 4px;"></i>
             <span>UN SDG 3 — Good Health</span>
         </div>
     </div>

@@ -293,6 +293,9 @@ namespace NMB_HLabSys.Data
             modelBuilder.Entity<PurchaseOrder>()
                 .Property(p => p.TotalAmount)
                 .HasPrecision(18, 2);
+            modelBuilder.Entity<TestResult>()
+   .Property(t => t.NumericValue)
+   .HasPrecision(18, 4);
 
             modelBuilder.Entity<OrderItem>()
                 .Property(o => o.UnitPrice)

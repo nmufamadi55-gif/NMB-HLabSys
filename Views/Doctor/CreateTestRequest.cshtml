@@ -4,8 +4,6 @@
     ViewData["Title"] = "New Test Request";
     ViewData["RoleSubtitle"] = "Doctor Portal";
     ViewData["UserGreeting"] = "Create a new test request";
-    ViewData["UserInitials"] = "SJ";
-    ViewData["UserName"] = "Sarah Johnson";
 }
 
 @section SidebarMenu {
@@ -20,7 +18,6 @@
 
 @section Styles {
     <style>
-        
         .panel {
             background: white;
             border-radius: 20px;
@@ -74,10 +71,26 @@
                 box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
             }
 
+            .form-control.error {
+                border-color: #DC2626;
+                background: #FEF2F2;
+            }
+
         textarea.form-control {
             resize: vertical;
             min-height: 80px;
         }
+
+        .field-error {
+            display: none;
+            color: #DC2626;
+            font-size: 0.72rem;
+            margin-top: 0.3rem;
+        }
+
+            .field-error.show {
+                display: block;
+            }
 
         .search-row {
             display: flex;
@@ -124,6 +137,12 @@
                 color: white;
             }
 
+            .btn-success:disabled {
+                background: #94A3B8;
+                cursor: not-allowed;
+                opacity: 0.75;
+            }
+
         .btn-outline {
             background: transparent;
             border: 1px solid #E2E8F0;
@@ -135,7 +154,6 @@
                 color: #1A2C3A;
             }
 
-        /* ─── PATIENT FOUND CARD  ─── */
         .patient-info-card {
             background: #F0F9FF;
             border-radius: 12px;
@@ -208,7 +226,6 @@
             color: #5A6E7A;
         }
 
-        /* ─── URGENCY RADIOS ─── */
         .radio-group {
             display: flex;
             gap: 0.8rem;
@@ -241,7 +258,6 @@
                 border-color: #0841C9;
             }
 
-        /* ─── TEST ACCORDION ─── */
         .category-group {
             border: 1px solid #E2E8F0;
             border-radius: 12px;
@@ -316,7 +332,6 @@
             margin-top: 0.15rem;
         }
 
-        /* ─── SELECTED TESTS SUMMARY ─── */
         .selected-tests-summary {
             background: #EFF6FF;
             border-radius: 12px;
@@ -342,7 +357,6 @@
             margin: 0.15rem 0.25rem 0.15rem 0;
         }
 
-        /* ─── SAMPLE COLLECTION REQUIREMENTS ─── */
         .sample-requirements {
             background: #F0F9FF;
             border-radius: 12px;
@@ -414,29 +428,20 @@
             display: none !important;
         }
 
-        .text-muted {
-            color: #5A6E7A;
-            font-size: 0.78rem;
-        }
-
-        media (max-width: 768px) {
-            .test-list
-
-        {
-            grid-template-columns: 1fr;
-        }
-
-        .search-row {
-            flex-direction: column;
-        }
-
-            .search-row .btn {
-                width: 100%;
-                justify-content: center;
+        @@media (max-width: 768px) {
+            .test-list {
+                grid-template-columns: 1fr;
             }
 
-        }
+            .search-row {
+                flex-direction: column;
+            }
 
+                .search-row .btn {
+                    width: 100%;
+                    justify-content: center;
+                }
+        }
     </style>
 }
 
@@ -466,17 +471,19 @@
             <div class="search-row">
                 <input type="text" id="saIdInput" class="form-control"
                        placeholder="e.g., 8001015009087" maxlength="13"
+                       inputmode="numeric"
                        oninput="this.value=this.value.replace(/\D/g,'')" />
                 <button type="button" class="btn btn-primary" onclick="searchPatient()">
                     <i class="fas fa-search"></i> Search
                 </button>
             </div>
+            <div class="field-error" id="saIdError"></div>
         </div>
 
         <div id="patientCard"></div>
     </div>
 
-    <!-- ─── PANEL 2: REQUEST DETAILS (hidden until patient found) ─── -->
+    <!-- ─── PANEL 2: REQUEST DETAILS ─── -->
     <div id="requestDetailsPanel" class="hidden">
 
         <div class="panel">
@@ -502,7 +509,7 @@
 
             <div class="form-group">
                 <label>Clinical Notes</label>
-                <textarea asp-for="ClinicalNotes" class="form-control" rows="3"
+                <textarea asp-for="ClinicalNotes" class="form-control" rows="3" maxlength="2000"
                           placeholder="Relevant clinical information, symptoms, or instructions for the lab..."></textarea>
             </div>
         </div>
@@ -545,6 +552,8 @@
                 }
             </div>
 
+            <div class="field-error" id="testsError"></div>
+
             <div id="selectedTestsSummary" class="selected-tests-summary hidden">
                 <strong>Selected Tests:</strong>
                 <div id="selectedTestsList"></div>
@@ -555,6 +564,7 @@
                 <div id="sampleItems"></div>
             </div>
         </div>
+
         <div id="barcodeSection" class="sample-requirements hidden" style="border-left-color:#10B981; background:#F0FDF4;">
             <strong style="color:#065F46;">
                 <i class="fas fa-barcode"></i> Barcodes for Sample Tubes
@@ -579,19 +589,26 @@
 @section Scripts {
     <script>
         var foundPatient = null;
+        var BARCODE_REGEX = /^BAR-\d{8}-[A-Z0-9]{6}$/;
 
-        // ─── SEARCH PATIENT BY SA ID ─────────────────────────────
         async function searchPatient() {
             var saId = document.getElementById('saIdInput').value.trim();
             var card = document.getElementById('patientCard');
             var details = document.getElementById('requestDetailsPanel');
+            var errEl = document.getElementById('saIdError');
+            var input = document.getElementById('saIdInput');
 
             if (saId.length !== 13) {
-                card.innerHTML = '<div class="patient-info-card not-found">Please enter a valid 13-digit SA ID number.</div>';
+                errEl.textContent = 'SA ID must be exactly 13 digits';
+                errEl.classList.add('show');
+                input.classList.add('error');
+                card.innerHTML = '';
                 details.classList.add('hidden');
                 return;
             }
 
+            errEl.classList.remove('show');
+            input.classList.remove('error');
             card.innerHTML = '<div class="patient-info-card" style="text-align:center;color:#5A6E7A;">Searching...</div>';
 
             try {
@@ -619,11 +636,8 @@
             }
         }
 
-        // ─── RENDER PATIENT CARD ───
         function renderPatientCard(p) {
-            function tag(cls, text) {
-                return '<span class="medical-tag ' + cls + '">' + text + '</span>';
-            }
+            function tag(cls, text) { return '<span class="medical-tag ' + cls + '">' + text + '</span>'; }
             function tagList(items, cls, emptyText) {
                 if (!items || items.length === 0) return tag('tag-none', emptyText);
                 return items.map(function (i) { return tag(cls, i); }).join('');
@@ -652,12 +666,10 @@
             document.getElementById('patientCard').innerHTML = html;
         }
 
-        // Auto-search on Enter key
         document.getElementById('saIdInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') { e.preventDefault(); searchPatient(); }
         });
 
-        // ─── URGENCY RADIO HIGHLIGHT ─────────────────────────────
         document.querySelectorAll('.radio-option').forEach(function (opt) {
             var input = opt.querySelector('input[type="radio"]');
             if (input.checked) opt.classList.add('selected');
@@ -667,12 +679,10 @@
             });
         });
 
-        // ─── TOGGLE CATEGORY ────────────────────────────────────
         function toggleCategory(id) {
             document.getElementById(id).classList.toggle('open');
         }
 
-        // ─── UPDATE SELECTED TESTS + SAMPLES + BARCODE INPUTS ───
         function updateSelectedTests() {
             var checked = Array.from(document.querySelectorAll('input[name="SelectedTestTypeIDs"]:checked'));
 
@@ -682,8 +692,8 @@
             var samplesList = document.getElementById('sampleItems');
             var barcodeBox = document.getElementById('barcodeSection');
             var barcodeInputs = document.getElementById('barcodeInputs');
+            var testsError = document.getElementById('testsError');
 
-            // Preserve any barcodes already typed
             var existingBarcodes = {};
             document.querySelectorAll('#barcodeInputs input[data-sample-type-id]').forEach(function (inp) {
                 existingBarcodes[inp.dataset.sampleTypeId] = inp.value;
@@ -693,16 +703,18 @@
                 summary.classList.add('hidden');
                 samplesBox.classList.add('hidden');
                 barcodeBox.classList.add('hidden');
+                testsError.textContent = 'Please select at least one test type';
+                testsError.classList.add('show');
                 return;
             }
 
-            // Chips
+            testsError.classList.remove('show');
+
             list.innerHTML = checked.map(function (cb) {
                 return '<span class="selected-test-tag">' + cb.dataset.testName + '</span>';
             }).join('');
             summary.classList.remove('hidden');
 
-            // Group by SampleType
             var sampleMap = {};
             checked.forEach(function (cb) {
                 var stId = cb.dataset.sampleTypeId;
@@ -714,7 +726,6 @@
                 sampleMap[stId].maxTurn = Math.max(sampleMap[stId].maxTurn, parseInt(cb.dataset.turnaround || 0));
             });
 
-            // Sample requirements
             samplesList.innerHTML = Object.values(sampleMap).map(function (s) {
                 return '<div class="sample-item">' +
                            '<div class="sample-icon">🧪</div>' +
@@ -728,7 +739,6 @@
             }).join('');
             samplesBox.classList.remove('hidden');
 
-            // Barcode inputs
             barcodeInputs.innerHTML = Object.values(sampleMap).map(function (s) {
                 var preserved = existingBarcodes[s.id] || '';
                 return '<div class="sample-item" style="border-bottom-color:#D1FAE5; align-items:flex-start;">' +
@@ -739,48 +749,125 @@
                                       'name="BarcodeOverrides[' + s.id + ']" ' +
                                       'data-sample-type-id="' + s.id + '" ' +
                                       'value="' + preserved + '" ' +
-                                      'class="form-control" ' +
+                                      'class="form-control barcode-input" ' +
+                                      'maxlength="30" ' +
                                       'style="margin-top:0.35rem; font-family:monospace; font-size:0.85rem;" ' +
-                                      'placeholder="Type barcode from tube label" ' +
+                                      'placeholder="e.g. BAR-20260115-A4B7C2" ' +
+                                      'oninput="this.classList.remove(\'error\');" ' +
                                       'required />' +
+                               '<div class="field-error barcode-error" data-error-for="' + s.id + '"></div>' +
                            '</div>' +
                        '</div>';
             }).join('');
             barcodeBox.classList.remove('hidden');
         }
 
-        // ─── VALIDATE BARCODES BEFORE SUBMIT ───
-        document.getElementById('createForm').addEventListener('submit', function (e) {
-            var barcodeInputs = document.querySelectorAll('#barcodeInputs input[data-sample-type-id]');
-            if (barcodeInputs.length === 0) return;
+               document.getElementById('createForm').addEventListener('submit', async function (e) {
+            // Prevent default immediately — we'll call form.submit() manually on success
+            e.preventDefault();
 
+            // ── 1. Patient selected? ──
+            var patientId = document.getElementById('hiddenPatientId').value;
+            if (!patientId || patientId === '0') {
+                alert('Please search and select a patient first.');
+                return;
+            }
+
+            // ── 2. At least one test selected? ──
+            var testsChecked = document.querySelectorAll('input[name="SelectedTestTypeIDs"]:checked').length;
+            if (testsChecked === 0) {
+                var testsError = document.getElementById('testsError');
+                testsError.textContent = 'Please select at least one test type';
+                testsError.classList.add('show');
+                return;
+            }
+
+            // ── 3. Barcode format + duplicate-within-form ──
+            var barcodeInputs = document.querySelectorAll('#barcodeInputs input.barcode-input');
             var seen = {};
             var ok = true;
 
             barcodeInputs.forEach(function (inp) {
                 var v = inp.value.trim();
-                inp.style.borderColor = '#E2E8F0';
+                var errFor = document.querySelector('.barcode-error[data-error-for="' + inp.dataset.sampleTypeId + '"]');
+
+                inp.classList.remove('error');
+                if (errFor) { errFor.classList.remove('show'); errFor.textContent = ''; }
 
                 if (!v) {
-                    inp.style.borderColor = '#DC2626';
-                    ok = false;
-                    return;
+                    inp.classList.add('error');
+                    if (errFor) { errFor.textContent = 'Barcode is required'; errFor.classList.add('show'); }
+                    ok = false; return;
                 }
-                if (seen[v]) {
-                    inp.style.borderColor = '#DC2626';
-                    ok = false;
-                    return;
+                if (!BARCODE_REGEX.test(v)) {
+                    inp.classList.add('error');
+                    if (errFor) { errFor.textContent = 'Invalid format. Expected: BAR-YYYYMMDD-XXXXXX'; errFor.classList.add('show'); }
+                    ok = false; return;
                 }
-                seen[v] = true;
+                if (seen[v.toUpperCase()]) {
+                    inp.classList.add('error');
+                    if (errFor) { errFor.textContent = 'Barcode already used on this request'; errFor.classList.add('show'); }
+                    ok = false; return;
+                }
+                seen[v.toUpperCase()] = true;
             });
 
             if (!ok) {
-                e.preventDefault();
-                alert('Please provide a unique barcode for every sample type.');
+                var firstErr = document.querySelector('#barcodeInputs input.error');
+                if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
             }
+
+            // ── 4. Pre-flight: are any of these barcodes already in the DB? ──
+            var allBarcodes = Array.from(barcodeInputs).map(function (i) { return i.value.trim(); });
+            var btn = document.getElementById('submitBtn');
+            var originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
+
+            try {
+                var res = await fetch('@Url.Action("CheckBarcodes", "Doctor")?barcodes=' +
+                    encodeURIComponent(allBarcodes.join(',')));
+                var data = await res.json();
+
+                if (data.taken && data.taken.length > 0) {
+                    // Paint the specific fields in error; do NOT reload
+                    barcodeInputs.forEach(function (inp) {
+                        var v = inp.value.trim();
+                        var match = data.taken.find(function (t) {
+                            return t.toLowerCase() === v.toLowerCase();
+                        });
+                        if (match) {
+                            inp.classList.add('error');
+                            var errFor = document.querySelector('.barcode-error[data-error-for="' + inp.dataset.sampleTypeId + '"]');
+                            if (errFor) {
+                                errFor.textContent = 'This barcode is already registered in the system';
+                                errFor.classList.add('show');
+                            }
+                        }
+                    });
+
+                    var firstTaken = document.querySelector('#barcodeInputs input.error');
+                    if (firstTaken) firstTaken.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    return;
+                }
+            } catch (err) {
+                // Network error — fall back to letting the server try
+                console.warn('Barcode pre-flight failed:', err);
+            }
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+            // ── 5. All good — submit the form natively ──
+            // Use the DOM form element, not the event, so validators/routes fire normally.
+            // requestSubmit() preserves the JS handlers we removed with preventDefault();
+            // but since we've already validated, we can bypass by calling .submit().
+            document.getElementById('createForm').submit();
         });
 
-                // ─── AUTO-SEARCH IF SA ID WAS PASSED IN ───
         (function () {
             var prefillSaId = '@Html.Raw(ViewBag.PreselectedSAID ?? "")';
             if (prefillSaId && prefillSaId.length === 13) {
@@ -788,6 +875,5 @@
                 searchPatient();
             }
         })();
-
     </script>
 }
