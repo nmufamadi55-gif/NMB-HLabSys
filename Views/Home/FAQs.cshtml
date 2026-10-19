@@ -1,0 +1,482 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQs | NMB-HLabSys</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+            /* --- EXACT SAME CSS AS LANDING PAGE --- */
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            :root {
+                --bg-page: #F5F7FC;
+                --bg-card: #FFFFFF;
+                --bg-card-alt: #F8FAFC;
+                --accent: #2563EB;
+                --accent-light: #3B82F6;
+                --accent-grad: linear-gradient(135deg, #2563EB 0%, #06B6D4 100%);
+                --teal: #06B6D4;
+                --violet: #7C3AED;
+                --success: #059669;
+                --text-primary: #0F172A;
+                --text-secondary: #475569;
+                --text-muted: #94A3B8;
+                --border: #E2E8F0;
+                --border-strong: #CBD5E1;
+            }
+
+            html {
+                scroll-behavior: smooth;
+            }
+
+            body {
+                font-family: 'Inter', sans-serif;
+                background-color: var(--bg-page);
+                color: var(--text-primary);
+                overflow-x: hidden;
+                position: relative;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+
+            /* --- VIDEO BACKGROUND --- */
+            .bg-video {
+                position: fixed;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                z-index: -2;
+                opacity: 1;
+            }
+
+            /* Light tint — exactly like the landing page */
+            .bg-overlay {
+                position: fixed;
+                inset: 0;
+                background: linear-gradient( 180deg, rgba(37, 99, 235, 0.35) 0%, rgba(6, 182, 212, 0.12) 35%, rgba(245, 247, 252, 0.85) 60%, rgba(245, 247, 252, 0.98) 100% );
+                z-index: -1;
+            }
+
+            /* Mesh gradients (kept for extra texture) */
+            body::before {
+                content: '';
+                position: fixed;
+                inset: 0;
+                background: radial-gradient(circle at 12% 8%, rgba(37, 99, 235, 0.14), transparent 42%), radial-gradient(circle at 88% 12%, rgba(6, 182, 212, 0.13), transparent 40%), radial-gradient(circle at 78% 88%, rgba(124, 58, 237, 0.10), transparent 45%), radial-gradient(circle at 18% 92%, rgba(5, 150, 105, 0.09), transparent 40%);
+                z-index: -1;
+                pointer-events: none;
+            }
+
+            .content-wrapper {
+                position: relative;
+                z-index: 1;
+                flex: 1;
+            }
+
+            /* NAVBAR */
+            .navbar {
+                position: fixed;
+                top: 0;
+                width: 100%;
+                z-index: 1000;
+                background: rgba(255, 255, 255, 0.72);
+                backdrop-filter: blur(18px) saturate(140%);
+                -webkit-backdrop-filter: blur(18px) saturate(140%);
+                border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+                padding: 1rem 0;
+                transition: all 0.3s;
+            }
+
+            .nav-container {
+                max-width: 1280px;
+                margin: 0 auto;
+                padding: 0 2rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .logo {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 1.25rem;
+                font-weight: 700;
+                color: var(--text-primary);
+                text-decoration: none;
+            }
+
+                .logo i {
+                    font-size: 1.4rem;
+                    background: var(--accent-grad);
+                    -webkit-background-clip: text;
+                    background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+
+            .nav-links {
+                display: flex;
+                gap: 2rem;
+                align-items: center;
+                list-style: none;
+            }
+
+                .nav-links a {
+                    color: var(--text-secondary);
+                    text-decoration: none;
+                    font-weight: 500;
+                    font-size: 0.875rem;
+                    transition: 0.2s;
+                }
+
+                    .nav-links a:hover {
+                        color: var(--accent);
+                    }
+
+            .nav-actions {
+                display: flex;
+                gap: 12px;
+                align-items: center;
+            }
+
+            .btn-nav-login {
+                color: var(--text-secondary);
+                font-weight: 500;
+                font-size: 0.875rem;
+                padding: 0.5rem 1rem;
+                transition: 0.2s;
+                cursor: pointer;
+                background: none;
+                border: none;
+                font-family: inherit;
+                text-decoration: none;
+            }
+
+                .btn-nav-login:hover {
+                    color: var(--accent);
+                }
+
+            .btn-nav-register {
+                background: var(--accent-grad);
+                color: white;
+                text-decoration: none;
+                font-weight: 600;
+                font-size: 0.875rem;
+                padding: 0.55rem 1.3rem;
+                border-radius: 8px;
+                transition: 0.2s;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.4rem;
+                box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+            }
+
+                .btn-nav-register:hover {
+                    transform: translateY(-1px);
+                    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
+                }
+
+            /* --- FAQ SPECIFIC STYLES --- */
+            .faq-section {
+                padding: 10rem 2rem 5rem;
+                max-width: 900px;
+                margin: 0 auto;
+                flex: 1;
+                position: relative;
+                z-index: 2;
+            }
+
+            .faq-header {
+                text-align: center;
+                margin-bottom: 3rem;
+            }
+
+                .faq-header h1 {
+                    font-size: 2.5rem;
+                    font-weight: 800;
+                    color: var(--text-primary);
+                    margin-bottom: 0.5rem;
+                    letter-spacing: -0.03em;
+                }
+
+                .faq-header p {
+                    color: var(--text-secondary);
+                    font-size: 1rem;
+                }
+
+            .faq-card {
+                background: rgba(255, 255, 255, 0.85);
+                backdrop-filter: blur(14px);
+                -webkit-backdrop-filter: blur(14px);
+                border: 1px solid rgba(255, 255, 255, 0.9);
+                border-radius: 16px;
+                margin-bottom: 1rem;
+                box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+                overflow: hidden;
+                transition: all 0.3s;
+            }
+
+                .faq-card[open] {
+                    background: rgba(255, 255, 255, 0.98);
+                    border-color: rgba(37, 99, 235, 0.3);
+                    box-shadow: 0 10px 30px rgba(37, 99, 235, 0.1);
+                }
+
+                .faq-card summary {
+                    padding: 1.5rem;
+                    font-weight: 600;
+                    font-size: 1.05rem;
+                    cursor: pointer;
+                    list-style: none;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    color: var(--text-primary);
+                }
+
+                    .faq-card summary::-webkit-details-marker {
+                        display: none;
+                    }
+
+                    .faq-card summary::after {
+                        content: '\f078'; /* FontAwesome Chevron Down */
+                        font-family: 'Font Awesome 6 Free';
+                        font-weight: 900;
+                        color: var(--accent);
+                        transition: transform 0.3s;
+                    }
+
+                .faq-card[open] summary::after {
+                    transform: rotate(180deg);
+                }
+
+            .faq-content {
+                padding: 0 1.5rem 1.5rem 1.5rem;
+                color: var(--text-secondary);
+                font-size: 0.95rem;
+                line-height: 1.6;
+            }
+
+            /* FOOTER */
+            .footer {
+                background: #0F172A;
+                border-top: 1px solid rgba(255,255,255,0.1);
+                padding: 3rem 2rem 2rem;
+                color: #CBD5E1;
+                position: relative;
+                overflow: hidden;
+                margin-top: auto;
+                z-index: 2;
+            }
+
+                .footer::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 3px;
+                    background: var(--accent-grad);
+                }
+
+            .footer-container {
+                max-width: 1280px;
+                margin: 0 auto;
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 2rem;
+                margin-bottom: 2rem;
+            }
+
+            .footer-column h4 {
+                font-size: 0.9rem;
+                font-weight: 700;
+                color: #F8FAFC;
+                margin-bottom: 1rem;
+            }
+
+            .footer-column ul {
+                list-style: none;
+                padding: 0;
+            }
+
+                .footer-column ul li {
+                    margin-bottom: 0.5rem;
+                }
+
+                    .footer-column ul li a {
+                        color: #CBD5E1;
+                        text-decoration: none;
+                        font-size: 0.8rem;
+                        transition: 0.2s;
+                    }
+
+                        .footer-column ul li a:hover {
+                            color: var(--accent-light);
+                        }
+
+            .footer-bottom {
+                max-width: 1280px;
+                margin: 0 auto;
+                padding-top: 2rem;
+                border-top: 1px solid rgba(255,255,255,0.1);
+                text-align: center;
+            }
+
+                .footer-bottom p {
+                    color: #94A3B8;
+                    font-size: 0.8rem;
+                }
+
+            @@media (max-width: 900px) {
+                .nav-links {
+                    display: none;
+                }
+
+                .btn-nav-login {
+                    display: none;
+                }
+            }
+    </style>
+</head>
+<body>
+
+    <!-- VIDEO BACKGROUND -->
+    <video autoplay muted loop playsinline class="bg-video">
+        <source src="~/videos/262188_medium.mp4" type="video/mp4">
+    </video>
+    <div class="bg-overlay"></div>
+
+    <div class="content-wrapper">
+        <!-- NAVBAR -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <a href="/" class="logo">
+                    <i class="fas fa-microscope"></i>
+                    <span>NMB-HLabSys</span>
+                </a>
+                <ul class="nav-links">
+                    <li><a asp-controller="Home" asp-action="Index">Home</a></li>
+                    <li><a asp-controller="Home" asp-action="FAQs">FAQs</a></li>
+                </ul>
+                <div class="nav-actions">
+                    <a asp-controller="Home" asp-action="FAQs" class="btn-nav-login">
+                        <i class="fas fa-question-circle"></i> FAQs
+                    </a>
+                    <a href="~/docs/UserManual.pdf" download class="btn-nav-register">
+                        <i class="fas fa-file-download"></i> User Manual
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- FAQ CONTENT -->
+        <section class="faq-section">
+            <div class="faq-header">
+                <h1>Frequently Asked Questions</h1>
+                <p>Find answers to common questions about the NMB-HLabSys platform.</p>
+            </div>
+
+            <details class="faq-card">
+                <summary>How do I get my login password?</summary>
+                <div class="faq-content">
+                    <strong>Staff (Managers, Doctors, Technicians):</strong> Passwords are automatically generated by the system and emailed to you when your account is created.<br><br>
+                    <strong>Patients:</strong> You will receive an email with a temporary password upon registration.<br><br>
+                    If you did not receive the email, go to the Login page and click "Forgot Password" to generate a new one.
+                </div>
+            </details>
+
+            <details class="faq-card">
+                <summary>Why does the system force me to change my password on my first login?</summary>
+                <div class="faq-content">
+                    For security reasons and to comply with POPIA regulations, all auto-generated passwords must be changed immediately upon your first login to ensure only you know your credentials.
+                </div>
+            </details>
+
+            <details class="faq-card">
+                <summary>Why can't I see the "Create Test Request" button?</summary>
+                <div class="faq-content">
+                    The "Create Test Request" feature is exclusive to the <strong>Doctor</strong> role. If you are logged in as a Manager, Technician, or Patient, you will not see this button. Ensure you have logged in with the correct account.
+                </div>
+            </details>
+
+            <details class="faq-card">
+                <summary>Why is the stock not decreasing when a test is performed?</summary>
+                <div class="faq-content">
+                    Stock deduction is handled automatically by the <strong>Technician</strong> subsystem. When a Technician selects a test to perform, the system checks the Manager's catalogue and deducts the required amount from the inventory. If it's not deducting, ensure the Manager has correctly linked the test type to consumables.
+                </div>
+            </details>
+
+            <details class="faq-card">
+                <summary>Why can't I verify a test result?</summary>
+                <div class="faq-content">
+                    The system enforces a two-step validation process. You cannot verify your own results; a <strong>second Technician</strong> must verify the result. Additionally, you can only verify tests that the Manager has explicitly assigned to you.
+                </div>
+            </details>
+        </section>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-column">
+                <h4><i class="fas fa-microscope"></i> NMB-HLabSys</h4>
+                <p style="color: #CBD5E1; font-size: 0.8rem; line-height: 1.6; margin-top: 0.5rem;">
+                    Nelson Mandela Bay Haematology Diagnostic Laboratories — A modern laboratory test request management system.
+                </p>
+            </div>
+            <div class="footer-column">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a asp-controller="Home" asp-action="Index">Home</a></li>
+                    <li><a asp-controller="Home" asp-action="FAQs">FAQs</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h4>For Users</h4>
+                <ul>
+                    <li><a asp-controller="Account" asp-action="Login">Login</a></li>
+                    <li><a asp-controller="Patient" asp-action="Register">Register as Patient</a></li>
+                    <li><a asp-controller="Account" asp-action="RegisterAdmin">Admin Registration</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h4>Contact</h4>
+                <ul>
+                    <li><a href="mailto:info@nmblab.co.za"><i class="fas fa-envelope"></i> info@nmblab.co.za</a></li>
+                    <li><a href="tel:+27415041234"><i class="fas fa-phone"></i> +27 41 504 1234</a></li>
+                    <li><i class="fas fa-map-marker-alt"></i> Port Elizabeth, SA</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© @DateTime.Now.Year Nelson Mandela Bay Haematology Diagnostic Laboratories. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+            window.addEventListener('scroll', () => {
+                const navbar = document.querySelector('.navbar');
+                if (window.scrollY > 50) {
+                    navbar.style.background = 'rgba(255, 255, 255, 0.92)';
+                    navbar.style.boxShadow = '0 4px 20px rgba(15, 23, 42, 0.06)';
+                } else {
+                    navbar.style.background = 'rgba(255, 255, 255, 0.72)';
+                    navbar.style.boxShadow = 'none';
+                }
+            });
+    </script>
+</body>
+</html>
