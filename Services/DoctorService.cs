@@ -333,6 +333,15 @@ namespace NMB_HLabSys.Services
             if (submittedBarcodes.Count != submittedBarcodes.Distinct(StringComparer.OrdinalIgnoreCase).Count())
                 throw new InvalidOperationException("Duplicate barcodes detected. Each sample must have a unique barcode.");
 
+            // ─── Validate barcode FORMAT (mirror of client-side regex) ───
+            var barcodeRegex = new System.Text.RegularExpressions.Regex(@"^BAR-\d{8}-[A-Z0-9]{6}$");
+            foreach (var bc in submittedBarcodes)
+            {
+                if (!barcodeRegex.IsMatch(bc))
+                    throw new InvalidOperationException(
+                        $"Barcode '{bc}' has an invalid format. Expected: BAR-YYYYMMDD-XXXXXX");
+            }
+
             // ─── Duplicate check against DB ───
             var existingBarcodes = await _context.Samples
                 .Where(s => submittedBarcodes.Contains(s.Barcode))
@@ -394,21 +403,39 @@ namespace NMB_HLabSys.Services
                     "Test request {RequestNumber} created by doctor {DoctorId} with {SampleCount} sample(s)",
                     testRequest.RequestNumber, doctorId, sampleGroups.Count);
 
-                // ─── Notify patient (best effort) ───
+                // ─── Notify patient via email (best effort) ───
                 try
                 {
-                    var patient = await _context.Patients.FindAsync(model.PatientID);
+                    var patient = await _context.Patients
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(p => p.PatientID == model.PatientID);
+
+                    var doctor = await _context.Doctors
+                        .Include(d => d.User)
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(d => d.DoctorID == doctorId);
+
                     if (patient != null && !string.IsNullOrWhiteSpace(patient.Email))
                     {
-                        await _emailService.SendTestResultEmailAsync(
-                            patient.Email,
-                            $"{patient.FirstName} {patient.LastName}",
-                            $"A new test request ({testRequest.RequestNumber}) has been submitted on your behalf.");
+                        var testNames = testTypes.Select(t => t.TestName).ToList();
+                        var doctorName = doctor?.User != null
+                            ? $"{doctor.User.Name} {doctor.User.Surname}".Trim()
+                            : "Your Doctor";
+
+                        await _emailService.SendTestRequestSubmittedEmailAsync(
+                            toEmail: patient.Email,
+                            patientName: $"{patient.FirstName} {patient.LastName}".Trim(),
+                            requestNumber: testRequest.RequestNumber,
+                            doctorName: doctorName,
+                            requestDate: testRequest.RequestDate,
+                            urgency: testRequest.Urgency,
+                            testNames: testNames,
+                            clinicalNotes: testRequest.ClinicalNotes ?? string.Empty);
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to notify patient {PatientId}", model.PatientID);
+                    _logger.LogWarning(ex, "Failed to email patient {PatientId} about new request", model.PatientID);
                 }
 
                 return testRequest;
@@ -445,6 +472,11 @@ namespace NMB_HLabSys.Services
 
         public async Task<bool> CancelTestRequestAsync(int requestId, string reason)
         {
+            // ─── Validate reason length (mirror of client-side check) ───
+            if (string.IsNullOrWhiteSpace(reason) || reason.Trim().Length < 10)
+                throw new InvalidOperationException(
+                    "Please provide a cancellation reason of at least 10 characters.");
+
             var request = await _context.TestRequests
                 .Include(r => r.RequestTestTypes)
                 .Include(r => r.Samples)
@@ -457,7 +489,7 @@ namespace NMB_HLabSys.Services
 
             request.Status = "Cancelled";
             request.CancelledDate = DateTime.Now;
-            request.CancellationReason = reason;
+            request.CancellationReason = reason.Trim();
 
             foreach (var rt in request.RequestTestTypes)
             {
@@ -577,9 +609,6 @@ namespace NMB_HLabSys.Services
                 throw new InvalidOperationException($"A user with email {resolvedEmail} already exists.");
 
             // ═══════════ SANITIZE INPUTS ═══════════
-            // Every string column in the DB is NOT NULL. Empty string is safe; null is not.
-            // Also truncate to the DB column max length so SQL Server doesn't reject the row.
-
             var contactNumber = (model.Cellphone ?? "").Trim();
             if (contactNumber.Length > 20) contactNumber = contactNumber.Substring(0, 20);
 
@@ -622,7 +651,7 @@ namespace NMB_HLabSys.Services
                 DateOfBirth = model.DateOfBirth,
                 Cellphone = cellphone,
                 Email = user.Email,
-                HomeAddress = homeAddress,             // already guaranteed non-null
+                HomeAddress = homeAddress,
                 CreatedDate = DateTime.Now,
                 IsActive = true
             };
@@ -631,7 +660,6 @@ namespace NMB_HLabSys.Services
             await _context.SaveChangesAsync();
 
             // ═══════════ LINK CONDITIONS ═══════════
-            // Notes column is NOT NULL in the DB — pass "" not null
             foreach (var cid in model.SelectedConditionIDs.Distinct())
             {
                 _context.PatientConditions.Add(new PatientCondition
@@ -639,39 +667,37 @@ namespace NMB_HLabSys.Services
                     PatientID = patient.PatientID,
                     ConditionID = cid,
                     DiagnosedDate = DateTime.Now,
-                    Notes = "",                        // ← REQUIRED
+                    Notes = "",
                     IsActive = true,
                     CreatedDate = DateTime.Now
                 });
             }
 
             // ═══════════ LINK ALLERGIES ═══════════
-            // Severity and Notes are NOT NULL
             foreach (var aid in model.SelectedAllergyIDs.Distinct())
             {
                 _context.PatientAllergies.Add(new PatientAllergy
                 {
                     PatientID = patient.PatientID,
                     AllergyID = aid,
-                    Severity = "Unknown",              // ← REQUIRED
-                    Notes = "",                        // ← REQUIRED
+                    Severity = "Unknown",
+                    Notes = "",
                     CreatedDate = DateTime.Now
                 });
             }
 
             // ═══════════ LINK MEDICATIONS ═══════════
-            // Dosage, Frequency, Notes are NOT NULL
             foreach (var mid in model.SelectedMedicationIDs.Distinct())
             {
                 _context.PatientMedications.Add(new PatientMedication
                 {
                     PatientID = patient.PatientID,
                     MedicationID = mid,
-                    Dosage = "",                       // ← REQUIRED
-                    Frequency = "",                    // ← REQUIRED
+                    Dosage = "",
+                    Frequency = "",
                     IsCurrent = true,
                     StartDate = DateTime.Now,
-                    Notes = "",                        // ← REQUIRED
+                    Notes = "",
                     CreatedDate = DateTime.Now
                 });
             }
@@ -885,6 +911,7 @@ namespace NMB_HLabSys.Services
                             IsAbnormal = t.IsAbnormal,
                             IsReleased = r.ReleasedToPatientDate.HasValue,
                             ReleasedDate = r.ReleasedToPatientDate,
+                            AppointmentRequestedDate = r.AppointmentRequestedDate,
                             ResultDate = t.ResultDate,
                             Notes = t.Notes
                         })).ToList()
@@ -962,14 +989,33 @@ namespace NMB_HLabSys.Services
         public async Task<bool> ReleaseResultAsync(int resultId, string note, string releaseMethod, int doctorId)
         {
             var result = await _context.TestResults
-                .Include(r => r.RequestTestType).ThenInclude(rt => rt.TestRequest)
+                .Include(r => r.RequestTestType)
+                    .ThenInclude(rt => rt!.TestType)
+                .Include(r => r.RequestTestType)
+                    .ThenInclude(rt => rt!.TestRequest)
+                        .ThenInclude(tr => tr!.Patient)
+                .Include(r => r.RequestTestType)
+                    .ThenInclude(rt => rt!.TestRequest)
+                        .ThenInclude(tr => tr!.Doctor)
+                            .ThenInclude(d => d!.User)
+                .Include(r => r.RequestTestType)
+                    .ThenInclude(rt => rt!.TestRequest)
+                        .ThenInclude(tr => tr!.RequestTestTypes)
+                            .ThenInclude(rt2 => rt2.TestType)
+                .Include(r => r.RequestTestType)
+                    .ThenInclude(rt => rt!.TestRequest)
+                        .ThenInclude(tr => tr!.RequestTestTypes)
+                            .ThenInclude(rt2 => rt2.TestResults)
                 .FirstOrDefaultAsync(r => r.ResultID == resultId);
 
             if (result?.RequestTestType?.TestRequest == null) return false;
 
             var request = result.RequestTestType.TestRequest;
-
             if (request.DoctorID != doctorId) return false;
+
+            // ─── Capture prior state so we don't double-email on repeat POSTs ───
+            var alreadyReleased = request.ReleasedToPatientDate.HasValue;
+            var wasAppointmentRequested = request.AppointmentRequestedDate.HasValue;
 
             request.ReleaseNote = note;
             request.ReleaseMethod = releaseMethod;
@@ -986,6 +1032,73 @@ namespace NMB_HLabSys.Services
             }
 
             await _context.SaveChangesAsync();
+
+            // ─── Only email when the state actually changed ───
+            var shouldSendEmail =
+                (releaseMethod == "appointment" && !wasAppointmentRequested) ||
+                (releaseMethod != "appointment" && !alreadyReleased);
+
+            if (shouldSendEmail)
+            {
+                try
+                {
+                    var patient = request.Patient;
+                    if (patient != null && !string.IsNullOrWhiteSpace(patient.Email))
+                    {
+                        var patientName = $"{patient.FirstName} {patient.LastName}".Trim();
+                        var doctorName = request.Doctor?.User != null
+                            ? $"{request.Doctor.User.Name} {request.Doctor.User.Surname}".Trim()
+                            : "Your Doctor";
+
+                        if (releaseMethod == "appointment")
+                        {
+                            await _emailService.SendAppointmentRequestEmailAsync(
+                                toEmail: patient.Email,
+                                patientName: patientName,
+                                doctorName: doctorName,
+                                requestNumber: request.RequestNumber,
+                                note: note ?? string.Empty);
+                        }
+                        else
+                        {
+                            // Collect every result in this request for the summary table
+                            var emailResults = request.RequestTestTypes?
+                                .SelectMany(rt => rt.TestResults ?? new List<TestResult>())
+                                .Select(t =>
+                                {
+                                    var tt = request.RequestTestTypes?
+                                        .FirstOrDefault(rt => rt.RequestTestID == t.RequestTestID)?
+                                        .TestType;
+
+                                    return new ReleasedTestEmailItem
+                                    {
+                                        TestName = tt?.TestName ?? "Unknown",
+                                        ResultValue = t.ResultValue ?? "N/A",
+                                        Unit = tt?.UnitOfMeasurement ?? "",
+                                        NormalRange = tt != null
+                                            ? $"{tt.NormalRangeMin} - {tt.NormalRangeMax}"
+                                            : "—",
+                                        IsAbnormal = t.IsAbnormal
+                                    };
+                                })
+                                .ToList() ?? new List<ReleasedTestEmailItem>();
+
+                            await _emailService.SendResultReleasedEmailAsync(
+                                toEmail: patient.Email,
+                                patientName: patientName,
+                                doctorName: doctorName,
+                                requestNumber: request.RequestNumber,
+                                note: note ?? string.Empty,
+                                testResults: emailResults);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to email patient for released result {ResultId}", resultId);
+                }
+            }
+
             return true;
         }
 
@@ -1106,9 +1219,12 @@ namespace NMB_HLabSys.Services
                 .AsNoTracking()
                 .FirstOrDefaultAsync(d => d.DoctorID == doctorId);
 
+            var startDate = filter.StartDate.Date;
+            var endExclusive = filter.EndDate.Date.AddDays(1);
+
             var query = _context.TestRequests
                 .Where(r => r.DoctorID == doctorId)
-                .Where(r => r.RequestDate >= filter.StartDate && r.RequestDate <= filter.EndDate)
+                .Where(r => r.RequestDate >= startDate && r.RequestDate < endExclusive)
                 .Include(r => r.Patient)
                 .Include(r => r.RequestTestTypes).ThenInclude(rt => rt.TestType).ThenInclude(t => t.Category)
                 .Include(r => r.RequestTestTypes).ThenInclude(rt => rt.TestResults)

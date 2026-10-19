@@ -4,8 +4,6 @@
     ViewData["Title"] = "Result " + Model.TestName;
     ViewData["RoleSubtitle"] = "Doctor Portal";
     ViewData["UserGreeting"] = "Review and release result";
-    ViewData["UserInitials"] = "SJ";
-    ViewData["UserName"] = "Sarah Johnson";
 
     var openRelease = ViewBag.OpenRelease as bool? ?? false;
 }
@@ -271,10 +269,26 @@
                 box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
             }
 
+            .form-control.error {
+                border-color: #DC2626;
+                background: #FEF2F2;
+            }
+
         textarea.form-control {
             resize: vertical;
             min-height: 80px;
         }
+
+        .field-error {
+            display: none;
+            color: #DC2626;
+            font-size: 0.72rem;
+            margin-top: 0.3rem;
+        }
+
+            .field-error.show {
+                display: block;
+            }
 
         .alert {
             padding: 0.8rem 1rem;
@@ -325,6 +339,64 @@
             border-left: 4px solid #0841C9;
             font-size: 0.82rem;
             margin-top: 1rem;
+        }
+
+        /* ─── MODAL ─── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(3px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .modal-overlay.active {
+                display: flex;
+            }
+
+        .modal-container {
+            background: white;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+        }
+
+        .modal-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #E2E8F0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            .modal-header h3 {
+                margin: 0;
+                color: #032C7D;
+                font-size: 1.1rem;
+            }
+
+        .modal-body {
+            padding: 1.2rem 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #E2E8F0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.8rem;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+            color: #5A6E7A;
         }
 
         @@media (max-width: 768px) {
@@ -428,9 +500,9 @@
         <a asp-action="PatientDetails" asp-route-id="@Model.PatientID" class="btn btn-outline">
             <i class="fas fa-history"></i> Patient History
         </a>
-        <button type="button" class="btn btn-primary" onclick="downloadPdf()">
+        <a asp-action="DownloadResultPdf" asp-route-id="@Model.ResultID" class="btn btn-primary">
             <i class="fas fa-file-pdf"></i> Download PDF
-        </button>
+        </a>
     </div>
 </div>
 
@@ -483,7 +555,7 @@ else if (Model.AppointmentRequestedDate.HasValue)
         </div>
 
         <div style="display:flex; justify-content:flex-end; margin-top:1rem;">
-            <form asp-action="ReleaseResult" method="post" style="display:inline;">
+            <form asp-action="ReleaseResult" method="post" id="appointmentReleaseForm" style="display:inline;">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="ResultID" value="@Model.ResultID" />
                 <input type="hidden" name="PatientName" value="@Model.PatientName" />
@@ -513,8 +585,9 @@ else
 
             <div class="form-group">
                 <label>Note to Patient (optional)</label>
-                <textarea name="Note" class="form-control" rows="3"
+                <textarea name="Note" id="releaseNote" class="form-control" rows="3" maxlength="500"
                       placeholder="Add a personal message for the patient..."></textarea>
+                <div class="field-error" id="noteError"></div>
             </div>
 
             <div class="info-note">
@@ -523,6 +596,13 @@ else
                     <li><strong>Release Results</strong> — sends the PDF to the patient (email)</li>
                     <li><strong>Ask to Book Appointment</strong> — requests the patient come in to discuss results (not released until they're seen)</li>
                 </ul>
+                @if (Model.IsAbnormal)
+                {
+                    <div style="margin-top:0.5rem; padding:0.5rem 0.7rem; background:#FEE2E2; border-radius:8px; color:#991B1B; font-size:0.78rem;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>This result is abnormal.</strong> A note to the patient is required before releasing.
+                    </div>
+                }
             </div>
 
             <div style="display:flex; justify-content:flex-end; gap:0.6rem; margin-top:1.2rem; flex-wrap:wrap;">
@@ -540,17 +620,148 @@ else
     </div>
 }
 
+<!-- ─── CONFIRM RELEASE MODAL (always rendered, outside if/else) ─── -->
+<div id="confirmReleaseModal" class="modal-overlay">
+    <div class="modal-container" style="max-width:480px;">
+        <form id="confirmReleaseForm" asp-action="ReleaseResult" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="ResultID" value="@Model.ResultID" />
+            <input type="hidden" name="PatientName" value="@Model.PatientName" />
+            <input type="hidden" name="TestName" value="@Model.TestName" />
+            <input type="hidden" name="ResultValue" value="@Model.ResultValue" />
+            <input type="hidden" name="ReleaseMethod" id="confirmMethod" />
+            <input type="hidden" name="Note" id="confirmNote" />
+
+            <div class="modal-header">
+                <h3 id="confirmTitle">Release to Patient?</h3>
+                <button type="button" class="close-modal" onclick="closeConfirmRelease()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage" style="margin:0 0 1rem; color:#5A6E7A; font-size:0.9rem;"></p>
+
+                <label for="confirmNoteInput"
+                       style="display:block; font-size:0.8rem; font-weight:600; color:#032C7D; margin-bottom:0.3rem;">
+                    Note to Patient <span id="confirmNoteHint" style="color:#5A6E7A; font-weight:400;">(optional)</span>
+                </label>
+                <textarea id="confirmNoteInput" class="form-control" rows="3" maxlength="500"
+                          placeholder="Add a personal message for the patient..."></textarea>
+                <div id="confirmError" class="field-error"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeConfirmRelease()">Cancel</button>
+                <button type="submit" class="btn btn-success" id="confirmOkBtn">
+                    <i class="fas fa-check"></i> Confirm
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         @if (openRelease)
         {
-                <text>
-                document.getElementById('releasePanel')?.scrollIntoView({ behavior: 'smooth' });
-                </text>
+                    <text>document.getElementById('releasePanel')?.scrollIntoView({ behavior: 'smooth' });</text>
         }
 
-        function downloadPdf() {
-            alert('PDF download will be wired up in the Reports section.');
+        var isAbnormal = @Model.IsAbnormal.ToString().ToLower();
+
+        // ── Confirm-release modal ──
+        function confirmRelease(method) {
+            // method: 'email' | 'appointment'
+            var noteEl = document.getElementById('releaseNote');
+            var note = noteEl ? noteEl.value.trim() : '';
+
+            // Copy any already-typed note into the confirm textarea
+            var nInput = document.getElementById('confirmNoteInput');
+            if (nInput) nInput.value = note;
+            document.getElementById('confirmNote').value = note;
+
+            // Hint text ("(required)" vs "(optional)")
+            var hint = document.getElementById('confirmNoteHint');
+            if (hint) {
+                hint.textContent = (method === 'email' && isAbnormal) ? '(required for abnormal)' : '(optional)';
+                hint.style.color = (method === 'email' && isAbnormal) ? '#DC2626' : '#5A6E7A';
+            }
+
+            document.getElementById('confirmTitle').textContent =
+                method === 'email' ? 'Release to Patient?' : 'Request Appointment?';
+            document.getElementById('confirmMessage').textContent =
+                method === 'email'
+                    ? (isAbnormal
+                        ? 'This is an ABNORMAL result. The patient will be notified by email with your note.'
+                        : 'The patient will be notified by email with your note.')
+                    : 'The patient will be asked to book an appointment. Results will not be released yet.';
+            document.getElementById('confirmMethod').value = method;
+
+            var errEl = document.getElementById('confirmError');
+            if (errEl) { errEl.classList.remove('show'); errEl.textContent = ''; }
+
+            document.getElementById('confirmReleaseModal').classList.add('active');
+
+            // Focus the note textarea if abnormal release
+            setTimeout(function () {
+                if (method === 'email' && isAbnormal && nInput) nInput.focus();
+            }, 100);
         }
+
+        function closeConfirmRelease() {
+            document.getElementById('confirmReleaseModal').classList.remove('active');
+        }
+
+        document.getElementById('confirmReleaseModal').addEventListener('click', function (e) {
+            if (e.target === this) closeConfirmRelease();
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeConfirmRelease();
+        });
+
+        // Bind the two submit buttons on the "Handle This Result" (pending) form
+        var releaseForm = document.getElementById('releaseForm');
+        if (releaseForm) {
+            releaseForm.querySelectorAll('button[type="submit"][name="ReleaseMethod"]').forEach(function (btn) {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    confirmRelease(this.value);
+                });
+            });
+        }
+
+        // Bind the "Release Now" button on the appointment-requested panel
+        var apptForm = document.getElementById('appointmentReleaseForm');
+        if (apptForm) {
+            apptForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                confirmRelease('email');
+            });
+        }
+
+        // Validate the confirm form before POSTing
+        document.getElementById('confirmReleaseForm').addEventListener('submit', function (e) {
+            var method = document.getElementById('confirmMethod').value;
+            var noteField = document.getElementById('confirmNoteInput');
+            var note = (noteField ? noteField.value : '').trim();
+            document.getElementById('confirmNote').value = note;
+
+            var errEl = document.getElementById('confirmError');
+            if (errEl) { errEl.classList.remove('show'); errEl.textContent = ''; }
+
+            if (method === 'email' && isAbnormal && !note) {
+                e.preventDefault();
+                if (errEl) {
+                    errEl.textContent = 'A note to the patient is required when releasing an abnormal result.';
+                    errEl.classList.add('show');
+                }
+                if (noteField) noteField.focus();
+                return;
+            }
+
+            var btn = document.getElementById('confirmOkBtn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            }
+        });
     </script>
 }

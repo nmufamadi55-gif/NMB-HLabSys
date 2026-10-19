@@ -4,8 +4,6 @@
     ViewData["Title"] = Model.FullName;
     ViewData["RoleSubtitle"] = "Doctor Portal";
     ViewData["UserGreeting"] = "Patient details";
-    ViewData["UserInitials"] = "SJ";
-    ViewData["UserName"] = "Sarah Johnson";
 }
 
 @section SidebarMenu {
@@ -137,14 +135,6 @@
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
             gap: 1rem;
-        }
-        media (max-width: 1000px) {
-            .info-grid
-
-        {
-            grid-template-columns: 1fr;
-        }
-
         }
 
         .info-block {
@@ -334,6 +324,12 @@
             color: #94A3B8;
             font-style: italic;
             font-size: 0.85rem;
+        }
+
+        @@media (max-width: 1000px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 }

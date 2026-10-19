@@ -4,8 +4,6 @@
     ViewData["Title"] = "My Patients";
     ViewData["RoleSubtitle"] = "Doctor Portal";
     ViewData["UserGreeting"] = "Manage your patient roster";
-    ViewData["UserInitials"] = "SJ";
-    ViewData["UserName"] = "Sarah Johnson";
 }
 
 @section SidebarMenu {
@@ -346,7 +344,7 @@
 <!-- ─── FILTER + ACTION BAR ─── -->
 <div class="panel">
     <form method="get" asp-action="Patients" class="filter-bar">
-        <input type="text" name="searchTerm" class="filter-input"
+        <input type="text" name="searchTerm" class="filter-input" maxlength="100"
                placeholder="Search by name or SA ID..."
                value="@ViewData["SearchTerm"]" />
         <button type="submit" class="btn btn-primary">
