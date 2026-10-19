@@ -486,6 +486,41 @@ namespace NMB_HLabSys.Migrations
                     b.ToTable("OrderItems");
                 });
 
+            modelBuilder.Entity("NMB_HLabSys.Models.PasswordResetToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserID")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserID");
+
+                    b.ToTable("PasswordResetTokens");
+                });
+
             modelBuilder.Entity("NMB_HLabSys.Models.Patient", b =>
                 {
                     b.Property<int>("PatientID")
@@ -1471,6 +1506,17 @@ namespace NMB_HLabSys.Migrations
                     b.Navigation("Consumable");
 
                     b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("NMB_HLabSys.Models.PasswordResetToken", b =>
+                {
+                    b.HasOne("NMB_HLabSys.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("NMB_HLabSys.Models.Patient", b =>
