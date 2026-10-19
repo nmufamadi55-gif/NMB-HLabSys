@@ -4,8 +4,6 @@
     ViewData["Title"] = "Test Results";
     ViewData["RoleSubtitle"] = "Doctor Portal";
     ViewData["UserGreeting"] = "View and release patient test results";
-    ViewData["UserInitials"] = "SJ";
-    ViewData["UserName"] = "Sarah Johnson";
 }
 
 @section SidebarMenu {
@@ -174,7 +172,6 @@
             font-size: 0.72rem;
         }
 
-        /* ─── REQUEST GROUP ─── */
         .request-group {
             background: white;
             border-radius: 16px;
@@ -355,6 +352,90 @@
                 margin: 0;
             }
 
+        /* ─── MODAL ─── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(3px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .modal-overlay.active {
+                display: flex;
+            }
+
+        .modal-container {
+            background: white;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+        }
+
+        .modal-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #E2E8F0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            .modal-header h3 {
+                margin: 0;
+                color: #032C7D;
+                font-size: 1.1rem;
+            }
+
+        .modal-body {
+            padding: 1.2rem 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #E2E8F0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.8rem;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+            color: #5A6E7A;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
+
+            .form-control:focus {
+                outline: none;
+                border-color: #0841C9;
+                box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
+            }
+
+        .field-error {
+            display: none;
+            color: #DC2626;
+            font-size: 0.72rem;
+            margin-top: 0.3rem;
+        }
+
+            .field-error.show {
+                display: block;
+            }
+
         @@media (max-width: 900px) {
             .stats-row {
                 grid-template-columns: 1fr 1fr;
@@ -407,7 +488,7 @@
 <!-- ─── FILTERS ─── -->
 <div class="panel">
     <form method="get" asp-action="Results" class="filter-bar">
-        <input type="text" name="SearchTerm" class="filter-input"
+        <input type="text" name="SearchTerm" class="filter-input" maxlength="100"
                placeholder="Search by patient or request #"
                value="@Model.Filter.SearchTerm" />
 
@@ -461,13 +542,19 @@ else
                         <span class="badge badge-abnormal"><i class="fas fa-exclamation-triangle"></i> Abnormal</span>
                     }
 
-                    @if (group.RequestStatus == "Appointment Requested")
-                    {
-                        <span class="badge" style="background:#FEF3C7; color:#78350F;">Appointment Requested</span>
+                    @{
+                        var anyAppointment = group.AppointmentRequestedDate.HasValue
+                        || group.TestResults.Any(x => x.AppointmentRequestedDate.HasValue);
+                        var anyReleased = group.ReleasedToPatientDate.HasValue
+                        || group.TestResults.Any(x => x.IsReleased);
                     }
-                    else if (group.ReleasedToPatientDate.HasValue)
+                    @if (anyReleased)
                     {
                         <span class="badge badge-released">Released</span>
+                    }
+                    else if (anyAppointment || group.RequestStatus == "Appointment Requested")
+                    {
+                        <span class="badge" style="background:#FEF3C7; color:#78350F;">Appointment Requested</span>
                     }
                     else
                     {
@@ -486,7 +573,7 @@ else
                             <th>Normal Range</th>
                             <th>Status</th>
                             <th>Date</th>
-                            <th></th>
+                            <th style="min-width:260px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -509,6 +596,10 @@ else
                                     {
                                         <span class="badge badge-released">Released</span>
                                     }
+                                    else if (r.AppointmentRequestedDate.HasValue)
+                                    {
+                                        <span class="badge" style="background:#FEF3C7; color:#78350F;">Appointment</span>
+                                    }
                                     else
                                     {
                                         <span class="badge badge-pending">Pending</span>
@@ -516,19 +607,38 @@ else
                                 </td>
                                 <td>@r.ResultDate.ToString("yyyy-MM-dd HH:mm")</td>
                                 <td>
-                                    <a asp-action="ResultDetails" asp-route-id="@r.ResultID"
-                                       class="btn btn-outline btn-sm">
-                                        <i class="fas fa-eye"></i> View
-                                    </a>
-                                    @if (!r.IsReleased)
-                                    {
-                                        <a asp-action="ResultDetails"
-                                           asp-route-id="@r.ResultID"
-                                           asp-route-release="true"
-                                           class="btn btn-success btn-sm">
-                                            <i class="fas fa-paper-plane"></i> Release
+                                    <div style="display:flex; gap:0.35rem; flex-wrap:wrap;">
+                                        <a asp-action="ResultDetails" asp-route-id="@r.ResultID"
+                                           class="btn btn-outline btn-sm">
+                                            <i class="fas fa-eye"></i> View
                                         </a>
-                                    }
+
+                                        @if (!r.IsReleased && !r.AppointmentRequestedDate.HasValue)
+                                        {
+                                            <button type="button" class="btn btn-success btn-sm"
+                                                    onclick="openReleaseModal(@r.ResultID, '@r.RequestNumber', true, @(r.IsAbnormal ? "true" : "false"))">
+                                                <i class="fas fa-paper-plane"></i> Release
+                                            </button>
+
+                                            <button type="button" class="btn btn-primary btn-sm"
+                                                    onclick="openReleaseModal(@r.ResultID, '@r.RequestNumber', false, @(r.IsAbnormal ? "true" : "false"))">
+                                                <i class="fas fa-calendar-check"></i> Book Appointment
+                                            </button>
+                                        }
+                                        else if (r.AppointmentRequestedDate.HasValue && !r.IsReleased)
+                                        {
+                                            <button type="button" class="btn btn-success btn-sm"
+                                                    onclick="openReleaseModal(@r.ResultID, '@r.RequestNumber', true, @(r.IsAbnormal ? "true" : "false"))">
+                                                <i class="fas fa-paper-plane"></i> Release Now
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span class="btn btn-outline btn-sm" style="pointer-events:none; opacity:0.6;">
+                                                <i class="fas fa-check"></i> Released
+                                            </span>
+                                        }
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -539,10 +649,100 @@ else
     }
 }
 
+<!-- ─── RELEASE / BOOK APPOINTMENT MODAL (outside script) ─── -->
+<div id="releaseModal" class="modal-overlay">
+    <div class="modal-container">
+        <form id="releaseForm" asp-action="ReleaseResult" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="ResultID" id="relResultId" />
+            <input type="hidden" name="ReleaseMethod" id="relMethod" />
+
+            <div class="modal-header">
+                <h3 id="relTitle">Release Result</h3>
+                <button type="button" class="close-modal" onclick="closeReleaseModal()">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <p id="relIntro" style="margin:0 0 1rem; font-size:0.85rem; color:#5A6E7A;"></p>
+
+                <label style="display:block; font-size:0.8rem; font-weight:600; color:#032C7D; margin-bottom:0.3rem;">
+                    Note to Patient <span style="color:#5A6E7A; font-weight:400;">(required for abnormal release)</span>
+                </label>
+                <textarea name="Note" id="relNote" class="form-control" rows="3" maxlength="500"
+                          placeholder="Add a personal message for the patient..."></textarea>
+                <div id="relError" class="field-error"></div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeReleaseModal()">Cancel</button>
+                <button type="submit" class="btn btn-success" id="relSubmitBtn">
+                    <i class="fas fa-paper-plane"></i> Confirm
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         function toggleGroup(header) {
             header.closest('.request-group').classList.toggle('open');
         }
+
+        var relIsAbnormal = false;
+        var relIsRelease = true;
+
+        function openReleaseModal(resultId, requestNumber, isRelease, isAbnormal) {
+            relIsRelease = !!isRelease;
+            relIsAbnormal = !!isAbnormal;
+
+            document.getElementById('relResultId').value = resultId;
+            document.getElementById('relMethod').value = relIsRelease ? 'email' : 'appointment';
+            document.getElementById('relTitle').textContent = relIsRelease ? 'Release Result' : 'Request Appointment';
+            document.getElementById('relIntro').textContent = relIsRelease
+                ? (relIsAbnormal
+                    ? 'This is an ABNORMAL result. The patient will be notified by email and a note is required.'
+                    : 'The result will be emailed to the patient and marked as released.')
+                : 'The patient will be asked to book an appointment to discuss the result.';
+            document.getElementById('relNote').value = '';
+            document.getElementById('relError').classList.remove('show');
+            document.getElementById('relError').textContent = '';
+            document.getElementById('relSubmitBtn').innerHTML = relIsRelease
+                ? '<i class="fas fa-paper-plane"></i> Release'
+                : '<i class="fas fa-calendar-check"></i> Request Appointment';
+
+            document.getElementById('releaseModal').classList.add('active');
+        }
+
+        function closeReleaseModal() {
+            document.getElementById('releaseModal').classList.remove('active');
+        }
+
+        document.getElementById('releaseModal').addEventListener('click', function (e) {
+            if (e.target === this) closeReleaseModal();
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeReleaseModal();
+        });
+
+        document.getElementById('releaseForm').addEventListener('submit', function (e) {
+            var note = document.getElementById('relNote').value.trim();
+            var err = document.getElementById('relError');
+
+            err.classList.remove('show');
+            err.textContent = '';
+
+            if (relIsRelease && relIsAbnormal && !note) {
+                e.preventDefault();
+                err.textContent = 'A note to the patient is required when releasing an abnormal result.';
+                err.classList.add('show');
+                return;
+            }
+
+            var btn = document.getElementById('relSubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        });
     </script>
 }

@@ -333,6 +333,15 @@ namespace NMB_HLabSys.Services
             if (submittedBarcodes.Count != submittedBarcodes.Distinct(StringComparer.OrdinalIgnoreCase).Count())
                 throw new InvalidOperationException("Duplicate barcodes detected. Each sample must have a unique barcode.");
 
+            // ─── Validate barcode FORMAT (mirror of client-side regex) ───
+            var barcodeRegex = new System.Text.RegularExpressions.Regex(@"^BAR-\d{8}-[A-Z0-9]{6}$");
+            foreach (var bc in submittedBarcodes)
+            {
+                if (!barcodeRegex.IsMatch(bc))
+                    throw new InvalidOperationException(
+                        $"Barcode '{bc}' has an invalid format. Expected: BAR-YYYYMMDD-XXXXXX");
+            }
+
             // ─── Duplicate check against DB ───
             var existingBarcodes = await _context.Samples
                 .Where(s => submittedBarcodes.Contains(s.Barcode))
@@ -445,6 +454,11 @@ namespace NMB_HLabSys.Services
 
         public async Task<bool> CancelTestRequestAsync(int requestId, string reason)
         {
+            // ─── Validate reason length (mirror of client-side check) ───
+            if (string.IsNullOrWhiteSpace(reason) || reason.Trim().Length < 10)
+                throw new InvalidOperationException(
+                    "Please provide a cancellation reason of at least 10 characters.");
+
             var request = await _context.TestRequests
                 .Include(r => r.RequestTestTypes)
                 .Include(r => r.Samples)
@@ -457,7 +471,7 @@ namespace NMB_HLabSys.Services
 
             request.Status = "Cancelled";
             request.CancelledDate = DateTime.Now;
-            request.CancellationReason = reason;
+            request.CancellationReason = reason.Trim();
 
             foreach (var rt in request.RequestTestTypes)
             {
@@ -577,9 +591,6 @@ namespace NMB_HLabSys.Services
                 throw new InvalidOperationException($"A user with email {resolvedEmail} already exists.");
 
             // ═══════════ SANITIZE INPUTS ═══════════
-            // Every string column in the DB is NOT NULL. Empty string is safe; null is not.
-            // Also truncate to the DB column max length so SQL Server doesn't reject the row.
-
             var contactNumber = (model.Cellphone ?? "").Trim();
             if (contactNumber.Length > 20) contactNumber = contactNumber.Substring(0, 20);
 
@@ -622,7 +633,7 @@ namespace NMB_HLabSys.Services
                 DateOfBirth = model.DateOfBirth,
                 Cellphone = cellphone,
                 Email = user.Email,
-                HomeAddress = homeAddress,             // already guaranteed non-null
+                HomeAddress = homeAddress,
                 CreatedDate = DateTime.Now,
                 IsActive = true
             };
@@ -631,7 +642,6 @@ namespace NMB_HLabSys.Services
             await _context.SaveChangesAsync();
 
             // ═══════════ LINK CONDITIONS ═══════════
-            // Notes column is NOT NULL in the DB — pass "" not null
             foreach (var cid in model.SelectedConditionIDs.Distinct())
             {
                 _context.PatientConditions.Add(new PatientCondition
@@ -639,39 +649,37 @@ namespace NMB_HLabSys.Services
                     PatientID = patient.PatientID,
                     ConditionID = cid,
                     DiagnosedDate = DateTime.Now,
-                    Notes = "",                        // ← REQUIRED
+                    Notes = "",
                     IsActive = true,
                     CreatedDate = DateTime.Now
                 });
             }
 
             // ═══════════ LINK ALLERGIES ═══════════
-            // Severity and Notes are NOT NULL
             foreach (var aid in model.SelectedAllergyIDs.Distinct())
             {
                 _context.PatientAllergies.Add(new PatientAllergy
                 {
                     PatientID = patient.PatientID,
                     AllergyID = aid,
-                    Severity = "Unknown",              // ← REQUIRED
-                    Notes = "",                        // ← REQUIRED
+                    Severity = "Unknown",
+                    Notes = "",
                     CreatedDate = DateTime.Now
                 });
             }
 
             // ═══════════ LINK MEDICATIONS ═══════════
-            // Dosage, Frequency, Notes are NOT NULL
             foreach (var mid in model.SelectedMedicationIDs.Distinct())
             {
                 _context.PatientMedications.Add(new PatientMedication
                 {
                     PatientID = patient.PatientID,
                     MedicationID = mid,
-                    Dosage = "",                       // ← REQUIRED
-                    Frequency = "",                    // ← REQUIRED
+                    Dosage = "",
+                    Frequency = "",
                     IsCurrent = true,
                     StartDate = DateTime.Now,
-                    Notes = "",                        // ← REQUIRED
+                    Notes = "",
                     CreatedDate = DateTime.Now
                 });
             }
@@ -885,6 +893,7 @@ namespace NMB_HLabSys.Services
                             IsAbnormal = t.IsAbnormal,
                             IsReleased = r.ReleasedToPatientDate.HasValue,
                             ReleasedDate = r.ReleasedToPatientDate,
+                            AppointmentRequestedDate = r.AppointmentRequestedDate,
                             ResultDate = t.ResultDate,
                             Notes = t.Notes
                         })).ToList()
@@ -1106,9 +1115,12 @@ namespace NMB_HLabSys.Services
                 .AsNoTracking()
                 .FirstOrDefaultAsync(d => d.DoctorID == doctorId);
 
+            var startDate = filter.StartDate.Date;
+            var endExclusive = filter.EndDate.Date.AddDays(1);
+
             var query = _context.TestRequests
                 .Where(r => r.DoctorID == doctorId)
-                .Where(r => r.RequestDate >= filter.StartDate && r.RequestDate <= filter.EndDate)
+                .Where(r => r.RequestDate >= startDate && r.RequestDate < endExclusive)
                 .Include(r => r.Patient)
                 .Include(r => r.RequestTestTypes).ThenInclude(rt => rt.TestType).ThenInclude(t => t.Category)
                 .Include(r => r.RequestTestTypes).ThenInclude(rt => rt.TestResults)

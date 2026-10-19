@@ -1,5 +1,7 @@
-﻿// File: Controllers/DoctorController.cs
+﻿
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using NMB_HLabSys.Data;
 using NMB_HLabSys.Models;
 using NMB_HLabSys.Models.ViewModels;
 using NMB_HLabSys.Services;
@@ -10,16 +12,22 @@ namespace NMB_HLabSys.Controllers
     {
         private readonly IDoctorService _doctorService;
         private readonly ICurrentUserService _currentUser;
+        private readonly ApplicationDbContext _context;
         private readonly ILogger<DoctorController> _logger;
+        private readonly IPdfReportService _pdfService;
 
         public DoctorController(
-            IDoctorService doctorService,
-            ICurrentUserService currentUser,
-            ILogger<DoctorController> logger)
+         IDoctorService doctorService,
+         ICurrentUserService currentUser,
+         ApplicationDbContext context,
+         ILogger<DoctorController> logger,
+         IPdfReportService pdfService)
         {
             _doctorService = doctorService;
             _currentUser = currentUser;
+            _context = context;
             _logger = logger;
+            _pdfService = pdfService;
         }
 
         private int GetDoctorId()
@@ -37,7 +45,24 @@ namespace NMB_HLabSys.Controllers
             try
             {
                 var vm = await _doctorService.GetDashboardDataAsync(GetDoctorId());
-                ViewBag.DoctorName = _currentUser.Email ?? "Doctor";
+
+
+                var displayName = HttpContext.Session.GetString("UserName");
+                if (string.IsNullOrWhiteSpace(displayName))
+                {
+                    // Fallback: fetch the user from the DB
+                    var userId = _currentUser.UserId;
+                    if (userId.HasValue)
+                    {
+                        var user = await _context.Users.FindAsync(userId.Value);
+                        if (user != null)
+                            displayName = $"{user.Name} {user.Surname}".Trim();
+                    }
+                }
+                ViewBag.DoctorName = string.IsNullOrWhiteSpace(displayName)
+                    ? "Doctor"
+                    : $"Dr. {displayName}";
+
                 return View(vm);
             }
             catch (Exception ex)
@@ -46,9 +71,7 @@ namespace NMB_HLabSys.Controllers
                 TempData["ErrorMessage"] = "Could not load dashboard: " + ex.Message;
                 return View(new DoctorDashboardViewModel());
             }
-        }
-
-        // ═══════════════════════════════════════════════════════════
+        }        // ═══════════════════════════════════════════════════════════
         // TEST REQUESTS
         // ═══════════════════════════════════════════════════════════
         public async Task<IActionResult> TestRequests(TestRequestFilterViewModel filter)
@@ -168,7 +191,30 @@ namespace NMB_HLabSys.Controllers
                 medications = patient.Medications.Select(m => m.MedicationName).ToList()
             });
         }
+        // ═══════════════════════════════════════════════════════════
+        // AJAX: Pre-flight barcode availability check
+        // ═══════════════════════════════════════════════════════════
+        [HttpGet]
+        public async Task<IActionResult> CheckBarcodes(string barcodes)
+        {
+            if (string.IsNullOrWhiteSpace(barcodes))
+                return Json(new { taken = Array.Empty<string>() });
 
+            var list = barcodes
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            if (list.Count == 0)
+                return Json(new { taken = Array.Empty<string>() });
+
+            var taken = await _context.Samples
+                .Where(s => list.Contains(s.Barcode))
+                .Select(s => s.Barcode)
+                .ToListAsync();
+
+            return Json(new { taken });
+        }
         // ═══════════════════════════════════════════════════════════
         // PATIENTS
         // ═══════════════════════════════════════════════════════════
@@ -303,6 +349,81 @@ namespace NMB_HLabSys.Controllers
         }
 
         // ═══════════════════════════════════════════════════════════
+        // DOWNLOAD: Single result PDF
+        // ═══════════════════════════════════════════════════════════
+        public async Task<IActionResult> DownloadResultPdf(int id)
+        {
+            try
+            {
+                var vm = await _doctorService.GetResultDetailsAsync(id);
+
+                // We need the raw patient/request to render the full report;
+                // build a DoctorReportData for a single request.
+                var request = await _context.TestRequests
+                    .Include(r => r.Patient)
+                    .Include(r => r.RequestTestTypes).ThenInclude(rt => rt.TestType).ThenInclude(t => t.Category)
+                    .Include(r => r.RequestTestTypes).ThenInclude(rt => rt.TestResults)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(r => r.RequestID == vm.RequestID);
+
+                if (request == null) return NotFound();
+
+                var reportData = new DoctorReportData
+                {
+                    StartDate = request.RequestDate.Date,
+                    EndDate = request.RequestDate.Date,
+                    DoctorName = User.Identity?.Name ?? "Doctor",
+                    TotalRequests = 1,
+                    TotalTests = request.RequestTestTypes?.Count ?? 0,
+                    AbnormalTests = request.RequestTestTypes?
+                        .SelectMany(rt => rt.TestResults ?? new List<TestResult>())
+                        .Count(t => t.IsAbnormal) ?? 0,
+                    PendingTests = request.RequestTestTypes?
+                        .Count(rt => rt.Status != "Completed" && rt.Status != "Verified") ?? 0,
+                    Requests = new List<DoctorReportRequest>
+            {
+                new DoctorReportRequest
+                {
+                    RequestNumber = request.RequestNumber,
+                    RequestDate   = request.RequestDate,
+                    PatientName   = request.Patient != null
+                        ? $"{request.Patient.FirstName} {request.Patient.LastName}" : "Unknown",
+                    SAIDNumber    = request.Patient?.SAIDNumber ?? "—",
+                    Urgency       = request.Urgency,
+                    Status        = request.Status,
+                    ClinicalNotes = request.ClinicalNotes ?? string.Empty,
+                    Tests = request.RequestTestTypes?.Select(rt =>
+                    {
+                        var latest = rt.TestResults?
+                            .OrderByDescending(t => t.ResultDate).FirstOrDefault();
+                        return new DoctorReportTest
+                        {
+                            TestName      = rt.TestType?.TestName ?? "Unknown",
+                            Category      = rt.TestType?.Category?.CategoryName ?? "—",
+                            Status        = rt.Status,
+                            ResultValue   = latest?.ResultValue,
+                            NormalRange   = rt.TestType != null
+                                ? $"{rt.TestType.NormalRangeMin} - {rt.TestType.NormalRangeMax}" : null,
+                            Unit          = rt.TestType?.UnitOfMeasurement,
+                            IsAbnormal    = latest?.IsAbnormal ?? false,
+                            CompletedDate = rt.CompletedDateTime
+                        };
+                    }).ToList() ?? new List<DoctorReportTest>()
+                }
+            }
+                };
+
+                var bytes = _pdfService.GenerateDoctorReportPdf(reportData);
+                return File(bytes, "application/pdf",
+                    $"Result_{request.RequestNumber}_{DateTime.Now:yyyyMMdd}.pdf");
+            }
+            catch (ArgumentException)
+            {
+                return NotFound();
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════
         // ALERTS
         // ═══════════════════════════════════════════════════════════
         public async Task<IActionResult> Alerts(AlertsFilterViewModel filter)
@@ -323,6 +444,7 @@ namespace NMB_HLabSys.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AcknowledgeAlert(int id)
         {
             await _doctorService.AcknowledgeAlertAsync(id, GetDoctorId());

@@ -1,10 +1,27 @@
 ﻿@{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "Doctor Profile";
+    ViewData["Title"] = "My Profile";
     ViewData["RoleSubtitle"] = "Doctor Portal";
-    ViewData["UserGreeting"] = @ViewBag.UserGreeting ?? "Sarah Johnson";
-    ViewData["UserInitials"] = @ViewBag.UserInitials ?? "SJ";
-    ViewData["UserName"] = @ViewBag.UserName ?? "Sarah Johnson";
+    ViewData["UserGreeting"] = ViewBag.UserGreeting ?? "Doctor";
+
+    var userName = ViewBag.UserName as string ?? "Doctor";
+    var userEmail = ViewBag.UserEmail as string ?? "";
+    var initials = ViewBag.UserInitials as string ?? "DR";
+    var greeting = ViewBag.UserGreeting as string ?? userName;
+    var contact = ViewBag.ContactNumber as string ?? "";
+    var hpcsa = ViewBag.HPCSANumber as string ?? "—";
+    var specialization = ViewBag.Specialization as string ?? "—";
+    var practiceName = ViewBag.PracticeName as string ?? "—";
+    var practiceAddr = ViewBag.PracticeAddress as string ?? "—";
+    var isVerified = ViewBag.IsVerified as bool? ?? false;
+    var isActive = ViewBag.IsActive as bool? ?? true;
+    var registeredDate = ViewBag.RegisteredDate as DateTime?;
+    var createdDate = ViewBag.CreatedDate as DateTime?;
+    var lastModified = ViewBag.LastModified as DateTime?;
+
+    var nameParts = userName.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+    var firstName = nameParts.Length > 0 ? nameParts[0] : "";
+    var lastName = nameParts.Length > 1 ? nameParts[1] : "";
 }
 
 @section SidebarMenu {
@@ -14,7 +31,7 @@
     <li><a href="@Url.Action("Alerts", "Doctor")"><i class="fas fa-bell"></i> <span>Alerts</span></a></li>
     <li><a href="@Url.Action("Results", "Doctor")"><i class="fas fa-chart-line"></i> <span>Results</span></a></li>
     <li><a href="@Url.Action("Reports", "Doctor")"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
-    <li><a href="@Url.Action("Profile", "Doctor")" class="active"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+    <li><a href="@Url.Action("Index", "Profile")" class="active"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
 @section Styles {
@@ -22,10 +39,10 @@
         /* ─── PROFILE LAYOUT ─── */
         .profile-header {
             background: #fff;
-            border-radius: var(--radius-card);
+            border-radius: 20px;
             padding: 2rem 2.5rem;
             margin-bottom: 1.8rem;
-            box-shadow: var(--shadow-sm);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
             border: 1px solid #E8EDF5;
             display: flex;
             align-items: center;
@@ -43,7 +60,7 @@
             width: 80px;
             height: 80px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary-bright), var(--primary-light));
+            background: linear-gradient(135deg, #0841C9, #1D97F1);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -51,49 +68,19 @@
             font-size: 2rem;
             font-weight: 700;
             box-shadow: 0 4px 16px rgba(8,65,201,0.25);
-            transition: filter 0.3s ease;
         }
-
-        .profile-avatar-wrapper:hover .profile-avatar {
-            filter: brightness(0.9);
-        }
-
-        .change-photo-btn {
-            position: absolute;
-            bottom: -4px;
-            right: -4px;
-            background: var(--primary-bright);
-            color: #fff;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: 2px solid #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            text-decoration: none;
-        }
-
-            .change-photo-btn:hover {
-                background: var(--primary-light);
-                transform: scale(1.08);
-            }
 
         .profile-header-info h2 {
             font-size: 1.5rem;
             font-weight: 700;
-            color: var(--text-dark);
-            margin: 0 0 0.1rem;
+            color: #1A2C3A;
+            margin: 0 0 0.2rem;
         }
 
         .profile-header-info .role-tag {
             display: inline-block;
             background: rgba(8,65,201,0.08);
-            color: var(--primary-bright);
+            color: #0841C9;
             padding: 0.15rem 0.8rem;
             border-radius: 40px;
             font-size: 0.7rem;
@@ -101,63 +88,76 @@
         }
 
         .profile-header-info .sub-info {
-            color: var(--text-muted);
+            color: #5A6E7A;
             font-size: 0.85rem;
-            margin-top: 0.2rem;
+            margin-top: 0.4rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.9rem;
         }
 
             .profile-header-info .sub-info span {
-                display: inline-block;
-                margin-right: 0.8rem;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.3rem;
             }
 
             .profile-header-info .sub-info i {
-                margin-right: 0.3rem;
-                color: var(--primary-bright);
+                color: #0841C9;
             }
 
-        .profile-header-actions {
-            margin-left: auto;
-            display: flex;
-            gap: 0.8rem;
-            flex-wrap: wrap;
+        .badge-status {
+            display: inline-block;
+            padding: 0.15rem 0.6rem;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
         }
+
+            .badge-status.active {
+                background: rgba(16,185,129,0.08);
+                color: #10B981;
+            }
+
+            .badge-status.inactive {
+                background: rgba(239,68,68,0.08);
+                color: #EF4444;
+            }
 
         /* ─── TABS ─── */
         .profile-tabs {
             display: flex;
             gap: 0.2rem;
             background: #fff;
-            border-radius: var(--radius-card);
+            border-radius: 20px;
             padding: 0.3rem;
             margin-bottom: 1.8rem;
-            box-shadow: var(--shadow-sm);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
             border: 1px solid #E8EDF5;
             overflow-x: auto;
-            flex-wrap: nowrap;
         }
 
         .profile-tab {
             padding: 0.6rem 1.4rem;
-            border-radius: var(--radius-element);
+            border-radius: 12px;
             border: none;
             background: transparent;
             font-weight: 600;
             font-size: 0.85rem;
-            color: var(--text-muted);
+            color: #5A6E7A;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.25s;
             white-space: nowrap;
-            font-family: 'Inter', sans-serif;
+            font-family: inherit;
         }
 
             .profile-tab:hover {
                 background: rgba(8,65,201,0.04);
-                color: var(--text-dark);
+                color: #1A2C3A;
             }
 
             .profile-tab.active {
-                background: linear-gradient(135deg, var(--primary-bright), var(--primary-light));
+                background: linear-gradient(135deg, #0841C9, #1D97F1);
                 color: #fff;
                 box-shadow: 0 4px 16px rgba(8,65,201,0.2);
             }
@@ -166,7 +166,6 @@
                 margin-right: 0.4rem;
             }
 
-        /* ─── TAB CONTENT ─── */
         .tab-content {
             display: none;
             animation: fadeUp 0.4s ease both;
@@ -188,6 +187,7 @@
             }
         }
 
+        /* ─── CARDS ─── */
         .profile-card-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -196,21 +196,15 @@
 
         .profile-card {
             background: #fff;
-            border-radius: var(--radius-card);
+            border-radius: 20px;
             border: 1px solid #E8EDF5;
-            box-shadow: var(--shadow-sm);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
             overflow: hidden;
-            transition: all 0.3s ease;
         }
-
-            .profile-card:hover {
-                box-shadow: var(--shadow-md);
-                border-color: var(--primary-bright);
-            }
 
         .profile-card-header {
             padding: 1rem 1.5rem;
-            background: var(--bg-soft);
+            background: #F8FAFE;
             border-bottom: 1px solid #E8EDF5;
             display: flex;
             align-items: center;
@@ -220,12 +214,12 @@
             .profile-card-header h4 {
                 font-size: 1rem;
                 font-weight: 700;
-                color: var(--text-dark);
+                color: #1A2C3A;
                 margin: 0;
             }
 
             .profile-card-header i {
-                color: var(--primary-bright);
+                color: #0841C9;
                 font-size: 1.1rem;
             }
 
@@ -236,7 +230,7 @@
             .profile-card-body .info-row {
                 display: flex;
                 justify-content: space-between;
-                padding: 0.4rem 0;
+                padding: 0.5rem 0;
                 border-bottom: 1px solid #F1F5F9;
                 font-size: 0.9rem;
             }
@@ -246,38 +240,18 @@
                 }
 
             .profile-card-body .info-label {
-                color: var(--text-muted);
+                color: #5A6E7A;
                 font-weight: 500;
             }
 
             .profile-card-body .info-value {
-                color: var(--text-dark);
+                color: #1A2C3A;
                 font-weight: 500;
+                text-align: right;
+                word-break: break-word;
             }
 
-                .profile-card-body .info-value .badge-status {
-                    display: inline-block;
-                    padding: 0.15rem 0.6rem;
-                    border-radius: 40px;
-                    font-size: 0.7rem;
-                    font-weight: 600;
-                }
-
-        .badge-status.active {
-            background: rgba(16,185,129,0.08);
-            color: #10B981;
-        }
-
-        .badge-status.inactive {
-            background: rgba(239,68,68,0.08);
-            color: #EF4444;
-        }
-
-        .badge-status.pending {
-            background: rgba(217,119,6,0.08);
-            color: #D97706;
-        }
-
+        /* ─── STAT GRID ─── */
         .stat-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -288,9 +262,9 @@
         .stat-item {
             text-align: center;
             padding: 1rem;
-            background: var(--bg-soft);
-            border-radius: var(--radius-element);
-            transition: background 0.3s ease;
+            background: #F8FAFE;
+            border-radius: 12px;
+            transition: background 0.3s;
         }
 
             .stat-item:hover {
@@ -300,16 +274,17 @@
             .stat-item .stat-number {
                 font-size: 1.8rem;
                 font-weight: 800;
-                color: var(--primary-bright);
+                color: #0841C9;
                 letter-spacing: -0.02em;
             }
 
             .stat-item .stat-label {
                 font-size: 0.75rem;
-                color: var(--text-muted);
+                color: #5A6E7A;
                 margin-top: 0.1rem;
             }
 
+        /* ─── FORMS ─── */
         .form-group {
             margin-bottom: 1.2rem;
         }
@@ -319,34 +294,30 @@
                 font-weight: 600;
                 display: block;
                 margin-bottom: 0.3rem;
-                color: var(--primary-deep);
+                color: #032C7D;
             }
 
         .form-control {
             width: 100%;
             padding: 0.6rem 0.8rem;
             border: 1.5px solid #E8EDF5;
-            border-radius: var(--radius-element);
+            border-radius: 12px;
             font-size: 0.85rem;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.3s ease;
+            font-family: inherit;
+            transition: all 0.25s;
             background: #F8FAFE;
-            color: var(--text-dark);
+            color: #1A2C3A;
         }
 
             .form-control:focus {
                 outline: none;
-                border-color: var(--primary-bright);
+                border-color: #0841C9;
                 box-shadow: 0 0 0 4px rgba(8,65,201,0.08);
                 background: #fff;
             }
 
-            .form-control:hover {
-                border-color: #94A3B8;
-            }
-
         .btn-primary {
-            background: linear-gradient(135deg, var(--primary-bright), var(--primary-light));
+            background: linear-gradient(135deg, #0841C9, #1D97F1);
             color: #fff;
             border: none;
             padding: 0.6rem 1.4rem;
@@ -354,9 +325,9 @@
             font-weight: 600;
             font-size: 0.85rem;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.25,0.46,0.45,0.94);
+            transition: all 0.25s;
             box-shadow: 0 4px 16px rgba(8,65,201,0.2);
-            font-family: 'Inter', sans-serif;
+            font-family: inherit;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
@@ -375,36 +346,19 @@
             font-weight: 600;
             font-size: 0.85rem;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Inter', sans-serif;
-            color: var(--text-dark);
-        }
-
-            .btn-outline:hover {
-                border-color: var(--primary-bright);
-                color: var(--primary-bright);
-                background: rgba(8,65,201,0.02);
-            }
-
-        .btn-danger {
-            background: #EF4444;
-            color: #fff;
-            border: none;
-            padding: 0.6rem 1.4rem;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Inter', sans-serif;
+            transition: all 0.25s;
+            font-family: inherit;
+            color: #1A2C3A;
+            text-decoration: none;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-            .btn-danger:hover {
-                background: #DC2626;
-                transform: translateY(-2px);
+            .btn-outline:hover {
+                border-color: #0841C9;
+                color: #0841C9;
+                background: rgba(8,65,201,0.02);
             }
 
         .row-2col {
@@ -413,213 +367,59 @@
             gap: 1rem;
         }
 
-        .row-3col {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 1rem;
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 44px;
-            height: 24px;
-        }
-
-            .switch input {
-                opacity: 0;
-                width: 0;
-                height: 0;
-            }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 24px;
-        }
-
-            .slider:before {
-                position: absolute;
-                content: "";
-                height: 18px;
-                width: 18px;
-                left: 3px;
-                bottom: 3px;
-                background-color: white;
-                transition: .4s;
-                border-radius: 50%;
-            }
-
-        input:checked + .slider {
-            background-color: var(--primary-bright);
-        }
-
-            input:checked + .slider:before {
-                transform: translateX(20px);
-            }
-
+        /* ─── ALERTS ─── */
         .alert-success {
             background: #D1FAE5;
             color: #065F46;
             padding: 0.8rem 1rem;
-            border-radius: var(--radius-element);
+            border-radius: 12px;
             margin-bottom: 1rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
             border: 1px solid #A7F3D0;
+            font-size: 0.85rem;
         }
 
         .alert-error {
             background: #FEE2E2;
             color: #991B1B;
             padding: 0.8rem 1rem;
-            border-radius: var(--radius-element);
+            border-radius: 12px;
             margin-bottom: 1rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
             border: 1px solid #FECACA;
+            font-size: 0.85rem;
         }
 
+        /* ─── PASSWORD REQUIREMENTS ─── */
         .password-requirements {
             font-size: 0.7rem;
-            color: var(--text-muted);
+            color: #5A6E7A;
             margin-top: 0.3rem;
-            line-height: 1.6;
+            line-height: 1.7;
         }
 
             .password-requirements i {
                 margin-right: 0.2rem;
+                font-size: 0.5rem;
+                vertical-align: middle;
             }
-
-        .action-buttons {
-            display: flex;
-            gap: 0.8rem;
-            flex-wrap: wrap;
-            margin-top: 0.5rem;
-        }
-
-        /* ─── TOAST ─── */
-        .toast-container {
-            position: fixed;
-            top: 1.5rem;
-            right: 1.5rem;
-            z-index: 99999;
-            display: flex;
-            flex-direction: column;
-            gap: 0.8rem;
-            max-width: 380px;
-            width: 100%;
-            pointer-events: none;
-        }
-
-        .toast-item {
-            background: #fff;
-            border-radius: var(--radius-element);
-            padding: 1rem 1.2rem;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
-            display: flex;
-            align-items: flex-start;
-            gap: 0.8rem;
-            border-left: 4px solid var(--primary-bright);
-            animation: slideInRight 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
-            pointer-events: auto;
-        }
-
-            .toast-item .toast-icon {
-                font-size: 1.4rem;
-                margin-top: 0.1rem;
-                flex-shrink: 0;
-            }
-
-                .toast-item .toast-icon.success {
-                    color: #10B981;
-                }
-
-                .toast-item .toast-icon.error {
-                    color: #EF4444;
-                }
-
-                .toast-item .toast-icon.info {
-                    color: var(--primary-bright);
-                }
-
-            .toast-item .toast-content {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                gap: 0.1rem;
-            }
-
-            .toast-item .toast-title {
-                font-weight: 600;
-                font-size: 0.9rem;
-                color: var(--text-dark);
-            }
-
-            .toast-item .toast-message {
-                font-size: 0.85rem;
-                color: var(--text-muted);
-                line-height: 1.4;
-            }
-
-            .toast-item .toast-close {
-                background: none;
-                border: none;
-                font-size: 1.2rem;
-                cursor: pointer;
-                color: #94A3B8;
-                padding: 0 0.2rem;
-                transition: color 0.2s;
-                pointer-events: auto;
-            }
-
-                .toast-item .toast-close:hover {
-                    color: var(--text-dark);
-                }
-
-        @@keyframes slideInRight {
-            0% {
-                transform: translateX(40px);
-                opacity: 0;
-            }
-
-            100% {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
 
         /* ─── RESPONSIVE ─── */
         @@media (max-width: 1024px) {
             .profile-card-grid {
                 grid-template-columns: 1fr;
             }
-
-            .row-3col {
-                grid-template-columns: 1fr 1fr;
-            }
         }
 
-        @@media (max-width: 868px) {
+        @@media (max-width: 768px) {
             .profile-header {
                 flex-direction: column;
                 align-items: flex-start;
-                text-align: center;
                 padding: 1.5rem;
-            }
-
-            .profile-header-actions {
-                margin-left: 0;
-                width: 100%;
-                justify-content: center;
             }
 
             .stat-grid {
@@ -629,40 +429,24 @@
             .row-2col {
                 grid-template-columns: 1fr;
             }
-
-            .row-3col {
-                grid-template-columns: 1fr;
-            }
         }
 
         @@media (max-width: 480px) {
-            .profile-tabs {
-                gap: 0.1rem;
-                padding: 0.2rem;
+            .stat-grid {
+                grid-template-columns: 1fr;
             }
 
             .profile-tab {
                 font-size: 0.75rem;
                 padding: 0.4rem 0.8rem;
             }
-
-            .stat-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .toast-container {
-                top: 1rem;
-                right: 1rem;
-                left: 1rem;
-                max-width: none;
-            }
         }
     </style>
 }
 
-<!-- ─── TOAST CONTAINER ─── -->
-<div class="toast-container" id="toastContainer"></div>
-
+@* ═══════════════════════════════════════════════════════════
+   FLASH MESSAGES
+   ═══════════════════════════════════════════════════════════ *@
 @if (TempData["SuccessMessage"] != null)
 {
     <div class="alert-success">
@@ -676,457 +460,447 @@
     </div>
 }
 
-<!-- ─── PROFILE HEADER ─── -->
+@* ═══════════════════════════════════════════════════════════
+   PROFILE HEADER
+   ═══════════════════════════════════════════════════════════ *@
 <div class="profile-header">
     <div class="profile-avatar-wrapper">
-        <div class="profile-avatar">@ViewData["UserInitials"]</div>
-        <a href="#" class="change-photo-btn" title="Change photo" onclick="showToast('info', 'Photo Upload', 'Click to upload a new profile photo. (Demo)')">
-            <i class="fas fa-camera"></i>
-        </a>
+        <div class="profile-avatar">@initials</div>
     </div>
     <div class="profile-header-info">
-        <h2>Dr. @ViewData["UserGreeting"]</h2>
-        <span class="role-tag"><i class="fas fa-user-md"></i> Haematology Specialist</span>
+        <h2>@greeting</h2>
+        <span class="role-tag">
+            <i class="fas fa-user-md"></i> @specialization
+        </span>
         <div class="sub-info">
-            <span><i class="fas fa-id-card"></i> HPCSA: 1234567</span>
-            <span><i class="fas fa-id-badge"></i> SA ID: 850615 1234 567</span>
-            <span><i class="fas fa-map-pin"></i> 123 Medical Centre, Gqeberha, 6001</span>
-            <span class="badge-status active"><i class="fas fa-circle" style="font-size:0.4rem; vertical-align:middle;"></i> Active</span>
+            <span><i class="fas fa-envelope"></i> @userEmail</span>
+            @if (!string.IsNullOrEmpty(contact))
+            {
+                <span><i class="fas fa-phone"></i> @contact</span>
+            }
+            <span><i class="fas fa-id-card"></i> HPCSA: @hpcsa</span>
+            <span class="badge-status @(isActive ? "active" : "inactive")">
+                <i class="fas fa-circle" style="font-size:0.4rem; vertical-align:middle;"></i>
+                @(isActive ? "Active" : "Inactive")
+            </span>
+            @if (isVerified)
+            {
+                <span class="badge-status active" style="background:rgba(8,65,201,0.08); color:#0841C9;">
+                    <i class="fas fa-check-circle"></i> Verified
+                </span>
+            }
         </div>
-    </div>
-    <div class="profile-header-actions">
-        <a href="#" class="btn-outline" onclick="showToast('info', 'Export', 'Downloading your profile data.')"><i class="fas fa-download"></i> Export</a>
     </div>
 </div>
 
-<!-- ─── TABS ─── -->
+@* ═══════════════════════════════════════════════════════════
+   TABS
+   ═══════════════════════════════════════════════════════════ *@
 <div class="profile-tabs" id="profileTabs">
-    <button class="profile-tab active" data-tab="overview"><i class="fas fa-th-large"></i> Overview</button>
-    <button class="profile-tab" data-tab="personal"><i class="fas fa-user"></i> Personal Info</button>
-    <button class="profile-tab" data-tab="professional"><i class="fas fa-briefcase"></i> Professional</button>
-    <button class="profile-tab" data-tab="security"><i class="fas fa-shield-alt"></i> Security</button>
-    <button class="profile-tab" data-tab="notifications"><i class="fas fa-bell"></i> Notifications</button>
+    <button type="button" class="profile-tab active" data-tab="overview">
+        <i class="fas fa-th-large"></i> Overview
+    </button>
+    <button type="button" class="profile-tab" data-tab="personal">
+        <i class="fas fa-user"></i> Personal Info
+    </button>
+    <button type="button" class="profile-tab" data-tab="professional">
+        <i class="fas fa-briefcase"></i> Professional
+    </button>
+    <button type="button" class="profile-tab" data-tab="security">
+        <i class="fas fa-shield-alt"></i> Security
+    </button>
 </div>
 
-<!-- ─── TAB CONTENT ─── -->
-<!-- OVERVIEW -->
+@* ═══════════════════════════════════════════════════════════
+   OVERVIEW TAB
+   ═══════════════════════════════════════════════════════════ *@
 <div class="tab-content active" id="tab-overview">
-    <div class="stat-grid">
-        <div class="stat-item">
-            <div class="stat-number">142</div>
-            <div class="stat-label">Patients</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-number">28</div>
-            <div class="stat-label">Pending Results</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-number">4.9</div>
-            <div class="stat-label">Avg. Rating</div>
-        </div>
-    </div>
 
     <div class="profile-card-grid">
         <div class="profile-card">
             <div class="profile-card-header">
                 <i class="fas fa-user-circle"></i>
-                <h4>Personal Information</h4>
+                <h4>Account Information</h4>
             </div>
             <div class="profile-card-body">
-                <div class="info-row"><span class="info-label">Title</span><span class="info-value">Dr.</span></div>
-                <div class="info-row"><span class="info-label">Full Name</span><span class="info-value">Sarah Johnson</span></div>
-                <div class="info-row"><span class="info-label">SA ID Number</span><span class="info-value">850615 1234 567</span></div>
-                <div class="info-row"><span class="info-label">Email</span><span class="info-value">sarah.johnson@@nmblab.co.za</span></div>
-                <div class="info-row"><span class="info-label">Phone</span><span class="info-value">+27 82 123 4567</span></div>
-                <div class="info-row"><span class="info-label">Date of Birth</span><span class="info-value">15 June 1985</span></div>
-                <div class="info-row"><span class="info-label">Gender</span><span class="info-value">Female</span></div>
-                <div class="info-row" style="border-bottom:none;"><span class="info-label">Personal Address</span><span class="info-value">45 Oak Avenue, Summerstrand, Gqeberha, 6001</span></div>
+                <div class="info-row">
+                    <span class="info-label">Full Name</span>
+                    <span class="info-value">@userName</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email</span>
+                    <span class="info-value">@userEmail</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Contact Number</span>
+                    <span class="info-value">@(string.IsNullOrEmpty(contact) ? "Not set" : contact)</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">HPCSA Number</span>
+                    <span class="info-value">@hpcsa</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Specialization</span>
+                    <span class="info-value">@specialization</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Account Status</span>
+                    <span class="info-value">
+                        <span class="badge-status @(isActive ? "active" : "inactive")">
+                            @(isActive ? "Active" : "Inactive")
+                        </span>
+                    </span>
+                </div>
             </div>
         </div>
 
         <div class="profile-card">
             <div class="profile-card-header">
-                <i class="fas fa-clock"></i>
-                <h4>Recent Activity</h4>
+                <i class="fas fa-briefcase"></i>
+                <h4>Practice Information</h4>
             </div>
             <div class="profile-card-body">
-                <div class="info-row"><span class="info-label">Last Login</span><span class="info-value">Today, 09:45 AM</span></div>
-                <div class="info-row"><span class="info-label">Tests Reviewed</span><span class="info-value">12 this week</span></div>
-                <div class="info-row"><span class="info-label">Patients Seen</span><span class="info-value">8 today</span></div>
-                <div class="info-row" style="border-bottom:none;"><span class="info-label">Pending Requests</span><span class="info-value">4</span></div>
-                <div style="margin-top:1rem; padding-top:1rem; border-top:1px solid #F1F5F9;">
-                    <span class="info-label">Quick Actions</span>
-                    <div class="action-buttons">
-                        <a href="@Url.Action("TestRequests", "Doctor")" class="btn-primary"><i class="fas fa-plus"></i> New Request</a>
-                        <a href="@Url.Action("Patients", "Doctor")" class="btn-outline"><i class="fas fa-users"></i> Patients</a>
-                        <a href="#" class="btn-outline" onclick="showToast('info', 'Schedule', 'Opening calendar to schedule a meeting.')"><i class="fas fa-calendar-alt"></i> Schedule</a>
-                    </div>
+                <div class="info-row">
+                    <span class="info-label">Practice Name</span>
+                    <span class="info-value">@practiceName</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Practice Address</span>
+                    <span class="info-value">@practiceAddr</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Verified</span>
+                    <span class="info-value">
+                        @if (isVerified)
+                        {
+                            <span class="badge-status active">
+                                <i class="fas fa-check-circle"></i> Verified
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge-status inactive">
+                                <i class="fas fa-clock"></i> Pending
+                            </span>
+                        }
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Registered Date</span>
+                    <span class="info-value">
+                        @(registeredDate.HasValue? registeredDate.Value.ToString("dd MMM yyyy") : "—")
+                    </span>
                 </div>
             </div>
         </div>
     </div>
+
+    <div class="profile-card" style="margin-top:1.5rem;">
+        <div class="profile-card-header">
+            <i class="fas fa-clock"></i>
+            <h4>Account Timeline</h4>
+        </div>
+        <div class="profile-card-body">
+            <div class="info-row">
+                <span class="info-label">Account Created</span>
+                <span class="info-value">
+                    @(createdDate.HasValue? createdDate.Value.ToString("dd MMM yyyy HH:mm") : "—")
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Last Updated</span>
+                <span class="info-value">
+                    @(lastModified.HasValue? lastModified.Value.ToString("dd MMM yyyy HH:mm") : "Never")
+                </span>
+            </div>
+        </div>
+    </div>
+
 </div>
 
-<!-- PERSONAL INFO -->
+@* ═══════════════════════════════════════════════════════════
+   PERSONAL INFO TAB
+   ═══════════════════════════════════════════════════════════ *@
 <div class="tab-content" id="tab-personal">
-    <form method="post" action="@Url.Action("UpdateProfile", "Profile")" id="personalInfoForm">
+    <form method="post" action="@Url.Action("UpdateProfile", "Profile")">
+        @Html.AntiForgeryToken()
+
         <div class="profile-card">
             <div class="profile-card-header">
                 <i class="fas fa-user-circle"></i>
                 <h4>Personal Details</h4>
             </div>
             <div class="profile-card-body">
-                <div class="row-3col">
-                    <div class="form-group">
-                        <label>Title</label>
-                        <select name="title" class="form-control">
-                            <option value="Dr." selected>Dr.</option>
-                            <option value="Prof.">Prof.</option>
-                            <option value="Mr.">Mr.</option>
-                            <option value="Mrs.">Mrs.</option>
-                            <option value="Ms.">Ms.</option>
-                        </select>
-                    </div>
+
+                <div class="row-2col">
                     <div class="form-group">
                         <label>First Name</label>
-                        <input type="text" name="name" class="form-control" value="Sarah" placeholder="First name">
+                        <input type="text" name="name" class="form-control"
+                               value="@firstName" placeholder="First name" required />
                     </div>
                     <div class="form-group">
                         <label>Last Name</label>
-                        <input type="text" name="surname" class="form-control" value="Johnson" placeholder="Last name">
+                        <input type="text" name="surname" class="form-control"
+                               value="@lastName" placeholder="Last name" required />
                     </div>
                 </div>
-                <div class="form-group">
-                    <label>SA ID Number</label>
-                    <input type="text" name="idNumber" class="form-control" value="850615 1234 567" placeholder="850615 1234 567">
-                </div>
+
                 <div class="form-group">
                     <label>Email Address (Username)</label>
-                    <input type="email" name="email" class="form-control" value="sarah.johnson@@nmblab.co.za" placeholder="email@@example.com">
-                    <small style="font-size:0.65rem; color:var(--text-muted);">This is your login username</small>
+                    <input type="email" name="email" class="form-control"
+                           value="@userEmail" placeholder="email@example.com" required />
+                    <small style="font-size:0.7rem; color:#5A6E7A;">
+                        This is your login username.
+                    </small>
                 </div>
+
                 <div class="form-group">
                     <label>Phone Number</label>
-                    <input type="tel" name="phone" class="form-control" value="+27 82 123 4567" placeholder="082 123 4567">
+                    <input type="tel" name="phone" class="form-control"
+                           value="@contact" placeholder="082 123 4567" />
                 </div>
+
                 <div class="form-group">
-                    <label>Date of Birth</label>
-                    <input type="date" name="dob" class="form-control" value="1985-06-15">
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
                 </div>
-                <div class="form-group">
-                    <label>Gender</label>
-                    <select name="gender" class="form-control">
-                        <option value="Female" selected>Female</option>
-                        <option value="Male">Male</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Personal Address</label>
-                    <input type="text" name="personalAddress" class="form-control" value="45 Oak Avenue, Summerstrand, Gqeberha, 6001" placeholder="Your home address">
-                </div>
-                <div class="form-group">
-                    <button type="button" class="btn-primary" onclick="submitPersonalInfo()"><i class="fas fa-save"></i> Save Changes</button>
-                </div>
+
             </div>
         </div>
     </form>
 </div>
 
-<!-- PROFESSIONAL -->
+@* ═══════════════════════════════════════════════════════════
+   PROFESSIONAL TAB
+   ═══════════════════════════════════════════════════════════ *@
 <div class="tab-content" id="tab-professional">
-    <form method="post" action="@Url.Action("UpdateProfessional", "Profile")" id="professionalForm">
-        <div class="profile-card">
-            <div class="profile-card-header">
-                <i class="fas fa-briefcase"></i>
-                <h4>Professional Information</h4>
-            </div>
-            <div class="profile-card-body">
-                <div class="form-group">
-                    <label>HPCSA Number</label>
-                    <input type="text" name="hpcsa" class="form-control" value="1234567" placeholder="HPCSA number">
-                </div>
-                <div class="form-group">
-                    <label>Speciality</label>
-                    <select name="speciality" class="form-control">
-                        <option value="Haematology" selected>Haematology</option>
-                        <option value="Pathology">Pathology</option>
-                        <option value="Internal Medicine">Internal Medicine</option>
-                        <option value="Oncology">Oncology</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Years of Experience</label>
-                    <input type="number" name="experience" class="form-control" value="15" placeholder="Years">
-                </div>
-                <div class="form-group">
-                    <label>Practice Address</label>
-                    <input type="text" name="practiceAddress" class="form-control" value="123 Medical Centre, Gqeberha, 6001" placeholder="Practice address">
-                </div>
-                <div class="form-group">
-                    <label>Languages Spoken</label>
-                    <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
-                        <label style="font-weight:400; font-size:0.85rem; display:flex; align-items:center; gap:0.3rem;">
-                            <input type="checkbox" checked> English
-                        </label>
-                        <label style="font-weight:400; font-size:0.85rem; display:flex; align-items:center; gap:0.3rem;">
-                            <input type="checkbox" checked> Afrikaans
-                        </label>
-                        <label style="font-weight:400; font-size:0.85rem; display:flex; align-items:center; gap:0.3rem;">
-                            <input type="checkbox"> Xhosa
-                        </label>
-                        <label style="font-weight:400; font-size:0.85rem; display:flex; align-items:center; gap:0.3rem;">
-                            <input type="checkbox"> Zulu
-                        </label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <button type="button" class="btn-primary" onclick="submitProfessional()"><i class="fas fa-save"></i> Update Professional Info</button>
-                </div>
-            </div>
+    <div class="profile-card">
+        <div class="profile-card-header">
+            <i class="fas fa-briefcase"></i>
+            <h4>Professional Information</h4>
         </div>
-    </form>
+        <div class="profile-card-body">
+
+            <div class="info-row">
+                <span class="info-label">HPCSA Number</span>
+                <span class="info-value">@hpcsa</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Specialization</span>
+                <span class="info-value">@specialization</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Practice Name</span>
+                <span class="info-value">@practiceName</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Practice Address</span>
+                <span class="info-value">@practiceAddr</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Verified</span>
+                <span class="info-value">
+                    @if (isVerified)
+                    {
+                        <span class="badge-status active">Verified</span>
+                    }
+                    else
+                    {
+                        <span class="badge-status inactive">Pending verification</span>
+                    }
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Registered Date</span>
+                <span class="info-value">
+                    @(registeredDate.HasValue? registeredDate.Value.ToString("dd MMM yyyy") : "—")
+                </span>
+            </div>
+
+            <div style="margin-top:1.2rem; padding-top:1.2rem; border-top:1px solid #F1F5F9;">
+                <p style="font-size:0.78rem; color:#5A6E7A; margin:0;">
+                    <i class="fas fa-info-circle" style="color:#0841C9;"></i>
+                    Professional details are managed by the laboratory administrator.
+                    Contact them to update your HPCSA number, practice, or verification status.
+                </p>
+            </div>
+
+        </div>
+    </div>
 </div>
 
-<!-- SECURITY -->
+@* ═══════════════════════════════════════════════════════════
+   SECURITY TAB
+   ═══════════════════════════════════════════════════════════ *@
 <div class="tab-content" id="tab-security">
     <div class="profile-card-grid">
+
         <div class="profile-card">
             <div class="profile-card-header">
                 <i class="fas fa-lock"></i>
                 <h4>Change Password</h4>
             </div>
             <div class="profile-card-body">
-                <form method="post" action="@Url.Action("ChangePassword", "Profile")" id="passwordForm">
+                <form method="post" action="@Url.Action("ChangePassword", "Profile")">
+                    @Html.AntiForgeryToken()
+
                     <div class="form-group">
                         <label>Current Password</label>
-                        <input type="password" name="currentPassword" class="form-control" placeholder="Enter current password" required>
+                        <input type="password" name="currentPassword" class="form-control"
+                               placeholder="Enter your current password" required />
                     </div>
+
                     <div class="form-group">
                         <label>New Password</label>
-                        <input type="password" name="newPassword" id="newPassword" class="form-control" placeholder="Enter new password" required>
-                        <div class="password-requirements" id="passwordRequirements">
-                            <i class="fas fa-circle" style="font-size:0.5rem;" id="reqLength"></i> At least 8 characters<br>
-                            <i class="fas fa-circle" style="font-size:0.5rem;" id="reqUpper"></i> One uppercase letter<br>
-                            <i class="fas fa-circle" style="font-size:0.5rem;" id="reqNumber"></i> One number<br>
-                            <i class="fas fa-circle" style="font-size:0.5rem;" id="reqSpecial"></i> One special character (!@@#$%^&*)
+                        <input type="password" name="newPassword" id="newPassword"
+                               class="form-control" placeholder="Enter new password"
+                               required minlength="8" />
+                        <div class="password-requirements">
+                            <i class="fas fa-circle"></i> At least 8 characters<br>
+                            <i class="fas fa-circle"></i> One uppercase letter<br>
+                            <i class="fas fa-circle"></i> One lowercase letter<br>
+                            <i class="fas fa-circle"></i> One number<br>
+                            <i class="fas fa-circle"></i> One special character (@@$!%*?&amp;)
                         </div>
                     </div>
+
                     <div class="form-group">
                         <label>Confirm New Password</label>
-                        <input type="password" name="confirmPassword" id="confirmPassword" class="form-control" placeholder="Confirm new password" required>
-                        <div id="matchMessage" class="password-requirements"></div>
+                        <input type="password" name="confirmPassword" class="form-control"
+                               placeholder="Confirm new password" required minlength="8" />
                     </div>
+
                     <div class="form-group">
-                        <button type="button" class="btn-primary" onclick="submitPassword()"><i class="fas fa-key"></i> Update Password</button>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-key"></i> Update Password
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
+
         <div class="profile-card">
             <div class="profile-card-header">
                 <i class="fas fa-shield-alt"></i>
-                <h4>Two-Factor Authentication</h4>
+                <h4>Account Security</h4>
             </div>
             <div class="profile-card-body">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                    <div>
-                        <strong>2FA Status</strong><br>
-                        <small style="color:var(--text-muted);">Add an extra layer of security</small>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="twoFactorToggle" onclick="toggleTwoFactor()">
-                        <span class="slider"></span>
-                    </label>
+
+                <div class="info-row">
+                    <span class="info-label">Account Status</span>
+                    <span class="info-value">
+                        <span class="badge-status @(isActive ? "active" : "inactive")">
+                            @(isActive ? "Active" : "Inactive")
+                        </span>
+                    </span>
                 </div>
-                <hr style="margin: 1rem 0; border-color: #E8EDF5;">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                    <div>
-                        <strong>Recent Login Activity</strong><br>
-                        <small style="color:var(--text-muted);">Last login: Today at 09:45 AM from Gqeberha, SA</small>
-                    </div>
-                    <button class="btn-outline" onclick="showToast('info', 'Login History', 'Showing your full login history.')">View History</button>
+
+                <div class="info-row">
+                    <span class="info-label">Role</span>
+                    <span class="info-value">Doctor</span>
                 </div>
-                <hr style="margin: 1rem 0; border-color: #E8EDF5;">
-                <div>
-                    <strong>Active Sessions</strong>
-                    <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:0.5rem;">
-                        <span class="badge-status active"><i class="fas fa-circle" style="font-size:0.4rem; vertical-align:middle;"></i> Current Session</span>
-                        <span class="badge-status active"><i class="fas fa-circle" style="font-size:0.4rem; vertical-align:middle;"></i> Mobile App</span>
-                    </div>
-                    <button class="btn-danger" style="margin-top:0.8rem; font-size:0.7rem; padding:0.4rem 1rem;" onclick="showToast('success', 'Logged Out', 'All other devices have been logged out.')"><i class="fas fa-sign-out-alt"></i> Logout All Other Devices</button>
+
+                <div class="info-row">
+                    <span class="info-label">Email</span>
+                    <span class="info-value">@userEmail</span>
                 </div>
+
+                <div class="info-row" style="border-bottom:none;">
+                    <span class="info-label">Account Created</span>
+                    <span class="info-value">
+                        @(createdDate.HasValue? createdDate.Value.ToString("dd MMM yyyy") : "—")
+                    </span>
+                </div>
+
+                <div style="margin-top:1.2rem; padding-top:1.2rem; border-top:1px solid #F1F5F9;">
+                    <p style="font-size:0.78rem; color:#5A6E7A; margin:0;">
+                        <i class="fas fa-info-circle" style="color:#0841C9;"></i>
+                        Keep your password confidential. Contact the administrator if you suspect
+                        your account has been compromised.
+                    </p>
+                </div>
+
             </div>
         </div>
+
     </div>
 </div>
 
-<!-- NOTIFICATIONS -->
-<div class="tab-content" id="tab-notifications">
-    <div class="profile-card">
-        <div class="profile-card-header">
-            <i class="fas fa-bell"></i>
-            <h4>Notification Preferences</h4>
-        </div>
-        <div class="profile-card-body">
-            <div class="info-row"><span class="info-label">Email Notifications</span><span class="info-value"><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></span></div>
-            <div class="info-row"><span class="info-label">SMS Alerts</span><span class="info-value"><label class="switch"><input type="checkbox"><span class="slider"></span></label></span></div>
-            <div class="info-row"><span class="info-label">Browser Push</span><span class="info-value"><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></span></div>
-            <div class="info-row"><span class="info-label">New Test Request</span><span class="info-value"><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></span></div>
-            <div class="info-row"><span class="info-label">Result Ready</span><span class="info-value"><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></span></div>
-            <div class="info-row"><span class="info-label">Urgent Alerts</span><span class="info-value"><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></span></div>
-            <div class="info-row" style="border-bottom:none;"><span class="info-label">Weekly Reports</span><span class="info-value"><label class="switch"><input type="checkbox"><span class="slider"></span></label></span></div>
-            <div style="margin-top:1.2rem;">
-                <button class="btn-primary" onclick="showToast('success', 'Saved', 'Your notification preferences have been saved.')"><i class="fas fa-save"></i> Save Preferences</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script type="text/javascript">
-    // ─── TABS ───
-    document.querySelectorAll('.profile-tab').forEach(function(tab) {
-        tab.addEventListener('click', function() {
-            document.querySelectorAll('.profile-tab').forEach(function(t) {
-                t.classList.remove('active');
-            });
-            this.classList.add('active');
-
-            document.querySelectorAll('.tab-content').forEach(function(content) {
-                content.classList.remove('active');
+@section Scripts {
+    <text>
+        <script>
+            // ─── TABS ───
+            document.querySelectorAll('.profile-tab').forEach(function (tab) {
+                tab.addEventListener('click', function () {
+                    document.querySelectorAll('.profile-tab').forEach(function (t) {
+                        t.classList.remove('active');
+                    });
+                    document.querySelectorAll('.tab-content').forEach(function (c) {
+                        c.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    var tabId = this.getAttribute('data-tab');
+                    document.getElementById('tab-' + tabId).classList.add('active');
+                });
             });
 
-            var tabId = this.getAttribute('data-tab');
-            document.getElementById('tab-' + tabId).classList.add('active');
-        });
-    });
+            // ─── CHANGE PASSWORD VALIDATION ───
+            var changePwdForm = document.querySelector('form[action*="ChangePassword"]');
+            if (changePwdForm) {
+                changePwdForm.addEventListener('submit', function (e) {
+                    var newPwd = document.getElementById('newPassword').value;
+                    var confirmPwd = this.querySelector('input[name="confirmPassword"]').value;
+                    var errors = [];
 
-    // ─── PASSWORD VALIDATION ───
-    function checkPasswordStrength() {
-        var password = document.getElementById('newPassword').value;
-        var lengthOk = password.length >= 8;
-        var upperOk = /[A-Z]/.test(password);
-        var numberOk = /[0-9]/.test(password);
-        var specialOk = /[!@@#$%^&*(),.?":{}|<>]/.test(password);
+                    if (newPwd.length < 8) errors.push('At least 8 characters');
+                    if (!/[A-Z]/.test(newPwd)) errors.push('One uppercase letter');
+                    if (!/[a-z]/.test(newPwd)) errors.push('One lowercase letter');
+                    if (!/[0-9]/.test(newPwd)) errors.push('One number');
+                    if (!/[@@$!%*?&]/.test(newPwd)) errors.push('One special character (@@$!%*?&)');
+                    if (newPwd !== confirmPwd) errors.push('Passwords must match');
 
-        document.getElementById('reqLength').style.color = lengthOk ? '#10B981' : '#5A6E7A';
-        document.getElementById('reqUpper').style.color = upperOk ? '#10B981' : '#5A6E7A';
-        document.getElementById('reqNumber').style.color = numberOk ? '#10B981' : '#5A6E7A';
-        document.getElementById('reqSpecial').style.color = specialOk ? '#10B981' : '#5A6E7A';
+                    if (errors.length) {
+                        e.preventDefault();
+                        alert('Password requirements:\n- ' + errors.join('\n- '));
+                        return;
+                    }
 
-        document.getElementById('reqLength').className = lengthOk ? 'fas fa-check-circle' : 'fas fa-circle';
-        document.getElementById('reqUpper').className = upperOk ? 'fas fa-check-circle' : 'fas fa-circle';
-        document.getElementById('reqNumber').className = numberOk ? 'fas fa-check-circle' : 'fas fa-circle';
-        document.getElementById('reqSpecial').className = specialOk ? 'fas fa-check-circle' : 'fas fa-circle';
-
-        return lengthOk && upperOk && numberOk && specialOk;
-    }
-
-    function checkPasswordMatch() {
-        var password = document.getElementById('newPassword').value;
-        var confirm = document.getElementById('confirmPassword').value;
-        var matchMsg = document.getElementById('matchMessage');
-
-        if (confirm.length > 0) {
-            if (password === confirm) {
-                matchMsg.innerHTML = '<i class="fas fa-check-circle" style="color:#10B981;"></i> Passwords match';
-                matchMsg.style.color = '#10B981';
-            } else {
-                matchMsg.innerHTML = '<i class="fas fa-exclamation-circle" style="color:#DC2626;"></i> Passwords do not match';
-                matchMsg.style.color = '#DC2626';
+                    var btn = this.querySelector('button[type="submit"]');
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+                });
             }
-        } else {
-            matchMsg.innerHTML = '';
-        }
-    }
 
-    // ─── TOAST SYSTEM ───
-    function showToast(type, title, message) {
-        var container = document.getElementById('toastContainer');
-        if (!container) {
-            console.warn('Toast container not found');
-            return;
-        }
+            // ─── UPDATE PROFILE VALIDATION ───
+            var updateProfileForm = document.querySelector('form[action*="UpdateProfile"]');
+            if (updateProfileForm) {
+                updateProfileForm.addEventListener('submit', function (e) {
+                    var name = this.querySelector('input[name="name"]').value.trim();
+                    var surname = this.querySelector('input[name="surname"]').value.trim();
+                    var phone = this.querySelector('input[name="phone"]').value.trim();
 
-        var toast = document.createElement('div');
-        toast.className = 'toast-item';
+                    if (name.length < 2 || surname.length < 2) {
+                        e.preventDefault();
+                        alert('First and last name must be at least 2 characters.');
+                        return;
+                    }
 
-        var iconClass = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
-        var iconHtml = type === 'success' ? '<i class="fas fa-check-circle"></i>' :
-                       type === 'error' ? '<i class="fas fa-exclamation-circle"></i>' :
-                       '<i class="fas fa-info-circle"></i>';
+                    if (phone) {
+                        var cleanPhone = phone.replace(/[\s\-]/g, '');
+                        var phoneRe = /^(0[1-9][0-9]{8}|\+27[1-9][0-9]{8})$/;
+                        if (!phoneRe.test(cleanPhone)) {
+                            e.preventDefault();
+                            alert('Please enter a valid SA phone number (e.g. 0821234567).');
+                            return;
+                        }
+                    }
 
-        toast.innerHTML = `
-            <div class="toast-icon ${iconClass}">${iconHtml}</div>
-            <div class="toast-content">
-                <div class="toast-title">${title}</div>
-                <div class="toast-message">${message}</div>
-            </div>
-            <button class="toast-close" onclick="this.closest('.toast-item').remove()">&times;</button>
-        `;
-        container.appendChild(toast);
-
-        setTimeout(function() {
-            if (toast.parentNode) toast.remove();
-        }, 5000);
-    }
-
-    // ─── FORM SUBMISSIONS ───
-    function submitPersonalInfo() {
-        showToast('success', 'Profile Updated', 'Your personal information has been saved successfully.');
-    }
-
-    function submitProfessional() {
-        showToast('success', 'Professional Info Updated', 'Your professional information has been saved successfully.');
-    }
-
-    function submitPassword() {
-        var password = document.getElementById('newPassword').value;
-        var confirm = document.getElementById('confirmPassword').value;
-
-        if (!checkPasswordStrength()) {
-            showToast('error', 'Password Too Weak', 'Please ensure your password meets all requirements.');
-            return;
-        }
-
-        if (password !== confirm) {
-            showToast('error', 'Passwords Mismatch', 'Your passwords do not match. Please try again.');
-            return;
-        }
-
-        if (password.length > 0) {
-            showToast('success', 'Password Changed', 'Your password has been updated successfully.');
-            document.getElementById('passwordForm').reset();
-            document.getElementById('matchMessage').innerHTML = '';
-        }
-    }
-
-    function toggleTwoFactor() {
-        var isChecked = document.getElementById('twoFactorToggle').checked;
-        if (isChecked) {
-            showToast('info', '2FA Enabled', 'Two-Factor Authentication has been enabled. You will receive verification codes via SMS.');
-        } else {
-            showToast('info', '2FA Disabled', 'Two-Factor Authentication has been disabled.');
-        }
-    }
-
-    // ─── EVENT LISTENERS ───
-    var newPass = document.getElementById('newPassword');
-    var confirmPass = document.getElementById('confirmPassword');
-
-    if (newPass) {
-        newPass.oninput = function() {
-            checkPasswordStrength();
-            checkPasswordMatch();
-        };
-    }
-
-    if (confirmPass) {
-        confirmPass.oninput = function() {
-            checkPasswordMatch();
-        };
-    }
-
-    console.log('👤 Doctor Profile loaded successfully.');
-</script>
+                    var btn = this.querySelector('button[type="submit"]');
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                });
+            }
+        </script>
+    </text>
+}

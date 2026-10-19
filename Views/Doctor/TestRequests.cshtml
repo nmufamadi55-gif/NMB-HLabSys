@@ -4,8 +4,6 @@
     ViewData["Title"] = "Test Requests";
     ViewData["RoleSubtitle"] = "Doctor Portal";
     ViewData["UserGreeting"] = "Manage and track all test requests";
-    ViewData["UserInitials"] = "SJ";
-    ViewData["UserName"] = "Sarah Johnson";
 }
 
 @section SidebarMenu {
@@ -317,7 +315,7 @@
 
 <div class="card">
     <form method="get" asp-action="TestRequests" class="filter-bar">
-        <input type="text" name="SearchTerm" class="filter-input"
+        <input type="text" name="SearchTerm" class="filter-input" maxlength="100"
                placeholder="Search by patient or request #"
                value="@Model.Filter.SearchTerm" style="width:220px;" />
 
@@ -440,8 +438,9 @@
                 <label style="display:block; font-size:0.8rem; font-weight:600; color:#032C7D; margin-bottom:0.3rem;">
                     Reason for cancellation <span style="color:#DC2626;">*</span>
                 </label>
-                <textarea name="reason" class="form-control" rows="3" required
-                          placeholder="Please provide a reason..."></textarea>
+                <textarea name="reason" class="form-control" rows="3"
+                          required minlength="10" maxlength="500"
+                          placeholder="Please provide a reason (min 10 characters)..."></textarea>
             </div>
 
             <div class="modal-footer">
@@ -466,14 +465,24 @@
             document.getElementById('cancelModal').classList.remove('active');
         }
 
-        // Close on overlay click
         document.getElementById('cancelModal').addEventListener('click', function (e) {
             if (e.target === this) closeCancelModal();
         });
 
-        // Close on Escape
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') closeCancelModal();
+        });
+
+        document.querySelector('#cancelModal form').addEventListener('submit', function (e) {
+            var reason = this.querySelector('textarea[name="reason"]').value.trim();
+            if (reason.length < 10) {
+                e.preventDefault();
+                alert('Please provide a reason of at least 10 characters.');
+                return;
+            }
+            var btn = this.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cancelling...';
         });
     </script>
 }

@@ -24,13 +24,22 @@ namespace NMB_HLabSys.Services
         {
             get
             {
-                if (!UserId.HasValue || UserRole != "Doctor")
+                if (!UserId.HasValue) return null;
+                if (!string.Equals(UserRole, "Doctor", System.StringComparison.OrdinalIgnoreCase))
                     return null;
 
-                return _context.Doctors
+                var sessionDoctorId = _http.HttpContext?.Session.GetInt32("DoctorID");
+                if (sessionDoctorId.HasValue) return sessionDoctorId.Value;
+
+                var id = _context.Doctors
                     .Where(d => d.UserID == UserId.Value)
                     .Select(d => (int?)d.DoctorID)
                     .FirstOrDefault();
+
+                if (id.HasValue)
+                    _http.HttpContext?.Session.SetInt32("DoctorID", id.Value);
+
+                return id;
             }
         }
     }
