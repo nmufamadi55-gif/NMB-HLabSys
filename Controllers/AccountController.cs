@@ -76,9 +76,9 @@ namespace NMB_HLabSys.Controllers
                 else if (user.UserRole == "Admin")
                     return RedirectToAction("Dashboard", "Admin");
                 else if (user.UserRole == "Doctor")
-                    return RedirectToAction("Dashboard", "Doctor");       // ✅ Fixed
+                    return RedirectToAction("Dashboard", "Doctor");      
                 else if (user.UserRole == "Technician")
-                    return RedirectToAction("Dashboard", "Technician");   // ✅ Fixed
+                    return RedirectToAction("Dashboard", "Technician");   
                 else if (user.UserRole == "Manager")
                     return RedirectToAction("Index", "LaboratoryManager");
 

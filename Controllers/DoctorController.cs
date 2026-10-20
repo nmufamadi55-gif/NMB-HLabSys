@@ -2,12 +2,15 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NMB_HLabSys.Data;
+using NMB_HLabSys.Filters;
 using NMB_HLabSys.Models;
 using NMB_HLabSys.Models.ViewModels;
 using NMB_HLabSys.Services;
 
 namespace NMB_HLabSys.Controllers
 {
+    [RequireSession]
+    [NoCache]
     public class DoctorController : Controller
     {
         private readonly IDoctorService _doctorService;

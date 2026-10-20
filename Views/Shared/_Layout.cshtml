@@ -8,6 +8,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="~/css/site.css">
     @await RenderSectionAsync("Styles", required: false)
+    @* ── Prevent browser from caching authenticated pages (blocks back-button replay) ── *@
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
 </head>
 <body>
     <div class="app-grid">
@@ -32,7 +36,7 @@
                     </div>
                     <div class="user-tag">
                         <div class="avatar">@ViewData["UserInitials"]</div>
-                        <div class="logout-pill" id="logoutBtn">Logout</div>
+                        <div class="logout-pill" id="logoutBtn" role="button" tabindex="0">Logout</div>
                     </div>
                 </div>
             </div>
@@ -40,51 +44,233 @@
         </main>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════════
+         LOGOUT CONFIRMATION MODAL
+         ═══════════════════════════════════════════════════════════ -->
+    <div id="logoutModal" class="logout-modal-overlay">
+        <div class="logout-modal-box">
+            <div class="logout-modal-header">
+                <h3>
+                    <i class="fas fa-sign-out-alt"></i>
+                    Log out?
+                </h3>
+                <button type="button" class="logout-modal-close" onclick="closeLogoutModal()" aria-label="Close">&times;</button>
+            </div>
+            <div class="logout-modal-body">
+                <p>
+                    Are you sure you want to log out of
+                    <strong>NMB Haematology</strong>?
+                    You will need to sign in again to continue.
+                </p>
+            </div>
+            <div class="logout-modal-footer">
+                <button type="button" class="logout-btn-cancel" onclick="closeLogoutModal()">
+                    Stay logged in
+                </button>
+                <button type="button" class="logout-btn-confirm" onclick="confirmLogout()">
+                    <i class="fas fa-sign-out-alt"></i> Yes, log out
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden POST form for CSRF-safe logout -->
+    <form id="logoutForm"
+          asp-controller="Account"
+          asp-action="Logout"
+          method="post"
+          style="display:none;"
+          novalidate>
+        @Html.AntiForgeryToken()
+    </form>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="~/js/site.js"></script>
     <script>
-        $(document).ready(function() {
-            // ========== ACTIVE LINK HIGHLIGHTING ==========
-            var currentUrl = window.location.pathname.toLowerCase();
+        // ═══════════════════════════════════════════════════════════
+        // LOGOUT MODAL — wired up on DOM ready, namespace-free globals
+        // ═══════════════════════════════════════════════════════════
+        (function () {
+            'use strict';
 
-            $('.nav-links a').each(function() {
-                var linkUrl = $(this).attr('href');
-                if (linkUrl) {
-                    // Compare the full path
-                    var linkPath = linkUrl.split('?')[0].toLowerCase();
+            var modal, form, logoutTrigger;
 
-                    // Check if current URL matches the link
-                    if (currentUrl === linkPath ||
-                        (currentUrl !== '/' && linkPath !== '/' && currentUrl.indexOf(linkPath) === 0 && linkPath !== '')) {
-                        $(this).addClass('active');
+            function openModal() {
+                if (!modal) return;
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                setTimeout(function () {
+                    var btn = modal.querySelector('.logout-btn-confirm');
+                    if (btn) btn.focus();
+                }, 60);
+            }
+
+            function closeModal() {
+                if (!modal) return;
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            function doLogout() {
+                if (!form) return;
+                // Guard against double-submit
+                var confirmBtn = modal.querySelector('.logout-btn-confirm');
+                if (confirmBtn) {
+                    confirmBtn.disabled = true;
+                    confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
+                }
+                form.submit();
+            }
+
+            // Expose to inline onclick="" handlers
+            window.openLogoutModal  = openModal;
+            window.closeLogoutModal = closeModal;
+            window.confirmLogout    = doLogout;
+
+            document.addEventListener('DOMContentLoaded', function () {
+                modal         = document.getElementById('logoutModal');
+                form          = document.getElementById('logoutForm');
+                logoutTrigger = document.getElementById('logoutBtn');
+
+                if (!modal || !form || !logoutTrigger) return;
+
+                // ── OPEN: click ──
+                logoutTrigger.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openModal();
+                });
+
+                // ── OPEN: keyboard ──
+                logoutTrigger.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openModal();
                     }
+                });
 
-                    // Special case for exact match on dashboard
-                    if (linkPath === currentUrl) {
-                        $(this).addClass('active');
+                // ── CLOSE: backdrop click — only if the click STARTED on the backdrop ──
+                modal.addEventListener('mousedown', function (e) {
+                    // Remember where the press began
+                    modal._pressedOnBackdrop = (e.target === modal);
+                });
+
+                modal.addEventListener('click', function (e) {
+                    if (e.target === modal && modal._pressedOnBackdrop) {
+                        closeModal();
                     }
+                    modal._pressedOnBackdrop = false;
+                });
+
+                // ── CLOSE: Escape ──
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape' && modal.classList.contains('active')) {
+                        e.preventDefault();
+                        closeModal();
+                    }
+                });
+
+                // ── CONFIRM (button inside modal) ──
+                var confirmBtn = modal.querySelector('.logout-btn-confirm');
+                if (confirmBtn) {
+                    confirmBtn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        doLogout();
+                    });
+                }
+
+                // ── CANCEL (button inside modal) ──
+                var cancelBtn = modal.querySelector('.logout-btn-cancel');
+                if (cancelBtn) {
+                    cancelBtn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        closeModal();
+                    });
+                }
+
+                // ── CLOSE (X button inside modal) ──
+                var closeBtn = modal.querySelector('.logout-modal-close');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        closeModal();
+                    });
                 }
             });
-
-            // ========== MOBILE MENU TOGGLE ==========
-            $('#menuToggleBtn').on('click', function() {
-                $('.sidebar-lab').toggleClass('mobile-open');
-            });
-
-            // Close mobile menu when clicking outside
-            $(document).on('click', function(event) {
-                if (!$(event.target).closest('.sidebar-lab').length && !$(event.target).closest('#menuToggleBtn').length) {
-                    $('.sidebar-lab').removeClass('mobile-open');
-                }
-            });
-
-            // ========== LOGOUT ==========
-            $('#logoutBtn').on('click', function() {
-                window.location.href = '@Url.Action("Index", "Home")';
-            });
-        });
+        })();
     </script>
+    <script>
+        // ═══════════════════════════════════════════════════════════
+        // PREVENT BACK-BUTTON FROM RETURNING TO LOGIN AFTER AUTHENTICATION
+        // Only runs on authenticated pages (this layout is not used on Login)
+        // ═══════════════════════════════════════════════════════════
+        (function () {
+            try {
+                // If the previous history entry was the Login page, replace
+                // the current entry so Back skips Login and goes further back.
+                var referrer = document.referrer || '';
+                if (referrer.indexOf('/Account/Login') !== -1 ||
+                    referrer.indexOf('/Account/ForgotPassword') !== -1) {
+                    // Rewrite history so this page replaces the Login entry.
+                    // User presses Back → goes to whatever came BEFORE Login,
+                    // never back to the Login form itself.
+                    history.replaceState({ page: 'dashboard-after-login' }, '', location.href);
+                }
+            } catch (e) {
+                // Older browsers — no-op
+            }
+        })();
+    </script>
+    <script>
+        // ═══════════════════════════════════════════════════════════
+        // BACK-BUTTON HARDENING — hide stale content on bfcache restore
+        // ═══════════════════════════════════════════════════════════
+        (function () {
+            // Run BEFORE anything else renders from bfcache.
+           
+            window.addEventListener('pageshow', function (event) {
+                if (event.persisted) {
+                    // Hide the stale page instantly
+                    document.documentElement.style.visibility = 'hidden';
+                    // Then force a real network request
+                    window.location.reload();
+                }
+            });
 
+            // Belt-and-braces for HTTP cache replay (navigation type = back_forward)
+            window.addEventListener('load', function () {
+                try {
+                    var nav = performance.getEntriesByType('navigation')[0];
+                    if (nav && nav.type === 'back_forward') {
+                        document.documentElement.style.visibility = 'hidden';
+                        window.location.reload();
+                    }
+                } catch (e) {
+                    if (window.performance && performance.navigation &&
+                        performance.navigation.type === 2) {
+                        document.documentElement.style.visibility = 'hidden';
+                        window.location.reload();
+                    }
+                }
+            });
+
+            //
+            document.addEventListener('visibilitychange', function () {
+                if (document.visibilityState === 'visible') {
+                   
+                    var age = (Date.now() - (window._pageRenderedAt || Date.now())) / 1000;
+                    if (age > 300) window.location.reload();
+                }
+            });
+
+            // Record when this page first rendered
+            window._pageRenderedAt = Date.now();
+        })();
+    </script>
     <style>
         /* ========== LAYOUT ========== */
         * {
@@ -104,7 +290,7 @@
             min-height: 100vh;
         }
 
-        /* ========== SIDEBAR STYLES ========== */
+        /* ========== SIDEBAR ========== */
         .sidebar-lab {
             width: 280px;
             background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFE 100%);
@@ -135,7 +321,6 @@
                 margin-top: 4px;
             }
 
-        /* Navigation Links */
         .nav-links {
             list-style: none;
             padding: 1rem 0;
@@ -174,7 +359,6 @@
                         color: #0841C9;
                     }
 
-                /* ACTIVE LINK HIGHLIGHTING */
                 .nav-links a.active {
                     background: linear-gradient(135deg, #0841C9, #1D97F1);
                     color: white;
@@ -185,14 +369,13 @@
                         color: white;
                     }
 
-        /* ========== MAIN CONTENT ========== */
+        /* ========== MAIN ========== */
         .main-panel {
             flex: 1;
             margin-left: 280px;
             padding: 1.2rem;
         }
 
-        /* Header Glass */
         .header-glass {
             background: white;
             border-radius: 16px;
@@ -256,37 +439,170 @@
             cursor: pointer;
             transition: all 0.2s;
             color: #1A2C3A;
+            user-select: none;
         }
 
-            .logout-pill:hover {
+            .logout-pill:hover,
+            .logout-pill:focus {
                 background: #FEE2E2;
+                color: #DC2626;
+                outline: none;
+            }
+
+        /* ========== LOGOUT MODAL ========== */
+        .logout-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+            .logout-modal-overlay.active {
+                display: flex;
+            }
+
+        .logout-modal-box {
+            background: #fff;
+            border-radius: 20px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            animation: logoutModalIn 0.18s ease-out;
+        }
+
+        @@keyframes logoutModalIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px) scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .logout-modal-header {
+            padding: 1.1rem 1.4rem;
+            border-bottom: 1px solid #E2E8F0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            .logout-modal-header h3 {
+                margin: 0;
+                color: #032C7D;
+                font-size: 1.05rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+                .logout-modal-header h3 i {
+                    color: #0841C9;
+                }
+
+        .logout-modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            line-height: 1;
+            cursor: pointer;
+            color: #94A3B8;
+            padding: 0;
+        }
+
+            .logout-modal-close:hover {
                 color: #DC2626;
             }
 
-        /* ========== MOBILE RESPONSIVE ========== */
+        .logout-modal-body {
+            padding: 1.3rem 1.4rem;
+        }
+
+            .logout-modal-body p {
+                margin: 0;
+                font-size: 0.92rem;
+                color: #5A6E7A;
+                line-height: 1.55;
+            }
+
+                .logout-modal-body p strong {
+                    color: #032C7D;
+                }
+
+        .logout-modal-footer {
+            padding: 0.9rem 1.4rem 1.2rem;
+            border-top: 1px solid #E2E8F0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.6rem;
+        }
+
+        .logout-btn-cancel,
+        .logout-btn-confirm {
+            padding: 0.6rem 1.3rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .logout-btn-cancel {
+            background: transparent;
+            border: 1px solid #E2E8F0;
+            color: #1A2C3A;
+        }
+
+            .logout-btn-cancel:hover {
+                background: #F1F5F9;
+            }
+
+        .logout-btn-confirm {
+            background: #DC2626;
+            color: white;
+            border: none;
+        }
+
+            .logout-btn-confirm:hover {
+                background: #991B1B;
+            }
+
+        /* ========== MOBILE ========== */
         @@media (max-width: 768px) {
             .sidebar-lab {
-            transform: translateX(-100%);
-            position: fixed;
-            transition: transform 0.3s ease;
-            z-index: 1000;
+                transform: translateX(-100%);
+                position: fixed;
+                transition: transform 0.3s ease;
+                z-index: 1000;
+            }
+
+                .sidebar-lab.mobile-open {
+                    transform: translateX(0);
+                }
+
+            .main-panel {
+                margin-left: 0;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
         }
 
-        .sidebar-lab.mobile-open {
-            transform: translateX(0);
-        }
-
-        .main-panel {
-            margin-left: 0;
-        }
-
-        .menu-toggle {
-            display: block;
-        }
-
-        }
-
-        /* ========== SCROLLBAR STYLING ========== */
+        /* ========== SCROLLBAR ========== */
         .sidebar-lab::-webkit-scrollbar {
             width: 4px;
         }
@@ -304,4 +620,3 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
-

@@ -6,7 +6,11 @@ using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllersWithViews();
+// ─── ONE registration for MVC + global filters ───
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add<NMB_HLabSys.Filters.NoCacheAttribute>();
+});
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -34,6 +38,8 @@ builder.Services.AddSession(options =>
 });
 
 var app = builder.Build();
+
+
 
 // ═══════════════════════════════════════════════════════════
 // STARTUP: migrate legacy SHA256 hashes → PBKDF2, then seed

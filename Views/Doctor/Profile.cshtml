@@ -22,6 +22,7 @@
     var nameParts = userName.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
     var firstName = nameParts.Length > 0 ? nameParts[0] : "";
     var lastName = nameParts.Length > 1 ? nameParts[1] : "";
+    var activeTab = ViewBag.ActiveTab as string ?? "overview";
 }
 
 @section SidebarMenu {
@@ -36,7 +37,6 @@
 
 @section Styles {
     <style>
-        /* ─── PROFILE LAYOUT ─── */
         .profile-header {
             background: #fff;
             border-radius: 20px;
@@ -124,7 +124,6 @@
                 color: #EF4444;
             }
 
-        /* ─── TABS ─── */
         .profile-tabs {
             display: flex;
             gap: 0.2rem;
@@ -187,7 +186,6 @@
             }
         }
 
-        /* ─── CARDS ─── */
         .profile-card-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -251,40 +249,6 @@
                 word-break: break-word;
             }
 
-        /* ─── STAT GRID ─── */
-        .stat-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .stat-item {
-            text-align: center;
-            padding: 1rem;
-            background: #F8FAFE;
-            border-radius: 12px;
-            transition: background 0.3s;
-        }
-
-            .stat-item:hover {
-                background: rgba(8,65,201,0.04);
-            }
-
-            .stat-item .stat-number {
-                font-size: 1.8rem;
-                font-weight: 800;
-                color: #0841C9;
-                letter-spacing: -0.02em;
-            }
-
-            .stat-item .stat-label {
-                font-size: 0.75rem;
-                color: #5A6E7A;
-                margin-top: 0.1rem;
-            }
-
-        /* ─── FORMS ─── */
         .form-group {
             margin-bottom: 1.2rem;
         }
@@ -338,36 +302,12 @@
                 box-shadow: 0 8px 28px rgba(8,65,201,0.35);
             }
 
-        .btn-outline {
-            background: transparent;
-            border: 1.5px solid #E8EDF5;
-            padding: 0.6rem 1.4rem;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.25s;
-            font-family: inherit;
-            color: #1A2C3A;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-            .btn-outline:hover {
-                border-color: #0841C9;
-                color: #0841C9;
-                background: rgba(8,65,201,0.02);
-            }
-
         .row-2col {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 1rem;
         }
 
-        /* ─── ALERTS ─── */
         .alert-success {
             background: #D1FAE5;
             color: #065F46;
@@ -394,21 +334,34 @@
             font-size: 0.85rem;
         }
 
-        /* ─── PASSWORD REQUIREMENTS ─── */
         .password-requirements {
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             color: #5A6E7A;
-            margin-top: 0.3rem;
-            line-height: 1.7;
+            margin-top: 0.5rem;
+            line-height: 1.9;
         }
 
-            .password-requirements i {
-                margin-right: 0.2rem;
-                font-size: 0.5rem;
-                vertical-align: middle;
+            .password-requirements > div {
+                display: flex;
+                align-items: center;
+                gap: 0.4rem;
+                transition: color 0.2s;
             }
 
-        /* ─── RESPONSIVE ─── */
+                .password-requirements > div i {
+                    font-size: 0.5rem;
+                    color: #CBD5E1;
+                    transition: color 0.2s;
+                }
+
+                .password-requirements > div.met {
+                    color: #10B981;
+                }
+
+                    .password-requirements > div.met i {
+                        color: #10B981;
+                    }
+
         @@media (max-width: 1024px) {
             .profile-card-grid {
                 grid-template-columns: 1fr;
@@ -422,20 +375,12 @@
                 padding: 1.5rem;
             }
 
-            .stat-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-
             .row-2col {
                 grid-template-columns: 1fr;
             }
         }
 
         @@media (max-width: 480px) {
-            .stat-grid {
-                grid-template-columns: 1fr;
-            }
-
             .profile-tab {
                 font-size: 0.75rem;
                 padding: 0.4rem 0.8rem;
@@ -444,9 +389,6 @@
     </style>
 }
 
-@* ═══════════════════════════════════════════════════════════
-   FLASH MESSAGES
-   ═══════════════════════════════════════════════════════════ *@
 @if (TempData["SuccessMessage"] != null)
 {
     <div class="alert-success">
@@ -460,9 +402,6 @@
     </div>
 }
 
-@* ═══════════════════════════════════════════════════════════
-   PROFILE HEADER
-   ═══════════════════════════════════════════════════════════ *@
 <div class="profile-header">
     <div class="profile-avatar-wrapper">
         <div class="profile-avatar">@initials</div>
@@ -493,28 +432,22 @@
     </div>
 </div>
 
-@* ═══════════════════════════════════════════════════════════
-   TABS
-   ═══════════════════════════════════════════════════════════ *@
 <div class="profile-tabs" id="profileTabs">
-    <button type="button" class="profile-tab active" data-tab="overview">
+    <button type="button" class="profile-tab @(activeTab == "overview" ? "active" : "")" data-tab="overview">
         <i class="fas fa-th-large"></i> Overview
     </button>
-    <button type="button" class="profile-tab" data-tab="personal">
+    <button type="button" class="profile-tab @(activeTab == "personal" ? "active" : "")" data-tab="personal">
         <i class="fas fa-user"></i> Personal Info
     </button>
-    <button type="button" class="profile-tab" data-tab="professional">
+    <button type="button" class="profile-tab @(activeTab == "professional" ? "active" : "")" data-tab="professional">
         <i class="fas fa-briefcase"></i> Professional
     </button>
-    <button type="button" class="profile-tab" data-tab="security">
+    <button type="button" class="profile-tab @(activeTab == "security" ? "active" : "")" data-tab="security">
         <i class="fas fa-shield-alt"></i> Security
     </button>
 </div>
 
-@* ═══════════════════════════════════════════════════════════
-   OVERVIEW TAB
-   ═══════════════════════════════════════════════════════════ *@
-<div class="tab-content active" id="tab-overview">
+<div class="tab-content @(activeTab == "overview" ? "active" : "")" id="tab-overview">
 
     <div class="profile-card-grid">
         <div class="profile-card">
@@ -618,11 +551,8 @@
 
 </div>
 
-@* ═══════════════════════════════════════════════════════════
-   PERSONAL INFO TAB
-   ═══════════════════════════════════════════════════════════ *@
-<div class="tab-content" id="tab-personal">
-    <form method="post" action="@Url.Action("UpdateProfile", "Profile")">
+<div class="tab-content @(activeTab == "personal" ? "active" : "")" id="tab-personal">
+    <form method="post" action="@Url.Action("UpdateProfile", "Profile")" novalidate>
         @Html.AntiForgeryToken()
 
         <div class="profile-card">
@@ -671,10 +601,7 @@
     </form>
 </div>
 
-@* ═══════════════════════════════════════════════════════════
-   PROFESSIONAL TAB
-   ═══════════════════════════════════════════════════════════ *@
-<div class="tab-content" id="tab-professional">
+<div class="tab-content @(activeTab == "professional" ? "active" : "")" id="tab-professional">
     <div class="profile-card">
         <div class="profile-card-header">
             <i class="fas fa-briefcase"></i>
@@ -730,10 +657,7 @@
     </div>
 </div>
 
-@* ═══════════════════════════════════════════════════════════
-   SECURITY TAB
-   ═══════════════════════════════════════════════════════════ *@
-<div class="tab-content" id="tab-security">
+<div class="tab-content @(activeTab == "security" ? "active" : "")" id="tab-security">
     <div class="profile-card-grid">
 
         <div class="profile-card">
@@ -742,7 +666,7 @@
                 <h4>Change Password</h4>
             </div>
             <div class="profile-card-body">
-                <form method="post" action="@Url.Action("ChangePassword", "Profile")">
+                <form method="post" action="@Url.Action("ChangePassword", "Profile")" novalidate>
                     @Html.AntiForgeryToken()
 
                     <div class="form-group">
@@ -756,12 +680,12 @@
                         <input type="password" name="newPassword" id="newPassword"
                                class="form-control" placeholder="Enter new password"
                                required minlength="8" />
-                        <div class="password-requirements">
-                            <i class="fas fa-circle"></i> At least 8 characters<br>
-                            <i class="fas fa-circle"></i> One uppercase letter<br>
-                            <i class="fas fa-circle"></i> One lowercase letter<br>
-                            <i class="fas fa-circle"></i> One number<br>
-                            <i class="fas fa-circle"></i> One special character (@@$!%*?&amp;)
+                        <div class="password-requirements" id="pwdRequirements">
+                            <div data-req="length"><i class="fas fa-circle"></i> At least 8 characters</div>
+                            <div data-req="upper"><i class="fas fa-circle"></i> One uppercase letter</div>
+                            <div data-req="lower"><i class="fas fa-circle"></i> One lowercase letter</div>
+                            <div data-req="number"><i class="fas fa-circle"></i> One number</div>
+                            <div data-req="special"><i class="fas fa-circle"></i> One special character (@@$!%*?&amp;)</div>
                         </div>
                     </div>
 
@@ -830,75 +754,155 @@
 @section Scripts {
     <text>
         <script>
-            // ─── TABS ───
+            // TABS
             document.querySelectorAll('.profile-tab').forEach(function (tab) {
                 tab.addEventListener('click', function () {
-                    document.querySelectorAll('.profile-tab').forEach(function (t) {
-                        t.classList.remove('active');
-                    });
-                    document.querySelectorAll('.tab-content').forEach(function (c) {
-                        c.classList.remove('active');
-                    });
+                    document.querySelectorAll('.profile-tab').forEach(function (t) { t.classList.remove('active'); });
+                    document.querySelectorAll('.tab-content').forEach(function (c) { c.classList.remove('active'); });
                     this.classList.add('active');
                     var tabId = this.getAttribute('data-tab');
-                    document.getElementById('tab-' + tabId).classList.add('active');
+                    var content = document.getElementById('tab-' + tabId);
+                    if (content) content.classList.add('active');
                 });
             });
 
-            // ─── CHANGE PASSWORD VALIDATION ───
+            // LIVE PASSWORD REQUIREMENT INDICATORS
+            (function () {
+                var pwdInput = document.getElementById('newPassword');
+                var reqs = document.querySelectorAll('#pwdRequirements > div');
+                if (!pwdInput || !reqs.length) return;
+
+                function checkRequirements(value) {
+                    var tests = {
+                        length:  value.length >= 8,
+                        upper:   /[A-Z]/.test(value),
+                        lower:   /[a-z]/.test(value),
+                        number:  /[0-9]/.test(value),
+                        special: /[^A-Za-z0-9]/.test(value)
+                    };
+
+                    reqs.forEach(function (req) {
+                        var key = req.getAttribute('data-req');
+                        var icon = req.querySelector('i');
+                        if (tests[key]) {
+                            req.classList.add('met');
+                            if (icon) icon.className = 'fas fa-check-circle';
+                        } else {
+                            req.classList.remove('met');
+                            if (icon) icon.className = 'fas fa-circle';
+                        }
+                    });
+
+                    return Object.values(tests).every(Boolean);
+                }
+
+                pwdInput.addEventListener('input', function () {
+                    checkRequirements(this.value);
+                });
+
+                if (pwdInput.value) checkRequirements(pwdInput.value);
+            })();
+
+            // CHANGE PASSWORD — inline error box
             var changePwdForm = document.querySelector('form[action*="ChangePassword"]');
             if (changePwdForm) {
+                var errorBox = document.createElement('div');
+                errorBox.id = 'changePwdErrorBox';
+                errorBox.style.cssText = 'display:none; background:#FEE2E2; color:#991B1B; ' +
+                                         'padding:0.75rem 1rem; border-radius:10px; font-size:0.85rem; ' +
+                                         'margin-bottom:1rem; border-left:4px solid #DC2626;';
+                var cardBody = changePwdForm.querySelector('.profile-card-body') || changePwdForm;
+                cardBody.insertBefore(errorBox, cardBody.firstChild);
+
+                function showErrors(errors) {
+                    if (!errors.length) { errorBox.style.display = 'none'; return; }
+                    errorBox.innerHTML = '<strong><i class="fas fa-exclamation-circle"></i> Please fix:</strong>' +
+                        '<ul style="margin:0.4rem 0 0 1.2rem;">' +
+                        errors.map(function (e) { return '<li>' + e + '</li>'; }).join('') +
+                        '</ul>';
+                    errorBox.style.display = 'block';
+                    errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+
                 changePwdForm.addEventListener('submit', function (e) {
                     var newPwd = document.getElementById('newPassword').value;
                     var confirmPwd = this.querySelector('input[name="confirmPassword"]').value;
+                    var currentPwd = this.querySelector('input[name="currentPassword"]').value;
                     var errors = [];
 
-                    if (newPwd.length < 8) errors.push('At least 8 characters');
-                    if (!/[A-Z]/.test(newPwd)) errors.push('One uppercase letter');
-                    if (!/[a-z]/.test(newPwd)) errors.push('One lowercase letter');
-                    if (!/[0-9]/.test(newPwd)) errors.push('One number');
-                    if (!/[@@$!%*?&]/.test(newPwd)) errors.push('One special character (@@$!%*?&)');
-                    if (newPwd !== confirmPwd) errors.push('Passwords must match');
+                    if (!currentPwd) errors.push('Current password is required.');
+                    if (newPwd.length < 8) errors.push('At least 8 characters.');
+                    if (!/[A-Z]/.test(newPwd)) errors.push('One uppercase letter.');
+                    if (!/[a-z]/.test(newPwd)) errors.push('One lowercase letter.');
+                    if (!/[0-9]/.test(newPwd)) errors.push('One number.');
+                    if (!/[^A-Za-z0-9]/.test(newPwd)) errors.push('One special character.');
+                    if (newPwd !== confirmPwd) errors.push('Passwords must match.');
 
                     if (errors.length) {
                         e.preventDefault();
-                        alert('Password requirements:\n- ' + errors.join('\n- '));
+                        showErrors(errors);
                         return;
                     }
 
+                    showErrors([]);
                     var btn = this.querySelector('button[type="submit"]');
-                    btn.disabled = true;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+                    }
                 });
             }
 
-            // ─── UPDATE PROFILE VALIDATION ───
+            // UPDATE PROFILE — inline error box
             var updateProfileForm = document.querySelector('form[action*="UpdateProfile"]');
             if (updateProfileForm) {
+                var pErrorBox = document.createElement('div');
+                pErrorBox.id = 'updateProfileErrorBox';
+                pErrorBox.style.cssText = 'display:none; background:#FEE2E2; color:#991B1B; ' +
+                                          'padding:0.75rem 1rem; border-radius:10px; font-size:0.85rem; ' +
+                                          'margin-bottom:1rem; border-left:4px solid #DC2626;';
+                var pCardBody = updateProfileForm.querySelector('.profile-card-body') || updateProfileForm;
+                pCardBody.insertBefore(pErrorBox, pCardBody.firstChild);
+
+                function showProfileErrors(errors) {
+                    if (!errors.length) { pErrorBox.style.display = 'none'; return; }
+                    pErrorBox.innerHTML = '<strong><i class="fas fa-exclamation-circle"></i> Please fix:</strong>' +
+                        '<ul style="margin:0.4rem 0 0 1.2rem;">' +
+                        errors.map(function (e) { return '<li>' + e + '</li>'; }).join('') +
+                        '</ul>';
+                    pErrorBox.style.display = 'block';
+                    pErrorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+
                 updateProfileForm.addEventListener('submit', function (e) {
                     var name = this.querySelector('input[name="name"]').value.trim();
                     var surname = this.querySelector('input[name="surname"]').value.trim();
                     var phone = this.querySelector('input[name="phone"]').value.trim();
+                    var errors = [];
 
-                    if (name.length < 2 || surname.length < 2) {
-                        e.preventDefault();
-                        alert('First and last name must be at least 2 characters.');
-                        return;
-                    }
+                    if (name.length < 2) errors.push('First name must be at least 2 characters.');
+                    if (surname.length < 2) errors.push('Last name must be at least 2 characters.');
 
                     if (phone) {
                         var cleanPhone = phone.replace(/[\s\-]/g, '');
                         var phoneRe = /^(0[1-9][0-9]{8}|\+27[1-9][0-9]{8})$/;
                         if (!phoneRe.test(cleanPhone)) {
-                            e.preventDefault();
-                            alert('Please enter a valid SA phone number (e.g. 0821234567).');
-                            return;
+                            errors.push('Please enter a valid SA phone number (e.g. 0821234567).');
                         }
                     }
 
+                    if (errors.length) {
+                        e.preventDefault();
+                        showProfileErrors(errors);
+                        return;
+                    }
+
+                    showProfileErrors([]);
                     var btn = this.querySelector('button[type="submit"]');
-                    btn.disabled = true;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                    }
                 });
             }
         </script>

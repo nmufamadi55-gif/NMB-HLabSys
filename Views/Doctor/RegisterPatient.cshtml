@@ -544,7 +544,7 @@
                 var mo = parseInt(m[2], 10) - 1;
                 var d = parseInt(m[3], 10);
                 var dt = new Date(y, mo, d);
-                // Sanity-check the round-trip (catches Feb 30 etc.)
+                
                 if (dt.getFullYear() === y && dt.getMonth() === mo && dt.getDate() === d) return dt;
                 return null;
             }

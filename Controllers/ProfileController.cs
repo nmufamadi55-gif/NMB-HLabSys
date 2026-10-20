@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NMB_HLabSys.Data;
+using NMB_HLabSys.Filters;
 using NMB_HLabSys.Services;
 using System;
 using System.Linq;
@@ -9,12 +10,8 @@ using System.Threading.Tasks;
 
 namespace NMB_HLabSys.Controllers
 {
-    /// <summary>
-    /// Shared profile controller.
-    /// - Doctors get the rich, role-specific profile view (~/Views/Doctor/Profile.cshtml)
-    ///   with doctor-specific ViewBag data (HPCSA, practice, verification, etc.).
-    /// - All other roles keep the existing generic profile view.
-    /// </summary>
+    [RequireSession]
+    [NoCache]
     public class ProfileController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -42,12 +39,16 @@ namespace NMB_HLabSys.Controllers
 
         private IActionResult RedirectToProfile()
             => RedirectToAction("Index", "Profile");
+        private IActionResult RedirectToProfileTab(string tab)
+        {
+            return RedirectToAction("Index", "Profile", new { tab });
+        }
 
         // ═══════════════════════════════════════════════════════════
         // GET: /Profile/Index
         // ═══════════════════════════════════════════════════════════
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? tab)
         {
             var userId = CurrentUserId;
             if (!userId.HasValue)
@@ -67,24 +68,24 @@ namespace NMB_HLabSys.Controllers
                 ? CurrentUserRole
                 : user.UserRole;
 
-            // ── Common fields used by BOTH views ──
             PopulateCommonViewBag(user, role);
 
-            // ── Doctors: full rich profile (original version 1 behaviour) ──
+            // ── Tell the view which tab to open ──
+            ViewBag.ActiveTab = string.IsNullOrWhiteSpace(tab) ? "overview" : tab;
+
             if (string.Equals(role, "Doctor", StringComparison.OrdinalIgnoreCase))
             {
                 await PopulateDoctorViewBagAsync(user.UserID);
                 return View("~/Views/Doctor/Profile.cshtml");
             }
 
-            // ── Everyone else: existing generic profile ──
             ViewBag.UserRole = user.UserRole;
             ViewBag.Name = user.Name;
             ViewBag.Surname = user.Surname;
             ViewBag.Email = user.Email;
             ViewBag.ContactNumber = user.ContactNumber;
 
-            return View(); // ~/Views/Profile/Index.cshtml
+            return View();
         }
 
         // ═══════════════════════════════════════════════════════════
@@ -140,57 +141,59 @@ namespace NMB_HLabSys.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePassword(
-            string currentPassword, string newPassword, string confirmPassword)
+     string currentPassword, string newPassword, string confirmPassword)
         {
             var userId = CurrentUserId;
             if (!userId.HasValue)
                 return RedirectToAction("Login", "Account");
 
+            var user = await _context.Users.FindAsync(userId.Value);
+            if (user == null)
+                return RedirectToAction("Login", "Account");
+
             if (string.IsNullOrWhiteSpace(currentPassword))
             {
                 TempData["ErrorMessage"] = "Current password is required.";
-                return RedirectToProfile();
+                return RedirectToProfileTab("security");
             }
 
             if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 8)
             {
                 TempData["ErrorMessage"] = "New password must be at least 8 characters.";
-                return RedirectToProfile();
+                return RedirectToProfileTab("security");
             }
 
             if (newPassword != confirmPassword)
             {
                 TempData["ErrorMessage"] = "New password and confirmation do not match.";
-                return RedirectToProfile();
+                return RedirectToProfileTab("security");
             }
-
-            var user = await _context.Users.FindAsync(userId.Value);
-            if (user == null)
-                return RedirectToAction("Login", "Account");
 
             if (!_passwordHasher.VerifyPassword(currentPassword, user.PasswordHash))
             {
                 TempData["ErrorMessage"] = "Current password is incorrect.";
-                return RedirectToProfile();
+                return RedirectToProfileTab("security");
             }
 
             if (_passwordHasher.VerifyPassword(newPassword, user.PasswordHash))
             {
                 TempData["ErrorMessage"] = "New password must be different from the current one.";
-                return RedirectToProfile();
+                return RedirectToProfileTab("security");
             }
 
+            // ── Success ──
             user.PasswordHash = _passwordHasher.HashPassword(newPassword);
             user.IsPasswordChanged = true;
             user.ModifiedDate = DateTime.Now;
             await _context.SaveChangesAsync();
 
+            HttpContext.Session.Remove("ForcePasswordChange");
             TempData["SuccessMessage"] = "Password changed successfully.";
-            return RedirectToProfile();
+            return RedirectToProfileTab("security");
         }
 
         // ═══════════════════════════════════════════════════════════
-        // DOCTOR-SPECIFIC VIEWBAG (from version 1)
+        // DOCTOR-SPECIFIC VIEWBAG 
         // ═══════════════════════════════════════════════════════════
         private async Task PopulateDoctorViewBagAsync(int userId)
         {
