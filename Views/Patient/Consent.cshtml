@@ -140,6 +140,63 @@
                 box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
             }
 
+    .request-picker {
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        max-height: 320px;
+        overflow-y: auto;
+        padding: 0.5rem;
+        background: #F8FAFE;
+    }
+
+    .request-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+        .request-item:hover {
+            background: #EFF6FF;
+        }
+
+        .request-item input[type="checkbox"] {
+            margin-top: 3px;
+            width: 16px;
+            height: 16px;
+            accent-color: #0841C9;
+            cursor: pointer;
+        }
+
+    .request-item-info {
+        flex: 1;
+    }
+
+        .request-item-info strong {
+            color: #032C7D;
+            font-size: 0.85rem;
+        }
+
+        .request-item-info .request-meta {
+            font-size: 0.75rem;
+            color: #5A6E7A;
+            margin-top: 2px;
+        }
+
+    .request-status {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.68rem;
+        font-weight: 600;
+        background: #E0E7FF;
+        color: #3730A3;
+        margin-left: 6px;
+    }
+
     .btn-primary {
         background: #0841C9;
         color: white;
@@ -158,6 +215,11 @@
         .btn-primary:hover {
             background: #032C7D;
             color: white;
+        }
+
+        .btn-primary:disabled {
+            background: #94A3B8;
+            cursor: not-allowed;
         }
 
     .btn-outline {
@@ -225,33 +287,28 @@
 
 @if (TempData["SuccessMessage"] != null)
 {
-    <div class="alert-success">
-        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
-    </div>
+    <div class="alert-success"><i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]</div>
 }
 
 @if (TempData["ErrorMessage"] != null)
 {
-    <div class="alert-error">
-        <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
-    </div>
+    <div class="alert-error"><i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]</div>
 }
 
-<!-- Info -->
 <div class="info-box">
     <strong><i class="fas fa-shield-alt"></i> About Consent Management</strong>
     <p style="margin-top:10px; color: #5A6E7A;">
         You control which healthcare professionals can access your laboratory records.
-        Access can be granted, modified, or revoked at any time.
+        When granting access, select the specific test requests you want to share.
     </p>
     <div style="margin-top:10px;">
         <span class="security-badge"><i class="fas fa-lock"></i> POPIA Compliant</span>
-        <span class="security-badge"><i class="fas fa-share-alt"></i> Secure Sharing</span>
+        <span class="security-badge"><i class="fas fa-share-alt"></i> Per-Request Sharing</span>
         <span class="security-badge"><i class="fas fa-key"></i> Encrypted Access</span>
     </div>
 </div>
 
-<!-- Doctors With Access -->
+<!-- Doctors with Access -->
 <div class="profile-card">
     <div class="profile-card-header">
         <h3><i class="fas fa-user-check"></i> Doctors with Access</h3>
@@ -264,6 +321,7 @@
                     <tr>
                         <th>Doctor</th>
                         <th>Email</th>
+                        <th>Shared Requests</th>
                         <th>Status</th>
                         <th>Granted</th>
                         <th>Action</th>
@@ -275,6 +333,7 @@
                         <tr>
                             <td><strong>@consent.DoctorName</strong></td>
                             <td>@consent.DoctorEmail</td>
+                            <td><span class="status-pill status-active">@consent.SharedRequestCount request(s)</span></td>
                             <td>
                                 <span class="status-pill @(consent.IsActive ? "status-active" : "status-revoked")">
                                     @(consent.IsActive ? "Active" : "Revoked")
@@ -310,29 +369,61 @@
     <div class="profile-card-body">
         @if (Model.AvailableDoctors != null && Model.AvailableDoctors.Any())
         {
-            <form method="post" action="@Url.Action("GrantConsent", "Patient")">
-                @Html.AntiForgeryToken()
+            if (Model.AvailableTestRequests == null || !Model.AvailableTestRequests.Any())
+            {
+                <p class="no-data">
+                    <i class="fas fa-inbox" style="font-size: 2rem; display: block; margin-bottom: 0.5rem; opacity: 0.5;"></i>
+                    You have no test requests to share yet.
+                </p>
+            }
+            else
+            {
+                <form id="grantConsentForm">
+                    @Html.AntiForgeryToken()
 
-                <div class="form-group">
-                    <label>Select Doctor</label>
-                    <select name="doctorId" required>
-                        <option value="">-- Select a doctor --</option>
-                        @foreach (var doctor in Model.AvailableDoctors)
-                        {
-                            <option value="@doctor.DoctorID">@doctor.FullName - @doctor.Specialization</option>
-                        }
-                    </select>
-                </div>
+                    <div class="form-group">
+                        <label>Select Doctor</label>
+                        <select name="doctorId" id="doctorSelect" required>
+                            <option value="">-- Select a doctor --</option>
+                            @foreach (var doctor in Model.AvailableDoctors)
+                            {
+                                <option value="@doctor.DoctorID">@doctor.FullName - @doctor.Specialization</option>
+                            }
+                        </select>
+                    </div>
 
-                <div class="form-group">
-                    <label>Notes (Optional)</label>
-                    <textarea name="notes" rows="3" placeholder="e.g., Full access to all results"></textarea>
-                </div>
+                    <div class="form-group">
+                        <label>Select Test Requests to Share <span style="color:#DC2626;">*</span></label>
+                        <div class="request-picker">
+                            @foreach (var req in Model.AvailableTestRequests)
+                            {
+                                <label class="request-item">
+                                    <input type="checkbox" name="requestIds" value="@req.TestRequestID" />
+                                    <div class="request-item-info">
+                                        <strong>@req.RequestNumber</strong>
+                                        <span class="request-status">@req.Status</span>
+                                        <div class="request-meta">
+                                            <i class="fas fa-calendar"></i> @req.RequestDate.ToString("dd MMM yyyy")
+                                        </div>
+                                    </div>
+                                </label>
+                            }
+                        </div>
+                        <small style="color:#64748B; display:block; margin-top:6px;">
+                            Select at least one request. The doctor will only see the selected requests.
+                        </small>
+                    </div>
 
-                <button type="submit" class="btn-primary">
-                    <i class="fas fa-check"></i> Grant Access
-                </button>
-            </form>
+                    <div class="form-group">
+                        <label>Notes (Optional)</label>
+                        <textarea name="notes" id="notesField" rows="3" placeholder="e.g., Please review my recent results"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="grantBtn">
+                        <i class="fas fa-check"></i> Grant Access
+                    </button>
+                </form>
+            }
         }
         else
         {
@@ -345,25 +436,73 @@
 </div>
 
 <script>
-    function confirmRevoke(doctorName, consentId) {
-        if (confirm('Are you sure you want to revoke access from ' + doctorName + '?')) {
-            fetch('@Url.Action("RevokeConsent", "Patient")', {
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('grantConsentForm');
+        if (!form) return;
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const doctorId = document.getElementById('doctorSelect').value;
+            if (!doctorId) {
+                alert('Please select a doctor.');
+                return;
+            }
+
+            const checkedBoxes = form.querySelectorAll('input[name="requestIds"]:checked');
+            if (checkedBoxes.length === 0) {
+                alert('Please select at least one test request to share.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('doctorId', doctorId);
+            formData.append('notes', document.getElementById('notesField').value);
+            checkedBoxes.forEach(cb => formData.append('requestIds', cb.value));
+
+            const token = form.querySelector('input[name="__RequestVerificationToken"]').value;
+            formData.append('__RequestVerificationToken', token);
+
+            fetch('@Url.Action("GrantConsent", "Patient")', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: 'consentId=' + consentId
+                body: formData
             })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
-                        location.reload();
-                    } else {
-                        alert('Error: ' + data.message);
-                    }
-                })
-                .catch(err => alert('Error: ' + err));
-        }
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(err => alert('Error: ' + err));
+        });
+    });
+
+    function confirmRevoke(doctorName, consentId) {
+        if (!confirm('Are you sure you want to revoke access from ' + doctorName + '?')) return;
+
+        const formData = new FormData();
+        formData.append('consentId', consentId);
+
+        // Get antiforgery token from anywhere on the page
+        const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
+
+        fetch('@Url.Action("RevokeConsent", "Patient")', {
+            method: 'POST',
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(err => alert('Error: ' + err));
     }
 </script>

@@ -14,7 +14,7 @@ namespace NMB_HLabSys.Models
         public int PatientID { get; set; }
 
         [Required]
-        public int DoctorID { get; set; } // References Doctors table
+        public int DoctorID { get; set; }
 
         public DateTime GrantedDate { get; set; } = DateTime.Now;
 
@@ -23,32 +23,16 @@ namespace NMB_HLabSys.Models
         public bool IsActive { get; set; } = true;
 
         [StringLength(500)]
-        public string Notes { get; set; }
+        public string? Notes { get; set; }   // ✅ now nullable
 
         // Navigation properties
         [ForeignKey("PatientID")]
-        public virtual Patient Patient { get; set; }
+        public virtual Patient? Patient { get; set; }
 
         [ForeignKey("DoctorID")]
-        public virtual Doctor Doctor { get; set; }
+        public virtual Doctor? Doctor { get; set; }
 
-        public virtual ICollection<ConsentTestRequest> ConsentTestRequests { get; set; }
-    }
-
-    public class ConsentTestRequest
-    {
-        [Key]
-        public int ConsentTestRequestID { get; set; }
-
-        [Required]
-        public int ConsentID { get; set; }
-
-        [Required]
-        public int TestRequestID { get; set; } // References TestRequests table
-
-        public DateTime CreatedDate { get; set; } = DateTime.Now;
-
-        [ForeignKey("ConsentID")]
-        public virtual PatientConsentManagement Consent { get; set; }
+        // ✅ Link to per-request accesses
+        public virtual ICollection<ConsentTestRequestAccess>? ConsentTestRequestAccesses { get; set; }
     }
 }

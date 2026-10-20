@@ -720,7 +720,7 @@ namespace NMB_HLabSys.Services
             return patient;
         }
 
-        public async Task<PatientMedicalInfoViewModel> GetPatientMedicalInfoAsync(int patientId)
+        public async Task<PatientMedicalInfoViewModel> GetPatientMedicalInfoAsync(int patientId, int? requestingDoctorId = null)
         {
             var patient = await _context.Patients
                 .Include(p => p.PatientConditions).ThenInclude(pc => pc.Condition).ThenInclude(c => c.Category)
@@ -743,6 +743,33 @@ namespace NMB_HLabSys.Services
                 var genderDigit = patient.SAIDNumber[6] - '0';
                 gender = genderDigit >= 5 ? "Male" : "Female";
             }
+
+            // ─── CONSENT FILTER ───
+            // If a doctor is asking, only show requests this patient has explicitly shared with them.
+            // If no doctor context (e.g. patient viewing own data), show everything.
+            List<int> allowedRequestIds = new();
+            var enforceConsent = requestingDoctorId.HasValue;
+
+            if (enforceConsent)
+            {
+                var consent = await _context.PatientConsentManagements
+                    .Include(pcm => pcm.ConsentTestRequestAccesses)
+                    .FirstOrDefaultAsync(pcm =>
+                        pcm.PatientID == patientId &&
+                        pcm.DoctorID == requestingDoctorId!.Value &&
+                        pcm.IsActive);
+
+                if (consent?.ConsentTestRequestAccesses != null)
+                {
+                    allowedRequestIds = consent.ConsentTestRequestAccesses
+                        .Select(a => a.RequestID)
+                        .ToList();
+                }
+            }
+
+            var visibleRequests = enforceConsent
+                ? patient.TestRequests.Where(r => allowedRequestIds.Contains(r.RequestID))
+                : patient.TestRequests;
 
             return new PatientMedicalInfoViewModel
             {
@@ -785,7 +812,7 @@ namespace NMB_HLabSys.Services
                         IsCurrent = pm.IsCurrent
                     }).ToList(),
 
-                RecentRequests = patient.TestRequests
+                RecentRequests = visibleRequests
                     .OrderByDescending(r => r.RequestDate)
                     .Take(5)
                     .Select(r => new TestRequestSummaryViewModel
@@ -800,7 +827,6 @@ namespace NMB_HLabSys.Services
                     }).ToList()
             };
         }
-
         public async Task<PatientMedicalInfoViewModel?> FindPatientBySAIDAsync(string saIdNumber)
         {
             if (string.IsNullOrWhiteSpace(saIdNumber)) return null;
