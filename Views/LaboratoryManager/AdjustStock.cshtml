@@ -155,6 +155,7 @@
             <input asp-for="Reason" class="form-control"
                    placeholder="e.g., Manual recount, Damaged in transit, Return to supplier" />
             <small class="text-muted text-xs">Recorded in the audit log for traceability.</small>
+            <span asp-validation-for="Reason" class="validation-message"></span>
         </div>
     </div>
 

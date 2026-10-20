@@ -111,8 +111,9 @@
 
         <div class="form-row-2">
             <div class="form-group">
-                <label>Unit of Measurement</label>
+                <label>Unit of Measurement <span class="required">*</span></label>
                 <input asp-for="UnitOfMeasurement" class="form-control" placeholder="e.g., g/dL" />
+                <span asp-validation-for="UnitOfMeasurement" class="validation-message"></span>
             </div>
             <div class="form-group">
                 <label>Turnaround Time (minutes) <span class="required">*</span></label>
@@ -124,11 +125,15 @@
         <div class="form-row-2">
             <div class="form-group">
                 <label>Normal Range — Min</label>
-                <input asp-for="NormalRangeMin" type="number" step="0.01" class="form-control" placeholder="e.g., 12.0" />
+                <!-- Change step="0.01" to step="any" -->
+                <input asp-for="NormalRangeMin" type="number" step="any" class="form-control" placeholder="e.g., 12.0" />
+                <span asp-validation-for="NormalRangeMin" class="validation-message"></span>
             </div>
             <div class="form-group">
                 <label>Normal Range — Max</label>
-                <input asp-for="NormalRangeMax" type="number" step="0.01" class="form-control" placeholder="e.g., 16.0" />
+                <!-- Change step="0.01" to step="any" -->
+                <input asp-for="NormalRangeMax" type="number" step="any" class="form-control" placeholder="e.g., 16.0" />
+                <span asp-validation-for="NormalRangeMax" class="validation-message"></span>
             </div>
         </div>
     </div>
@@ -192,7 +197,7 @@
 
 @section Scripts {
     <script>
-        document.querySelectorAll('.consumable-checkbox').forEach(function (cb) {
+        document.querySelectorAll('.consumable-checkbox').forEach(function(cb) {
             const qty = cb.closest('.consumable-row').querySelector('.consumable-qty');
             const sync = () => { qty.disabled = !cb.checked; };
             cb.addEventListener('change', sync);

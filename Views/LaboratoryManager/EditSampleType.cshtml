@@ -46,16 +46,19 @@
         <div class="form-group">
             <label>Description</label>
             <textarea asp-for="Description" rows="2" class="form-control"></textarea>
+            <span asp-validation-for="Description" class="validation-message"></span>
         </div>
 
         <div class="form-row-2">
             <div class="form-group">
                 <label>Collection Tube Type</label>
                 <input asp-for="CollectionTubeType" class="form-control" />
+                <span asp-validation-for="CollectionTubeType" class="validation-message"></span>
             </div>
             <div class="form-group">
                 <label>Storage Requirements</label>
                 <input asp-for="StorageRequirements" class="form-control" />
+                <span asp-validation-for="StorageRequirements" class="validation-message"></span>
             </div>
         </div>
 

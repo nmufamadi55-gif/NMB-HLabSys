@@ -60,10 +60,12 @@
             <div class="form-group">
                 <label>Phone Number</label>
                 <input asp-for="PhoneNumber" class="form-control" />
+                <span asp-validation-for="PhoneNumber" class="validation-message"></span>
             </div>
             <div class="form-group">
                 <label>Address</label>
                 <input asp-for="Address" class="form-control" />
+                <span asp-validation-for="Address" class="validation-message"></span>
             </div>
         </div>
 

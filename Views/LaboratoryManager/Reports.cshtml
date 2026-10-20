@@ -218,11 +218,11 @@
             <div class="form-row-2">
                 <div class="form-group">
                     <label>Start <span class="required">*</span></label>
-                    <input asp-for="StartDate" type="date" class="form-control" required />
+                    <input type="date" name="StartDate" class="form-control" required />
                 </div>
                 <div class="form-group">
                     <label>End <span class="required">*</span></label>
-                    <input asp-for="EndDate" type="date" class="form-control" required />
+                    <input type="date" name="EndDate" class="form-control" required />
                 </div>
             </div>
             <button type="submit" class="btn btn-primary" style="width: 100%;">
@@ -231,31 +231,100 @@
         </form>
     </div>
 
-    <div class="report-card coming-soon">
-        <div class="report-icon"><i class="fas fa-boxes-stacked"></i></div>
-        <h3>Stock Report</h3>
-        <p>Inventory snapshot with current levels, values and low-stock indicators.</p>
-        <button type="button" class="btn btn-outline" disabled style="margin-top:auto;">
-            <i class="fas fa-file-pdf"></i> Generate PDF
-        </button>
-    </div>
+    <h3 style="font-size: 1rem; font-weight: 600; margin: 0 0 1rem;">PDF Reports</h3>
 
-    <div class="report-card coming-soon">
-        <div class="report-icon"><i class="fas fa-users-gear"></i></div>
-        <h3>Staff Performance</h3>
-        <p>Tests completed per technician, grouped by category over a date range.</p>
-        <button type="button" class="btn btn-outline" disabled style="margin-top:auto;">
-            <i class="fas fa-file-pdf"></i> Generate PDF
-        </button>
-    </div>
+    <div class="report-grid">
+        <!-- Tests by Category -->
+        <div class="report-card">
+            <div class="report-icon"><i class="fas fa-vial"></i></div>
+            <h3>Tests by Category</h3>
+            <p>Total completed tests grouped by category for a chosen date range.</p>
+            <form method="post" asp-action="GenerateCategoryReport" style="margin-top:auto;">
+                @Html.AntiForgeryToken()
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label>Start <span class="required">*</span></label>
+                        <input type="date" name="StartDate" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label>End <span class="required">*</span></label>
+                        <input type="date" name="EndDate" class="form-control" required />
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-file-pdf"></i> Generate PDF
+                </button>
+            </form>
+        </div>
 
-    <div class="report-card coming-soon">
-        <div class="report-icon"><i class="fas fa-clipboard-list"></i></div>
-        <h3>Purchase Orders</h3>
-        <p>Summary of orders placed, fulfilled and cancelled in a date range.</p>
-        <button type="button" class="btn btn-outline" disabled style="margin-top:auto;">
-            <i class="fas fa-file-pdf"></i> Generate PDF
-        </button>
+        <!-- Stock Report -->
+        <div class="report-card">
+            <div class="report-icon"><i class="fas fa-boxes-stacked"></i></div>
+            <h3>Stock Report</h3>
+            <p>Inventory snapshot with current levels, values and low-stock indicators.</p>
+            <form method="post" asp-action="GenerateStockReport" style="margin-top:auto;">
+                @Html.AntiForgeryToken()
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label>Start <span class="required">*</span></label>
+                        <input type="date" name="StartDate" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label>End <span class="required">*</span></label>
+                        <input type="date" name="EndDate" class="form-control" required />
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-file-pdf"></i> Generate PDF
+                </button>
+            </form>
+        </div>
+
+        <!-- Staff Performance -->
+        <div class="report-card">
+            <div class="report-icon"><i class="fas fa-users-gear"></i></div>
+            <h3>Staff Performance</h3>
+            <p>Tests completed per technician, grouped by category over a date range.</p>
+            <form method="post" asp-action="GenerateStaffReport" style="margin-top:auto;">
+                @Html.AntiForgeryToken()
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label>Start <span class="required">*</span></label>
+                        <input type="date" name="StartDate" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label>End <span class="required">*</span></label>
+                        <input type="date" name="EndDate" class="form-control" required />
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-file-pdf"></i> Generate PDF
+                </button>
+            </form>
+        </div>
+
+        <!-- Purchase Orders -->
+        <div class="report-card">
+            <div class="report-icon"><i class="fas fa-clipboard-list"></i></div>
+            <h3>Purchase Orders</h3>
+            <p>Summary of orders placed, fulfilled and cancelled in a date range.</p>
+            <form method="post" asp-action="GenerateOrdersReport" style="margin-top:auto;">
+                @Html.AntiForgeryToken()
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label>Start <span class="required">*</span></label>
+                        <input asp-for="StartDate" type="date" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label>End <span class="required">*</span></label>
+                        <input asp-for="EndDate" type="date" class="form-control" required />
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-file-pdf"></i> Generate PDF
+                </button>
+            </form>
+        </div>
     </div>
 </div>
 

@@ -525,6 +525,243 @@ namespace NMB_HLabSys.Services
         }
 
         // ═══════════════════════════════════════════════════════════
+        // 5. STOCK REPORT
+        // ═══════════════════════════════════════════════════════════
+        public byte[] GenerateStockReportPdf(List<ConsumableViewModel> stockData, DateTime startDate, DateTime endDate)
+        {
+            return Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4.Landscape());
+                    page.Margin(2, Unit.Centimetre);
+                    page.DefaultTextStyle(x => x.FontSize(10).FontFamily("Arial").FontColor(Navy));
+
+                    page.Header().Element(ComposeHeader(
+                        title: "Stock Inventory Report",
+                        subtitle: "Current stock levels and valuation",
+                        startDate: startDate,
+                        endDate: endDate));
+
+                    page.Content().PaddingVertical(10).Column(col =>
+                    {
+                        if (stockData == null || stockData.Count == 0)
+                        {
+                            col.Item().Border(1).BorderColor(Border).Padding(20).AlignCenter().Text("No stock records found.").FontSize(11).Italic().FontColor(Grey);
+                            return;
+                        }
+
+                        int totalItems = stockData.Count;
+                        decimal totalValue = stockData.Sum(s => (s.QuantityOnHand * (s.UnitPrice ?? 0)));
+                        int criticalCount = stockData.Count(s => s.StockStatus == "Critical" || s.StockStatus == "Low");
+
+                        col.Item().Text("1. Summary").FontSize(13).Bold().FontColor(Navy);
+                        col.Item().PaddingBottom(10).Row(row =>
+                        {
+                            SummaryStat(row, "Total Items", totalItems.ToString());
+                            SummaryStat(row, "Total Value", "R " + totalValue.ToString("N2"));
+                            SummaryStat(row, "Low/Critical Items", criticalCount.ToString());
+                        });
+
+                        col.Item().PaddingTop(10).Text("2. Stock Details").FontSize(13).Bold().FontColor(Navy);
+
+                        col.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(cols =>
+                            {
+                                cols.RelativeColumn(3); // Name
+                                cols.RelativeColumn(3); // Supplier
+                                cols.RelativeColumn(1); // QOH
+                                cols.RelativeColumn(1); // Reorder
+                                cols.RelativeColumn(1); // Price
+                                cols.RelativeColumn(1); // Total Value
+                                cols.RelativeColumn(1); // Status
+                            });
+
+                            table.Header(h =>
+                            {
+                                h.Cell().Element(HeaderCell).Text("Consumable").Bold();
+                                h.Cell().Element(HeaderCell).Text("Supplier").Bold();
+                                h.Cell().Element(HeaderCell).AlignRight().Text("On Hand").Bold();
+                                h.Cell().Element(HeaderCell).AlignRight().Text("Reorder").Bold();
+                                h.Cell().Element(HeaderCell).AlignRight().Text("Unit Price").Bold();
+                                h.Cell().Element(HeaderCell).AlignRight().Text("Total Value").Bold();
+                                h.Cell().Element(HeaderCell).Text("Status").Bold();
+                            });
+
+                            bool alt = false;
+                            foreach (var item in stockData.OrderBy(s => s.ConsumableName))
+                            {
+                                var bg = alt ? LightBg : "#FFFFFF"; alt = !alt;
+                                var lineTotal = item.QuantityOnHand * (item.UnitPrice ?? 0);
+
+                                table.Cell().Element(c => BodyCell(c, bg)).Text(item.ConsumableName).FontSize(9);
+                                table.Cell().Element(c => BodyCell(c, bg)).Text(item.SupplierName).FontSize(9);
+                                table.Cell().Element(c => BodyCell(c, bg)).AlignRight().Text(item.QuantityOnHand.ToString("N0")).FontSize(9);
+                                table.Cell().Element(c => BodyCell(c, bg)).AlignRight().Text(item.ReorderLevel.ToString("N0")).FontSize(9);
+                                table.Cell().Element(c => BodyCell(c, bg)).AlignRight().Text(item.UnitPrice?.ToString("N2") ?? "-").FontSize(9);
+                                table.Cell().Element(c => BodyCell(c, bg)).AlignRight().Text(lineTotal.ToString("N2")).FontSize(9);
+                                table.Cell().Element(c => BodyCell(c, bg)).Text(item.StockStatus).FontSize(9).Bold().FontColor(item.StockStatus == "Critical" ? Colors.Red.Medium : item.StockStatus == "Low" ? Colors.Orange.Medium : Colors.Green.Medium);
+                            }
+                        });
+                    });
+                    page.Footer().Element(ComposeFooter());
+                });
+            }).GeneratePdf();
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // 6. STAFF PERFORMANCE REPORT (TECHNICIAN)
+        // ═══════════════════════════════════════════════════════════
+        public byte[] GenerateStaffPerformancePdf(List<StaffPerformanceData> staffData, DateTime startDate, DateTime endDate)
+        {
+            return Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(2, Unit.Centimetre);
+                    page.DefaultTextStyle(x => x.FontSize(10).FontFamily("Arial").FontColor(Navy));
+
+                    page.Header().Element(ComposeHeader(
+                        title: "Staff Performance Report",
+                        subtitle: "Tests completed by technicians, grouped by category",
+                        startDate: startDate,
+                        endDate: endDate));
+
+                    page.Content().PaddingVertical(10).Column(col =>
+                    {
+                        if (staffData == null || staffData.Count == 0)
+                        {
+                            col.Item().Border(1).BorderColor(Border).Padding(20).AlignCenter().Text("No completed tests found for this date range.").FontSize(11).Italic().FontColor(Grey);
+                            return;
+                        }
+
+                        int grandTotal = staffData.Sum(s => s.TotalTests);
+                        col.Item().Text("1. Summary").FontSize(13).Bold().FontColor(Navy);
+                        col.Item().PaddingBottom(10).Text($"Grand total of tests completed: {grandTotal}").FontSize(10).Bold();
+
+                        col.Item().Text("2. Breakdown by Technician and Category").FontSize(13).Bold().FontColor(Navy);
+
+                        col.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(cols =>
+                            {
+                                cols.RelativeColumn(3);
+                                cols.RelativeColumn(3);
+                                cols.RelativeColumn(1);
+                            });
+
+                            table.Header(h =>
+                            {
+                                h.Cell().Element(HeaderCell).Text("Technician").Bold();
+                                h.Cell().Element(HeaderCell).Text("Test Category").Bold();
+                                h.Cell().Element(HeaderCell).AlignRight().Text("Tests Completed").Bold();
+                            });
+
+                            bool alt = false;
+                            foreach (var item in staffData.OrderBy(s => s.TechnicianName).ThenBy(s => s.CategoryName))
+                            {
+                                var bg = alt ? LightBg : "#FFFFFF"; alt = !alt;
+
+                                table.Cell().Element(c => BodyCell(c, bg)).Text(item.TechnicianName).FontSize(9);
+                                table.Cell().Element(c => BodyCell(c, bg)).Text(item.CategoryName).FontSize(9);
+                                table.Cell().Element(c => BodyCell(c, bg)).AlignRight().Text(item.TotalTests.ToString("N0")).FontSize(9);
+                            }
+
+                            table.Cell().Element(TotalCell).Text("Grand Total").Bold();
+                            table.Cell().Element(TotalCell).Text("").Bold();
+                            table.Cell().Element(TotalCell).AlignRight().Text(grandTotal.ToString("N0")).Bold();
+                        });
+                    });
+                    page.Footer().Element(ComposeFooter());
+                });
+            }).GeneratePdf();
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // 7. PURCHASE ORDERS REPORT
+        // ═══════════════════════════════════════════════════════════
+        public byte[] GenerateOrdersReportPdf(List<OrderListViewModel> ordersData, DateTime startDate, DateTime endDate)
+        {
+            return Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(2, Unit.Centimetre);
+                    page.DefaultTextStyle(x => x.FontSize(10).FontFamily("Arial").FontColor(Navy));
+
+                    page.Header().Element(ComposeHeader(
+                        title: "Purchase Orders Report",
+                        subtitle: "Summary of orders placed in the selected date range",
+                        startDate: startDate,
+                        endDate: endDate));
+
+                    page.Content().PaddingVertical(10).Column(col =>
+                    {
+                        if (ordersData == null || ordersData.Count == 0)
+                        {
+                            col.Item().Border(1).BorderColor(Border).Padding(20).AlignCenter().Text("No purchase orders found for this date range.").FontSize(11).Italic().FontColor(Grey);
+                            return;
+                        }
+
+                        int totalOrders = ordersData.Count;
+                        decimal totalSpend = ordersData.Sum(o => o.TotalAmount ?? 0);
+
+                        col.Item().Text("1. Summary").FontSize(13).Bold().FontColor(Navy);
+                        col.Item().PaddingBottom(10).Row(row =>
+                        {
+                            SummaryStat(row, "Total Orders", totalOrders.ToString());
+                            SummaryStat(row, "Total Spend", "R " + totalSpend.ToString("N2"));
+                        });
+
+                        col.Item().Text("2. Order Details").FontSize(13).Bold().FontColor(Navy);
+
+                        col.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(cols =>
+                            {
+                                cols.RelativeColumn(2); // Order #
+                                cols.RelativeColumn(3); // Supplier
+                                cols.RelativeColumn(2); // Date
+                                cols.RelativeColumn(2); // Status
+                                cols.RelativeColumn(2); // Amount
+                            });
+
+                            table.Header(h =>
+                            {
+                                h.Cell().Element(HeaderCell).Text("Order #").Bold();
+                                h.Cell().Element(HeaderCell).Text("Supplier").Bold();
+                                h.Cell().Element(HeaderCell).Text("Date").Bold();
+                                h.Cell().Element(HeaderCell).Text("Status").Bold();
+                                h.Cell().Element(HeaderCell).AlignRight().Text("Total Amount").Bold();
+                            });
+
+                            bool alt = false;
+                            foreach (var item in ordersData.OrderByDescending(o => o.OrderDate))
+                            {
+                                var bg = alt ? LightBg : "#FFFFFF"; alt = !alt;
+
+                                table.Cell().Element(c => BodyCell(c, bg)).Text(item.OrderNumber).FontSize(9);
+                                table.Cell().Element(c => BodyCell(c, bg)).Text(item.SupplierName).FontSize(9);
+                                table.Cell().Element(c => BodyCell(c, bg)).Text(item.OrderDate.ToString("yyyy-MM-dd")).FontSize(9);
+                                table.Cell().Element(c => BodyCell(c, bg)).Text(item.Status).FontSize(9);
+                                table.Cell().Element(c => BodyCell(c, bg)).AlignRight().Text((item.TotalAmount ?? 0).ToString("N2")).FontSize(9);
+                            }
+
+                            table.Cell().Element(TotalCell).Text("Grand Total").Bold();
+                            table.Cell().Element(TotalCell).Text("").Bold();
+                            table.Cell().Element(TotalCell).Text("").Bold();
+                            table.Cell().Element(TotalCell).Text("").Bold();
+                            table.Cell().Element(TotalCell).AlignRight().Text(totalSpend.ToString("N2")).Bold();
+                        });
+                    });
+                    page.Footer().Element(ComposeFooter());
+                });
+            }).GeneratePdf();
+        }
+        // ═══════════════════════════════════════════════════════════
         // REUSABLE COMPONENTS
         // ═══════════════════════════════════════════════════════════
 

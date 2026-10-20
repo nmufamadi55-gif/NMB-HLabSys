@@ -74,6 +74,7 @@
             <div class="form-group">
                 <label>Current Quantity on Hand</label>
                 <input asp-for="QuantityOnHand" type="number" class="form-control" readonly />
+                <span asp-validation-for="QuantityOnHand" class="validation-message"></span>
             </div>
         </div>
 
@@ -81,10 +82,12 @@
             <div class="form-group">
                 <label>Unit of Measure</label>
                 <input asp-for="UnitOfMeasure" class="form-control" />
+                <span asp-validation-for="UnitOfMeasure" class="validation-message"></span>
             </div>
             <div class="form-group">
                 <label>Minimum Stock Level</label>
                 <input asp-for="MinimumStockLevel" type="number" min="0" class="form-control" />
+                <span asp-validation-for="MinimumStockLevel" class="validation-message"></span>
             </div>
         </div>
     </div>
@@ -98,10 +101,12 @@
             <div class="form-group">
                 <label>Unit Price (R)</label>
                 <input asp-for="UnitPrice" type="number" step="0.01" min="0" class="form-control" />
+                <span asp-validation-for="UnitPrice" class="validation-message"></span>
             </div>
             <div class="form-group">
                 <label>Storage Location</label>
                 <input asp-for="StorageLocation" class="form-control" />
+                <span asp-validation-for="StorageLocation" class="validation-message"></span>
             </div>
         </div>
 
