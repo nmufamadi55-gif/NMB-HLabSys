@@ -6,7 +6,7 @@ namespace NMB_HLabSys.ViewModels.PatientViewModels
     public class PatientConsentManagementViewModel
     {
         public int PatientID { get; set; }
-        public string FullName { get; set; }
+        public string FullName { get; set; } = string.Empty;
         public List<PatientConsentViewModel> ActiveConsents { get; set; } = new List<PatientConsentViewModel>();
         public List<DoctorViewModel> AvailableDoctors { get; set; } = new List<DoctorViewModel>();
         public List<TestRequestViewModel> AvailableTestRequests { get; set; } = new List<TestRequestViewModel>();
@@ -21,7 +21,8 @@ namespace NMB_HLabSys.ViewModels.PatientViewModels
         public DateTime GrantedDate { get; set; } = DateTime.Now;
         public DateTime? RevokedDate { get; set; }
         public bool IsActive { get; set; } = true;
-        public string Notes { get; set; } = string.Empty;
+        public string? Notes { get; set; }
+        public int SharedRequestCount { get; set; }   // ✅ added
     }
 
     public class DoctorViewModel
@@ -35,7 +36,8 @@ namespace NMB_HLabSys.ViewModels.PatientViewModels
 
     public class TestRequestViewModel
     {
-        public int TestRequestID { get; set; }
+        public int TestRequestID { get; set; }      // ← maps to TestRequest.RequestID
+        public string RequestNumber { get; set; } = string.Empty;   // ✅ added
         public DateTime RequestDate { get; set; } = DateTime.Now;
         public string Status { get; set; } = string.Empty;
     }

@@ -57,6 +57,7 @@ namespace NMB_HLabSys.Models
         [ForeignKey("PatientID")]
         public virtual Patient? Patient { get; set; }
 
+        public virtual ICollection<ConsentTestRequestAccess>? ConsentTestRequestAccesses { get; set; }
         public virtual ICollection<RequestTestType>? RequestTestTypes { get; set; }
         public virtual ICollection<Sample>? Samples { get; set; }
     }

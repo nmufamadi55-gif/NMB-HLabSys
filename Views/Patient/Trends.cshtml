@@ -7,7 +7,7 @@
     ViewData["Title"] = "Health Trends";
     ViewData["RoleSubtitle"] = "Patient Portal";
     ViewData["UserGreeting"] = $"🩺 {Model.FullName} (ID: {Model.PatientID})";
-    ViewData["UserInitials"] = Model.FullName.Substring(0, 1);
+    ViewData["UserInitials"] = string.IsNullOrEmpty(Model.FullName) ? "P" : Model.FullName.Substring(0, 1);
 }
 
 @section SidebarMenu {
@@ -118,217 +118,239 @@
         <a href="@Url.Action("Dashboard", "Patient")" class="btn-outline-lab">← Back to Dashboard</a>
     </div>
 
-    <!-- Filter Bar -->
-    <div class="filter-bar">
-        <div>
-            <label>Test Type</label>
-            <select id="testTypeSelect">
-                @foreach (var type in Model.AvailableTestTypes)
-                {
-                    if (type == Model.SelectedTestType)
+    @if (Model.AvailableTestTypes == null || !Model.AvailableTestTypes.Any())
+    {
+        <!-- ─── No released results at all ─── -->
+        <div class="no-data">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+            <p><strong>No test results available yet.</strong></p>
+            <p style="font-size: 0.875rem; margin-top: 0.5rem;">
+                Trends will appear here once your doctor releases your test results.
+            </p>
+        </div>
+    }
+    else
+    {
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div>
+                <label>Test Type</label>
+                <select id="testTypeSelect">
+                    @foreach (var type in Model.AvailableTestTypes)
                     {
-                        <option value="@type" selected>@type</option>
+                        if (type == Model.SelectedTestType)
+                        {
+                            <option value="@type" selected>@type</option>
+                        }
+                        else
+                        {
+                            <option value="@type">@type</option>
+                        }
                     }
-                    else
-                    {
-                        <option value="@type">@type</option>
-                    }
-                }
-            </select>
-        </div>
-
-        <div>
-            <label>From Date</label>
-            <input type="date" id="fromDateSelect" value="@Model.FromDate.ToString("yyyy-MM-dd")" />
-        </div>
-
-        <div>
-            <label>To Date</label>
-            <input type="date" id="toDateSelect" value="@Model.ToDate.ToString("yyyy-MM-dd")" />
-        </div>
-
-        <button onclick="applyFilter()">Apply</button>
-    </div>
-
-    <!-- Quick Range Buttons -->
-    <div style="margin-bottom: 1rem; display: flex; gap: 8px; flex-wrap: wrap;">
-        <button class="quick-range" onclick="setQuickRange(3)">Last 3 Months</button>
-        <button class="quick-range" onclick="setQuickRange(6)">Last 6 Months</button>
-        <button class="quick-range" onclick="setQuickRange(12)">Last 12 Months</button>
-        <button class="quick-range" onclick="setQuickRange(24)">Last 24 Months</button>
-        <button class="quick-range" onclick="setYearToDate()">Year to Date</button>
-    </div>
-
-    <!-- Chart -->
-    <div class="card-modern">
-        <div class="card-header-flex">
-            <h3>📊 @Model.SelectedTestType Trend</h3>
-        </div>
-
-        @if (Model.TrendData != null && Model.TrendData.Any())
-        {
-            <div class="chart-box">
-                <canvas id="trendChart"></canvas>
+                </select>
             </div>
 
-            var lastValue = Model.TrendData.Last().Value;
-            var firstValue = Model.TrendData.First().Value;
-            var trend = lastValue > firstValue ? "increasing" : "decreasing";
-            var trendIcon = lastValue > firstValue ? "📈" : "📉";
-            var trendColor = lastValue > firstValue ? "#DC2626" : "#16A34A";
-            var latest = Model.TrendData.Last();
-            var isAbnormal = latest.UpperLimit.HasValue && latest.Value > latest.UpperLimit.Value;
+            <div>
+                <label>From Date</label>
+                <input type="date" id="fromDateSelect" value="@Model.FromDate.ToString("yyyy-MM-dd")" />
+            </div>
 
-            <div class="insight-box @(isAbnormal ? "danger" : "warning")">
-                <strong>📊 Summary</strong>
-                <p style="margin-top: 8px;">
-                    <strong>@Model.SelectedTestType</strong> is
-                    <span style="color: @trendColor; font-weight: 600;">@trend</span> @trendIcon
-                    from <strong>@Model.FromDate.ToString("dd MMM yyyy")</strong>
-                    to <strong>@Model.ToDate.ToString("dd MMM yyyy")</strong>.
-                </p>
-                <p>
-                    Latest value: <strong>@latest.Value.ToString("F2")</strong>
-                    @if (latest.LowerLimit.HasValue && latest.UpperLimit.HasValue)
-                    {
-                        <span> (Normal range: @latest.LowerLimit.Value.ToString("F2") - @latest.UpperLimit.Value.ToString("F2"))</span>
-                    }
-                </p>
-                @if (isAbnormal)
-                {
-                    <p style="color: #991B1B; margin-top: 8px;">
-                        ⚠️ Your latest result is <strong>above the normal range</strong>. Please consult your doctor.
+            <div>
+                <label>To Date</label>
+                <input type="date" id="toDateSelect" value="@Model.ToDate.ToString("yyyy-MM-dd")" />
+            </div>
+
+            <button onclick="applyFilter()">Apply</button>
+        </div>
+
+        <!-- Quick Range Buttons -->
+        <div style="margin-bottom: 1rem; display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="quick-range" onclick="setQuickRange(3)">Last 3 Months</button>
+            <button class="quick-range" onclick="setQuickRange(6)">Last 6 Months</button>
+            <button class="quick-range" onclick="setQuickRange(12)">Last 12 Months</button>
+            <button class="quick-range" onclick="setQuickRange(24)">Last 24 Months</button>
+            <button class="quick-range" onclick="setYearToDate()">Year to Date</button>
+        </div>
+
+        <!-- Chart -->
+        <div class="card-modern">
+            <div class="card-header-flex">
+                <h3>📊 @Model.SelectedTestType Trend</h3>
+            </div>
+
+            @if (Model.TrendData != null && Model.TrendData.Any())
+            {
+                <div class="chart-box">
+                    <canvas id="trendChart"></canvas>
+                </div>
+
+                var lastValue = Model.TrendData.Last().Value;
+                var firstValue = Model.TrendData.First().Value;
+                var trend = lastValue > firstValue ? "increasing" : "decreasing";
+                var trendIcon = lastValue > firstValue ? "📈" : "📉";
+                var trendColor = lastValue > firstValue ? "#DC2626" : "#16A34A";
+                var latest = Model.TrendData.Last();
+                var isAboveUpper = latest.UpperLimit.HasValue && latest.Value > latest.UpperLimit.Value;
+                var isBelowLower = latest.LowerLimit.HasValue && latest.Value < latest.LowerLimit.Value;
+                var isAbnormal = isAboveUpper || isBelowLower;
+
+                <div class="insight-box @(isAbnormal ? "danger" : "warning")">
+                    <strong>📊 Summary</strong>
+                    <p style="margin-top: 8px;">
+                        <strong>@Model.SelectedTestType</strong> is
+                        <span style="color: @trendColor; font-weight: 600;">@trend</span> @trendIcon
+                        from <strong>@Model.FromDate.ToString("dd MMM yyyy")</strong>
+                        to <strong>@Model.ToDate.ToString("dd MMM yyyy")</strong>.
                     </p>
-                }
-            </div>
-        }
-        else
-        {
-            <div class="no-data">
-                <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
-                <p>No test results available for <strong>@Model.SelectedTestType</strong> in the selected date range.</p>
-                <p style="font-size: 0.875rem; margin-top: 0.5rem;">
-                    Try adjusting the dates or selecting a different test type.
-                </p>
-            </div>
-        }
-    </div>
+                    <p>
+                        Latest value: <strong>@latest.Value.ToString("F2")</strong>
+                        @if (latest.LowerLimit.HasValue && latest.UpperLimit.HasValue)
+                        {
+                            <span> (Normal range: @latest.LowerLimit.Value.ToString("F2") - @latest.UpperLimit.Value.ToString("F2"))</span>
+                        }
+                    </p>
+                    @if (isAboveUpper)
+                    {
+                        <p style="color: #991B1B; margin-top: 8px;">
+                            ⚠️ Your latest result is <strong>above the normal range</strong>. Please consult your doctor.
+                        </p>
+                    }
+                    else if (isBelowLower)
+                    {
+                        <p style="color: #991B1B; margin-top: 8px;">
+                            ⚠️ Your latest result is <strong>below the normal range</strong>. Please consult your doctor.
+                        </p>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="no-data">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+                    <p>No test results available for <strong>@Model.SelectedTestType</strong> in the selected date range.</p>
+                    <p style="font-size: 0.875rem; margin-top: 0.5rem;">
+                        Try adjusting the dates or selecting a different test type.
+                    </p>
+                </div>
+            }
+        </div>
+    }
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    var trendData = @Html.Raw(JsonSerializer.Serialize(Model.TrendData));
-    var testType = '@Html.Raw(Model.SelectedTestType)';
+    var trendData = @Html.Raw(JsonSerializer.Serialize(Model.TrendData ?? new List<NMB_HLabSys.ViewModels.PatientViewModels.TrendDataPoint>()));
+    var testType = '@Html.Raw(Model.SelectedTestType ?? "")';
 
     function initChart() {
-    if (!trendData || trendData.length === 0) return;
+        if (!trendData || trendData.length === 0) return;
 
-    var labels = trendData.map(d => new Date(d.Date).toLocaleDateString('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' }));
-    var values = trendData.map(d => d.Value);
-    var lowerLimits = trendData.map(d => d.LowerLimit);
-    var upperLimits = trendData.map(d => d.UpperLimit);
+        var labels = trendData.map(d => new Date(d.Date).toLocaleDateString('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' }));
+        var values = trendData.map(d => d.Value);
+        var lowerLimits = trendData.map(d => d.LowerLimit);
+        var upperLimits = trendData.map(d => d.UpperLimit);
 
-    var datasets = [{
-    label: testType + ' Value',
-    data: values,
-    borderColor: '#4F46E5',
-    backgroundColor: 'rgba(79, 70, 229, 0.15)',
-    borderWidth: 3,
-    pointRadius: 6,
-    pointBackgroundColor: '#4F46E5',
-    pointBorderColor: '#FFFFFF',
-    pointBorderWidth: 2,
-    tension: 0.4,
-    fill: true
-    }];
+        var datasets = [{
+            label: testType + ' Value',
+            data: values,
+            borderColor: '#4F46E5',
+            backgroundColor: 'rgba(79, 70, 229, 0.15)',
+            borderWidth: 3,
+            pointRadius: 6,
+            pointBackgroundColor: '#4F46E5',
+            pointBorderColor: '#FFFFFF',
+            pointBorderWidth: 2,
+            tension: 0.4,
+            fill: true
+        }];
 
-    if (upperLimits.some(v => v !== null && v !== undefined)) {
-    datasets.push({
-    label: 'Upper Limit',
-    data: upperLimits,
-    borderColor: '#DC2626',
-    borderDash: [6, 6],
-    borderWidth: 2,
-    pointRadius: 0,
-    fill: false
-    });
-    }
+        if (upperLimits.some(v => v !== null && v !== undefined)) {
+            datasets.push({
+                label: 'Upper Limit',
+                data: upperLimits,
+                borderColor: '#DC2626',
+                borderDash: [6, 6],
+                borderWidth: 2,
+                pointRadius: 0,
+                fill: false
+            });
+        }
 
-    if (lowerLimits.some(v => v !== null && v !== undefined)) {
-    datasets.push({
-    label: 'Lower Limit',
-    data: lowerLimits,
-    borderColor: '#DC2626',
-    borderDash: [6, 6],
-    borderWidth: 2,
-    pointRadius: 0,
-    fill: false
-    });
-    }
+        if (lowerLimits.some(v => v !== null && v !== undefined)) {
+            datasets.push({
+                label: 'Lower Limit',
+                data: lowerLimits,
+                borderColor: '#DC2626',
+                borderDash: [6, 6],
+                borderWidth: 2,
+                pointRadius: 0,
+                fill: false
+            });
+        }
 
-    new Chart(document.getElementById('trendChart'), {
-    type: 'line',
-    data: {
-    labels: labels,
-    datasets: datasets
-    },
-    options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-    legend: {
-    position: 'top',
-    labels: { usePointStyle: true }
-    },
-    tooltip: {
-    mode: 'index',
-    intersect: false
-    }
-    },
-    scales: {
-    y: {
-    beginAtZero: false,
-    grid: { color: '#F3F4F6' }
-    },
-    x: {
-    grid: { display: false }
-    }
-    }
-    }
-    });
+        new Chart(document.getElementById('trendChart'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { usePointStyle: true }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: { color: '#F3F4F6' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
     }
 
     function applyFilter() {
-    var testType = document.getElementById('testTypeSelect').value;
-    var fromDate = document.getElementById('fromDateSelect').value;
-    var toDate = document.getElementById('toDateSelect').value;
+        var testType = document.getElementById('testTypeSelect').value;
+        var fromDate = document.getElementById('fromDateSelect').value;
+        var toDate = document.getElementById('toDateSelect').value;
 
-    var url = '@Url.Action("Trends", "Patient")' +
-    '?testType=' + encodeURIComponent(testType) +
-    '&fromDate=' + encodeURIComponent(fromDate) +
-    '&toDate=' + encodeURIComponent(toDate);
+        var url = '@Url.Action("Trends", "Patient")' +
+            '?testType=' + encodeURIComponent(testType) +
+            '&fromDate=' + encodeURIComponent(fromDate) +
+            '&toDate=' + encodeURIComponent(toDate);
 
-    window.location.href = url;
+        window.location.href = url;
     }
 
     function setQuickRange(months) {
-    var today = new Date();
-    var from = new Date();
-    from.setMonth(today.getMonth() - months);
+        var today = new Date();
+        var from = new Date();
+        from.setMonth(today.getMonth() - months);
 
-    document.getElementById('fromDateSelect').value = from.toISOString().split('T')[0];
-    document.getElementById('toDateSelect').value = today.toISOString().split('T')[0];
-    applyFilter();
+        document.getElementById('fromDateSelect').value = from.toISOString().split('T')[0];
+        document.getElementById('toDateSelect').value = today.toISOString().split('T')[0];
+        applyFilter();
     }
 
     function setYearToDate() {
-    var today = new Date();
-    var from = new Date(today.getFullYear(), 0, 1);
+        var today = new Date();
+        var from = new Date(today.getFullYear(), 0, 1);
 
-    document.getElementById('fromDateSelect').value = from.toISOString().split('T')[0];
-    document.getElementById('toDateSelect').value = today.toISOString().split('T')[0];
-    applyFilter();
+        document.getElementById('fromDateSelect').value = from.toISOString().split('T')[0];
+        document.getElementById('toDateSelect').value = today.toISOString().split('T')[0];
+        applyFilter();
     }
 
     document.addEventListener('DOMContentLoaded', initChart);

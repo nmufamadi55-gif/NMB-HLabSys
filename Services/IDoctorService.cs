@@ -20,8 +20,7 @@ namespace NMB_HLabSys.Services
         // ═══════════ PATIENTS ═══════════
         Task<PatientIndexViewModel> GetPatientsAsync(int doctorId, string? searchTerm = null);
         Task<Patient> RegisterPatientAsync(RegisterPatientViewModel model, int doctorId);
-        Task<PatientMedicalInfoViewModel> GetPatientMedicalInfoAsync(int patientId);
-        Task<PatientMedicalInfoViewModel?> FindPatientBySAIDAsync(string saIdNumber);
+        Task<PatientMedicalInfoViewModel> GetPatientMedicalInfoAsync(int patientId, int? requestingDoctorId = null); Task<PatientMedicalInfoViewModel?> FindPatientBySAIDAsync(string saIdNumber);
         Task<RegisterPatientViewModel> GetRegisterPatientViewModelAsync();
 
         // ═══════════ RESULTS ═══════════

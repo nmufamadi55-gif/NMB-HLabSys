@@ -208,7 +208,8 @@ namespace NMB_HLabSys.Services
             if (fromDate > toDate) (fromDate, toDate) = (toDate, fromDate);
 
             var results = (patient.TestRequests ?? Enumerable.Empty<TestRequest>())
-                .Where(r => r.RequestDate >= fromDate && r.RequestDate <= toDate.AddDays(1))
+    .Where(r => r.RequestDate >= fromDate && r.RequestDate <= toDate.AddDays(1))
+    .Where(r => r.Status == "Released" || r.Status == "Appointment Requested")
                 .SelectMany(r => (r.RequestTestTypes ?? Enumerable.Empty<RequestTestType>())
                     .SelectMany(rt => (rt.TestResults ?? Enumerable.Empty<TestResult>())
                         .Select(t => new
