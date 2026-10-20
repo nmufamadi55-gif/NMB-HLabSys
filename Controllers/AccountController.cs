@@ -1,8 +1,8 @@
-﻿using NMB_HLabSys.Services;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NMB_HLabSys.Data;
 using NMB_HLabSys.Models;
+using NMB_HLabSys.Services;
 using NMB_HLabSys.ViewModels.AdminViewModels;
 using NMB_HLabSys.ViewModels.SharedViewModels;
 using System;
@@ -138,7 +138,7 @@ namespace NMB_HLabSys.Controllers
                     var baseUrl = $"{Request.Scheme}://{Request.Host}";
                     var resetLink = $"{baseUrl}/Account/ResetPassword?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(user.Email)}";
 
-                    // Send email — any exception will bubble up to the outer catch
+                    // Send email
                     await _emailService.SendPasswordResetEmailAsync(
                         user.Email,
                         $"{user.Name} {user.Surname}",
@@ -150,7 +150,6 @@ namespace NMB_HLabSys.Controllers
             }
             catch (Exception ex)
             {
-                // Show the real error so we can diagnose why email failed
                 TempData["ErrorMessage"] = $"EMAIL FAILED: {ex.Message} | INNER: {ex.InnerException?.Message}";
                 return View();
             }
