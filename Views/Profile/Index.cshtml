@@ -119,6 +119,22 @@
             box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
         }
 
+        .form-control.error {
+            border-color: #DC2626;
+            background: #FEF2F2;
+        }
+
+    /* Error Message Styling */
+    .error-msg {
+        display: none;
+        color: #DC2626;
+        font-size: 0.72rem;
+        margin-top: 0.3rem;
+    }
+    .error-msg.show {
+        display: block;
+    }
+
     /* Password Eye Icon Styling */
     .password-wrapper { position: relative; }
     .password-toggle {
@@ -184,6 +200,7 @@
         font-size: 0.7rem;
         color: #5A6E7A;
         margin-top: 0.3rem;
+        line-height: 1.6;
     }
 
     .row-2col {
@@ -273,27 +290,33 @@
             <h3><i class="fas fa-user-circle"></i> Personal Information</h3>
         </div>
         <div class="profile-card-body">
-            <form method="post" action="@Url.Action("UpdateProfile", "Profile")">
+            <form method="post" action="@Url.Action("UpdateProfile", "Profile")" id="updateProfileForm">
                 @Html.AntiForgeryToken()
                 <div class="row-2col">
                     <div class="form-group">
                         <label>First Name</label>
-                        <input type="text" name="name" class="form-control" value="@firstName" placeholder="First name" required>
+                        <input type="text" name="name" id="profName" class="form-control" value="@firstName" placeholder="First name" required>
+                        <span class="error-msg" id="nameError">First name must be at least 2 characters.</span>
                     </div>
                     <div class="form-group">
                         <label>Last Name</label>
-                        <input type="text" name="surname" class="form-control" value="@lastName" placeholder="Last name" required>
+                        <input type="text" name="surname" id="profSurname" class="form-control" value="@lastName" placeholder="Last name" required>
+                        <span class="error-msg" id="surnameError">Last name must be at least 2 characters.</span>
                     </div>
                 </div>
                 <div class="form-group">
                     <label>Email Address (Username)</label>
-                    <input type="email" name="email" class="form-control" value="@email" placeholder="email@example.com" required>
-                    <small style="font-size:0.65rem; color:#5A6E7A;">This is your login username</small>
+                    <input type="email" name="email" class="form-control" value="@email" placeholder="email@example.com" required readonly style="background:#F8FAFE; cursor:not-allowed;">
+                    <small style="font-size:0.65rem; color:#5A6E7A;">This is your login username and cannot be changed here.</small>
                 </div>
-                <div class="form-group">
-                    <label>Phone Number</label>
-                    <input type="tel" name="phone" class="form-control" value="@ViewBag.ContactNumber" placeholder="082 123 4567">
-                </div>
+<div class="form-group">
+    <label>Phone Number</label>
+    <!-- Added maxlength="10" and oninput to strip non-digits -->
+    <input type="tel" name="phone" id="profPhone" class="form-control" value="@ViewBag.ContactNumber" 
+           placeholder="0821234567" maxlength="10" inputmode="numeric"
+           oninput="this.value = this.value.replace(/\D/g, '')">
+    <span class="error-msg" id="phoneError">Please enter a valid 10-digit SA phone number (e.g. 0821234567).</span>
+</div>
                 <div class="form-group">
                     <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Save Changes</button>
                 </div>
@@ -307,7 +330,7 @@
             <h3><i class="fas fa-lock"></i> Change Password</h3>
         </div>
         <div class="profile-card-body">
-            <form method="post" action="@Url.Action("ChangePassword", "Profile")">
+            <form method="post" action="@Url.Action("ChangePassword", "Profile")" id="changePasswordForm">
                 @Html.AntiForgeryToken()
                 
                 <div class="form-group">
@@ -376,7 +399,7 @@
 </div>
 
 <script type="text/javascript">
-    // Eye Icon Toggle
+    // ─── PASSWORD EYE TOGGLE ───
     function togglePassword(inputId, iconId) {
         var input = document.getElementById(inputId);
         var icon = document.getElementById(iconId);
@@ -392,6 +415,7 @@
         }
     }
 
+    // ─── PASSWORD STRENGTH CHECKER ───
     function checkPasswordStrength() {
         var password = document.getElementById('newPassword').value;
 
@@ -413,6 +437,7 @@
         return lengthOk && upperOk && numberOk && specialOk;
     }
 
+    // ─── PASSWORD MATCH CHECKER ───
     function checkPasswordMatch() {
         var password = document.getElementById('newPassword').value;
         var confirm = document.getElementById('confirmPassword').value;
@@ -422,14 +447,102 @@
             if (password === confirm) {
                 matchMsg.innerHTML = '<i class="fas fa-check-circle" style="color:#10B981;"></i> Passwords match';
                 matchMsg.style.color = '#10B981';
+                return true;
             } else {
                 matchMsg.innerHTML = '<i class="fas fa-exclamation-circle" style="color:#DC2626;"></i> Passwords do not match';
                 matchMsg.style.color = '#DC2626';
+                return false;
             }
         } else {
             matchMsg.innerHTML = '';
+            return false;
         }
     }
+
+    // ─── UPDATE PROFILE FORM VALIDATION ───
+    document.getElementById('updateProfileForm').addEventListener('submit', function(e) {
+        var isValid = true;
+        
+        var name = document.getElementById('profName');
+        var surname = document.getElementById('profSurname');
+        var phone = document.getElementById('profPhone');
+
+        // Reset errors
+        name.classList.remove('error');
+        surname.classList.remove('error');
+        phone.classList.remove('error');
+        document.getElementById('nameError').classList.remove('show');
+        document.getElementById('surnameError').classList.remove('show');
+        document.getElementById('phoneError').classList.remove('show');
+
+        // Validate Name
+        if (name.value.trim().length < 2) {
+            name.classList.add('error');
+            document.getElementById('nameError').classList.add('show');
+            isValid = false;
+        }
+
+        // Validate Surname
+        if (surname.value.trim().length < 2) {
+            surname.classList.add('error');
+            document.getElementById('surnameError').classList.add('show');
+            isValid = false;
+        }
+
+        // Validate Phone (Optional, but if filled must be valid)
+        // Validate Phone (Optional, but if filled must be exactly 10 digits)
+        if (phone.value.trim() !== '') {
+            // This regex strictly requires exactly 10 digits, starting with 0
+            var phoneRe = /^0\d{9}$/; 
+            
+            if (!phoneRe.test(phone.value)) {
+                phone.classList.add('error');
+                document.getElementById('phoneError').classList.add('show');
+                isValid = false;
+            }
+        }
+
+        if (!isValid) {
+            e.preventDefault(); // Block form submission
+            return;
+        }
+
+        var btn = this.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    });
+
+    // ─── CHANGE PASSWORD FORM VALIDATION ───
+    document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
+        var isStrengthValid = checkPasswordStrength();
+        var isMatchValid = checkPasswordMatch();
+
+        if (!isStrengthValid) {
+            e.preventDefault();
+            alert('Please ensure your new password meets all requirements (8+ chars, uppercase, number, special character).');
+            return;
+        }
+
+        if (!isMatchValid) {
+            e.preventDefault();
+            alert('Passwords do not match. Please re-enter the confirmation password.');
+            return;
+        }
+
+        var btn = this.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+    });
+
+    // ─── EVENT LISTENERS FOR REAL-TIME FEEDBACK ───
+    document.getElementById('newPassword').addEventListener('input', function() {
+        checkPasswordStrength();
+        checkPasswordMatch();
+    });
+    
+    document.getElementById('confirmPassword').addEventListener('input', function() {
+        checkPasswordMatch();
+    });
 
     function toggleTwoFactor() {
         var isChecked = document.getElementById('twoFactorToggle').checked;
@@ -439,12 +552,4 @@
             alert('Two-Factor Authentication disabled.');
         }
     }
-
-    document.getElementById('newPassword').oninput = function() {
-        checkPasswordStrength();
-        checkPasswordMatch();
-    };
-    document.getElementById('confirmPassword').oninput = function() {
-        checkPasswordMatch();
-    };
 </script>

@@ -48,6 +48,7 @@
             <label>Description</label>
             <textarea asp-for="Description" rows="2" class="form-control"
                       placeholder="Brief description of the sample type"></textarea>
+            <span asp-validation-for="Description" class="validation-message"></span>
         </div>
 
         <div class="form-row-2">
@@ -55,11 +56,13 @@
                 <label>Collection Tube Type</label>
                 <input asp-for="CollectionTubeType" class="form-control"
                        placeholder="e.g., EDTA (Lavender Top), Citrate (Blue Top)" />
+                <span asp-validation-for="CollectionTubeType" class="validation-message"></span>
             </div>
             <div class="form-group">
                 <label>Storage Requirements</label>
                 <input asp-for="StorageRequirements" class="form-control"
                        placeholder="e.g., Refrigerate at 2–8°C, Room temperature" />
+                <span asp-validation-for="StorageRequirements" class="validation-message"></span>
             </div>
         </div>
     </div>

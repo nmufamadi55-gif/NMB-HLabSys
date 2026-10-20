@@ -216,6 +216,17 @@ namespace NMB_HLabSys.Services
             if (!await IsTestNameUniqueAsync(model.TestName))
                 errors.Add($"Test name '{model.TestName}' already exists.");
 
+            // ── NEW: verify FK exists & is active ──
+            var categoryValid = await _context.TestCategories
+                .AnyAsync(c => c.CategoryID == model.CategoryID && c.IsActive);
+            if (!categoryValid)
+                errors.Add("Selected category does not exist or is inactive.");
+
+            var sampleTypeValid = await _context.SampleTypes
+                .AnyAsync(s => s.SampleTypeID == model.SampleTypeID && s.IsActive);
+            if (!sampleTypeValid)
+                errors.Add("Selected sample type does not exist or is inactive.");
+
             if (model.NormalRangeMin.HasValue && model.NormalRangeMax.HasValue
                 && model.NormalRangeMin.Value >= model.NormalRangeMax.Value)
                 errors.Add("Normal range minimum must be less than normal range maximum.");
@@ -266,6 +277,17 @@ namespace NMB_HLabSys.Services
 
             if (!await IsTestNameUniqueAsync(model.TestName, model.TestID))
                 errors.Add($"Test name '{model.TestName}' already exists.");
+
+            // ── NEW: verify FK exists & is active ──
+            var categoryValid = await _context.TestCategories
+                .AnyAsync(c => c.CategoryID == model.CategoryID && c.IsActive);
+            if (!categoryValid)
+                errors.Add("Selected category does not exist or is inactive.");
+
+            var sampleTypeValid = await _context.SampleTypes
+                .AnyAsync(s => s.SampleTypeID == model.SampleTypeID && s.IsActive);
+            if (!sampleTypeValid)
+                errors.Add("Selected sample type does not exist or is inactive.");
 
             if (model.NormalRangeMin.HasValue && model.NormalRangeMax.HasValue
                 && model.NormalRangeMin.Value >= model.NormalRangeMax.Value)
@@ -607,6 +629,12 @@ namespace NMB_HLabSys.Services
             if (!await IsConsumableNameUniqueAsync(model.ConsumableName))
                 return ServiceResult<int>.ValidationFail($"Consumable '{model.ConsumableName}' already exists.");
 
+            // ── NEW: verify supplier exists & is active ──
+            var supplierValid = await _context.Suppliers
+                .AnyAsync(s => s.SupplierID == model.SupplierID && s.IsActive);
+            if (!supplierValid)
+                return ServiceResult<int>.ValidationFail("Selected supplier does not exist or is inactive.");
+
             var consumable = new Consumable
             {
                 ConsumableName = model.ConsumableName,
@@ -675,6 +703,12 @@ namespace NMB_HLabSys.Services
             if (!await IsConsumableNameUniqueAsync(model.ConsumableName, model.ConsumableID))
                 return ServiceResult<bool>.ValidationFail($"Consumable '{model.ConsumableName}' already exists.");
 
+            // ── NEW: verify supplier exists & is active ──
+            var supplierValid = await _context.Suppliers
+                .AnyAsync(s => s.SupplierID == model.SupplierID && s.IsActive);
+            if (!supplierValid)
+                return ServiceResult<bool>.ValidationFail("Selected supplier does not exist or is inactive.");
+
             var consumable = await _context.Consumables.FindAsync(model.ConsumableID);
             if (consumable == null)
                 return ServiceResult<bool>.Fail($"Consumable with ID {model.ConsumableID} not found.");
@@ -682,7 +716,8 @@ namespace NMB_HLabSys.Services
             consumable.ConsumableName = model.ConsumableName;
             consumable.SupplierID = model.SupplierID;
             consumable.ReorderLevel = model.ReorderLevel;
-            consumable.QuantityOnHand = model.QuantityOnHand;
+            // NOTE: QuantityOnHand is intentionally NOT written from the model —
+            // stock changes must go through AdjustStockAsync so they are audited.
             consumable.UnitOfMeasure = model.UnitOfMeasure;
             consumable.UnitPrice = model.UnitPrice;
             consumable.MinimumStockLevel = model.MinimumStockLevel ?? 0;
@@ -989,6 +1024,21 @@ namespace NMB_HLabSys.Services
             if (!selectedItems.Any())
                 return ServiceResult<int>.ValidationFail("At least one item must be ordered.");
 
+            // ── NEW: every selected item must belong to the chosen supplier ──
+            var supplierConsumableIds = await _context.Consumables
+                .Where(c => c.SupplierID == model.SupplierID && c.IsActive)
+                .Select(c => c.ConsumableID)
+                .ToListAsync();
+
+            var invalidItems = selectedItems
+                .Where(i => !supplierConsumableIds.Contains(i.ConsumableID))
+                .Select(i => i.ConsumableName)
+                .ToList();
+
+            if (invalidItems.Any())
+                return ServiceResult<int>.ValidationFail(
+                    $"The following items do not belong to the selected supplier: {string.Join(", ", invalidItems)}.");
+
             // FIX: Safely resolve user ID (fallback to first Manager if session is lost)
             int safeUserId = _currentUser.UserId ?? 0;
             if (safeUserId == 0)
@@ -1198,6 +1248,16 @@ namespace NMB_HLabSys.Services
 
         public async Task<ServiceResult<bool>> CancelOrderItemAsync(int orderItemId, string reason)
         {
+            // ── NEW: validate inputs ──
+            if (orderItemId <= 0)
+                return ServiceResult<bool>.ValidationFail("Invalid order item.");
+
+            if (string.IsNullOrWhiteSpace(reason))
+                return ServiceResult<bool>.ValidationFail("A cancellation reason is required.");
+
+            if (reason.Length > 500)
+                return ServiceResult<bool>.ValidationFail("Cancellation reason cannot exceed 500 characters.");
+
             var item = await _context.OrderItems
                 .Include(oi => oi.Order)
                     .ThenInclude(o => o.OrderItems)
@@ -1315,6 +1375,19 @@ namespace NMB_HLabSys.Services
 
             if (model.SelectedTestTypeIDs == null || !model.SelectedTestTypeIDs.Any())
                 errors.Add("At least one test type must be assigned to the technician.");
+
+            // ── NEW: verify every selected test type exists & is active ──
+            if (model.SelectedTestTypeIDs != null && model.SelectedTestTypeIDs.Any())
+            {
+                var validTestIds = await _context.TestTypes
+                    .Where(t => t.IsActive)
+                    .Select(t => t.TestID)
+                    .ToListAsync();
+
+                var badIds = model.SelectedTestTypeIDs.Where(id => !validTestIds.Contains(id)).ToList();
+                if (badIds.Any())
+                    errors.Add($"The following test type IDs do not exist or are inactive: {string.Join(", ", badIds)}.");
+            }
 
             if (errors.Any())
                 return ServiceResult<int>.ValidationFail(errors);
@@ -1434,12 +1507,24 @@ namespace NMB_HLabSys.Services
             if (!await IsSAIDNumberUniqueAsync(model.SAIDNumber, model.TechnicianID))
                 errors.Add($"SA ID number '{model.SAIDNumber}' already exists.");
 
-            // FIX: Pass technician.User.UserID instead of TechnicianID
             if (!await IsEmailUniqueAsync(model.Email, technician.User.UserID))
                 errors.Add($"Email '{model.Email}' already exists.");
 
             if (model.SelectedTestTypeIDs == null || !model.SelectedTestTypeIDs.Any())
                 errors.Add("At least one test type must be assigned to the technician.");
+
+            // ── NEW: verify every selected test type exists & is active ──
+            if (model.SelectedTestTypeIDs != null && model.SelectedTestTypeIDs.Any())
+            {
+                var validTestIds = await _context.TestTypes
+                    .Where(t => t.IsActive)
+                    .Select(t => t.TestID)
+                    .ToListAsync();
+
+                var badIds = model.SelectedTestTypeIDs.Where(id => !validTestIds.Contains(id)).ToList();
+                if (badIds.Any())
+                    errors.Add($"The following test type IDs do not exist or are inactive: {string.Join(", ", badIds)}.");
+            }
 
             if (errors.Any())
                 return ServiceResult<bool>.ValidationFail(errors);
@@ -1480,7 +1565,7 @@ namespace NMB_HLabSys.Services
                 .Include(t => t.User)
                 .Include(t => t.TestAssignments)
                     .ThenInclude(tta => tta.TestType)
-                        .ThenInclude(tt => tt.Category) // FIX: Add Category include
+                        .ThenInclude(tt => tt.Category)
                 .FirstOrDefaultAsync(t => t.TechnicianID == technicianId);
 
             if (technician == null)
@@ -1504,7 +1589,6 @@ namespace NMB_HLabSys.Services
                     .Select(tta => new AssignedTestViewModel
                     {
                         TestID = tta.TestID,
-                        // FIX: Add null-conditional operators (?.) just in case a test was deleted
                         TestName = tta.TestType?.TestName ?? "Archived Test",
                         CategoryName = tta.TestType?.Category?.CategoryName ?? "Uncategorized",
                         AssignedDate = tta.AssignedDate,
@@ -1534,64 +1618,64 @@ namespace NMB_HLabSys.Services
             return ServiceResult<bool>.Ok(true);
         }
 
-      public async Task<ServiceResult<int>> AddDoctorAsync(RegisterDoctorViewModel model)
-{
-    var errors = new List<string>();
+        public async Task<ServiceResult<int>> AddDoctorAsync(RegisterDoctorViewModel model)
+        {
+            var errors = new List<string>();
 
-    if (!await IsHPCSANumberUniqueAsync(model.HPCSANumber))
-        errors.Add($"HPCSA number '{model.HPCSANumber}' already exists.");
+            if (!await IsHPCSANumberUniqueAsync(model.HPCSANumber))
+                errors.Add($"HPCSA number '{model.HPCSANumber}' already exists.");
 
-    if (!await IsEmailUniqueAsync(model.Email))
-        errors.Add($"Email '{model.Email}' already exists.");
+            if (!await IsEmailUniqueAsync(model.Email))
+                errors.Add($"Email '{model.Email}' already exists.");
 
-    if (errors.Any())
-        return ServiceResult<int>.ValidationFail(errors);
+            if (errors.Any())
+                return ServiceResult<int>.ValidationFail(errors);
 
-    string rawPassword = _passwordGenerator.GenerateTemporaryPassword();
+            string rawPassword = _passwordGenerator.GenerateTemporaryPassword();
 
-    var user = new User
-    {
-        Name = model.Name?.Trim() ?? string.Empty,
-        Surname = model.Surname?.Trim() ?? string.Empty,
-        Email = model.Email.Trim().ToLower(),
-        ContactNumber = model.ContactNumber?.Trim() ?? string.Empty,
-        PasswordHash = _passwordHasher.HashPassword(rawPassword),
-        UserRole = "Doctor",
-        IsActive = true,
-        IsPasswordChanged = false,
-        CreatedDate = DateTime.Now
-    };
+            var user = new User
+            {
+                Name = model.Name?.Trim() ?? string.Empty,
+                Surname = model.Surname?.Trim() ?? string.Empty,
+                Email = model.Email.Trim().ToLower(),
+                ContactNumber = model.ContactNumber?.Trim() ?? string.Empty,
+                PasswordHash = _passwordHasher.HashPassword(rawPassword),
+                UserRole = "Doctor",
+                IsActive = true,
+                IsPasswordChanged = false,
+                CreatedDate = DateTime.Now
+            };
 
-    _context.Users.Add(user);
-    await _context.SaveChangesAsync();
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
 
-    var doctor = new Doctor
-    {
-        UserID = user.UserID,
-        HPCSANumber = model.HPCSANumber.Trim(),
-        PracticeName = model.PracticeName ?? string.Empty,
-        PracticeAddress = model.PracticeAddress ?? string.Empty,
-        Specialization = model.Specialization ?? string.Empty,
-        IsVerified = false,
-        RegisteredDate = DateTime.Now
-    };
+            var doctor = new Doctor
+            {
+                UserID = user.UserID,
+                HPCSANumber = model.HPCSANumber.Trim(),
+                PracticeName = model.PracticeName ?? string.Empty,
+                PracticeAddress = model.PracticeAddress ?? string.Empty,
+                Specialization = model.Specialization ?? string.Empty,
+                IsVerified = false,
+                RegisteredDate = DateTime.Now
+            };
 
-    _context.Doctors.Add(doctor);
-    await _context.SaveChangesAsync();
+            _context.Doctors.Add(doctor);
+            await _context.SaveChangesAsync();
 
-    try
-    {
-        await _emailService.SendDoctorWelcomeEmailAsync(
-            user.Email, $"{user.Name} {user.Surname}".Trim(), rawPassword);
-    }
-    catch (Exception ex)
-    {
-        _logger.LogWarning(ex, "Failed to send welcome email to doctor {Email}", user.Email);
-    }
+            try
+            {
+                await _emailService.SendDoctorWelcomeEmailAsync(
+                    user.Email, $"{user.Name} {user.Surname}".Trim(), rawPassword);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to send welcome email to doctor {Email}", user.Email);
+            }
 
-    _logger.LogInformation("Doctor added: {Email}", user.Email);
-    return ServiceResult<int>.Ok(doctor.DoctorID);
-}
+            _logger.LogInformation("Doctor added: {Email}", user.Email);
+            return ServiceResult<int>.Ok(doctor.DoctorID);
+        }
 
         public async Task<EditDoctorViewModel> GetEditDoctorViewModelAsync(int doctorId)
         {
@@ -1630,7 +1714,6 @@ namespace NMB_HLabSys.Services
             if (!await IsHPCSANumberUniqueAsync(model.HPCSANumber, model.DoctorID))
                 return ServiceResult<bool>.ValidationFail($"HPCSA number '{model.HPCSANumber}' already exists.");
 
-            // FIX: Exclude the current doctor's UserID from the email uniqueness check
             if (!await IsEmailUniqueAsync(model.Email, doctor.User.UserID))
                 return ServiceResult<bool>.ValidationFail($"Email '{model.Email}' already exists.");
 
@@ -1683,8 +1766,18 @@ namespace NMB_HLabSys.Services
 
         public async Task<byte[]> GenerateCategoryReportAsync(ReportFilterViewModel filter)
         {
+            // ── NEW: extra date validation beyond the ViewModel ──
+            if (filter == null)
+                throw new ArgumentException("Filter is required.");
+
             if (filter.StartDate > filter.EndDate)
                 throw new ArgumentException("Start date cannot be later than end date.");
+
+            if (filter.EndDate.Date > DateTime.Today)
+                throw new ArgumentException("End date cannot be in the future.");
+
+            if ((filter.EndDate.Date - filter.StartDate.Date).TotalDays > 366)
+                throw new ArgumentException("Report range cannot exceed 12 months.");
 
             var reportData = await _context.RequestTestTypes
     .Include(rt => rt.TestType)
@@ -1711,20 +1804,72 @@ namespace NMB_HLabSys.Services
 
         public async Task<byte[]> GenerateStockReportAsync(ReportFilterViewModel filter)
         {
-            // TODO: Implement stock report
-            throw new NotImplementedException("Stock report generation not yet implemented.");
+            var stockData = await _context.Consumables
+                .Include(c => c.Supplier)
+                .Where(c => c.IsActive)
+                .Select(c => new ConsumableViewModel
+                {
+                    ConsumableID = c.ConsumableID,
+                    ConsumableName = c.ConsumableName,
+                    SupplierName = c.Supplier != null ? c.Supplier.SupplierName : "Unknown",
+                    QuantityOnHand = c.QuantityOnHand,
+                    ReorderLevel = c.ReorderLevel,
+                    UnitPrice = c.UnitPrice,
+                    StockStatus = GetStockStatus(c.QuantityOnHand, c.ReorderLevel)
+                }).ToListAsync();
+
+            // Stock is a current snapshot, so date range isn't heavily used, but we pass it for the header
+            return _pdfService.GenerateStockReportPdf(stockData, filter.StartDate, filter.EndDate);
         }
 
         public async Task<byte[]> GenerateStaffReportAsync(ReportFilterViewModel filter)
         {
-            // TODO: Implement staff report
-            throw new NotImplementedException("Staff report generation not yet implemented.");
+            // Join TechnicianTestAssignments, TestTypes, Users, and RequestTestTypes to find completed tests
+            var rawData = await (
+                from rt in _context.RequestTestTypes
+                join tech in _context.LabTechnicians on rt.AssignedTechnicianID equals tech.TechnicianID
+                join user in _context.Users on tech.UserID equals user.UserID
+                join test in _context.TestTypes on rt.TestTypeID equals test.TestID
+                join cat in _context.TestCategories on test.CategoryID equals cat.CategoryID
+                where rt.Status == "Completed" &&
+                      rt.CompletedDateTime >= filter.StartDate &&
+                      rt.CompletedDateTime <= filter.EndDate
+                select new
+                {
+                    TechnicianName = user.Name + " " + user.Surname,
+                    CategoryName = cat.CategoryName
+                }).ToListAsync();
+
+            // Group in memory (faster for this specific aggregation)
+            var staffData = rawData
+                .GroupBy(x => new { x.TechnicianName, x.CategoryName })
+                .Select(g => new StaffPerformanceData
+                {
+                    TechnicianName = g.Key.TechnicianName,
+                    CategoryName = g.Key.CategoryName,
+                    TotalTests = g.Count()
+                })
+                .ToList();
+
+            return _pdfService.GenerateStaffPerformancePdf(staffData, filter.StartDate, filter.EndDate);
         }
 
         public async Task<byte[]> GenerateOrdersReportAsync(ReportFilterViewModel filter)
         {
-            // TODO: Implement orders report
-            throw new NotImplementedException("Orders report generation not yet implemented.");
+            var ordersData = await _context.PurchaseOrders
+                .Include(o => o.Supplier)
+                .Where(o => o.OrderDate >= filter.StartDate && o.OrderDate <= filter.EndDate)
+                .Select(o => new OrderListViewModel
+                {
+                    OrderID = o.OrderID,
+                    OrderNumber = o.OrderNumber,
+                    SupplierName = o.Supplier != null ? o.Supplier.SupplierName : "Unknown",
+                    OrderDate = o.OrderDate,
+                    Status = o.Status,
+                    TotalAmount = o.TotalAmount
+                }).ToListAsync();
+
+            return _pdfService.GenerateOrdersReportPdf(ordersData, filter.StartDate, filter.EndDate);
         }
 
         public async Task<ChartDataDto> GetChartDataAsync()

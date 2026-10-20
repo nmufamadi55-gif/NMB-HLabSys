@@ -17,12 +17,18 @@ namespace NMB_HLabSys.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IPdfReportService _pdfReportService;
         private readonly IPasswordHasher _passwordHasher;
+        private readonly IEmailService _emailService;
 
-        public PatientController(ApplicationDbContext context, IPdfReportService pdfReportService, IPasswordHasher passwordHasher)
+        public PatientController(
+            ApplicationDbContext context,
+            IPdfReportService pdfReportService,
+            IPasswordHasher passwordHasher,
+            IEmailService emailService)
         {
             _context = context;
             _pdfReportService = pdfReportService;
             _passwordHasher = passwordHasher;
+            _emailService = emailService;
         }
 
         // GET LOGGED-IN PATIENT
@@ -37,19 +43,37 @@ namespace NMB_HLabSys.Controllers
         }
 
         // ============================================
-        // DOWNLOAD TEST RESULTS PDF
+        // DOWNLOAD TEST RESULTS PDF — 24 month default
         // ============================================
         public async Task<IActionResult> DownloadTestResultsPDF(DateTime? fromDate, DateTime? toDate)
         {
             var patient = await GetLoggedInPatient();
             if (patient == null) return RedirectToAction("Login", "Account");
 
-            var from = fromDate ?? DateTime.Now.AddMonths(-6);
+            var from = fromDate ?? DateTime.Now.AddMonths(-24);
             var to = toDate ?? DateTime.Now;
 
             try
             {
-                var pdfBytes = _pdfReportService.GeneratePatientTestResultsPdf(patient, from, to);
+                // Reload patient with all related data needed for PDF
+                var patientWithHistory = await _context.Patients
+                    .Include(p => p.TestRequests)
+                        .ThenInclude(r => r.RequestTestTypes)
+                            .ThenInclude(rt => rt.TestType)
+                                .ThenInclude(t => t.Category)
+                    .Include(p => p.TestRequests)
+                        .ThenInclude(r => r.RequestTestTypes)
+                            .ThenInclude(rt => rt.TestResults)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.PatientID == patient.PatientID);
+
+                if (patientWithHistory == null)
+                {
+                    TempData["ErrorMessage"] = "Could not load patient data.";
+                    return RedirectToAction("Dashboard");
+                }
+
+                var pdfBytes = _pdfReportService.GeneratePatientTestResultsPdf(patientWithHistory, from, to);
                 return File(pdfBytes, "application/pdf", $"TestResults_{patient.SAIDNumber}_{DateTime.Now:yyyyMMdd}.pdf");
             }
             catch (Exception ex)
@@ -69,7 +93,20 @@ namespace NMB_HLabSys.Controllers
 
             try
             {
-                var pdfBytes = _pdfReportService.GeneratePatientMedicalHistoryPdf(patient);
+                var patientWithHistory = await _context.Patients
+                    .Include(p => p.PatientConditions).ThenInclude(pc => pc.Condition).ThenInclude(c => c.Category)
+                    .Include(p => p.PatientAllergies).ThenInclude(pa => pa.Allergy).ThenInclude(a => a.Category)
+                    .Include(p => p.PatientMedications).ThenInclude(pm => pm.Medication).ThenInclude(m => m.Category)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.PatientID == patient.PatientID);
+
+                if (patientWithHistory == null)
+                {
+                    TempData["ErrorMessage"] = "Could not load patient data.";
+                    return RedirectToAction("MedicalHistory");
+                }
+
+                var pdfBytes = _pdfReportService.GeneratePatientMedicalHistoryPdf(patientWithHistory);
                 return File(pdfBytes, "application/pdf", $"MedicalHistory_{patient.SAIDNumber}_{DateTime.Now:yyyyMMdd}.pdf");
             }
             catch (Exception ex)
@@ -80,7 +117,7 @@ namespace NMB_HLabSys.Controllers
         }
 
         // ============================================
-        // DASHBOARD
+        // DASHBOARD — only shows RELEASED results
         // ============================================
         public async Task<IActionResult> Dashboard()
         {
@@ -98,7 +135,9 @@ namespace NMB_HLabSys.Controllers
                     .Where(tr => tr.RequestTestType != null
                               && tr.RequestTestType.TestRequest != null
                               && tr.RequestTestType.TestRequest.PatientID == patient.PatientID
-                              && tr.IsAbnormal)
+                              && tr.IsAbnormal
+                              && (tr.RequestTestType.TestRequest.Status == "Released"
+                                  || tr.RequestTestType.TestRequest.Status == "Appointment Requested"))
                     .CountAsync();
 
                 var reportsAvailable = await _context.TestResults
@@ -106,7 +145,9 @@ namespace NMB_HLabSys.Controllers
                         .ThenInclude(rtt => rtt.TestRequest)
                     .Where(tr => tr.RequestTestType != null
                               && tr.RequestTestType.TestRequest != null
-                              && tr.RequestTestType.TestRequest.PatientID == patient.PatientID)
+                              && tr.RequestTestType.TestRequest.PatientID == patient.PatientID
+                              && (tr.RequestTestType.TestRequest.Status == "Released"
+                                  || tr.RequestTestType.TestRequest.Status == "Appointment Requested"))
                     .CountAsync();
 
                 var recentResults = await _context.TestResults
@@ -118,7 +159,9 @@ namespace NMB_HLabSys.Controllers
                                 .ThenInclude(d => d.User)
                     .Where(tr => tr.RequestTestType != null
                               && tr.RequestTestType.TestRequest != null
-                              && tr.RequestTestType.TestRequest.PatientID == patient.PatientID)
+                              && tr.RequestTestType.TestRequest.PatientID == patient.PatientID
+                              && (tr.RequestTestType.TestRequest.Status == "Released"
+                                  || tr.RequestTestType.TestRequest.Status == "Appointment Requested"))
                     .OrderByDescending(tr => tr.RequestTestType.TestRequest.RequestDate)
                     .Take(5)
                     .Select(tr => new RecentTestResultViewModel
@@ -215,7 +258,9 @@ namespace NMB_HLabSys.Controllers
             return $"{abnormalCount} results need attention. Please consult your doctor.";
         }
 
+        // ============================================
         // PROFILE
+        // ============================================
         public async Task<IActionResult> Profile()
         {
             var patient = await GetLoggedInPatient();
@@ -317,7 +362,9 @@ namespace NMB_HLabSys.Controllers
             return RedirectToAction("Profile");
         }
 
+        // ============================================
         // MEDICAL HISTORY
+        // ============================================
         public async Task<IActionResult> MedicalHistory()
         {
             var patient = await GetLoggedInPatient();
@@ -372,7 +419,9 @@ namespace NMB_HLabSys.Controllers
             return View(viewModel);
         }
 
-        // ADD CONDITION
+        // ============================================
+        // ADD / REMOVE CONDITION
+        // ============================================
         [HttpPost]
         public async Task<IActionResult> AddCondition(int conditionId, DateTime? diagnosedDate, string notes)
         {
@@ -388,7 +437,7 @@ namespace NMB_HLabSys.Controllers
                 PatientID = patient.PatientID,
                 ConditionID = conditionId,
                 DiagnosedDate = diagnosedDate,
-                Notes = notes,
+                Notes = notes ?? string.Empty,
                 IsActive = true,
                 CreatedDate = DateTime.Now
             });
@@ -411,6 +460,9 @@ namespace NMB_HLabSys.Controllers
             return Json(new { success = true, message = "Condition removed!" });
         }
 
+        // ============================================
+        // ADD / REMOVE ALLERGY
+        // ============================================
         [HttpPost]
         public async Task<IActionResult> AddAllergy(int allergyId, string severity, string notes)
         {
@@ -425,8 +477,8 @@ namespace NMB_HLabSys.Controllers
             {
                 PatientID = patient.PatientID,
                 AllergyID = allergyId,
-                Severity = severity,
-                Notes = notes,
+                Severity = severity ?? string.Empty,
+                Notes = notes ?? string.Empty,
                 CreatedDate = DateTime.Now
             });
             await _context.SaveChangesAsync();
@@ -448,6 +500,9 @@ namespace NMB_HLabSys.Controllers
             return Json(new { success = true, message = "Allergy removed!" });
         }
 
+        // ============================================
+        // ADD / REMOVE MEDICATION
+        // ============================================
         [HttpPost]
         public async Task<IActionResult> AddMedication(int medicationId, string dosage, string frequency, DateTime? startDate, DateTime? endDate, string notes)
         {
@@ -462,12 +517,12 @@ namespace NMB_HLabSys.Controllers
             {
                 PatientID = patient.PatientID,
                 MedicationID = medicationId,
-                Dosage = dosage,
-                Frequency = frequency,
+                Dosage = dosage ?? string.Empty,
+                Frequency = frequency ?? string.Empty,
                 StartDate = startDate,
                 EndDate = endDate,
                 IsCurrent = endDate == null,
-                Notes = notes,
+                Notes = notes ?? string.Empty,
                 CreatedDate = DateTime.Now
             });
             await _context.SaveChangesAsync();
@@ -489,11 +544,25 @@ namespace NMB_HLabSys.Controllers
             return Json(new { success = true, message = "Medication removed!" });
         }
 
-        // CONSENT
+        // ============================================
+        // CONSENT — GET (loads requests for picker)
+        // ============================================
         public async Task<IActionResult> Consent()
         {
             var patient = await GetLoggedInPatient();
             if (patient == null) return RedirectToAction("Login", "Account");
+
+            var availableRequests = await _context.TestRequests
+                .Where(tr => tr.PatientID == patient.PatientID)
+                .OrderByDescending(tr => tr.RequestDate)
+                .Select(tr => new TestRequestViewModel
+                {
+                    TestRequestID = tr.RequestID,
+                    RequestNumber = tr.RequestNumber,
+                    RequestDate = tr.RequestDate,
+                    Status = tr.Status
+                })
+                .ToListAsync();
 
             var viewModel = new PatientConsentManagementViewModel
             {
@@ -501,6 +570,7 @@ namespace NMB_HLabSys.Controllers
                 FullName = $"{patient.FirstName} {patient.LastName}",
                 ActiveConsents = await _context.PatientConsentManagements
                     .Include(pcm => pcm.Doctor).ThenInclude(d => d.User)
+                    .Include(pcm => pcm.ConsentTestRequestAccesses)
                     .Where(pcm => pcm.PatientID == patient.PatientID && pcm.IsActive)
                     .Select(pcm => new PatientConsentViewModel
                     {
@@ -511,7 +581,9 @@ namespace NMB_HLabSys.Controllers
                         DoctorEmail = pcm.Doctor != null && pcm.Doctor.User != null ? pcm.Doctor.User.Email : "",
                         GrantedDate = pcm.GrantedDate,
                         IsActive = pcm.IsActive,
-                        Notes = pcm.Notes
+                        Notes = pcm.Notes,
+                        SharedRequestCount = pcm.ConsentTestRequestAccesses != null
+                            ? pcm.ConsentTestRequestAccesses.Count() : 0
                     }).ToListAsync(),
                 AvailableDoctors = await _context.Doctors.Include(d => d.User)
                     .Where(d => d.User != null && d.User.IsActive)
@@ -523,63 +595,123 @@ namespace NMB_HLabSys.Controllers
                         HPCSANumber = d.HPCSANumber,
                         Specialization = d.Specialization ?? "General"
                     }).ToListAsync(),
-                AvailableTestRequests = new List<TestRequestViewModel>()
+                AvailableTestRequests = availableRequests
             };
             return View(viewModel);
         }
 
+        // ============================================
+        // GRANT CONSENT
+        // ============================================
         [HttpPost]
-        public async Task<IActionResult> GrantConsent(int doctorId, string notes)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> GrantConsent(int doctorId, int[] requestIds, string? notes)
         {
             var patient = await GetLoggedInPatient();
             if (patient == null) return Json(new { success = false, message = "Not authenticated" });
+
+            if (requestIds == null || requestIds.Length == 0)
+                return Json(new { success = false, message = "Please select at least one test request to share." });
 
             var existing = await _context.PatientConsentManagements
                 .FirstOrDefaultAsync(pcm => pcm.PatientID == patient.PatientID && pcm.DoctorID == doctorId && pcm.IsActive);
             if (existing != null) return Json(new { success = false, message = "Already have consent with this doctor" });
 
-            _context.PatientConsentManagements.Add(new PatientConsentManagement
+            var validRequestIds = await _context.TestRequests
+                .Where(tr => tr.PatientID == patient.PatientID && requestIds.Contains(tr.RequestID))
+                .Select(tr => tr.RequestID)
+                .ToListAsync();
+
+            if (validRequestIds.Count != requestIds.Length)
+                return Json(new { success = false, message = "One or more selected requests are invalid." });
+
+            var consent = new PatientConsentManagement
             {
                 PatientID = patient.PatientID,
                 DoctorID = doctorId,
                 GrantedDate = DateTime.Now,
                 IsActive = true,
-                Notes = notes
-            });
+                Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim()
+            };
+            _context.PatientConsentManagements.Add(consent);
             await _context.SaveChangesAsync();
-            return Json(new { success = true, message = "Consent granted!" });
+
+            foreach (var reqId in validRequestIds)
+            {
+                _context.ConsentTestRequestAccesses.Add(new ConsentTestRequestAccess
+                {
+                    ConsentID = consent.ConsentID,
+                    RequestID = reqId
+                });
+            }
+            await _context.SaveChangesAsync();
+
+            try
+            {
+                var doctor = await _context.Doctors.Include(d => d.User).FirstOrDefaultAsync(d => d.DoctorID == doctorId);
+                if (doctor?.User != null && !string.IsNullOrWhiteSpace(doctor.User.Email))
+                {
+                    var patientName = $"{patient.FirstName} {patient.LastName}".Trim();
+                    var doctorName = $"{doctor.User.Name} {doctor.User.Surname}".Trim();
+
+                    var body = $@"
+                <html><body style='font-family: Arial, sans-serif;'>
+                    <h2>Patient Consent Granted</h2>
+                    <p>Dear Dr. {doctorName},</p>
+                    <p>Patient <strong>{patientName}</strong> (SA ID: {patient.SAIDNumber}) has granted you access to <strong>{validRequestIds.Count}</strong> of their test requests.</p>
+                    <p>You can now view these results in the system.</p>
+                    <hr />
+                    <p style='color: #6c757d; font-size: 12px;'>Nelson Mandela Bay Haematology Diagnostic Laboratories</p>
+                </body></html>";
+
+                    await _emailService.SendEmailAsync(
+                        doctor.User.Email,
+                        $"Patient Consent Granted — {patientName}",
+                        body);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ Consent email failed: {ex.Message}");
+            }
+
+            return Json(new { success = true, message = $"Consent granted for {validRequestIds.Count} request(s)!" });
         }
 
+        // ============================================
+        // REVOKE CONSENT
+        // ============================================
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> RevokeConsent(int consentId)
         {
             var patient = await GetLoggedInPatient();
             if (patient == null) return Json(new { success = false, message = "Not authenticated" });
 
             var consent = await _context.PatientConsentManagements
+                .Include(pcm => pcm.ConsentTestRequestAccesses)
                 .FirstOrDefaultAsync(pcm => pcm.ConsentID == consentId && pcm.PatientID == patient.PatientID);
             if (consent == null) return Json(new { success = false, message = "Not found" });
 
             consent.IsActive = false;
             consent.RevokedDate = DateTime.Now;
+
+            if (consent.ConsentTestRequestAccesses != null)
+                _context.ConsentTestRequestAccesses.RemoveRange(consent.ConsentTestRequestAccesses);
+
             await _context.SaveChangesAsync();
             return Json(new { success = true, message = "Consent revoked!" });
         }
 
-        // TRENDS
+        // ============================================
+        // TRENDS — 24 month default range
+        // ============================================
         public async Task<IActionResult> Trends(string testType = null, DateTime? fromDate = null, DateTime? toDate = null)
         {
             var patient = await GetLoggedInPatient();
             if (patient == null) return RedirectToAction("Login", "Account");
 
-            var availableTestTypes = new List<string>
-            {
-                "Haemoglobin", "Platelet", "White Cell", "Ferritin", "Folate",
-                "Vitamin B12", "Neutrophils", "Lymphocytes", "APTT", "D-Dimer", "ESR", "INR"
-            };
-
-            var selectedType = testType ?? "Haemoglobin";
-            var from = fromDate ?? DateTime.Now.AddMonths(-6);
+            var from = fromDate ?? DateTime.Now.AddMonths(-24);
             var to = toDate ?? DateTime.Now;
 
             if (from > to)
@@ -588,6 +720,40 @@ namespace NMB_HLabSys.Controllers
                 from = to;
                 to = temp;
             }
+
+            var availableTestTypes = await _context.TestResults
+                .Include(tr => tr.RequestTestType)
+                    .ThenInclude(rtt => rtt.TestType)
+                .Include(tr => tr.RequestTestType)
+                    .ThenInclude(rtt => rtt.TestRequest)
+                .Where(tr => tr.RequestTestType != null
+                          && tr.RequestTestType.TestType != null
+                          && tr.RequestTestType.TestRequest != null
+                          && tr.RequestTestType.TestRequest.PatientID == patient.PatientID
+                          && (tr.RequestTestType.TestRequest.Status == "Released"
+                              || tr.RequestTestType.TestRequest.Status == "Appointment Requested"))
+                .Select(tr => tr.RequestTestType.TestType.TestName)
+                .Distinct()
+                .OrderBy(name => name)
+                .ToListAsync();
+
+            if (!availableTestTypes.Any())
+            {
+                return View(new PatientTrendsViewModel
+                {
+                    PatientID = patient.PatientID,
+                    FullName = $"{patient.FirstName} {patient.LastName}",
+                    AvailableTestTypes = new List<string>(),
+                    SelectedTestType = string.Empty,
+                    FromDate = from,
+                    ToDate = to,
+                    TrendData = new List<TrendDataPoint>()
+                });
+            }
+
+            var selectedType = string.IsNullOrWhiteSpace(testType) || !availableTestTypes.Contains(testType)
+                ? availableTestTypes.First()
+                : testType;
 
             var trendData = new List<TrendDataPoint>();
 
@@ -598,15 +764,21 @@ namespace NMB_HLabSys.Controllers
                         .ThenInclude(rtt => rtt.TestType)
                     .Include(tr => tr.RequestTestType)
                         .ThenInclude(rtt => rtt.TestRequest)
-                    .Where(tr => tr.RequestTestType.TestRequest.PatientID == patient.PatientID
-                              && tr.RequestTestType.TestType.TestName.Contains(selectedType)
+                    .Where(tr => tr.RequestTestType != null
+                              && tr.RequestTestType.TestType != null
+                              && tr.RequestTestType.TestRequest != null
+                              && tr.RequestTestType.TestRequest.PatientID == patient.PatientID
+                              && tr.RequestTestType.TestType.TestName == selectedType
                               && tr.ResultDate >= from
-                              && tr.ResultDate <= to)
+                              && tr.ResultDate <= to
+                              && tr.NumericValue.HasValue
+                              && (tr.RequestTestType.TestRequest.Status == "Released"
+                                  || tr.RequestTestType.TestRequest.Status == "Appointment Requested"))
                     .OrderBy(tr => tr.ResultDate)
                     .Select(tr => new
                     {
                         Date = tr.ResultDate,
-                        Value = tr.NumericValue ?? 0,
+                        Value = tr.NumericValue.Value,
                         LowerLimit = tr.RequestTestType.TestType.NormalRangeMin,
                         UpperLimit = tr.RequestTestType.TestType.NormalRangeMax
                     })
@@ -643,7 +815,7 @@ namespace NMB_HLabSys.Controllers
         }
 
         // ============================================
-        // REGISTER (validates DOB against SA ID)
+        // REGISTER
         // ============================================
         public IActionResult Register()
         {
@@ -656,7 +828,6 @@ namespace NMB_HLabSys.Controllers
         {
             if (!ModelState.IsValid) return View(model);
 
-            // ─── DOB must match SA ID ───
             var expectedDob = ExtractDobFromSaId(model.SAIDNumber);
             if (expectedDob == null)
             {
@@ -672,7 +843,6 @@ namespace NMB_HLabSys.Controllers
                 return View(model);
             }
 
-            // ─── Uniqueness checks ───
             if (await _context.Users.AnyAsync(u => u.Email == model.Email))
             {
                 ModelState.AddModelError("Email", "Email already registered");
@@ -685,7 +855,6 @@ namespace NMB_HLabSys.Controllers
                 return View(model);
             }
 
-            // ─── Create user (PBKDF2 hash) ───
             var user = new User
             {
                 Name = model.FirstName.Trim(),
@@ -707,7 +876,7 @@ namespace NMB_HLabSys.Controllers
                 FirstName = model.FirstName.Trim(),
                 LastName = model.LastName.Trim(),
                 SAIDNumber = model.SAIDNumber,
-                DateOfBirth = expectedDob.Value.Date,   // use verified DOB from ID
+                DateOfBirth = expectedDob.Value.Date,
                 Cellphone = model.Cellphone,
                 HomeAddress = model.HomeAddress?.Trim(),
                 Email = model.Email.Trim().ToLower(),
@@ -720,7 +889,6 @@ namespace NMB_HLabSys.Controllers
             return RedirectToAction("Login", "Account");
         }
 
-        // ─── Extract DOB from SA ID ───
         private DateTime? ExtractDobFromSaId(string saId)
         {
             if (string.IsNullOrWhiteSpace(saId) || !Regex.IsMatch(saId, @"^\d{13}$"))
@@ -730,7 +898,6 @@ namespace NMB_HLabSys.Controllers
             int mm = int.Parse(saId.Substring(2, 2));
             int dd = int.Parse(saId.Substring(4, 2));
 
-            // Century rule: 00–currentYY → 2000s, otherwise 1900s
             int currentYY = DateTime.Now.Year % 100;
             int fullYear = (yy <= currentYY ? 2000 : 1900) + yy;
 

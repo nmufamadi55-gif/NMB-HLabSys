@@ -1,12 +1,13 @@
-﻿using NMB_HLabSys.Services;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NMB_HLabSys.Data;
 using NMB_HLabSys.Models;
+using NMB_HLabSys.Services;
 using NMB_HLabSys.ViewModels.AdminViewModels;
 using NMB_HLabSys.ViewModels.SharedViewModels;
 using System;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace NMB_HLabSys.Controllers
@@ -15,11 +16,16 @@ namespace NMB_HLabSys.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IPasswordHasher _passwordHasher;
+        private readonly IEmailService _emailService;
 
-        public AccountController(ApplicationDbContext context, IPasswordHasher passwordHasher)
+        public AccountController(
+            ApplicationDbContext context,
+            IPasswordHasher passwordHasher,
+            IEmailService emailService)
         {
             _context = context;
             _passwordHasher = passwordHasher;
+            _emailService = emailService;
         }
 
         // ============================================
@@ -27,6 +33,7 @@ namespace NMB_HLabSys.Controllers
         // ============================================
         public IActionResult Login()
         {
+            HttpContext.Session.Clear();
             return View(new LoginViewModel());
         }
 
@@ -34,10 +41,7 @@ namespace NMB_HLabSys.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
+            if (!ModelState.IsValid) return View(model);
 
             try
             {
@@ -50,7 +54,6 @@ namespace NMB_HLabSys.Controllers
                     return View(model);
                 }
 
-                // ─── Silent rehash: upgrade legacy SHA256 → PBKDF2 on successful login ───
                 if (_passwordHasher.NeedsRehash(user.PasswordHash))
                 {
                     user.PasswordHash = _passwordHasher.HashPassword(model.Password);
@@ -58,27 +61,19 @@ namespace NMB_HLabSys.Controllers
                     await _context.SaveChangesAsync();
                 }
 
-                // Set session
                 HttpContext.Session.SetInt32("UserID", user.UserID);
                 HttpContext.Session.SetString("UserRole", user.UserRole);
                 HttpContext.Session.SetString("UserName", $"{user.Name} {user.Surname}");
                 HttpContext.Session.SetString("UserEmail", user.Email);
 
-                // ✅ ADD THIS: Force password change if it's their first time
-                if (!user.IsPasswordChanged && (user.UserRole == "Doctor" || user.UserRole == "Technician"))
-                {
-                    return RedirectToAction("Index", "Profile"); // Or wherever your ChangePassword page is located
-                }
-
-                // Redirect based on role
                 if (user.UserRole == "Patient")
                     return RedirectToAction("Dashboard", "Patient");
                 else if (user.UserRole == "Admin")
                     return RedirectToAction("Dashboard", "Admin");
                 else if (user.UserRole == "Doctor")
-                    return RedirectToAction("Dashboard", "Doctor");      
+                    return RedirectToAction("Dashboard", "Doctor");       // ✅ Fixed
                 else if (user.UserRole == "Technician")
-                    return RedirectToAction("Dashboard", "Technician");   
+                    return RedirectToAction("Dashboard", "Technician");   // ✅ Fixed
                 else if (user.UserRole == "Manager")
                     return RedirectToAction("Index", "LaboratoryManager");
 
@@ -90,24 +85,26 @@ namespace NMB_HLabSys.Controllers
                 return View(model);
             }
         }
-        // ============================================
-        // FORGOT PASSWORD
-        // ============================================
 
-        // GET: Account/ForgotPassword
+        // ============================================
+        // FORGOT PASSWORD — step 1
+        // ============================================
         public IActionResult ForgotPassword()
         {
             return View();
         }
 
-        // POST: Account/ForgotPassword
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ForgotPassword(string email)
         {
-            if (string.IsNullOrEmpty(email))
+            const string neutralMessage =
+                "If an account with that email exists, a password reset link has been sent. " +
+                "Please check your inbox (and spam folder). The link expires in 30 minutes.";
+
+            if (string.IsNullOrWhiteSpace(email))
             {
-                ViewBag.Error = "Email is required";
+                TempData["ErrorMessage"] = "Please enter your email address.";
                 return View();
             }
 
@@ -116,51 +113,171 @@ namespace NMB_HLabSys.Controllers
                 var user = await _context.Users
                     .FirstOrDefaultAsync(u => u.Email == email.Trim().ToLower() && u.IsActive);
 
-                // Always show success (don't reveal if email exists)
                 if (user != null)
                 {
-                    // Generate a temporary password
-                    var newPassword = GenerateTemporaryPassword();
-                    user.PasswordHash = _passwordHasher.HashPassword(newPassword);
-                    user.IsPasswordChanged = false;
-                    user.ModifiedDate = DateTime.Now;
+                    // Invalidate previous unused tokens
+                    var oldTokens = _context.PasswordResetTokens
+                        .Where(t => t.UserID == user.UserID && !t.IsUsed);
+                    _context.PasswordResetTokens.RemoveRange(oldTokens);
+
+                    // Generate secure token
+                    var token = GenerateSecureToken();
+
+                    _context.PasswordResetTokens.Add(new PasswordResetToken
+                    {
+                        UserID = user.UserID,
+                        Token = token,
+                        ExpiresAt = DateTime.Now.AddMinutes(30),
+                        IsUsed = false,
+                        CreatedAt = DateTime.Now
+                    });
+
                     await _context.SaveChangesAsync();
 
-                    // In production: send email with new password
-                    // For now, show on screen (remove before publishing!)
-                    ViewBag.TempPassword = newPassword;
-                    ViewBag.FoundUser = true;
+                    // BaseUrl derived from current request — no config needed
+                    var baseUrl = $"{Request.Scheme}://{Request.Host}";
+                    var resetLink = $"{baseUrl}/Account/ResetPassword?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(user.Email)}";
+
+                    // Send email
+                    await _emailService.SendPasswordResetEmailAsync(
+                        user.Email,
+                        $"{user.Name} {user.Surname}",
+                        resetLink);
                 }
 
-                ViewBag.Success = "If this email is registered, a password reset link has been sent.";
-                return View();
+                TempData["SuccessMessage"] = neutralMessage;
+                return RedirectToAction("ForgotPassword");
             }
             catch (Exception ex)
             {
-                ViewBag.Error = $"Error: {ex.Message}";
+                TempData["ErrorMessage"] = $"EMAIL FAILED: {ex.Message} | INNER: {ex.InnerException?.Message}";
                 return View();
             }
         }
 
-        private string GenerateTemporaryPassword()
+        // ============================================
+        // RESET PASSWORD — step 2 (user clicked email link)
+        // ============================================
+        [HttpGet]
+        public async Task<IActionResult> ResetPassword(string token, string email)
         {
-            const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$";
-            var random = new Random();
-            var password = new char[10];
-
-            // Ensure at least one of each type
-            password[0] = "ABCDEFGHJKLMNPQRSTUVWXYZ"[random.Next(24)];
-            password[1] = "abcdefghijkmnpqrstuvwxyz"[random.Next(24)];
-            password[2] = "23456789"[random.Next(8)];
-            password[3] = "!@#$"[random.Next(4)];
-
-            for (int i = 4; i < password.Length; i++)
+            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(email))
             {
-                password[i] = chars[random.Next(chars.Length)];
+                TempData["ErrorMessage"] = "Invalid reset link.";
+                return RedirectToAction("ForgotPassword");
             }
 
-            return new string(password);
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == email.Trim().ToLower() && u.IsActive);
+
+            if (user == null)
+            {
+                TempData["ErrorMessage"] = "Invalid reset link.";
+                return RedirectToAction("ForgotPassword");
+            }
+
+            var resetToken = await _context.PasswordResetTokens
+                .FirstOrDefaultAsync(t =>
+                    t.UserID == user.UserID &&
+                    t.Token == token &&
+                    !t.IsUsed &&
+                    t.ExpiresAt > DateTime.Now);
+
+            if (resetToken == null)
+            {
+                TempData["ErrorMessage"] = "This reset link is invalid, expired, or has already been used. Please request a new one.";
+                return RedirectToAction("ForgotPassword");
+            }
+
+            ViewBag.Token = token;
+            ViewBag.Email = email;
+            return View();
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(string token, string email, string newPassword, string confirmPassword)
+        {
+            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(email))
+            {
+                TempData["ErrorMessage"] = "Invalid reset request.";
+                return RedirectToAction("ForgotPassword");
+            }
+
+            if (string.IsNullOrWhiteSpace(newPassword) || newPassword != confirmPassword)
+            {
+                TempData["ErrorMessage"] = "Passwords do not match.";
+                ViewBag.Token = token;
+                ViewBag.Email = email;
+                return View();
+            }
+
+            if (!IsValidPassword(newPassword))
+            {
+                TempData["ErrorMessage"] = "Password must be at least 8 characters and contain an uppercase letter, a number, and a special character.";
+                ViewBag.Token = token;
+                ViewBag.Email = email;
+                return View();
+            }
+
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == email.Trim().ToLower() && u.IsActive);
+
+            if (user == null)
+            {
+                TempData["ErrorMessage"] = "Invalid reset request.";
+                return RedirectToAction("ForgotPassword");
+            }
+
+            var resetToken = await _context.PasswordResetTokens
+                .FirstOrDefaultAsync(t =>
+                    t.UserID == user.UserID &&
+                    t.Token == token &&
+                    !t.IsUsed &&
+                    t.ExpiresAt > DateTime.Now);
+
+            if (resetToken == null)
+            {
+                TempData["ErrorMessage"] = "This reset link is invalid, expired, or has already been used.";
+                return RedirectToAction("ForgotPassword");
+            }
+
+            user.PasswordHash = _passwordHasher.HashPassword(newPassword);
+            user.ModifiedDate = DateTime.Now;
+            user.IsPasswordChanged = true;
+
+            resetToken.IsUsed = true;
+            resetToken.UsedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Your password has been reset successfully. Please log in with your new password.";
+            return RedirectToAction("Login");
+        }
+
+        // ============================================
+        // HELPERS
+        // ============================================
+        private static string GenerateSecureToken()
+        {
+            var bytes = new byte[32];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(bytes);
+            return Convert.ToBase64String(bytes)
+                .Replace("+", "-")
+                .Replace("/", "_")
+                .Replace("=", "");
+        }
+
+        private static bool IsValidPassword(string password)
+        {
+            return !string.IsNullOrEmpty(password) &&
+                   password.Length >= 8 &&
+                   password.Any(char.IsUpper) &&
+                   password.Any(char.IsDigit) &&
+                   password.Any(ch => !char.IsLetterOrDigit(ch));
+        }
+
         // ============================================
         // LOGOUT
         // ============================================
@@ -183,24 +300,17 @@ namespace NMB_HLabSys.Controllers
         // ============================================
         // ADMIN REGISTRATION
         // ============================================
-
-        // GET: Account/RegisterAdmin
         public IActionResult RegisterAdmin()
         {
             return View(new AdminRegistrationViewModel());
         }
 
-        // POST: Account/RegisterAdmin
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RegisterAdmin(AdminRegistrationViewModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
+            if (!ModelState.IsValid) return View(model);
 
-            // Verify admin setup code
             const string ADMIN_SETUP_CODE = "NMBADMIN2025";
 
             if (model.AdminSetupCode != ADMIN_SETUP_CODE)
@@ -211,7 +321,6 @@ namespace NMB_HLabSys.Controllers
 
             try
             {
-                // Check if email exists
                 var emailExists = await _context.Users.AnyAsync(u => u.Email == model.Email);
                 if (emailExists)
                 {
@@ -219,16 +328,12 @@ namespace NMB_HLabSys.Controllers
                     return View(model);
                 }
 
-                // Hash password
-                var passwordHash = _passwordHasher.HashPassword(model.Password);
-
-                // Create admin user
                 var user = new User
                 {
                     Name = model.FirstName.Trim(),
                     Surname = model.LastName.Trim(),
                     Email = model.Email.Trim().ToLower(),
-                    PasswordHash = passwordHash,
+                    PasswordHash = _passwordHasher.HashPassword(model.Password),
                     UserRole = "Admin",
                     IsActive = true,
                     IsPasswordChanged = true,

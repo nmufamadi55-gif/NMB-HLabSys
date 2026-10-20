@@ -1102,6 +1102,12 @@ namespace NMB_HLabSys.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> GenerateStockReport(ReportFilterViewModel filter)
         {
+            if (!ModelState.IsValid)
+            {
+                TempData["ErrorMessage"] = "Please ensure the dates are valid and not in the future.";
+                return RedirectToAction(nameof(Reports));
+            }
+
             try
             {
                 var bytes = await _service.GenerateStockReportAsync(filter);

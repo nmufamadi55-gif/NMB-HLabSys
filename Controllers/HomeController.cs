@@ -23,5 +23,10 @@ namespace NMB_HLabSys.Controllers
 
             return View();
         }
+
+        public IActionResult FAQs()
+        {
+            return View();
+        }
     }
 }

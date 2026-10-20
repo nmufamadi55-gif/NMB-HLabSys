@@ -101,30 +101,6 @@ namespace NMB_HLabSys.Migrations
                     b.ToTable("AuditLogs");
                 });
 
-            modelBuilder.Entity("NMB_HLabSys.Models.ConsentTestRequest", b =>
-                {
-                    b.Property<int>("ConsentTestRequestID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ConsentTestRequestID"));
-
-                    b.Property<int>("ConsentID")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("TestRequestID")
-                        .HasColumnType("int");
-
-                    b.HasKey("ConsentTestRequestID");
-
-                    b.HasIndex("ConsentID");
-
-                    b.ToTable("ConsentTestRequest");
-                });
-
             modelBuilder.Entity("NMB_HLabSys.Models.ConsentTestRequestAccess", b =>
                 {
                     b.Property<int>("ConsentTestRequestAccessID")
@@ -486,6 +462,41 @@ namespace NMB_HLabSys.Migrations
                     b.ToTable("OrderItems");
                 });
 
+            modelBuilder.Entity("NMB_HLabSys.Models.PasswordResetToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserID")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserID");
+
+                    b.ToTable("PasswordResetTokens");
+                });
+
             modelBuilder.Entity("NMB_HLabSys.Models.Patient", b =>
                 {
                     b.Property<int>("PatientID")
@@ -637,7 +648,6 @@ namespace NMB_HLabSys.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Notes")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -1186,7 +1196,8 @@ namespace NMB_HLabSys.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal?>("NumericValue")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<int>("RequestTestID")
                         .HasColumnType("int");
@@ -1369,27 +1380,16 @@ namespace NMB_HLabSys.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("NMB_HLabSys.Models.ConsentTestRequest", b =>
-                {
-                    b.HasOne("NMB_HLabSys.Models.PatientConsentManagement", "Consent")
-                        .WithMany("ConsentTestRequests")
-                        .HasForeignKey("ConsentID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Consent");
-                });
-
             modelBuilder.Entity("NMB_HLabSys.Models.ConsentTestRequestAccess", b =>
                 {
                     b.HasOne("NMB_HLabSys.Models.PatientConsentManagement", "PatientConsent")
-                        .WithMany()
+                        .WithMany("ConsentTestRequestAccesses")
                         .HasForeignKey("ConsentID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("NMB_HLabSys.Models.TestRequest", "TestRequest")
-                        .WithMany()
+                        .WithMany("ConsentTestRequestAccesses")
                         .HasForeignKey("RequestID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1471,6 +1471,17 @@ namespace NMB_HLabSys.Migrations
                     b.Navigation("Consumable");
 
                     b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("NMB_HLabSys.Models.PasswordResetToken", b =>
+                {
+                    b.HasOne("NMB_HLabSys.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("NMB_HLabSys.Models.Patient", b =>
@@ -1800,7 +1811,7 @@ namespace NMB_HLabSys.Migrations
 
             modelBuilder.Entity("NMB_HLabSys.Models.PatientConsentManagement", b =>
                 {
-                    b.Navigation("ConsentTestRequests");
+                    b.Navigation("ConsentTestRequestAccesses");
                 });
 
             modelBuilder.Entity("NMB_HLabSys.Models.PurchaseOrder", b =>
@@ -1832,6 +1843,8 @@ namespace NMB_HLabSys.Migrations
 
             modelBuilder.Entity("NMB_HLabSys.Models.TestRequest", b =>
                 {
+                    b.Navigation("ConsentTestRequestAccesses");
+
                     b.Navigation("RequestTestTypes");
 
                     b.Navigation("Samples");

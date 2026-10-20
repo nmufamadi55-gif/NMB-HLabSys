@@ -1,4 +1,100 @@
 ﻿@using Microsoft.AspNetCore.Http
+<style>
+    /* ═══ OVERRIDE DARK THEME TO MATCH OTHER SUBSYSTEMS ═══ */
+
+    /* Sidebar Background */
+    .app-sidebar {
+        background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFE 100%) !important;
+        border-right: 1px solid #E2E8F0 !important;
+        box-shadow: 2px 0 12px rgba(0,0,0,0.02) !important;
+    }
+
+    /* Brand Area */
+    .sidebar-brand {
+        border-bottom: 1px solid #E2E8F0 !important;
+        padding: 1.5rem 1.2rem !important;
+    }
+
+    .brand-icon {
+        background: transparent !important;
+        color: #032C7D !important;
+        font-size: 1.2rem !important;
+        box-shadow: none !important;
+    }
+
+    .brand-name {
+        color: #032C7D !important;
+        font-weight: 700 !important;
+        font-size: 1.2rem !important;
+    }
+
+    .brand-role {
+        color: #5A6E7A !important;
+        font-size: 0.7rem !important;
+        margin-top: 4px !important;
+    }
+
+    /* Nav Sections */
+    .nav-section-label {
+        color: #5A6E7A !important;
+        font-weight: 600 !important;
+        font-size: 0.65rem !important;
+        letter-spacing: 0.05em !important;
+    }
+
+    /* Nav Links */
+    .sidebar-nav a {
+        color: #1A2C3A !important;
+        font-weight: 500 !important;
+        font-size: 0.85rem !important;
+        border-radius: 12px !important;
+        margin: 0 0.8rem !important;
+        padding: 0.7rem 1.2rem !important;
+        transition: all 0.2s ease !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+        .sidebar-nav a i {
+            color: #5A6E7A !important;
+            width: 22px !important;
+            font-size: 1rem !important;
+            margin-right: 12px !important;
+            text-align: center !important;
+        }
+
+        /* Hover State */
+        .sidebar-nav a:hover {
+            background: #F1F5F9 !important;
+            color: #0841C9 !important;
+        }
+
+            .sidebar-nav a:hover i {
+                color: #0841C9 !important;
+            }
+
+        /* Active State */
+        .sidebar-nav a.active {
+            background: linear-gradient(135deg, #0841C9, #1D97F1) !important;
+            color: white !important;
+            box-shadow: 0 2px 8px rgba(8,65,201,0.25) !important;
+        }
+
+            .sidebar-nav a.active i {
+                color: white !important;
+            }
+
+    /* Footer */
+    .sidebar-footer {
+        border-top: 1px solid #E2E8F0 !important;
+        background: transparent !important;
+    }
+
+    .footer-note {
+        color: #5A6E7A !important;
+        font-size: 0.75rem !important;
+    }
+</style>
 @{
     var userName = Context.Session.GetString("UserName") ?? "Lab Manager";
     var roleLabel = "Laboratory Manager";
@@ -19,6 +115,7 @@
     <title>@pageTitle — NMB-HLabSys</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
@@ -103,9 +200,17 @@
         </div>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════════
+         CLIENT-SIDE VALIDATION SCRIPTS
+         Required for jQuery unobtrusive validation to run.
+         ═══════════════════════════════════════════════════════════ -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
+
     <script src="~/js/manager.js" asp-append-version="true"></script>
     <script>
-            (function () {
+            (function() {
                 var toggleBtn = document.getElementById('sidebar-toggle');
                 var sidebar = document.querySelector('.app-sidebar');
                 if (!toggleBtn || !sidebar) return;
@@ -116,12 +221,12 @@
                 window.addEventListener('resize', syncVisibility);
                 syncVisibility();
 
-                toggleBtn.addEventListener('click', function (e) {
+                toggleBtn.addEventListener('click', function(e) {
                     e.stopPropagation();
                     sidebar.classList.toggle('open');
                 });
 
-                document.addEventListener('click', function (e) {
+                document.addEventListener('click', function(e) {
                     if (window.innerWidth > 900) return;
                     if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
                         sidebar.classList.remove('open');

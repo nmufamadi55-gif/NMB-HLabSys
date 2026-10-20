@@ -14,6 +14,7 @@ namespace NMB_HLabSys.Data
         // Core tables
         public DbSet<User> Users { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
         public DbSet<LabTechnician> LabTechnicians { get; set; }
         public DbSet<Doctor> Doctors { get; set; }
         public DbSet<Patient> Patients { get; set; }

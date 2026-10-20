@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════
    NMB-HLabSys — Manager Design System
-   v1.0 — Phase 0 Foundation
+   v1.1 — Sidebar Landing Page Unification
    ═══════════════════════════════════════════════════════════ */
 
 /* ─── 1. Reset & Tokens ─── */
@@ -15,6 +15,9 @@
     --brand-500: #1D97F1;
     --brand-50: #EFF6FF;
     --brand-gradient: linear-gradient(135deg, #032C7D 0%, #0841C9 100%);
+    /* Landing Page Accents (For Sidebar) */
+    --accent-grad: linear-gradient(135deg, #2563EB 0%, #06B6D4 100%);
+    --accent-light: #3B82F6;
     /* Neutrals */
     --gray-50: #F8FAFC;
     --gray-100: #F1F5F9;
@@ -73,15 +76,18 @@ a {
 
 /* ─── 2. Layout Shell ─── */
 .app-shell {
-    display: grid;
-    grid-template-columns: var(--sidebar-w) 1fr;
+    display: flex;
     min-height: 100vh;
+    width: 100%;
 }
 
 .app-main {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    min-width: 0; /* allow content to shrink in grid */
+    min-height: 100vh;
+    margin-left: var(--sidebar-w); /* Pushes content right */
+    width: calc(100% - var(--sidebar-w));
 }
 
 .app-content {
@@ -91,36 +97,42 @@ a {
     width: 100%;
 }
 
-/* ─── 3. Sidebar ─── */
+/* ─── 3. Sidebar (Landing Page Style) ─── */
 .app-sidebar {
-    background: linear-gradient(180deg, #032C7D 0%, #052a6b 100%);
-    color: white;
+    background: #0F172A; /* Dark Slate from landing page */
+    color: #F8FAFC;
     display: flex;
     flex-direction: column;
     height: 100vh;
-    position: sticky;
+    position: fixed; /* Pins it perfectly to the left */
     top: 0;
+    left: 0;
+    width: var(--sidebar-w);
+    z-index: 1000;
     overflow-y: auto;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .sidebar-brand {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 1.25rem 1.25rem 1rem;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    margin-bottom: 0.75rem;
+    padding: 1.5rem 1.25rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 1rem;
 }
 
 .brand-icon {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255,255,255,0.15);
+    background: var(--accent-grad);
     border-radius: var(--radius-sm);
-    font-size: 1rem;
+    font-size: 1.1rem;
+    color: white;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
 }
 
 .brand-text {
@@ -128,15 +140,16 @@ a {
 }
 
 .brand-name {
-    font-size: 0.95rem;
+    font-size: 1.1rem;
     font-weight: 700;
-    letter-spacing: -0.01em;
+    color: #F8FAFC;
+    letter-spacing: -0.02em;
     line-height: 1.2;
 }
 
 .brand-role {
     font-size: 0.7rem;
-    color: rgba(255,255,255,0.65);
+    color: #94A3B8;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     margin-top: 2px;
@@ -148,16 +161,16 @@ a {
 }
 
 .nav-section {
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
 }
 
 .nav-section-label {
     font-size: 0.65rem;
-    font-weight: 600;
-    color: rgba(255,255,255,0.45);
+    font-weight: 700;
+    color: #64748B;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    padding: 0 0.75rem 0.4rem;
+    letter-spacing: 0.1em;
+    padding: 0 0.75rem 0.5rem;
 }
 
 .sidebar-nav ul {
@@ -170,34 +183,41 @@ a {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.6rem 0.75rem;
+    padding: 0.6rem 0.85rem;
     border-radius: var(--radius-sm);
-    color: rgba(255,255,255,0.82);
-    font-size: 0.85rem;
+    color: #CBD5E1;
+    font-size: 0.88rem;
     font-weight: 500;
-    text-decoration: none;
-    transition: all 0.15s ease;
+    transition: all 0.2s ease;
     margin-bottom: 2px;
+    text-decoration: none;
 }
 
     .sidebar-nav li a:hover {
-        background: rgba(255,255,255,0.08);
-        color: white;
+        background: rgba(255, 255, 255, 0.05);
+        color: #F8FAFC;
         text-decoration: none;
     }
 
     .sidebar-nav li a.active {
-        background: rgba(255,255,255,0.15);
-        color: white;
+        background: rgba(37, 99, 235, 0.15);
+        color: #F8FAFC;
         font-weight: 600;
-        box-shadow: inset 3px 0 0 #1D97F1;
+        border-left: 3px solid var(--accent-light);
     }
 
     .sidebar-nav li a i {
-        width: 18px;
+        width: 20px;
         text-align: center;
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         flex-shrink: 0;
+        color: #64748B;
+        transition: color 0.2s ease;
+    }
+
+    .sidebar-nav li a:hover i,
+    .sidebar-nav li a.active i {
+        color: var(--accent-light);
     }
 
     .sidebar-nav li a span {
@@ -205,16 +225,16 @@ a {
     }
 
 .sidebar-footer {
-    padding: 1rem 1.25rem;
-    border-top: 1px solid rgba(255,255,255,0.1);
+    padding: 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .footer-note {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.7rem;
-    color: rgba(255,255,255,0.55);
+    font-size: 0.75rem;
+    color: #64748B;
 }
 
 /* ─── 4. Header ─── */
@@ -1042,21 +1062,20 @@ td strong {
 
 /* ─── 19. Responsive ─── */
 @media (max-width: 900px) {
-    .app-shell {
-        grid-template-columns: 1fr;
-    }
-
     .app-sidebar {
-        position: fixed;
-        left: -100%;
-        width: var(--sidebar-w);
-        z-index: 1000;
-        transition: left 0.2s ease;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        box-shadow: 10px 0 30px rgba(0,0,0,0.5);
     }
 
         .app-sidebar.open {
-            left: 0;
+            transform: translateX(0);
         }
+
+    .app-main {
+        margin-left: 0;
+        width: 100%;
+    }
 
     .app-content {
         padding: 1.25rem 1rem 2rem;
