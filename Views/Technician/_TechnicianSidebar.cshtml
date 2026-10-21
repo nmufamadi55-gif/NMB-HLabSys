@@ -1,9 +1,13 @@
 @model string
+<li class="tech-sidebar-label">Overview</li>
 <li><a class="@(Model == "Dashboard" ? "active" : "")" asp-action="Dashboard"><i class="fas fa-chart-line"></i><span>Dashboard</span></a></li>
+<li class="tech-sidebar-label">Test operations</li>
 <li><a class="@(Model == "ReceiveSamples" ? "active" : "")" asp-action="ReceiveSamples"><i class="fas fa-box-open"></i><span>Receive Samples</span></a></li>
 <li><a class="@(Model == "PerformTests" ? "active" : "")" asp-action="PerformTests"><i class="fas fa-vial"></i><span>Perform Tests</span></a></li>
 <li><a class="@(Model == "Verification" ? "active" : "")" asp-action="Verification"><i class="fas fa-check-double"></i><span>Verification</span></a></li>
+<li class="tech-sidebar-label">Analytics</li>
 <li><a class="@(Model == "Reports" ? "active" : "")" asp-action="Reports"><i class="fas fa-file-pdf"></i><span>Reports</span></a></li>
+<li class="tech-sidebar-label">Account</li>
 <li><a class="@(Model == "Help" ? "active" : "")" asp-action="Help"><i class="fas fa-circle-question"></i><span>Help &amp; FAQ</span></a></li>
 <li><a class="@(Model == "Profile" ? "active" : "")" asp-action="Profile"><i class="fas fa-user-gear"></i><span>My Profile</span></a></li>
 <li class="tech-nav-divider"></li>
