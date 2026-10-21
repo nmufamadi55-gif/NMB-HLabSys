@@ -2,12 +2,14 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "My Profile";
     ViewData["RoleSubtitle"] = "Doctor Portal";
-    ViewData["UserGreeting"] = "Profile";
+    ViewData["UserGreeting"] = "Profile";        
 
-    var userName = ViewBag.UserName as string ?? "Doctor";
+
+    var doctorName = ViewBag.DoctorName as string ?? "Doctor";
+    var userName = ViewBag.UserName as string ?? doctorName;
     var userEmail = ViewBag.UserEmail as string ?? "";
     var initials = ViewBag.UserInitials as string ?? "DR";
-    var greeting = ViewBag.UserGreeting as string ?? userName;
+    var greeting = doctorName;                 
     var contact = ViewBag.ContactNumber as string ?? "";
     var hpcsa = ViewBag.HPCSANumber as string ?? "—";
     var specialization = ViewBag.Specialization as string ?? "—";
@@ -18,6 +20,7 @@
     var registeredDate = ViewBag.RegisteredDate as DateTime?;
     var createdDate = ViewBag.CreatedDate as DateTime?;
     var lastModified = ViewBag.LastModified as DateTime?;
+
 
     var nameParts = userName.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
     var firstName = nameParts.Length > 0 ? nameParts[0] : "";

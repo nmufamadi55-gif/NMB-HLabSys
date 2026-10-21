@@ -4,7 +4,7 @@
     ViewData["Title"] = "Doctor Dashboard";
     ViewData["RoleSubtitle"] = "Doctor Portal";
     ViewData["UserGreeting"] = "Overview of your practice";
-    
+    ViewData["UserSubtitle"] = "Here's what's happening with your test requests";
 
     var doctorName = ViewBag.DoctorName as string ?? "Doctor";
 }
@@ -231,22 +231,21 @@
                 font-size: 1.8rem;
                 font-weight: 800;
                 margin: 0 0 0.15rem;
-                color: #0841C9; /* default: blue */
+                color: #0841C9;
                 letter-spacing: -0.02em;
             }
 
             .monthly-stat.completed h4 {
                 color: #10B981;
             }
-            /* green */
+
             .monthly-stat.abnormal h4 {
                 color: #DC2626;
             }
-            /* red */
+
             .monthly-stat.pending h4 {
                 color: #F59E0B;
             }
-            /* amber */
 
             .monthly-stat p {
                 margin: 0;
@@ -258,6 +257,11 @@
             }
 
         /* ─── RECENT TABLE ─── */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -334,7 +338,6 @@
             color: #991B1B;
         }
 
-        /* ─── IMPROVEMENT: Appointment Requested badge with stronger contrast ─── */
         .badge-appointment {
             background: #FDE68A;
             color: #92400E;
@@ -434,11 +437,10 @@
             border-left: 4px solid #10B981;
         }
 
-        /* ─── IMPROVEMENT: Button row vertically centered with welcome text ─── */
         .welcome-row {
             display: flex;
             justify-content: space-between;
-            align-items: center; /* was flex-end */
+            align-items: center;
             gap: 1rem;
             flex-wrap: wrap;
             margin-bottom: 1.2rem;
@@ -500,39 +502,34 @@
                 color: #1A2C3A;
             }
 
-        media (max-width: 1100px) {
-            .kpi-row
+        /* ─── RESPONSIVE FIXES ─── */
+        @@media (max-width: 1200px) {
+            .kpi-row {
+                grid-template-columns: 1fr 1fr;
+            }
 
-        {
-            grid-template-columns: 1fr 1fr;
+            .monthly-grid {
+                grid-template-columns: 1fr 1fr;
+            }
         }
 
-        .monthly-grid {
-            grid-template-columns: 1fr 1fr;
-        }
+        @@media (max-width: 600px) {
+            .kpi-row {
+                grid-template-columns: 1fr;
+            }
 
-        }
+            .monthly-grid {
+                grid-template-columns: 1fr 1fr;
+            }
 
-        media (max-width: 600px) {
-            .kpi-row
+            .kpi-value {
+                font-size: 1.6rem;
+            }
 
-        {
-            grid-template-columns: 1fr;
-        }
-
-        .monthly-grid {
-            grid-template-columns: 1fr 1fr;
-        }
-
-        .kpi-value {
-            font-size: 1.6rem;
-        }
-
-        .welcome-row {
-            flex-direction: column;
-            align-items: stretch;
-        }
-
+            .welcome-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
         }
     </style>
 }
@@ -668,54 +665,56 @@
     }
     else
     {
-        <table>
-            <thead>
-                <tr>
-                    <th>Request #</th>
-                    <th>Patient</th>
-                    <th>Date</th>
-                    <th>Urgency</th>
-                    <th>Status</th>
-                    <th style="width:110px;">Progress</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var r in Model.RecentRequests)
-                {
-                    var statusClass = r.Status == "In Progress" ? "badge-progress"
-                    : r.Status == "Completed" ? "badge-completed"
-                    : r.Status == "Verified" ? "badge-verified"
-                    : r.Status == "Released" ? "badge-released"
-                    : r.Status == "Appointment Requested" ? "badge-appointment"
-                    : r.Status == "Cancelled" ? "badge-cancelled"
-                    : "badge-submitted";
-
-                    var urgencyClass = r.Urgency == "stat" ? "priority-stat"
-                    : r.Urgency == "urgent" ? "priority-urgent"
-                    : "priority-routine";
-
+        <div class="table-responsive">
+            <table style="min-width: 700px;">
+                <thead>
                     <tr>
-                        <td><span class="req-num">@r.RequestNumber</span></td>
-                        <td>@r.PatientName</td>
-                        <td>@r.RequestDate.ToString("yyyy-MM-dd HH:mm")</td>
-                        <td><span class="@urgencyClass">@r.Urgency.ToUpper()</span></td>
-                        <td><span class="badge @statusClass">@r.Status</span></td>
-                        <td class="progress-cell">
-                            <div class="progress-track">
-                                <div class="progress-fill" style="width:@r.Progress%"></div>
-                            </div>
-                        </td>
-                        <td>
-                            <a asp-action="TestRequestDetails" asp-route-id="@r.RequestID"
-                               class="btn btn-outline"
-                               style="padding:0.3rem 0.8rem; font-size:0.72rem;">
-                                View
-                            </a>
-                        </td>
+                        <th>Request #</th>
+                        <th>Patient</th>
+                        <th>Date</th>
+                        <th>Urgency</th>
+                        <th>Status</th>
+                        <th style="width:110px;">Progress</th>
+                        <th></th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model.RecentRequests)
+                    {
+                        var statusClass = r.Status == "In Progress" ? "badge-progress"
+                        : r.Status == "Completed" ? "badge-completed"
+                        : r.Status == "Verified" ? "badge-verified"
+                        : r.Status == "Released" ? "badge-released"
+                        : r.Status == "Appointment Requested" ? "badge-appointment"
+                        : r.Status == "Cancelled" ? "badge-cancelled"
+                        : "badge-submitted";
+
+                        var urgencyClass = r.Urgency == "stat" ? "priority-stat"
+                        : r.Urgency == "urgent" ? "priority-urgent"
+                        : "priority-routine";
+
+                        <tr>
+                            <td><span class="req-num">@r.RequestNumber</span></td>
+                            <td>@r.PatientName</td>
+                            <td>@r.RequestDate.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td><span class="@urgencyClass">@r.Urgency.ToUpper()</span></td>
+                            <td><span class="badge @statusClass">@r.Status</span></td>
+                            <td class="progress-cell">
+                                <div class="progress-track">
+                                    <div class="progress-fill" style="width:@r.Progress%"></div>
+                                </div>
+                            </td>
+                            <td>
+                                <a asp-action="TestRequestDetails" asp-route-id="@r.RequestID"
+                                   class="btn btn-outline"
+                                   style="padding:0.3rem 0.8rem; font-size:0.72rem;">
+                                    View
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     }
 </div>

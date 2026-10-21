@@ -29,7 +29,6 @@
                 var currentRole = Context.Session.GetString("UserRole") ?? "";
                 var isDoctor = string.Equals(currentRole, "Doctor", StringComparison.OrdinalIgnoreCase);
 
-                // Derive initials from session name — works on every page
                 var sessionName = Context.Session.GetString("UserName") ?? "";
                 var nameParts = sessionName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 var derivedInitials =
@@ -275,7 +274,7 @@
                 display: flex;
                 align-items: center;
                 gap: 12px;
-                padding: 0.7rem 1.2rem 0.7rem 1.5rem; 
+                padding: 0.7rem 1.2rem 0.7rem 1.5rem;
                 margin: 0 0.8rem;
                 color: #1A2C3A;
                 text-decoration: none;
@@ -314,13 +313,14 @@
             flex: 1;
             margin-left: 280px;
             padding: 1.2rem;
+            min-width: 0;
         }
 
         /* ─── DEFAULT HEADER (non-Doctor) ─── */
         .header-glass {
             background: white;
             border-radius: 16px;
-            padding: 0.8rem 1.5rem; 
+            padding: 0.8rem 1.5rem;
             margin-bottom: 1.2rem;
             display: flex;
             justify-content: space-between;
@@ -379,8 +379,8 @@
                     background: rgba(255, 255, 255, 0.18);
                     color: #ffffff;
                     border: 1px solid rgba(255, 255, 255, 0.3);
-                    padding: 0.35rem 0.9rem; /* slightly tighter than default */
-                    font-size: 0.72rem; /* slightly smaller so it doesn't compete with the title */
+                    padding: 0.35rem 0.9rem;
+                    font-size: 0.72rem;
                 }
 
                     .header-glass.header-glass-doctor .logout-pill:hover,
@@ -388,19 +388,6 @@
                         background: rgba(255, 255, 255, 0.28);
                         color: #ffffff;
                     }
-
-        media (max-width: 600px) {
-            .header-glass.header-glass-doctor .greeting-title
-
-        {
-            font-size: 1.05rem;
-        }
-
-        .header-glass.header-glass-doctor .greeting-subtitle {
-            font-size: 0.72rem;
-        }
-
-        }
 
         .flex-between {
             display: flex;
@@ -603,28 +590,50 @@
                 background: #991B1B;
             }
 
-        media (max-width: 768px) {
-            .sidebar-lab
+        /* ========== RESPONSIVE FIXES ========== */
 
-        {
-            transform: translateX(-100%);
-            position: fixed;
-            transition: transform 0.3s ease;
-            z-index: 1000;
+        /* 1. Collapse sidebar earlier when window shrinks */
+        @@media (max-width: 1024px) {
+            .sidebar-lab {
+                transform: translateX(-100%);
+                position: fixed;
+                transition: transform 0.3s ease;
+                z-index: 1000;
+            }
+
+                .sidebar-lab.mobile-open {
+                    transform: translateX(0);
+                }
+
+            .main-panel {
+                margin-left: 0;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
         }
 
-        .sidebar-lab.mobile-open {
-            transform: translateX(0);
-        }
+        /* 2. Doctor header text size reduction */
+        @@media (max-width: 600px) {
+            .header-glass.header-glass-doctor .greeting-title {
+                font-size: 1.05rem;
+            }
 
-        .main-panel {
-            margin-left: 0;
-        }
+            .header-glass.header-glass-doctor .greeting-subtitle {
+                font-size: 0.72rem;
+            }
 
-        .menu-toggle {
-            display: block;
-        }
+            .header-glass .flex-between {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
 
+            .user-tag {
+                width: 100%;
+                justify-content: flex-end;
+            }
         }
 
         .sidebar-lab::-webkit-scrollbar {

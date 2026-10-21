@@ -39,7 +39,7 @@ namespace NMB_HLabSys.Services
         }
 
         // ═══════════════════════════════════════════════════════════
-        // DASHBOARD
+        // DASHBOARD — OWN requests only
         // ═══════════════════════════════════════════════════════════
 
         public async Task<DoctorDashboardViewModel> GetDashboardDataAsync(int doctorId)
@@ -144,7 +144,7 @@ namespace NMB_HLabSys.Services
         }
 
         // ═══════════════════════════════════════════════════════════
-        // TEST REQUESTS
+        // TEST REQUESTS — OWN requests only
         // ═══════════════════════════════════════════════════════════
 
         public async Task<TestRequestIndexViewModel> GetTestRequestsAsync(int doctorId, TestRequestFilterViewModel filter)
@@ -275,13 +275,8 @@ namespace NMB_HLabSys.Services
             };
         }
 
-        /// <summary>
-        /// Creates a test request using the barcodes TYPED BY THE DOCTOR from
-        /// the physical tube labels. One barcode per SampleType required.
-        /// </summary>
         public async Task<TestRequest> CreateTestRequestAsync(CreateTestRequestViewModel model, int doctorId)
         {
-            // ─── Basic validation ───
             if (model.PatientID <= 0)
                 throw new InvalidOperationException("Please select a patient.");
 
@@ -292,7 +287,6 @@ namespace NMB_HLabSys.Services
             if (!patientExists)
                 throw new InvalidOperationException("Selected patient not found.");
 
-            // ─── Resolve test types + required sample types ───
             var selectedTestIds = model.SelectedTestTypeIDs.Distinct().ToList();
 
             var testTypes = await _context.TestTypes
@@ -312,7 +306,6 @@ namespace NMB_HLabSys.Services
                 })
                 .ToList();
 
-            // ─── Validate barcodes were provided for every sample type ───
             model.BarcodeOverrides ??= new Dictionary<int, string>();
 
             foreach (var sg in sampleGroups)
@@ -329,11 +322,9 @@ namespace NMB_HLabSys.Services
                 .Select(sg => model.BarcodeOverrides[sg.SampleTypeID].Trim())
                 .ToList();
 
-            // ─── Duplicate check within this submission ───
             if (submittedBarcodes.Count != submittedBarcodes.Distinct(StringComparer.OrdinalIgnoreCase).Count())
                 throw new InvalidOperationException("Duplicate barcodes detected. Each sample must have a unique barcode.");
 
-            // ─── Validate barcode FORMAT (mirror of client-side regex) ───
             var barcodeRegex = new System.Text.RegularExpressions.Regex(@"^BAR-\d{8}-[A-Z0-9]{6}$");
             foreach (var bc in submittedBarcodes)
             {
@@ -342,7 +333,6 @@ namespace NMB_HLabSys.Services
                         $"Barcode '{bc}' has an invalid format. Expected: BAR-YYYYMMDD-XXXXXX");
             }
 
-            // ─── Duplicate check against DB ───
             var existingBarcodes = await _context.Samples
                 .Where(s => submittedBarcodes.Contains(s.Barcode))
                 .Select(s => s.Barcode)
@@ -352,7 +342,6 @@ namespace NMB_HLabSys.Services
                 throw new InvalidOperationException(
                     $"These barcodes are already in use: {string.Join(", ", existingBarcodes)}");
 
-            // ─── Create the request inside a transaction ───
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -372,7 +361,6 @@ namespace NMB_HLabSys.Services
                 _context.TestRequests.Add(testRequest);
                 await _context.SaveChangesAsync();
 
-                // Link test types
                 foreach (var testTypeId in selectedTestIds)
                 {
                     _context.RequestTestTypes.Add(new RequestTestType
@@ -383,7 +371,6 @@ namespace NMB_HLabSys.Services
                     });
                 }
 
-                // Create one Sample per distinct SampleType using the doctor-typed barcode
                 foreach (var sg in sampleGroups)
                 {
                     _context.Samples.Add(new Sample
@@ -403,7 +390,6 @@ namespace NMB_HLabSys.Services
                     "Test request {RequestNumber} created by doctor {DoctorId} with {SampleCount} sample(s)",
                     testRequest.RequestNumber, doctorId, sampleGroups.Count);
 
-                // ─── Notify patient via email (best effort) ───
                 try
                 {
                     var patient = await _context.Patients
@@ -472,7 +458,6 @@ namespace NMB_HLabSys.Services
 
         public async Task<bool> CancelTestRequestAsync(int requestId, string reason)
         {
-            // ─── Validate reason length (mirror of client-side check) ───
             if (string.IsNullOrWhiteSpace(reason) || reason.Trim().Length < 10)
                 throw new InvalidOperationException(
                     "Please provide a cancellation reason of at least 10 characters.");
@@ -527,7 +512,7 @@ namespace NMB_HLabSys.Services
         }
 
         // ═══════════════════════════════════════════════════════════
-        // PATIENTS
+        // PATIENTS — derived from OWN requests only
         // ═══════════════════════════════════════════════════════════
 
         public async Task<PatientIndexViewModel> GetPatientsAsync(int doctorId, string? searchTerm = null)
@@ -597,7 +582,6 @@ namespace NMB_HLabSys.Services
 
         public async Task<Patient> RegisterPatientAsync(RegisterPatientViewModel model, int doctorId)
         {
-            // ═══════════ UNIQUENESS CHECKS ═══════════
             if (await _context.Patients.AnyAsync(p => p.SAIDNumber == model.SAIDNumber))
                 throw new InvalidOperationException($"A patient with SA ID {model.SAIDNumber} already exists.");
 
@@ -608,7 +592,6 @@ namespace NMB_HLabSys.Services
             if (await _context.Users.AnyAsync(u => u.Email == resolvedEmail))
                 throw new InvalidOperationException($"A user with email {resolvedEmail} already exists.");
 
-            // ═══════════ SANITIZE INPUTS ═══════════
             var contactNumber = (model.Cellphone ?? "").Trim();
             if (contactNumber.Length > 20) contactNumber = contactNumber.Substring(0, 20);
 
@@ -621,7 +604,6 @@ namespace NMB_HLabSys.Services
                     .Select(s => s.Trim()));
             if (homeAddress.Length > 500) homeAddress = homeAddress.Substring(0, 500);
 
-            // ═══════════ CREATE USER ═══════════
             var tempPassword = _passwordGenerator.GenerateTemporaryPassword();
             var hashedPassword = _passwordHasher.HashPassword(tempPassword);
 
@@ -641,7 +623,6 @@ namespace NMB_HLabSys.Services
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            // ═══════════ CREATE PATIENT ═══════════
             var patient = new Patient
             {
                 UserID = user.UserID,
@@ -659,7 +640,6 @@ namespace NMB_HLabSys.Services
             _context.Patients.Add(patient);
             await _context.SaveChangesAsync();
 
-            // ═══════════ LINK CONDITIONS ═══════════
             foreach (var cid in model.SelectedConditionIDs.Distinct())
             {
                 _context.PatientConditions.Add(new PatientCondition
@@ -673,7 +653,6 @@ namespace NMB_HLabSys.Services
                 });
             }
 
-            // ═══════════ LINK ALLERGIES ═══════════
             foreach (var aid in model.SelectedAllergyIDs.Distinct())
             {
                 _context.PatientAllergies.Add(new PatientAllergy
@@ -686,7 +665,6 @@ namespace NMB_HLabSys.Services
                 });
             }
 
-            // ═══════════ LINK MEDICATIONS ═══════════
             foreach (var mid in model.SelectedMedicationIDs.Distinct())
             {
                 _context.PatientMedications.Add(new PatientMedication
@@ -704,7 +682,6 @@ namespace NMB_HLabSys.Services
 
             await _context.SaveChangesAsync();
 
-            // ═══════════ WELCOME EMAIL (best effort) ═══════════
             try
             {
                 await _emailService.SendPatientWelcomeEmailAsync(
@@ -719,6 +696,11 @@ namespace NMB_HLabSys.Services
 
             return patient;
         }
+
+        // ═══════════════════════════════════════════════════════════
+        // PATIENT MEDICAL INFO — own ∪ consent-shared
+        // (This is the ONLY method that uses the consent whitelist.)
+        // ═══════════════════════════════════════════════════════════
 
         public async Task<PatientMedicalInfoViewModel> GetPatientMedicalInfoAsync(int patientId, int? requestingDoctorId = null)
         {
@@ -745,8 +727,8 @@ namespace NMB_HLabSys.Services
             }
 
             // ─── CONSENT FILTER ───
-            // If a doctor is asking, only show requests this patient has explicitly shared with them.
-            // If no doctor context (e.g. patient viewing own data), show everything.
+            // Doctors see (a) their own requests for this patient, and
+            // (b) any requests the patient has explicitly shared via consent.
             List<int> allowedRequestIds = new();
             var enforceConsent = requestingDoctorId.HasValue;
 
@@ -768,7 +750,9 @@ namespace NMB_HLabSys.Services
             }
 
             var visibleRequests = enforceConsent
-                ? patient.TestRequests.Where(r => allowedRequestIds.Contains(r.RequestID))
+                ? patient.TestRequests.Where(r =>
+                    r.DoctorID == requestingDoctorId!.Value ||
+                    allowedRequestIds.Contains(r.RequestID))
                 : patient.TestRequests;
 
             return new PatientMedicalInfoViewModel
@@ -827,6 +811,7 @@ namespace NMB_HLabSys.Services
                     }).ToList()
             };
         }
+
         public async Task<PatientMedicalInfoViewModel?> FindPatientBySAIDAsync(string saIdNumber)
         {
             if (string.IsNullOrWhiteSpace(saIdNumber)) return null;
@@ -868,7 +853,7 @@ namespace NMB_HLabSys.Services
         }
 
         // ═══════════════════════════════════════════════════════════
-        // RESULTS
+        // RESULTS — OWN requests only
         // ═══════════════════════════════════════════════════════════
 
         public async Task<ResultsIndexViewModel> GetResultsAsync(int doctorId, ResultsFilterViewModel filter)
@@ -908,6 +893,29 @@ namespace NMB_HLabSys.Services
                 .AsNoTracking()
                 .ToListAsync();
 
+            var baseRequests = _context.TestRequests
+                .Where(r => r.DoctorID == doctorId && r.Status != "Cancelled");
+
+            var totalRequests = await baseRequests.CountAsync();
+            var released = await baseRequests.CountAsync(r => r.ReleasedToPatientDate != null);
+            var appointmentRequested = await baseRequests
+                .CountAsync(r => r.ReleasedToPatientDate == null && r.AppointmentRequestedDate != null);
+            var pendingRelease = await baseRequests
+                .CountAsync(r => r.ReleasedToPatientDate == null && r.AppointmentRequestedDate == null);
+
+            var totalResults = await _context.TestResults
+                .Where(r => r.RequestTestType != null &&
+                            r.RequestTestType.TestRequest != null &&
+                            r.RequestTestType.TestRequest.DoctorID == doctorId)
+                .CountAsync();
+
+            var abnormalResults = await _context.TestResults
+                .Where(r => r.IsAbnormal &&
+                            r.RequestTestType != null &&
+                            r.RequestTestType.TestRequest != null &&
+                            r.RequestTestType.TestRequest.DoctorID == doctorId)
+                .CountAsync();
+
             return new ResultsIndexViewModel
             {
                 Results = results.Select(r => new ResultGroupViewModel
@@ -945,24 +953,12 @@ namespace NMB_HLabSys.Services
 
                 Statistics = new ResultsStatisticsViewModel
                 {
-                    TotalResults = await _context.TestResults
-                        .Where(r => r.RequestTestType != null &&
-                                    r.RequestTestType.TestRequest != null &&
-                                    r.RequestTestType.TestRequest.DoctorID == doctorId)
-                        .CountAsync(),
-
-                    AbnormalResults = await _context.TestResults
-                        .Where(r => r.IsAbnormal &&
-                                    r.RequestTestType != null &&
-                                    r.RequestTestType.TestRequest != null &&
-                                    r.RequestTestType.TestRequest.DoctorID == doctorId)
-                        .CountAsync(),
-
-                    PendingRelease = await _context.TestRequests
-                        .Where(r => r.DoctorID == doctorId &&
-                                    r.ReleasedToPatientDate == null &&
-                                    r.Status != "Cancelled")
-                        .CountAsync()
+                    TotalResults = totalResults,
+                    AbnormalResults = abnormalResults,
+                    TotalRequests = totalRequests,
+                    PendingRelease = pendingRelease,
+                    AppointmentRequested = appointmentRequested,
+                    Released = released
                 }
             };
         }
@@ -1037,9 +1033,10 @@ namespace NMB_HLabSys.Services
             if (result?.RequestTestType?.TestRequest == null) return false;
 
             var request = result.RequestTestType.TestRequest;
+
+            // Owner only — consent grants view-only, not release.
             if (request.DoctorID != doctorId) return false;
 
-            // ─── Capture prior state so we don't double-email on repeat POSTs ───
             var alreadyReleased = request.ReleasedToPatientDate.HasValue;
             var wasAppointmentRequested = request.AppointmentRequestedDate.HasValue;
 
@@ -1059,7 +1056,6 @@ namespace NMB_HLabSys.Services
 
             await _context.SaveChangesAsync();
 
-            // ─── Only email when the state actually changed ───
             var shouldSendEmail =
                 (releaseMethod == "appointment" && !wasAppointmentRequested) ||
                 (releaseMethod != "appointment" && !alreadyReleased);
@@ -1087,7 +1083,6 @@ namespace NMB_HLabSys.Services
                         }
                         else
                         {
-                            // Collect every result in this request for the summary table
                             var emailResults = request.RequestTestTypes?
                                 .SelectMany(rt => rt.TestResults ?? new List<TestResult>())
                                 .Select(t =>
@@ -1129,7 +1124,7 @@ namespace NMB_HLabSys.Services
         }
 
         // ═══════════════════════════════════════════════════════════
-        // ALERTS
+        // ALERTS — OWN requests only
         // ═══════════════════════════════════════════════════════════
 
         public async Task<AlertsIndexViewModel> GetAlertsAsync(int doctorId, AlertsFilterViewModel filter)
@@ -1233,7 +1228,7 @@ namespace NMB_HLabSys.Services
         }
 
         // ═══════════════════════════════════════════════════════════
-        // REPORTS
+        // REPORTS — OWN requests only
         // ═══════════════════════════════════════════════════════════
 
         public async Task<byte[]> GenerateReportAsync(int doctorId, DoctorReportFilterViewModel filter)

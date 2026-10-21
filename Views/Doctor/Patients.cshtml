@@ -62,17 +62,9 @@
             flex-shrink: 0;
         }
 
-            .stat-icon.blue {
-                background: linear-gradient(135deg, #0841C9, #1D97F1);
-            }
-
-            .stat-icon.green {
-                background: linear-gradient(135deg, #10B981, #059669);
-            }
-
-            .stat-icon.amber {
-                background: linear-gradient(135deg, #F59E0B, #D97706);
-            }
+            .stat-icon.blue { background: linear-gradient(135deg, #0841C9, #1D97F1); }
+            .stat-icon.green { background: linear-gradient(135deg, #10B981, #059669); }
+            .stat-icon.amber { background: linear-gradient(135deg, #F59E0B, #D97706); }
 
         .stat-text h3 {
             font-size: 1.5rem;
@@ -131,36 +123,17 @@
             white-space: nowrap;
         }
 
-        .btn-primary {
-            background: #0841C9;
-            color: white;
+        .btn-primary { background: #0841C9; color: white; }
+        .btn-primary:hover { background: #032C7D; color: white; }
+        .btn-success { background: #10B981; color: white; }
+        .btn-success:hover { background: #059669; color: white; }
+        .btn-outline { background: transparent; border: 1px solid #E2E8F0; color: #1A2C3A; }
+        .btn-outline:hover { background: #F1F5F9; color: #1A2C3A; }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
         }
-
-            .btn-primary:hover {
-                background: #032C7D;
-                color: white;
-            }
-
-        .btn-success {
-            background: #10B981;
-            color: white;
-        }
-
-            .btn-success:hover {
-                background: #059669;
-                color: white;
-            }
-
-        .btn-outline {
-            background: transparent;
-            border: 1px solid #E2E8F0;
-            color: #1A2C3A;
-        }
-
-            .btn-outline:hover {
-                background: #F1F5F9;
-                color: #1A2C3A;
-            }
 
         table {
             width: 100%;
@@ -183,22 +156,12 @@
             letter-spacing: 0.04em;
         }
 
-        tr:hover {
-            background: #F8FAFE;
-        }
+        tr:hover { background: #F8FAFE; }
 
         .patient-name {
             font-weight: 700;
             color: #032C7D;
         }
-
-            .patient-name small {
-                display: block;
-                font-weight: 400;
-                color: #5A6E7A;
-                font-size: 0.72rem;
-                margin-top: 0.15rem;
-            }
 
         .medical-tag {
             display: inline-block;
@@ -209,37 +172,10 @@
             font-weight: 500;
         }
 
-        .tag-condition {
-            background: #FEF3C7;
-            color: #92400E;
-        }
-
-        .tag-allergy {
-            background: #FEE2E2;
-            color: #991B1B;
-        }
-
-        .tag-medication {
-            background: #D1FAE5;
-            color: #065F46;
-        }
-
-        .tag-none {
-            background: #F1F5F9;
-            color: #94A3B8;
-            font-style: italic;
-        }
-
-        .medical-tag.tag-more {
-            background: #E0E7FF;
-            color: #3730A3;
-            cursor: help;
-            font-weight: 600;
-        }
-
-            .medical-tag.tag-more:hover {
-                background: #C7D2FE;
-            }
+        .tag-condition { background: #FEF3C7; color: #92400E; }
+        .tag-allergy { background: #FEE2E2; color: #991B1B; }
+        .tag-none { background: #F1F5F9; color: #94A3B8; font-style: italic; }
+        .medical-tag.tag-more { background: #E0E7FF; color: #3730A3; cursor: help; font-weight: 600; }
 
         .row-actions {
             display: flex;
@@ -251,25 +187,8 @@
                 font-size: 0.72rem;
             }
 
-        .alert-success {
-            padding: 0.8rem 1rem;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            font-size: 0.85rem;
-            background: #D1FAE5;
-            color: #065F46;
-            border-left: 4px solid #10B981;
-        }
-
-        .alert-danger {
-            padding: 0.8rem 1rem;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            font-size: 0.85rem;
-            background: #FEE2E2;
-            color: #991B1B;
-            border-left: 4px solid #DC2626;
-        }
+        .alert-success { padding: 0.8rem 1rem; border-radius: 10px; margin-bottom: 1rem; font-size: 0.85rem; background: #D1FAE5; color: #065F46; border-left: 4px solid #10B981; }
+        .alert-danger { padding: 0.8rem 1rem; border-radius: 10px; margin-bottom: 1rem; font-size: 0.85rem; background: #FEE2E2; color: #991B1B; border-left: 4px solid #DC2626; }
 
         .empty-state {
             text-align: center;
@@ -284,25 +203,16 @@
                 display: block;
             }
 
-            .empty-state h3 {
-                font-size: 1.1rem;
-                color: #5A6E7A;
-                margin: 0 0 0.3rem;
-            }
+        /* ─── RESPONSIVE FIXES ─── */
+        @@media (max-width: 1200px) {
+            .stats-row { grid-template-columns: 1fr 1fr; }
+        }
 
-            .empty-state p {
-                font-size: 0.85rem;
-                margin: 0 0 1rem;
-            }
-
-        @@media (max-width: 900px) {
-            .stats-row {
-                grid-template-columns: 1fr;
-            }
-
-            table {
-                font-size: 0.78rem;
-            }
+        @@media (max-width: 600px) {
+            .stats-row { grid-template-columns: 1fr; }
+            .filter-bar { flex-direction: column; align-items: stretch; }
+            .filter-input { width: 100%; }
+            .filter-bar .btn { width: 100%; justify-content: center; margin-left: 0 !important; }
         }
     </style>
 }
@@ -316,7 +226,6 @@
     <div class="alert-danger">@TempData["ErrorMessage"]</div>
 }
 
-<!-- ─── STATS ─── -->
 <div class="stats-row">
     <div class="stat-box">
         <div class="stat-icon blue"><i class="fas fa-users"></i></div>
@@ -341,7 +250,6 @@
     </div>
 </div>
 
-<!-- ─── FILTER + ACTION BAR ─── -->
 <div class="panel">
     <form method="get" asp-action="Patients" class="filter-bar">
         <input type="text" name="searchTerm" class="filter-input" maxlength="100"
@@ -374,85 +282,87 @@
     }
     else
     {
-        <table>
-            <thead>
-                <tr>
-                    <th>Patient</th>
-                    <th>SA ID</th>
-                    <th>Date of Birth</th>
-                    <th>Contact</th>
-                    <th>Medical Flags</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var p in Model.Patients)
-                {
+        <div class="table-responsive">
+            <table style="min-width: 800px;">
+                <thead>
                     <tr>
-                        <td>
-                            <div class="patient-name">
-                                @p.FullName
-                            </div>
-                        </td>
-                        <td>@p.SAIDNumber</td>
-                        <td>@p.DateOfBirth.ToString("yyyy-MM-dd")</td>
-                        <td>@(string.IsNullOrEmpty(p.Cellphone) ? "—" : p.Cellphone)</td>
-                        <td>
-                            @{
-                                var allFlags = new List<(string Name, string CssClass)>();
-                                if (p.Conditions != null)
-                                {
-                                    foreach (var c in p.Conditions)
-                                        allFlags.Add((c, "tag-condition"));
-                                }
-                                if (p.Allergies != null)
-                                {
-                                    foreach (var a in p.Allergies)
-                                        allFlags.Add((a, "tag-allergy"));
-                                }
-
-                                var maxVisible = 3;
-                                var visible = allFlags.Take(maxVisible).ToList();
-                                var hidden = allFlags.Skip(maxVisible).ToList();
-                            }
-
-                            @if (allFlags.Count == 0)
-                            {
-                                <span class="medical-tag tag-none">No flags</span>
-                            }
-                            else
-                            {
-                                foreach (var flag in visible)
-                                {
-                                    <span class="medical-tag @flag.CssClass">@flag.Name</span>
-                                }
-
-                                @if (hidden.Any())
-                                {
-                                    var tooltipText = string.Join(", ", hidden.Select(h => h.Name));
-                                    <span class="medical-tag tag-more" title="@tooltipText">
-                                        +@hidden.Count more
-                                    </span>
-                                }
-                            }
-                        </td>
-                        <td>
-                            <div class="row-actions">
-                                <a asp-action="PatientDetails" asp-route-id="@p.PatientID"
-                                   class="btn btn-outline">
-                                    <i class="fas fa-history"></i> History
-                                </a>
-                                <a asp-action="CreateTestRequest"
-                                   asp-route-patientId="@p.PatientID"
-                                   asp-route-saId="@p.SAIDNumber"
-                                   class="btn btn-primary">
-                                    <i class="fas fa-flask"></i> Request
-                                </a>
-                            </div>
-                        </td>
+                        <th>Patient</th>
+                        <th>SA ID</th>
+                        <th>Date of Birth</th>
+                        <th>Contact</th>
+                        <th>Medical Flags</th>
+                        <th>Actions</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model.Patients)
+                    {
+                        <tr>
+                            <td>
+                                <div class="patient-name">
+                                    @p.FullName
+                                </div>
+                            </td>
+                            <td>@p.SAIDNumber</td>
+                            <td>@p.DateOfBirth.ToString("yyyy-MM-dd")</td>
+                            <td>@(string.IsNullOrEmpty(p.Cellphone) ? "—" : p.Cellphone)</td>
+                            <td>
+                                @{
+                                    var allFlags = new List<(string Name, string CssClass)>();
+                                    if (p.Conditions != null)
+                                    {
+                                        foreach (var c in p.Conditions)
+                                            allFlags.Add((c, "tag-condition"));
+                                    }
+                                    if (p.Allergies != null)
+                                    {
+                                        foreach (var a in p.Allergies)
+                                            allFlags.Add((a, "tag-allergy"));
+                                    }
+
+                                    var maxVisible = 3;
+                                    var visible = allFlags.Take(maxVisible).ToList();
+                                    var hidden = allFlags.Skip(maxVisible).ToList();
+                                }
+
+                                @if (allFlags.Count == 0)
+                                {
+                                    <span class="medical-tag tag-none">No flags</span>
+                                }
+                                else
+                                {
+                                    foreach (var flag in visible)
+                                    {
+                                        <span class="medical-tag @flag.CssClass">@flag.Name</span>
+                                    }
+
+                                    @if (hidden.Any())
+                                    {
+                                        var tooltipText = string.Join(", ", hidden.Select(h => h.Name));
+                                        <span class="medical-tag tag-more" title="@tooltipText">
+                                            +@hidden.Count more
+                                        </span>
+                                    }
+                                }
+                            </td>
+                            <td>
+                                <div class="row-actions">
+                                    <a asp-action="PatientDetails" asp-route-id="@p.PatientID"
+                                       class="btn btn-outline">
+                                        <i class="fas fa-history"></i> History
+                                    </a>
+                                    <a asp-action="CreateTestRequest"
+                                       asp-route-patientId="@p.PatientID"
+                                       asp-route-saId="@p.SAIDNumber"
+                                       class="btn btn-primary">
+                                        <i class="fas fa-flask"></i> Request
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     }
 </div>

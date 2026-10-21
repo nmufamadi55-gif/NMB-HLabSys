@@ -3,9 +3,11 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Result " + Model.TestName;
     ViewData["RoleSubtitle"] = "Doctor Portal";
-    ViewData["UserGreeting"] = "Review and release result";
+    ViewData["UserGreeting"] = "Review result";
 
     var openRelease = ViewBag.OpenRelease as bool? ?? false;
+    var canAct = ViewBag.CanAct as bool? ?? false;
+    var isConsentViewOnly = ViewBag.IsConsentViewOnly as bool? ?? false;
 }
 
 @section SidebarMenu {
@@ -309,6 +311,16 @@
             border-left: 4px solid #DC2626;
         }
 
+        .alert-info {
+            background: #EFF6FF;
+            color: #1E40AF;
+            border-left: 4px solid #0841C9;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            line-height: 1.5;
+        }
+
         .released-banner {
             background: #DBEAFE;
             border: 1px solid #93C5FD;
@@ -341,7 +353,6 @@
             margin-top: 1rem;
         }
 
-        /* ─── MODAL ─── */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -420,6 +431,18 @@
     <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
 }
 
+@if (isConsentViewOnly)
+{
+    <div class="alert alert-info">
+        <i class="fas fa-lock" style="margin-top:0.15rem; flex-shrink:0;"></i>
+        <div>
+            <strong>View-only access.</strong>
+            This result was shared with you via patient consent.
+            Only the doctor who created the request can release or modify it.
+        </div>
+    </div>
+}
+
 <!-- ─── HEADER ─── -->
 <div class="panel">
     <div class="result-header">
@@ -460,7 +483,6 @@
         </div>
     </div>
 
-    <!-- ─── RESULT VALUE ─── -->
     <div class="result-card @(Model.IsAbnormal ? "abnormal" : "normal")">
         <div class="result-value">@Model.ResultValue</div>
         @if (!string.IsNullOrEmpty(Model.UnitOfMeasurement))
@@ -472,7 +494,6 @@
         </div>
     </div>
 
-    <!-- ─── INTERPRETATION ─── -->
     <div class="info-grid">
         <div class="info-block">
             <h4><i class="fas fa-stethoscope"></i> Interpretation</h4>
@@ -494,9 +515,12 @@
         <i class="fas fa-arrow-left"></i> Back to Results
     </a>
     <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
-        <a asp-action="TestRequestDetails" asp-route-id="@Model.RequestID" class="btn btn-outline">
-            <i class="fas fa-notes-medical"></i> View Full Request
-        </a>
+        @if (canAct)
+        {
+            <a asp-action="TestRequestDetails" asp-route-id="@Model.RequestID" class="btn btn-outline">
+                <i class="fas fa-notes-medical"></i> View Full Request
+            </a>
+        }
         <a asp-action="PatientDetails" asp-route-id="@Model.PatientID" class="btn btn-outline">
             <i class="fas fa-history"></i> Patient History
         </a>
@@ -506,7 +530,7 @@
     </div>
 </div>
 
-<!-- ─── RELEASE SECTION ─── -->
+<!-- ─── RELEASE / STATUS SECTION ─── -->
 @if (Model.IsReleased)
 {
     <div class="panel">
@@ -554,22 +578,25 @@ else if (Model.AppointmentRequestedDate.HasValue)
             </div>
         </div>
 
-        <div style="display:flex; justify-content:flex-end; margin-top:1rem;">
-            <form asp-action="ReleaseResult" method="post" id="appointmentReleaseForm" style="display:inline;">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="ResultID" value="@Model.ResultID" />
-                <input type="hidden" name="PatientName" value="@Model.PatientName" />
-                <input type="hidden" name="TestName" value="@Model.TestName" />
-                <input type="hidden" name="ResultValue" value="@Model.ResultValue" />
-                <input type="hidden" name="ReleaseMethod" value="email" />
-                <button type="submit" class="btn btn-success">
-                    <i class="fas fa-paper-plane"></i> Release Results Now
-                </button>
-            </form>
-        </div>
+        @if (canAct)
+        {
+            <div style="display:flex; justify-content:flex-end; margin-top:1rem;">
+                <form asp-action="ReleaseResult" method="post" id="appointmentReleaseForm" style="display:inline;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="ResultID" value="@Model.ResultID" />
+                    <input type="hidden" name="PatientName" value="@Model.PatientName" />
+                    <input type="hidden" name="TestName" value="@Model.TestName" />
+                    <input type="hidden" name="ResultValue" value="@Model.ResultValue" />
+                    <input type="hidden" name="ReleaseMethod" value="email" />
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-paper-plane"></i> Release Results Now
+                    </button>
+                </form>
+            </div>
+        }
     </div>
 }
-else
+else if (canAct)
 {
     <div class="panel" id="releasePanel">
         <h3 class="panel-title">
@@ -620,64 +647,64 @@ else
     </div>
 }
 
-<!-- ─── CONFIRM RELEASE MODAL (always rendered, outside if/else) ─── -->
-<div id="confirmReleaseModal" class="modal-overlay">
-    <div class="modal-container" style="max-width:480px;">
-        <form id="confirmReleaseForm" asp-action="ReleaseResult" method="post">
-            @Html.AntiForgeryToken()
-            <input type="hidden" name="ResultID" value="@Model.ResultID" />
-            <input type="hidden" name="PatientName" value="@Model.PatientName" />
-            <input type="hidden" name="TestName" value="@Model.TestName" />
-            <input type="hidden" name="ResultValue" value="@Model.ResultValue" />
-            <input type="hidden" name="ReleaseMethod" id="confirmMethod" />
-            <input type="hidden" name="Note" id="confirmNote" />
+<!-- ─── CONFIRM RELEASE MODAL (only when the doctor can act) ─── -->
+@if (canAct)
+{
+    <div id="confirmReleaseModal" class="modal-overlay">
+        <div class="modal-container" style="max-width:480px;">
+            <form id="confirmReleaseForm" asp-action="ReleaseResult" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="ResultID" value="@Model.ResultID" />
+                <input type="hidden" name="PatientName" value="@Model.PatientName" />
+                <input type="hidden" name="TestName" value="@Model.TestName" />
+                <input type="hidden" name="ResultValue" value="@Model.ResultValue" />
+                <input type="hidden" name="ReleaseMethod" id="confirmMethod" />
+                <input type="hidden" name="Note" id="confirmNote" />
 
-            <div class="modal-header">
-                <h3 id="confirmTitle">Release to Patient?</h3>
-                <button type="button" class="close-modal" onclick="closeConfirmRelease()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p id="confirmMessage" style="margin:0 0 1rem; color:#5A6E7A; font-size:0.9rem;"></p>
+                <div class="modal-header">
+                    <h3 id="confirmTitle">Release to Patient?</h3>
+                    <button type="button" class="close-modal" onclick="closeConfirmRelease()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p id="confirmMessage" style="margin:0 0 1rem; color:#5A6E7A; font-size:0.9rem;"></p>
 
-                <label for="confirmNoteInput"
-                       style="display:block; font-size:0.8rem; font-weight:600; color:#032C7D; margin-bottom:0.3rem;">
-                    Note to Patient <span id="confirmNoteHint" style="color:#5A6E7A; font-weight:400;">(optional)</span>
-                </label>
-                <textarea id="confirmNoteInput" class="form-control" rows="3" maxlength="500"
+                    <label for="confirmNoteInput"
+                           style="display:block; font-size:0.8rem; font-weight:600; color:#032C7D; margin-bottom:0.3rem;">
+                        Note to Patient <span id="confirmNoteHint" style="color:#5A6E7A; font-weight:400;">(optional)</span>
+                    </label>
+                    <textarea id="confirmNoteInput" class="form-control" rows="3" maxlength="500"
                           placeholder="Add a personal message for the patient..."></textarea>
-                <div id="confirmError" class="field-error"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline" onclick="closeConfirmRelease()">Cancel</button>
-                <button type="submit" class="btn btn-success" id="confirmOkBtn">
-                    <i class="fas fa-check"></i> Confirm
-                </button>
-            </div>
-        </form>
+                    <div id="confirmError" class="field-error"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeConfirmRelease()">Cancel</button>
+                    <button type="submit" class="btn btn-success" id="confirmOkBtn">
+                        <i class="fas fa-check"></i> Confirm
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
+}
 
 @section Scripts {
     <script>
-        @if (openRelease)
+        @if (openRelease && canAct)
         {
-                    <text>document.getElementById('releasePanel')?.scrollIntoView({ behavior: 'smooth' });</text>
+                        <text>document.getElementById('releasePanel')?.scrollIntoView({ behavior: 'smooth' });</text>
         }
 
         var isAbnormal = @Model.IsAbnormal.ToString().ToLower();
 
-        // ── Confirm-release modal ──
         function confirmRelease(method) {
-            // method: 'email' | 'appointment'
             var noteEl = document.getElementById('releaseNote');
             var note = noteEl ? noteEl.value.trim() : '';
 
-            // Copy any already-typed note into the confirm textarea
             var nInput = document.getElementById('confirmNoteInput');
             if (nInput) nInput.value = note;
-            document.getElementById('confirmNote').value = note;
+            var hiddenNote = document.getElementById('confirmNote');
+            if (hiddenNote) hiddenNote.value = note;
 
-            // Hint text ("(required)" vs "(optional)")
             var hint = document.getElementById('confirmNoteHint');
             if (hint) {
                 hint.textContent = (method === 'email' && isAbnormal) ? '(required for abnormal)' : '(optional)';
@@ -699,7 +726,6 @@ else
 
             document.getElementById('confirmReleaseModal').classList.add('active');
 
-            // Focus the note textarea if abnormal release
             setTimeout(function () {
                 if (method === 'email' && isAbnormal && nInput) nInput.focus();
             }, 100);
@@ -709,59 +735,63 @@ else
             document.getElementById('confirmReleaseModal').classList.remove('active');
         }
 
-        document.getElementById('confirmReleaseModal').addEventListener('click', function (e) {
-            if (e.target === this) closeConfirmRelease();
-        });
+        (function () {
+            var modal = document.getElementById('confirmReleaseModal');
+            if (!modal) return;
 
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') closeConfirmRelease();
-        });
+            modal.addEventListener('click', function (e) {
+                if (e.target === this) closeConfirmRelease();
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') closeConfirmRelease();
+            });
 
-        // Bind the two submit buttons on the "Handle This Result" (pending) form
-        var releaseForm = document.getElementById('releaseForm');
-        if (releaseForm) {
-            releaseForm.querySelectorAll('button[type="submit"][name="ReleaseMethod"]').forEach(function (btn) {
-                btn.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    confirmRelease(this.value);
+            var releaseForm = document.getElementById('releaseForm');
+            if (releaseForm) {
+                releaseForm.querySelectorAll('button[type="submit"][name="ReleaseMethod"]').forEach(function (btn) {
+                    btn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        confirmRelease(this.value);
+                    });
                 });
-            });
-        }
-
-        // Bind the "Release Now" button on the appointment-requested panel
-        var apptForm = document.getElementById('appointmentReleaseForm');
-        if (apptForm) {
-            apptForm.addEventListener('submit', function (e) {
-                e.preventDefault();
-                confirmRelease('email');
-            });
-        }
-
-        // Validate the confirm form before POSTing
-        document.getElementById('confirmReleaseForm').addEventListener('submit', function (e) {
-            var method = document.getElementById('confirmMethod').value;
-            var noteField = document.getElementById('confirmNoteInput');
-            var note = (noteField ? noteField.value : '').trim();
-            document.getElementById('confirmNote').value = note;
-
-            var errEl = document.getElementById('confirmError');
-            if (errEl) { errEl.classList.remove('show'); errEl.textContent = ''; }
-
-            if (method === 'email' && isAbnormal && !note) {
-                e.preventDefault();
-                if (errEl) {
-                    errEl.textContent = 'A note to the patient is required when releasing an abnormal result.';
-                    errEl.classList.add('show');
-                }
-                if (noteField) noteField.focus();
-                return;
             }
 
-            var btn = document.getElementById('confirmOkBtn');
-            if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            var apptForm = document.getElementById('appointmentReleaseForm');
+            if (apptForm) {
+                apptForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    confirmRelease('email');
+                });
             }
-        });
+
+            var confirmForm = document.getElementById('confirmReleaseForm');
+            if (confirmForm) {
+                confirmForm.addEventListener('submit', function (e) {
+                    var method = document.getElementById('confirmMethod').value;
+                    var noteField = document.getElementById('confirmNoteInput');
+                    var note = (noteField ? noteField.value : '').trim();
+                    document.getElementById('confirmNote').value = note;
+
+                    var errEl = document.getElementById('confirmError');
+                    if (errEl) { errEl.classList.remove('show'); errEl.textContent = ''; }
+
+                    if (method === 'email' && isAbnormal && !note) {
+                        e.preventDefault();
+                        if (errEl) {
+                            errEl.textContent = 'A note to the patient is required when releasing an abnormal result.';
+                            errEl.classList.add('show');
+                        }
+                        if (noteField) noteField.focus();
+                        return;
+                    }
+
+                    var btn = document.getElementById('confirmOkBtn');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                    }
+                });
+            }
+        })();
     </script>
 }
