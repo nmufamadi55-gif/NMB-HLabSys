@@ -4,29 +4,31 @@ using NMB_HLabSys.Data;
 using NMB_HLabSys.Models;
 using NMB_HLabSys.ViewModels.AdminViewModels;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NMB_HLabSys.Services;
 
 namespace NMB_HLabSys.Controllers
 {
     public class AdminController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IPasswordHasher _passwordHasher;   // ← add this
 
-        public AdminController(ApplicationDbContext context)
+        public AdminController(ApplicationDbContext context, IPasswordHasher passwordHasher)   // ← update
         {
             _context = context;
+            _passwordHasher = passwordHasher;   // ← add this
         }
 
         // ============================================
         // DASHBOARD
         // ============================================
-        // GET: Admin/Dashboard
         public async Task<IActionResult> Dashboard()
         {
             try
             {
-                // Real counts from DB
                 var totalConditions = await _context.MedicalConditions.CountAsync(c => c.IsActive);
                 var totalAllergies = await _context.Allergies.CountAsync(a => a.IsActive);
                 var totalMedications = await _context.Medications.CountAsync(m => m.IsActive);
@@ -35,7 +37,6 @@ namespace NMB_HLabSys.Controllers
                 var totalDoctors = await _context.Doctors.CountAsync();
                 var totalTechnicians = 0;
 
-                // Real recent activities from DB
                 var recentConditions = await _context.MedicalConditions
                     .Where(c => c.IsActive)
                     .OrderByDescending(c => c.CreatedDate)
@@ -104,23 +105,122 @@ namespace NMB_HLabSys.Controllers
         }
 
         // ============================================
+        // ADMIN PROFILE
+        // ============================================
+        public async Task<IActionResult> Profile()
+        {
+            var userId = HttpContext.Session.GetInt32("UserID");
+            if (!userId.HasValue)
+                return RedirectToAction("Login", "Account");
+
+            var user = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.UserID == userId.Value);
+
+            if (user == null)
+            {
+                HttpContext.Session.Clear();
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Redirect non-admin to the shared profile page
+            if (user.UserRole != "Admin")
+                return RedirectToAction("Index", "Profile");
+
+            var viewModel = new AdminProfileViewModel
+            {
+                UserID = user.UserID,
+                Name = user.Name,
+                Surname = user.Surname,
+                Email = user.Email,
+                ContactNumber = user.ContactNumber,
+                IsActive = user.IsActive,
+                CreatedDate = user.CreatedDate,
+                LastLogin = user.ModifiedDate
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangeAdminPassword(string currentPassword, string newPassword, string confirmPassword)
+        {
+            var userId = HttpContext.Session.GetInt32("UserID");
+            if (!userId.HasValue)
+                return RedirectToAction("Login", "Account");
+
+            var user = await _context.Users.FindAsync(userId.Value);
+            if (user == null)
+                return RedirectToAction("Login", "Account");
+
+            if (user.UserRole != "Admin")
+                return RedirectToAction("Index", "Profile");
+
+            if (string.IsNullOrWhiteSpace(currentPassword))
+            {
+                TempData["ErrorMessage"] = "Current password is required.";
+                return RedirectToAction("Profile");
+            }
+
+            if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 8)
+            {
+                TempData["ErrorMessage"] = "New password must be at least 8 characters.";
+                return RedirectToAction("Profile");
+            }
+
+            if (newPassword != confirmPassword)
+            {
+                TempData["ErrorMessage"] = "New password and confirmation do not match.";
+                return RedirectToAction("Profile");
+            }
+
+            if (!_passwordHasher.VerifyPassword(currentPassword, user.PasswordHash))
+            {
+                TempData["ErrorMessage"] = "Current password is incorrect.";
+                return RedirectToAction("Profile");
+            }
+
+            if (_passwordHasher.VerifyPassword(newPassword, user.PasswordHash))
+            {
+                TempData["ErrorMessage"] = "New password must be different from the current one.";
+                return RedirectToAction("Profile");
+            }
+
+            user.PasswordHash = _passwordHasher.HashPassword(newPassword);
+            user.IsPasswordChanged = true;
+            user.ModifiedDate = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Password changed successfully.";
+            return RedirectToAction("Profile");
+        }
+
+        // ============================================
         // CATEGORIES CRUD
         // ============================================
-        public async Task<IActionResult> Categories()
+        public async Task<IActionResult> Categories(bool showDeleted = false)
         {
             try
             {
-                var categories = await _context.LookupCategories
-                    .Where(c => c.IsActive)
-                    .OrderBy(c => c.CategoryType)
+                var query = _context.LookupCategories.AsQueryable();
+
+                if (!showDeleted)
+                    query = query.Where(c => c.IsActive);
+
+                var categories = await query
+                    .OrderByDescending(c => c.IsActive)
+                    .ThenBy(c => c.CategoryType)
                     .ThenBy(c => c.CategoryName)
                     .ToListAsync();
 
+                ViewBag.ShowDeleted = showDeleted;
                 return View(categories);
             }
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = $"Error: {ex.Message}";
+                ViewBag.ShowDeleted = showDeleted;
                 return View(new List<LookupCategory>());
             }
         }
@@ -145,7 +245,6 @@ namespace NMB_HLabSys.Controllers
             {
                 var trimmedName = categoryName.Trim();
 
-                // Check if category already exists (active OR inactive)
                 var existing = await _context.LookupCategories
                     .FirstOrDefaultAsync(c => c.CategoryName == trimmedName && c.CategoryType == categoryType);
 
@@ -157,7 +256,6 @@ namespace NMB_HLabSys.Controllers
                         return RedirectToAction("Categories");
                     }
 
-                    // Reactivate
                     existing.IsActive = true;
                     existing.Description = description?.Trim();
                     existing.ModifiedDate = DateTime.Now;
@@ -190,6 +288,67 @@ namespace NMB_HLabSys.Controllers
             return RedirectToAction("Categories");
         }
 
+        public async Task<IActionResult> EditCategory(int id)
+        {
+            var category = await _context.LookupCategories.FindAsync(id);
+            if (category == null) return NotFound();
+
+            var viewModel = new ManageCategoryViewModel
+            {
+                CategoryID = category.CategoryID,
+                CategoryName = category.CategoryName,
+                CategoryType = category.CategoryType,
+                Description = category.Description,
+                IsActive = category.IsActive
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditCategory(ManageCategoryViewModel model)
+        {
+            if (!ModelState.IsValid) return View(model);
+
+            try
+            {
+                var category = await _context.LookupCategories.FindAsync(model.CategoryID);
+                if (category == null) return NotFound();
+
+                var trimmedName = model.CategoryName.Trim();
+
+                var duplicate = await _context.LookupCategories
+                    .FirstOrDefaultAsync(c =>
+                        c.CategoryName == trimmedName &&
+                        c.CategoryType == model.CategoryType &&
+                        c.CategoryID != model.CategoryID);
+
+                if (duplicate != null)
+                {
+                    TempData["ErrorMessage"] = $"❌ A category named '{trimmedName}' already exists for type '{model.CategoryType}'.";
+                    return View(model);
+                }
+
+                category.CategoryName = trimmedName;
+                category.CategoryType = model.CategoryType;
+                category.Description = model.Description?.Trim();
+                category.IsActive = model.IsActive;
+                category.ModifiedDate = DateTime.Now;
+
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = $"✅ Category '{trimmedName}' updated successfully!";
+                return RedirectToAction("Categories");
+            }
+            catch (Exception ex)
+            {
+                var innerMessage = ex.InnerException != null ? ex.InnerException.Message : "";
+                TempData["ErrorMessage"] = $"❌ Error: {ex.Message} | Inner: {innerMessage}";
+                return View(model);
+            }
+        }
+
         [HttpPost]
         public async Task<IActionResult> DeleteCategory(int id)
         {
@@ -199,8 +358,30 @@ namespace NMB_HLabSys.Controllers
                 if (category != null)
                 {
                     category.IsActive = false;
+                    category.ModifiedDate = DateTime.Now;
                     await _context.SaveChangesAsync();
-                    return Json(new { success = true, message = $"✅ '{category.CategoryName}' deleted" });
+                    return Json(new { success = true, message = $"✅ '{category.CategoryName}' deleted (soft)" });
+                }
+                return Json(new { success = false, message = "Category not found" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ReactivateCategory(int id)
+        {
+            try
+            {
+                var category = await _context.LookupCategories.FindAsync(id);
+                if (category != null)
+                {
+                    category.IsActive = true;
+                    category.ModifiedDate = DateTime.Now;
+                    await _context.SaveChangesAsync();
+                    return Json(new { success = true, message = $"✅ '{category.CategoryName}' reactivated" });
                 }
                 return Json(new { success = false, message = "Category not found" });
             }
@@ -213,18 +394,26 @@ namespace NMB_HLabSys.Controllers
         // ============================================
         // CONDITIONS CRUD
         // ============================================
-        public async Task<IActionResult> Conditions()
+        public async Task<IActionResult> Conditions(bool showDeleted = false)
         {
-            var conditions = await _context.MedicalConditions
+            var conditionsQuery = _context.MedicalConditions
                 .Include(c => c.Category)
-                .Where(c => c.IsActive)
-                .OrderBy(c => c.ConditionName)
+                .AsQueryable();
+
+            if (!showDeleted)
+                conditionsQuery = conditionsQuery.Where(c => c.IsActive);
+
+            var conditions = await conditionsQuery
+                .OrderByDescending(c => c.IsActive)
+                .ThenBy(c => c.ConditionName)
                 .ToListAsync();
 
             var categories = await _context.LookupCategories
                 .Where(c => c.CategoryType == "Condition" && c.IsActive)
                 .OrderBy(c => c.CategoryName)
                 .ToListAsync();
+
+            ViewBag.ShowDeleted = showDeleted;
 
             var viewModel = new AdminLookupViewModel
             {
@@ -261,7 +450,6 @@ namespace NMB_HLabSys.Controllers
                         return RedirectToAction("Conditions");
                     }
 
-                    // Reactivate
                     existing.IsActive = true;
                     existing.CategoryID = categoryId;
                     existing.Description = description?.Trim();
@@ -304,8 +492,30 @@ namespace NMB_HLabSys.Controllers
                 if (condition != null)
                 {
                     condition.IsActive = false;
+                    condition.ModifiedDate = DateTime.Now;
                     await _context.SaveChangesAsync();
-                    return Json(new { success = true, message = $"✅ '{condition.ConditionName}' deleted" });
+                    return Json(new { success = true, message = $"✅ '{condition.ConditionName}' deleted (soft)" });
+                }
+                return Json(new { success = false, message = "Condition not found" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ReactivateCondition(int id)
+        {
+            try
+            {
+                var condition = await _context.MedicalConditions.FindAsync(id);
+                if (condition != null)
+                {
+                    condition.IsActive = true;
+                    condition.ModifiedDate = DateTime.Now;
+                    await _context.SaveChangesAsync();
+                    return Json(new { success = true, message = $"✅ '{condition.ConditionName}' reactivated" });
                 }
                 return Json(new { success = false, message = "Condition not found" });
             }
@@ -318,10 +528,7 @@ namespace NMB_HLabSys.Controllers
         public async Task<IActionResult> EditCondition(int id)
         {
             var condition = await _context.MedicalConditions.FindAsync(id);
-            if (condition == null)
-            {
-                return NotFound();
-            }
+            if (condition == null) return NotFound();
 
             var categories = await _context.LookupCategories
                 .Where(c => c.CategoryType == "Condition" && c.IsActive)
@@ -355,10 +562,7 @@ namespace NMB_HLabSys.Controllers
             try
             {
                 var condition = await _context.MedicalConditions.FindAsync(model.ConditionID);
-                if (condition == null)
-                {
-                    return NotFound();
-                }
+                if (condition == null) return NotFound();
 
                 condition.ConditionName = model.ConditionName.Trim();
                 condition.CategoryID = model.CategoryID;
@@ -381,18 +585,26 @@ namespace NMB_HLabSys.Controllers
         // ============================================
         // ALLERGIES CRUD
         // ============================================
-        public async Task<IActionResult> Allergies()
+        public async Task<IActionResult> Allergies(bool showDeleted = false)
         {
-            var allergies = await _context.Allergies
+            var allergiesQuery = _context.Allergies
                 .Include(a => a.Category)
-                .Where(a => a.IsActive)
-                .OrderBy(a => a.AllergyName)
+                .AsQueryable();
+
+            if (!showDeleted)
+                allergiesQuery = allergiesQuery.Where(a => a.IsActive);
+
+            var allergies = await allergiesQuery
+                .OrderByDescending(a => a.IsActive)
+                .ThenBy(a => a.AllergyName)
                 .ToListAsync();
 
             var categories = await _context.LookupCategories
                 .Where(c => c.CategoryType == "Allergy" && c.IsActive)
                 .OrderBy(c => c.CategoryName)
                 .ToListAsync();
+
+            ViewBag.ShowDeleted = showDeleted;
 
             var viewModel = new AdminLookupViewModel
             {
@@ -429,7 +641,6 @@ namespace NMB_HLabSys.Controllers
                         return RedirectToAction("Allergies");
                     }
 
-                    // Reactivate
                     existing.IsActive = true;
                     existing.CategoryID = categoryId;
                     existing.Description = description?.Trim();
@@ -472,8 +683,30 @@ namespace NMB_HLabSys.Controllers
                 if (allergy != null)
                 {
                     allergy.IsActive = false;
+                    allergy.ModifiedDate = DateTime.Now;
                     await _context.SaveChangesAsync();
-                    return Json(new { success = true, message = $"✅ '{allergy.AllergyName}' deleted" });
+                    return Json(new { success = true, message = $"✅ '{allergy.AllergyName}' deleted (soft)" });
+                }
+                return Json(new { success = false, message = "Allergy not found" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ReactivateAllergy(int id)
+        {
+            try
+            {
+                var allergy = await _context.Allergies.FindAsync(id);
+                if (allergy != null)
+                {
+                    allergy.IsActive = true;
+                    allergy.ModifiedDate = DateTime.Now;
+                    await _context.SaveChangesAsync();
+                    return Json(new { success = true, message = $"✅ '{allergy.AllergyName}' reactivated" });
                 }
                 return Json(new { success = false, message = "Allergy not found" });
             }
@@ -486,10 +719,7 @@ namespace NMB_HLabSys.Controllers
         public async Task<IActionResult> EditAllergy(int id)
         {
             var allergy = await _context.Allergies.FindAsync(id);
-            if (allergy == null)
-            {
-                return NotFound();
-            }
+            if (allergy == null) return NotFound();
 
             var categories = await _context.LookupCategories
                 .Where(c => c.CategoryType == "Allergy" && c.IsActive)
@@ -523,10 +753,7 @@ namespace NMB_HLabSys.Controllers
             try
             {
                 var allergy = await _context.Allergies.FindAsync(model.AllergyID);
-                if (allergy == null)
-                {
-                    return NotFound();
-                }
+                if (allergy == null) return NotFound();
 
                 allergy.AllergyName = model.AllergyName.Trim();
                 allergy.CategoryID = model.CategoryID;
@@ -549,18 +776,26 @@ namespace NMB_HLabSys.Controllers
         // ============================================
         // MEDICATIONS CRUD
         // ============================================
-        public async Task<IActionResult> Medications()
+        public async Task<IActionResult> Medications(bool showDeleted = false)
         {
-            var medications = await _context.Medications
+            var medicationsQuery = _context.Medications
                 .Include(m => m.Category)
-                .Where(m => m.IsActive)
-                .OrderBy(m => m.MedicationName)
+                .AsQueryable();
+
+            if (!showDeleted)
+                medicationsQuery = medicationsQuery.Where(m => m.IsActive);
+
+            var medications = await medicationsQuery
+                .OrderByDescending(m => m.IsActive)
+                .ThenBy(m => m.MedicationName)
                 .ToListAsync();
 
             var categories = await _context.LookupCategories
                 .Where(c => c.CategoryType == "Medication" && c.IsActive)
                 .OrderBy(c => c.CategoryName)
                 .ToListAsync();
+
+            ViewBag.ShowDeleted = showDeleted;
 
             var viewModel = new AdminLookupViewModel
             {
@@ -597,7 +832,6 @@ namespace NMB_HLabSys.Controllers
                         return RedirectToAction("Medications");
                     }
 
-                    // Reactivate
                     existing.IsActive = true;
                     existing.CategoryID = categoryId;
                     existing.Description = description?.Trim();
@@ -640,8 +874,30 @@ namespace NMB_HLabSys.Controllers
                 if (medication != null)
                 {
                     medication.IsActive = false;
+                    medication.ModifiedDate = DateTime.Now;
                     await _context.SaveChangesAsync();
-                    return Json(new { success = true, message = $"✅ '{medication.MedicationName}' deleted" });
+                    return Json(new { success = true, message = $"✅ '{medication.MedicationName}' deleted (soft)" });
+                }
+                return Json(new { success = false, message = "Medication not found" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ReactivateMedication(int id)
+        {
+            try
+            {
+                var medication = await _context.Medications.FindAsync(id);
+                if (medication != null)
+                {
+                    medication.IsActive = true;
+                    medication.ModifiedDate = DateTime.Now;
+                    await _context.SaveChangesAsync();
+                    return Json(new { success = true, message = $"✅ '{medication.MedicationName}' reactivated" });
                 }
                 return Json(new { success = false, message = "Medication not found" });
             }
@@ -654,10 +910,7 @@ namespace NMB_HLabSys.Controllers
         public async Task<IActionResult> EditMedication(int id)
         {
             var medication = await _context.Medications.FindAsync(id);
-            if (medication == null)
-            {
-                return NotFound();
-            }
+            if (medication == null) return NotFound();
 
             var categories = await _context.LookupCategories
                 .Where(c => c.CategoryType == "Medication" && c.IsActive)
@@ -691,10 +944,7 @@ namespace NMB_HLabSys.Controllers
             try
             {
                 var medication = await _context.Medications.FindAsync(model.MedicationID);
-                if (medication == null)
-                {
-                    return NotFound();
-                }
+                if (medication == null) return NotFound();
 
                 medication.MedicationName = model.MedicationName.Trim();
                 medication.CategoryID = model.CategoryID;

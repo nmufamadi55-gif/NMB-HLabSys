@@ -4,6 +4,7 @@
     ViewData["Title"] = "Alerts";
     ViewData["RoleSubtitle"] = "Doctor Portal";
     ViewData["UserGreeting"] = "Abnormal results requiring attention";
+    ViewData["UserSubtitle"] = "Review STAT and urgent alerts";
 }
 
 @section SidebarMenu {
@@ -110,11 +111,17 @@
             min-width: 200px;
         }
 
-            .filter-input:focus, .filter-select:focus {
-                outline: none;
-                border-color: #0841C9;
-                box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
-            }
+        /* ─── IMPROVEMENT: Constrain date inputs so they don't stretch ─── */
+        .filter-select[type="date"] {
+            width: 160px;
+            flex-grow: 0;
+        }
+
+        .filter-input:focus, .filter-select:focus {
+            outline: none;
+            border-color: #0841C9;
+            box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
+        }
 
         .btn {
             padding: 0.6rem 1.3rem;
@@ -499,7 +506,6 @@
     <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
 }
 
-<!-- ─── STATS ─── -->
 <div class="stats-row">
     <div class="stat-box">
         <div class="stat-icon red"><i class="fas fa-exclamation-circle"></i></div>
@@ -524,7 +530,6 @@
     </div>
 </div>
 
-<!-- ─── FILTERS ─── -->
 <div class="panel">
     <form method="get" asp-action="Alerts" class="filter-bar">
         <input type="text" name="SearchTerm" class="filter-input"
@@ -554,7 +559,6 @@
     </form>
 </div>
 
-<!-- ─── ALERTS ─── -->
 <div id="alertsContainer">
     @if (Model.Alerts == null || !Model.Alerts.Any())
     {

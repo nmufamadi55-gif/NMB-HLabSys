@@ -367,9 +367,14 @@ namespace NMB_HLabSys.Models.ViewModels
 
     public class ResultsStatisticsViewModel
     {
+        // ─── Result-row counters (individual TestResult rows) ───
         public int TotalResults { get; set; }
         public int AbnormalResults { get; set; }
+
+        // ─── Request-level counters (TestRequest rows) ───
+        public int TotalRequests { get; set; }
         public int PendingRelease { get; set; }
+        public int AppointmentRequested { get; set; }
         public int Released { get; set; }
     }
 

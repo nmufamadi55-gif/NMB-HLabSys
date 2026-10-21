@@ -1,0 +1,583 @@
+﻿@using NMB_HLabSys.ViewModels.AdminViewModels
+@model AdminProfileViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Admin Profile";
+    ViewData["RoleSubtitle"] = "Admin Portal";
+    ViewData["UserGreeting"] = "System Administrator";
+    ViewData["UserInitials"] = (Model.Name?.Substring(0, 1) ?? "A") + (Model.Surname?.Substring(0, 1) ?? "D");
+}
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Admin")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+    <li><a href="@Url.Action("Categories", "Admin")"><i class="fas fa-folder"></i> <span>Categories</span></a></li>
+    <li><a href="@Url.Action("Conditions", "Admin")"><i class="fas fa-database"></i> <span>Conditions</span></a></li>
+    <li><a href="@Url.Action("Allergies", "Admin")"><i class="fas fa-allergies"></i> <span>Allergies</span></a></li>
+    <li><a href="@Url.Action("Medications", "Admin")"><i class="fas fa-capsules"></i> <span>Medications</span></a></li>
+    <li><a href="@Url.Action("Profile", "Admin")" class="active"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+}
+
+<style>
+    :root {
+        --p-teal: #0891B2;
+        --p-teal-grad: linear-gradient(135deg, #0891B2 0%, #06B6D4 100%);
+        --p-navy: #0F172A;
+        --p-text: #1E293B;
+        --p-text-soft: #64748B;
+        --p-text-muted: #94A3B8;
+        --p-border: #E2E8F0;
+        --p-bg-soft: #F8FAFC;
+        --p-danger: #DC2626;
+        --p-success: #059669;
+        --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+        --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06), 0 2px 6px rgba(15, 23, 42, 0.04);
+        --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.10), 0 4px 12px rgba(15, 23, 42, 0.05);
+        --radius: 16px;
+    }
+
+    .page-hero {
+        position: relative;
+        margin: -1.2rem -1.2rem 2rem -1.2rem;
+        height: 300px;
+        border-radius: 0 0 24px 24px;
+        overflow: hidden;
+        display: flex;
+        align-items: flex-end;
+        padding: 2rem;
+        box-shadow: var(--shadow-lg);
+    }
+
+        .page-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url('https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1600&q=85');
+            background-size: cover;
+            background-position: center;
+            z-index: 0;
+            transition: transform 12s ease-out;
+        }
+
+        .page-hero:hover::before {
+            transform: scale(1.04);
+        }
+
+        .page-hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 0) 40%, rgba(15, 23, 42, 0.25) 70%, rgba(15, 23, 42, 0.65) 100%);
+            z-index: 1;
+        }
+
+    .hero-pill {
+        position: relative;
+        z-index: 2;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 20px;
+        padding: 1.4rem 1.8rem;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 1.4rem;
+        flex-wrap: wrap;
+        max-width: 700px;
+        width: 100%;
+        animation: heroFadeIn 0.8s ease-out;
+    }
+
+    @@keyframes heroFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .hero-avatar {
+        width: 76px;
+        height: 76px;
+        background: var(--p-teal-grad);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.7rem;
+        font-weight: 700;
+        color: white;
+        border: 3px solid rgba(255, 255, 255, 0.9);
+        flex-shrink: 0;
+        box-shadow: 0 8px 24px rgba(6, 182, 212, 0.4);
+    }
+
+    .hero-text {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .hero-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(6, 182, 212, 0.25);
+        border: 1px solid rgba(6, 182, 212, 0.4);
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+        color: #67E8F9;
+    }
+
+    .hero-text h1 {
+        font-size: 1.7rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 0 0 0.2rem;
+        line-height: 1.15;
+    }
+
+    .hero-text p {
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.8);
+        margin: 0;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-left: auto;
+    }
+
+    .hero-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.55rem 1.1rem;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+        font-family: inherit;
+        cursor: pointer;
+        border: none;
+        white-space: nowrap;
+    }
+
+    .hero-btn-primary {
+        background: var(--p-teal-grad);
+        color: white;
+        box-shadow: 0 4px 14px rgba(6, 182, 212, 0.4);
+    }
+
+        .hero-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(6, 182, 212, 0.5);
+            color: white;
+        }
+
+    .hero-btn-secondary {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        color: white;
+        backdrop-filter: blur(10px);
+    }
+
+        .hero-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            color: white;
+        }
+
+    .clean-card {
+        background: white;
+        border-radius: var(--radius);
+        border: 1px solid var(--p-border);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        animation: cardFadeIn 0.6s ease-out backwards;
+    }
+
+        .clean-card:nth-child(1) {
+            animation-delay: 0.05s;
+        }
+
+        .clean-card:nth-child(2) {
+            animation-delay: 0.15s;
+        }
+
+    @@keyframes cardFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(16px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .clean-card-header {
+        padding: 1.1rem 1.5rem;
+        border-bottom: 1px solid var(--p-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+        .clean-card-header h3 {
+            margin: 0;
+            color: var(--p-navy);
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+        }
+
+            .clean-card-header h3 i {
+                color: var(--p-teal);
+                font-size: 0.95rem;
+            }
+
+    .clean-card-body {
+        padding: 1.5rem;
+    }
+
+    .profile-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    @@media (max-width: 900px) {
+        .profile-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.85rem 0;
+        border-bottom: 1px solid #F1F5F9;
+        align-items: center;
+        gap: 1rem;
+    }
+
+        .info-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+    .info-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--p-text-soft);
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+        .info-label i {
+            color: var(--p-teal);
+            font-size: 0.82rem;
+            width: 16px;
+            text-align: center;
+        }
+
+    .info-value {
+        color: var(--p-navy);
+        font-size: 0.88rem;
+        font-weight: 600;
+        text-align: right;
+        word-break: break-word;
+    }
+
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.28rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.72rem;
+        font-weight: 700;
+    }
+
+    .status-active {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+
+    .status-inactive {
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+
+    .form-group {
+        margin-bottom: 1.1rem;
+    }
+
+        .form-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-weight: 600;
+            font-size: 0.82rem;
+            color: var(--p-navy);
+            margin-bottom: 0.4rem;
+        }
+
+            .form-group label i {
+                color: var(--p-teal);
+                font-size: 0.78rem;
+            }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            border: 1px solid var(--p-border);
+            font-size: 0.9rem;
+            font-family: inherit;
+            background: white;
+            transition: 0.2s;
+        }
+
+            .form-group input:focus {
+                outline: none;
+                border-color: var(--p-teal);
+                box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.12);
+            }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.45rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid var(--p-border);
+        background: white;
+        color: var(--p-navy);
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+        font-family: inherit;
+        width: 100%;
+    }
+
+        .btn:hover {
+            border-color: var(--p-teal);
+            color: var(--p-teal);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+    .btn-primary {
+        background: var(--p-teal-grad);
+        color: white;
+        border: none;
+        box-shadow: 0 4px 14px rgba(6, 182, 212, 0.3);
+    }
+
+        .btn-primary:hover {
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+        }
+
+    .alert {
+        padding: 0.85rem 1.2rem;
+        border-radius: 12px;
+        margin-bottom: 1.2rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.6rem;
+        font-size: 0.85rem;
+        animation: cardFadeIn 0.4s ease-out;
+    }
+
+    .alert-success {
+        background: #DCFCE7;
+        color: #166534;
+        border-left: 3px solid #059669;
+    }
+
+    .alert-error {
+        background: #FEE2E2;
+        color: #991B1B;
+        border-left: 3px solid #DC2626;
+    }
+
+    .password-hint {
+        font-size: 0.72rem;
+        color: var(--p-text-muted);
+        margin-top: 0.3rem;
+        display: block;
+    }
+
+    @@media (max-width: 768px) {
+        .page-hero {
+            margin: -0.8rem -0.8rem 1.5rem -0.8rem;
+            height: 280px;
+            padding: 1.2rem;
+        }
+
+        .hero-pill {
+            padding: 1.1rem 1.3rem;
+            gap: 1rem;
+        }
+
+        .hero-text h1 {
+            font-size: 1.4rem;
+        }
+
+        .hero-avatar {
+            width: 64px;
+            height: 64px;
+            font-size: 1.4rem;
+        }
+
+        .hero-actions {
+            margin-left: 0;
+            width: 100%;
+        }
+
+        .clean-card-body {
+            padding: 1.2rem;
+        }
+    }
+</style>
+
+<div class="page-hero">
+    <div class="hero-pill">
+        <div class="hero-avatar">@(Model.Name?.Substring(0, 1) ?? "A")@(Model.Surname?.Substring(0, 1) ?? "D")</div>
+        <div class="hero-text">
+            <span class="hero-kicker"><i class="fas fa-user-shield"></i> Admin Profile</span>
+            <h1>@Model.Name @Model.Surname</h1>
+            <p>@Model.Email</p>
+        </div>
+        <div class="hero-actions">
+            <a href="@Url.Action("Dashboard", "Admin")" class="hero-btn hero-btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle" style="margin-top:2px;"></i>
+        <span>@TempData["SuccessMessage"]</span>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-error">
+        <i class="fas fa-exclamation-circle" style="margin-top:2px;"></i>
+        <span>@TempData["ErrorMessage"]</span>
+    </div>
+}
+
+<div class="profile-grid">
+    <div class="clean-card" style="margin-bottom:0;">
+        <div class="clean-card-header">
+            <h3><i class="fas fa-info-circle"></i> Personal Information</h3>
+        </div>
+        <div class="clean-card-body">
+            <div class="info-row">
+                <span class="info-label"><i class="fas fa-user"></i> First Name</span>
+                <span class="info-value">@Model.Name</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label"><i class="fas fa-user"></i> Last Name</span>
+                <span class="info-value">@Model.Surname</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label"><i class="fas fa-envelope"></i> Email</span>
+                <span class="info-value">@Model.Email</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label"><i class="fas fa-phone"></i> Contact</span>
+                <span class="info-value">@(string.IsNullOrEmpty(Model.ContactNumber) ? "Not set" : Model.ContactNumber)</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label"><i class="fas fa-user-shield"></i> Role</span>
+                <span class="info-value">System Administrator</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label"><i class="fas fa-circle-check"></i> Status</span>
+                <span class="info-value">
+                    @if (Model.IsActive)
+                    {
+                        <span class="status-pill status-active"><i class="fas fa-check"></i> Active</span>
+                    }
+                    else
+                    {
+                        <span class="status-pill status-inactive"><i class="fas fa-times"></i> Inactive</span>
+                    }
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="info-label"><i class="fas fa-calendar-plus"></i> Account Created</span>
+                <span class="info-value">@Model.CreatedDate.ToString("dd MMM yyyy")</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label"><i class="fas fa-clock"></i> Last Activity</span>
+                <span class="info-value">@(Model.LastLogin.HasValue? Model.LastLogin.Value.ToString("dd MMM yyyy HH:mm") : "N/A")</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="clean-card" style="margin-bottom:0;">
+        <div class="clean-card-header">
+            <h3><i class="fas fa-lock"></i> Change Password</h3>
+        </div>
+        <div class="clean-card-body">
+            <form method="post" asp-action="ChangeAdminPassword" asp-controller="Admin">
+                @Html.AntiForgeryToken()
+
+                <div class="form-group">
+                    <label><i class="fas fa-key"></i> Current Password</label>
+                    <input type="password" name="currentPassword" placeholder="Enter current password" required autocomplete="current-password" />
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> New Password</label>
+                    <input type="password" name="newPassword" placeholder="At least 8 characters" required minlength="8" autocomplete="new-password" />
+                    <span class="password-hint">Min 8 characters. Use uppercase, number, and special character for strength.</span>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> Confirm New Password</label>
+                    <input type="password" name="confirmPassword" placeholder="Re-enter new password" required minlength="8" autocomplete="new-password" />
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Change Password
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

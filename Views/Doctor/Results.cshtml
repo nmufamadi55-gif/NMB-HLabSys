@@ -4,6 +4,7 @@
     ViewData["Title"] = "Test Results";
     ViewData["RoleSubtitle"] = "Doctor Portal";
     ViewData["UserGreeting"] = "View and release patient test results";
+    ViewData["UserSubtitle"] = "Review, release, or request an appointment";
 }
 
 @section SidebarMenu {
@@ -84,6 +85,15 @@
             text-transform: uppercase;
             letter-spacing: 0.04em;
             font-weight: 600;
+        }
+
+        .stat-text .sub {
+            margin: 0.15rem 0 0;
+            font-size: 0.68rem;
+            color: #94A3B8;
+            font-weight: 500;
+            text-transform: none;
+            letter-spacing: 0;
         }
 
         .panel {
@@ -263,6 +273,12 @@
             color: #065F46;
         }
 
+        .badge-appointment {
+            background: #FDE68A;
+            color: #92400E;
+            border: 1px solid #FCD34D;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -352,7 +368,6 @@
                 margin: 0;
             }
 
-        /* ─── MODAL ─── */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -460,6 +475,7 @@
         <div class="stat-text">
             <h3>@Model.Statistics.TotalResults</h3>
             <p>Total Results</p>
+            <p class="sub">@Model.Statistics.TotalRequests requests</p>
         </div>
     </div>
     <div class="stat-box">
@@ -474,12 +490,16 @@
         <div class="stat-text">
             <h3>@Model.Statistics.PendingRelease</h3>
             <p>Pending Release</p>
+            @if (Model.Statistics.AppointmentRequested > 0)
+            {
+                <p class="sub">@Model.Statistics.AppointmentRequested appointment-requested</p>
+            }
         </div>
     </div>
     <div class="stat-box">
         <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
         <div class="stat-text">
-            <h3>@(Model.Statistics.TotalResults - Model.Statistics.PendingRelease)</h3>
+            <h3>@Model.Statistics.Released</h3>
             <p>Released</p>
         </div>
     </div>
@@ -554,7 +574,7 @@ else
                     }
                     else if (anyAppointment || group.RequestStatus == "Appointment Requested")
                     {
-                        <span class="badge" style="background:#FEF3C7; color:#78350F;">Appointment Requested</span>
+                        <span class="badge badge-appointment">Appointment Requested</span>
                     }
                     else
                     {
@@ -598,7 +618,7 @@ else
                                     }
                                     else if (r.AppointmentRequestedDate.HasValue)
                                     {
-                                        <span class="badge" style="background:#FEF3C7; color:#78350F;">Appointment</span>
+                                        <span class="badge badge-appointment">Appointment</span>
                                     }
                                     else
                                     {
@@ -649,7 +669,7 @@ else
     }
 }
 
-<!-- ─── RELEASE / BOOK APPOINTMENT MODAL (outside script) ─── -->
+<!-- ─── RELEASE / BOOK APPOINTMENT MODAL ─── -->
 <div id="releaseModal" class="modal-overlay">
     <div class="modal-container">
         <form id="releaseForm" asp-action="ReleaseResult" method="post">

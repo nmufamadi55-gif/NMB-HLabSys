@@ -39,8 +39,24 @@ namespace NMB_HLabSys.Controllers
 
         private IActionResult RedirectToProfile()
             => RedirectToAction("Index", "Profile");
+
+        /// <summary>
+        /// Redirect to profile page based on role.
+        /// Patients → Patient/Profile
+        /// Doctors → Doctor/Profile (via Profile/Index which routes to doctor view)
+        /// Everyone else → Profile/Index
+        /// </summary>
         private IActionResult RedirectToProfileTab(string tab)
         {
+            var role = CurrentUserRole;
+
+            if (string.Equals(role, "Patient", StringComparison.OrdinalIgnoreCase))
+            {
+                // Patient has its own profile page — preserve the ?tab anchor if needed
+                return RedirectToAction("Profile", "Patient");
+            }
+
+            // Doctor, Technician, Manager, Admin → shared profile page
             return RedirectToAction("Index", "Profile", new { tab });
         }
 
@@ -68,9 +84,14 @@ namespace NMB_HLabSys.Controllers
                 ? CurrentUserRole
                 : user.UserRole;
 
+            // ── Patients get their own dedicated page ──
+            if (string.Equals(role, "Patient", StringComparison.OrdinalIgnoreCase))
+            {
+                return RedirectToAction("Profile", "Patient");
+            }
+
             PopulateCommonViewBag(user, role);
 
-            // ── Tell the view which tab to open ──
             ViewBag.ActiveTab = string.IsNullOrWhiteSpace(tab) ? "overview" : tab;
 
             if (string.Equals(role, "Doctor", StringComparison.OrdinalIgnoreCase))
@@ -115,7 +136,7 @@ namespace NMB_HLabSys.Controllers
                 if (taken)
                 {
                     TempData["ErrorMessage"] = "That email address is already in use by another account.";
-                    return RedirectToProfile();
+                    return RedirectToProfileTab("overview");
                 }
             }
 
@@ -132,16 +153,15 @@ namespace NMB_HLabSys.Controllers
             HttpContext.Session.SetString("UserEmail", user.Email);
 
             TempData["SuccessMessage"] = "Profile updated successfully.";
-            return RedirectToProfile();
+            return RedirectToProfileTab("overview");
         }
 
         // ═══════════════════════════════════════════════════════════
         // POST: /Profile/ChangePassword
         // ═══════════════════════════════════════════════════════════
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePassword(
-     string currentPassword, string newPassword, string confirmPassword)
+            string currentPassword, string newPassword, string confirmPassword)
         {
             var userId = CurrentUserId;
             if (!userId.HasValue)
@@ -193,16 +213,26 @@ namespace NMB_HLabSys.Controllers
         }
 
         // ═══════════════════════════════════════════════════════════
-        // DOCTOR-SPECIFIC VIEWBAG 
+        // DOCTOR-SPECIFIC VIEWBAG
         // ═══════════════════════════════════════════════════════════
         private async Task PopulateDoctorViewBagAsync(int userId)
         {
             var doctor = await _context.Doctors
                 .AsNoTracking()
+                .Include(d => d.User)
                 .FirstOrDefaultAsync(d => d.UserID == userId);
 
             if (doctor != null)
             {
+                // Full display name — "First Last" from the User row
+                var first = doctor.User?.Name ?? "";
+                var last = doctor.User?.Surname ?? "";
+                var fullName = $"{first} {last}".Trim();
+
+                ViewBag.DoctorName = string.IsNullOrWhiteSpace(fullName)
+                    ? "Doctor"
+                    : $"Dr. {fullName}";
+
                 ViewBag.DoctorID = doctor.DoctorID;
                 ViewBag.HPCSANumber = doctor.HPCSANumber;
                 ViewBag.PracticeName = doctor.PracticeName;
@@ -211,10 +241,15 @@ namespace NMB_HLabSys.Controllers
                 ViewBag.IsVerified = doctor.IsVerified;
                 ViewBag.RegisteredDate = doctor.RegisteredDate;
             }
+            else
+            {
+                // Fallback if the doctor row is missing (shouldn't happen for a real doctor)
+                ViewBag.DoctorName = "Doctor";
+            }
         }
 
         // ═══════════════════════════════════════════════════════════
-        // COMMON VIEWBAG (fields the doctor view relies on)
+        // COMMON VIEWBAG
         // ═══════════════════════════════════════════════════════════
         private void PopulateCommonViewBag(NMB_HLabSys.Models.User user, string role)
         {

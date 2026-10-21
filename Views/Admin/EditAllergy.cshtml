@@ -11,135 +11,359 @@
 
 @section SidebarMenu {
     <li><a href="@Url.Action("Dashboard", "Admin")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+    <li><a href="@Url.Action("Categories", "Admin")"><i class="fas fa-folder"></i> <span>Categories</span></a></li>
     <li><a href="@Url.Action("Conditions", "Admin")"><i class="fas fa-database"></i> <span>Conditions</span></a></li>
     <li><a href="@Url.Action("Allergies", "Admin")" class="active"><i class="fas fa-allergies"></i> <span>Allergies</span></a></li>
     <li><a href="@Url.Action("Medications", "Admin")"><i class="fas fa-capsules"></i> <span>Medications</span></a></li>
-    <li><a href="@Url.Action("Categories", "Admin")"><i class="fas fa-folder"></i> <span>Categories</span></a></li>
-    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+    <li><a href="@Url.Action("Profile", "Admin")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
 <style>
-    .profile-card {
-        background: white;
-        border-radius: 20px;
-        border: 1px solid #E2E8F0;
-        overflow: hidden;
-        max-width: 600px;
+    :root {
+        --p-teal: #0891B2;
+        --p-teal-grad: linear-gradient(135deg, #0891B2 0%, #06B6D4 100%);
+        --p-navy: #0F172A;
+        --p-text: #1E293B;
+        --p-text-soft: #64748B;
+        --p-border: #E2E8F0;
+        --p-bg-soft: #F8FAFC;
+        --p-danger: #DC2626;
+        --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+        --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.10), 0 4px 12px rgba(15, 23, 42, 0.05);
+        --radius: 16px;
     }
 
-    .profile-card-header {
-        background: linear-gradient(135deg, #F8FAFE, #FFFFFF);
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid #E2E8F0;
+    .page-hero {
+        position: relative;
+        margin: -1.2rem -1.2rem 2rem -1.2rem;
+        height: 260px;
+        border-radius: 0 0 24px 24px;
+        overflow: hidden;
+        display: flex;
+        align-items: flex-end;
+        padding: 2rem;
+        box-shadow: var(--shadow-lg);
+    }
+
+        .page-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url('https://images.unsplash.com/photo-1584982751601-97dcc096659c?w=1600&q=85');
+            background-size: cover;
+            background-position: center;
+            z-index: 0;
+            transition: transform 12s ease-out;
+        }
+
+        .page-hero:hover::before {
+            transform: scale(1.04);
+        }
+
+        .page-hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 0) 40%, rgba(15, 23, 42, 0.25) 70%, rgba(15, 23, 42, 0.65) 100%);
+            z-index: 1;
+        }
+
+    .hero-pill {
+        position: relative;
+        z-index: 2;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 20px;
+        padding: 1.4rem 1.8rem;
+        color: white;
+        max-width: 700px;
+        width: 100%;
+        animation: heroFadeIn 0.8s ease-out;
+    }
+
+    @@keyframes heroFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .hero-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(6, 182, 212, 0.25);
+        border: 1px solid rgba(6, 182, 212, 0.4);
+        padding: 0.35rem 0.9rem;
+        border-radius: 20px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 0.7rem;
+        color: #67E8F9;
+    }
+
+    .hero-pill h1 {
+        font-size: 1.7rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 0 0 0.3rem;
+        line-height: 1.15;
+    }
+
+    .hero-pill p {
+        font-size: 0.88rem;
+        color: rgba(255, 255, 255, 0.8);
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .hero-actions {
+        margin-top: 1rem;
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+    }
+
+    .hero-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.55rem 1.1rem;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+        font-family: inherit;
+        cursor: pointer;
+        border: none;
+        white-space: nowrap;
+    }
+
+    .hero-btn-secondary {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        color: white;
+        backdrop-filter: blur(10px);
+    }
+
+        .hero-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            color: white;
+        }
+
+    .clean-card {
+        background: white;
+        border-radius: var(--radius);
+        border: 1px solid var(--p-border);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        max-width: 640px;
+    }
+
+    .clean-card-header {
+        padding: 1.1rem 1.5rem;
+        border-bottom: 1px solid var(--p-border);
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
     }
 
-        .profile-card-header h3 {
+        .clean-card-header h3 {
             margin: 0;
-            color: #032C7D;
-            font-size: 1.1rem;
+            color: var(--p-navy);
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
         }
 
-    .profile-card-body {
+            .clean-card-header h3 i {
+                color: var(--p-teal);
+                font-size: 0.95rem;
+            }
+
+    .clean-card-body {
         padding: 1.5rem;
     }
 
     .form-group {
-        margin-bottom: 1rem;
+        margin-bottom: 1.1rem;
     }
 
         .form-group label {
             display: block;
             font-weight: 600;
-            font-size: 0.8rem;
-            color: #032C7D;
-            margin-bottom: 0.3rem;
+            font-size: 0.82rem;
+            color: var(--p-navy);
+            margin-bottom: 0.4rem;
         }
 
-        .form-group input, .form-group select, .form-group textarea {
+        .form-group input[type="text"], .form-group select, .form-group textarea {
             width: 100%;
-            padding: 10px 14px;
-            border-radius: 12px;
-            border: 1px solid #E2E8F0;
-            font-size: 0.85rem;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            border: 1px solid var(--p-border);
+            font-size: 0.9rem;
             font-family: inherit;
+            background: white;
+            transition: 0.2s;
         }
 
             .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
                 outline: none;
-                border-color: #0841C9;
-                box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
+                border-color: var(--p-teal);
+                box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.12);
             }
 
-    .btn-primary {
-        background: #0841C9;
-        color: white;
-        border: none;
-        padding: 0.6rem 1.5rem;
-        border-radius: 30px;
-        cursor: pointer;
-        font-size: 0.85rem;
+    .checkbox-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0;
+    }
+
+        .checkbox-row input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--p-teal);
+            cursor: pointer;
+        }
+
+        .checkbox-row label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--p-navy);
+            cursor: pointer;
+            margin: 0;
+        }
+
+    .form-actions {
+        display: flex;
+        gap: 0.8rem;
+        margin-top: 1.8rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--p-border);
+        flex-wrap: wrap;
+    }
+
+    .btn {
         display: inline-flex;
         align-items: center;
-        gap: 0.4rem;
+        justify-content: center;
+        gap: 0.45rem;
+        padding: 0.7rem 1.4rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid var(--p-border);
+        background: white;
+        color: var(--p-navy);
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+
+        .btn:hover {
+            border-color: var(--p-teal);
+            color: var(--p-teal);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+    .btn-primary {
+        background: var(--p-teal-grad);
+        color: white;
+        border: none;
+        box-shadow: 0 4px 14px rgba(6, 182, 212, 0.3);
     }
 
         .btn-primary:hover {
-            background: #032C7D;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
         }
 
-    .btn-outline {
-        background: transparent;
-        border: 1px solid #E2E8F0;
-        padding: 0.6rem 1.5rem;
-        border-radius: 30px;
-        cursor: pointer;
-        font-size: 0.85rem;
-        color: #032C7D;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
+    .field-error {
+        color: var(--p-danger);
+        font-size: 0.75rem;
+        margin-top: 0.3rem;
+        display: block;
     }
 
-        .btn-outline:hover {
-            background: #F8FAFE;
-            border-color: #0841C9;
+    @@media (max-width: 768px) {
+        .page-hero {
+            margin: -0.8rem -0.8rem 1.5rem -0.8rem;
+            height: 220px;
+            padding: 1.2rem;
         }
 
-    .checkbox-group {
-        display: flex;
-        align-items: center;
-        gap: 8px;
+        .hero-pill {
+            padding: 1.1rem 1.3rem;
+        }
+
+            .hero-pill h1 {
+                font-size: 1.4rem;
+            }
+
+        .clean-card-body {
+            padding: 1.2rem;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+            .form-actions .btn {
+                width: 100%;
+            }
     }
-
-        .checkbox-group input[type="checkbox"] {
-            width: auto;
-        }
 </style>
 
-<div class="profile-card">
-    <div class="profile-card-header">
-        <h3><i class="fas fa-edit"></i> Edit Allergy</h3>
-        <a href="@Url.Action("Allergies", "Admin")" class="btn-outline">
-            <i class="fas fa-arrow-left"></i> Back
-        </a>
+<div class="page-hero">
+    <div class="hero-pill">
+        <span class="hero-kicker"><i class="fas fa-pen"></i> Edit Allergy</span>
+        <h1>Update Allergy</h1>
+        <p>Modify the allergy details, category, or active status.</p>
+        <div class="hero-actions">
+            <a href="@Url.Action("Allergies", "Admin")" class="hero-btn hero-btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Allergies
+            </a>
+        </div>
     </div>
-    <div class="profile-card-body">
+</div>
+
+<div class="clean-card">
+    <div class="clean-card-header">
+        <h3><i class="fas fa-edit"></i> Allergy Details</h3>
+    </div>
+    <div class="clean-card-body">
         <form method="post" asp-action="EditAllergy">
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="AllergyID" />
 
             <div class="form-group">
-                <label asp-for="AllergyName">Allergy Name</label>
+                <label asp-for="AllergyName">Allergy Name *</label>
                 <input asp-for="AllergyName" required />
-                <span asp-validation-for="AllergyName" style="color: #DC2626; font-size: 0.75rem;"></span>
+                <span asp-validation-for="AllergyName" class="field-error"></span>
             </div>
 
             <div class="form-group">
-                <label asp-for="CategoryID">Category</label>
+                <label asp-for="CategoryID">Category *</label>
                 <select asp-for="CategoryID" required>
                     <option value="">-- Select Category --</option>
                     @foreach (var cat in Model.Categories)
@@ -154,16 +378,18 @@
                 <textarea asp-for="Description" rows="3"></textarea>
             </div>
 
-            <div class="form-group checkbox-group">
+            <div class="checkbox-row">
                 <input asp-for="IsActive" type="checkbox" />
                 <label asp-for="IsActive">Active</label>
             </div>
 
-            <div style="display: flex; gap: 10px; margin-top: 1rem;">
-                <button type="submit" class="btn-primary">
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
                     <i class="fas fa-save"></i> Save Changes
                 </button>
-                <a href="@Url.Action("Allergies", "Admin")" class="btn-outline">Cancel</a>
+                <a href="@Url.Action("Allergies", "Admin")" class="btn">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
             </div>
         </form>
     </div>

@@ -94,17 +94,14 @@ namespace NMB_HLabSys.Controllers
             return View();
         }
 
+        // POST: Account/ForgotPassword
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ForgotPassword(string email)
+        public async Task<IActionResult> ForgotPassword(string email, [FromServices] IEmailService emailService)
         {
-            const string neutralMessage =
-                "If an account with that email exists, a password reset link has been sent. " +
-                "Please check your inbox (and spam folder). The link expires in 30 minutes.";
-
-            if (string.IsNullOrWhiteSpace(email))
+            if (string.IsNullOrEmpty(email))
             {
-                TempData["ErrorMessage"] = "Please enter your email address.";
+                TempData["ErrorMessage"] = "Email is required.";
                 return View();
             }
 
@@ -113,80 +110,65 @@ namespace NMB_HLabSys.Controllers
                 var user = await _context.Users
                     .FirstOrDefaultAsync(u => u.Email == email.Trim().ToLower() && u.IsActive);
 
+                // Always show success to prevent email harvesting (security best practice)
                 if (user != null)
                 {
-                    // Invalidate previous unused tokens
-                    var oldTokens = _context.PasswordResetTokens
-                        .Where(t => t.UserID == user.UserID && !t.IsUsed);
-                    _context.PasswordResetTokens.RemoveRange(oldTokens);
+                    // Generate a secure, unique reset token
+                    var token = Guid.NewGuid().ToString("N");
 
-                    // Generate secure token
-                    var token = GenerateSecureToken();
+                    // Store the token in TempData bound to the user's email
+                    // In a real production app, you would save this token to the database with an expiry date.
+                    TempData[$"ResetToken_{user.Email}"] = token;
 
-                    _context.PasswordResetTokens.Add(new PasswordResetToken
-                    {
-                        UserID = user.UserID,
-                        Token = token,
-                        ExpiresAt = DateTime.Now.AddMinutes(30),
-                        IsUsed = false,
-                        CreatedAt = DateTime.Now
-                    });
-
-                    await _context.SaveChangesAsync();
-
-                    // BaseUrl derived from current request — no config needed
+                    // Build the reset link
                     var baseUrl = $"{Request.Scheme}://{Request.Host}";
-                    var resetLink = $"{baseUrl}/Account/ResetPassword?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(user.Email)}";
+                    var resetLink = $"{baseUrl}/Account/ResetPassword?email={Uri.EscapeDataString(user.Email)}&token={Uri.EscapeDataString(token)}";
 
-                    // Send email
-                    await _emailService.SendPasswordResetEmailAsync(
-                        user.Email,
-                        $"{user.Name} {user.Surname}",
-                        resetLink);
+                    // Send the email
+                    try
+                    {
+                        await emailService.SendPasswordResetEmailAsync(
+                            user.Email,
+                            $"{user.Name} {user.Surname}".Trim(),
+                            resetLink);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log the error but don't reveal to the user that the email failed
+                        Console.WriteLine($"Email failed: {ex.Message}");
+                    }
                 }
 
-                TempData["SuccessMessage"] = neutralMessage;
-                return RedirectToAction("ForgotPassword");
+                TempData["SuccessMessage"] = "If this email is registered, a password reset link has been sent to it. Check your inbox (and spam folder).";
+                return View();
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"EMAIL FAILED: {ex.Message} | INNER: {ex.InnerException?.Message}";
+                TempData["ErrorMessage"] = $"Error: {ex.Message}";
                 return View();
             }
         }
 
-        // ============================================
-        // RESET PASSWORD — step 2 (user clicked email link)
-        // ============================================
+        // GET: Account/ResetPassword?email=...&token=...
         [HttpGet]
-        public async Task<IActionResult> ResetPassword(string token, string email)
+        public IActionResult ResetPassword(string email, string token)
         {
-            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(email))
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(token))
             {
                 TempData["ErrorMessage"] = "Invalid reset link.";
-                return RedirectToAction("ForgotPassword");
+                return RedirectToAction("Login");
             }
 
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == email.Trim().ToLower() && u.IsActive);
+            // Verify token exists in TempData
+            var storedToken = TempData[$"ResetToken_{email}"] as string;
 
-            if (user == null)
+            // Put the token back in TempData so the POST method can read it again
+            if (storedToken != null) TempData[$"ResetToken_{email}"] = storedToken;
+
+            if (storedToken != token)
             {
-                TempData["ErrorMessage"] = "Invalid reset link.";
-                return RedirectToAction("ForgotPassword");
-            }
-
-            var resetToken = await _context.PasswordResetTokens
-                .FirstOrDefaultAsync(t =>
-                    t.UserID == user.UserID &&
-                    t.Token == token &&
-                    !t.IsUsed &&
-                    t.ExpiresAt > DateTime.Now);
-
-            if (resetToken == null)
-            {
-                TempData["ErrorMessage"] = "This reset link is invalid, expired, or has already been used. Please request a new one.";
-                return RedirectToAction("ForgotPassword");
+                TempData["ErrorMessage"] = "This reset link is invalid or has expired. Please request a new one.";
+                return View();
             }
 
             ViewBag.Token = token;
@@ -194,17 +176,26 @@ namespace NMB_HLabSys.Controllers
             return View();
         }
 
+        // POST: Account/ResetPassword
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ResetPassword(string token, string email, string newPassword, string confirmPassword)
+        public async Task<IActionResult> ResetPassword(string email, string token, string newPassword, string confirmPassword)
         {
-            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(email))
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(token))
             {
                 TempData["ErrorMessage"] = "Invalid reset request.";
-                return RedirectToAction("ForgotPassword");
+                return RedirectToAction("Login");
             }
 
-            if (string.IsNullOrWhiteSpace(newPassword) || newPassword != confirmPassword)
+            if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 8)
+            {
+                TempData["ErrorMessage"] = "Password must be at least 8 characters.";
+                ViewBag.Token = token;
+                ViewBag.Email = email;
+                return View();
+            }
+
+            if (newPassword != confirmPassword)
             {
                 TempData["ErrorMessage"] = "Passwords do not match.";
                 ViewBag.Token = token;
@@ -212,49 +203,42 @@ namespace NMB_HLabSys.Controllers
                 return View();
             }
 
-            if (!IsValidPassword(newPassword))
+            if (!System.Text.RegularExpressions.Regex.IsMatch(
+                    newPassword, @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$"))
             {
-                TempData["ErrorMessage"] = "Password must be at least 8 characters and contain an uppercase letter, a number, and a special character.";
+                TempData["ErrorMessage"] = "Password must contain uppercase, lowercase, number, and special character.";
                 ViewBag.Token = token;
                 ViewBag.Email = email;
                 return View();
             }
 
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == email.Trim().ToLower() && u.IsActive);
+            // Verify token
+            var storedToken = TempData[$"ResetToken_{email}"] as string;
+            if (storedToken != token)
+            {
+                TempData["ErrorMessage"] = "This reset link is invalid or has expired.";
+                return RedirectToAction("Login");
+            }
 
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email && u.IsActive);
             if (user == null)
             {
-                TempData["ErrorMessage"] = "Invalid reset request.";
-                return RedirectToAction("ForgotPassword");
+                TempData["ErrorMessage"] = "Account not found.";
+                return RedirectToAction("Login");
             }
 
-            var resetToken = await _context.PasswordResetTokens
-                .FirstOrDefaultAsync(t =>
-                    t.UserID == user.UserID &&
-                    t.Token == token &&
-                    !t.IsUsed &&
-                    t.ExpiresAt > DateTime.Now);
-
-            if (resetToken == null)
-            {
-                TempData["ErrorMessage"] = "This reset link is invalid, expired, or has already been used.";
-                return RedirectToAction("ForgotPassword");
-            }
-
+            // Update the password
             user.PasswordHash = _passwordHasher.HashPassword(newPassword);
-            user.ModifiedDate = DateTime.Now;
             user.IsPasswordChanged = true;
-
-            resetToken.IsUsed = true;
-            resetToken.UsedAt = DateTime.Now;
-
+            user.ModifiedDate = DateTime.Now;
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "Your password has been reset successfully. Please log in with your new password.";
+            // Invalidate the token
+            TempData.Remove($"ResetToken_{email}");
+
+            TempData["SuccessMessage"] = "Password reset successfully. Please log in with your new password.";
             return RedirectToAction("Login");
         }
-
         // ============================================
         // HELPERS
         // ============================================

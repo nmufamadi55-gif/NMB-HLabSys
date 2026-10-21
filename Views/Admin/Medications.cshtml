@@ -7,71 +7,375 @@
     ViewData["RoleSubtitle"] = "Admin Portal";
     ViewData["UserGreeting"] = "System Administrator";
     ViewData["UserInitials"] = "AD";
+    var showDeleted = (bool)(ViewBag.ShowDeleted ?? false);
 }
 
 @section SidebarMenu {
     <li><a href="@Url.Action("Dashboard", "Admin")"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+    <li><a href="@Url.Action("Categories", "Admin")"><i class="fas fa-folder"></i> <span>Categories</span></a></li>
     <li><a href="@Url.Action("Conditions", "Admin")"><i class="fas fa-database"></i> <span>Conditions</span></a></li>
     <li><a href="@Url.Action("Allergies", "Admin")"><i class="fas fa-allergies"></i> <span>Allergies</span></a></li>
     <li><a href="@Url.Action("Medications", "Admin")" class="active"><i class="fas fa-capsules"></i> <span>Medications</span></a></li>
-    <li><a href="@Url.Action("Categories", "Admin")"><i class="fas fa-folder"></i> <span>Categories</span></a></li>
-    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+    <li><a href="@Url.Action("Profile", "Admin")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
 <style>
-    .profile-card {
-        background: white;
+    :root {
+        --p-teal: #0891B2;
+        --p-teal-grad: linear-gradient(135deg, #0891B2 0%, #06B6D4 100%);
+        --p-navy: #0F172A;
+        --p-text: #1E293B;
+        --p-text-soft: #64748B;
+        --p-text-muted: #94A3B8;
+        --p-border: #E2E8F0;
+        --p-bg-soft: #F8FAFC;
+        --p-danger: #DC2626;
+        --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+        --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06), 0 2px 6px rgba(15, 23, 42, 0.04);
+        --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.10), 0 4px 12px rgba(15, 23, 42, 0.05);
+        --radius: 16px;
+    }
+
+    .page-hero {
+        position: relative;
+        margin: -1.2rem -1.2rem 2rem -1.2rem;
+        height: 300px;
+        border-radius: 0 0 24px 24px;
+        overflow: hidden;
+        display: flex;
+        align-items: flex-end;
+        padding: 2rem;
+        box-shadow: var(--shadow-lg);
+    }
+
+        .page-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url('https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=1600&q=85');
+            background-size: cover;
+            background-position: center;
+            z-index: 0;
+            transition: transform 12s ease-out;
+        }
+
+        .page-hero:hover::before {
+            transform: scale(1.04);
+        }
+
+        .page-hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 0) 40%, rgba(15, 23, 42, 0.25) 70%, rgba(15, 23, 42, 0.65) 100%);
+            z-index: 1;
+        }
+
+    .hero-pill {
+        position: relative;
+        z-index: 2;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 20px;
-        border: 1px solid #E2E8F0;
+        padding: 1.4rem 1.8rem;
+        color: white;
+        max-width: 700px;
+        width: 100%;
+        animation: heroFadeIn 0.8s ease-out;
+    }
+
+    @@keyframes heroFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .hero-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(6, 182, 212, 0.25);
+        border: 1px solid rgba(6, 182, 212, 0.4);
+        padding: 0.35rem 0.9rem;
+        border-radius: 20px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 0.7rem;
+        color: #67E8F9;
+    }
+
+    .hero-pill h1 {
+        font-size: 1.7rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 0 0 0.3rem;
+        line-height: 1.15;
+    }
+
+    .hero-pill p {
+        font-size: 0.88rem;
+        color: rgba(255, 255, 255, 0.8);
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .hero-actions {
+        margin-top: 1rem;
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+    }
+
+    .hero-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.55rem 1.1rem;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+        font-family: inherit;
+        cursor: pointer;
+        border: none;
+        white-space: nowrap;
+    }
+
+    .hero-btn-primary {
+        background: var(--p-teal-grad);
+        color: white;
+        box-shadow: 0 4px 14px rgba(6, 182, 212, 0.4);
+    }
+
+        .hero-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(6, 182, 212, 0.5);
+            color: white;
+        }
+
+    .hero-btn-secondary {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        color: white;
+        backdrop-filter: blur(10px);
+    }
+
+        .hero-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            color: white;
+        }
+
+    .clean-card {
+        background: white;
+        border-radius: var(--radius);
+        border: 1px solid var(--p-border);
+        box-shadow: var(--shadow-sm);
         overflow: hidden;
         margin-bottom: 1.5rem;
     }
 
-    .profile-card-header {
-        background: linear-gradient(135deg, #F8FAFE, #FFFFFF);
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid #E2E8F0;
+    .clean-card-header {
+        padding: 1.1rem 1.5rem;
+        border-bottom: 1px solid var(--p-border);
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
     }
 
-        .profile-card-header h3 {
+        .clean-card-header h3 {
             margin: 0;
-            color: #032C7D;
-            font-size: 1.1rem;
+            color: var(--p-navy);
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
         }
 
-    .profile-card-body {
+            .clean-card-header h3 i {
+                color: var(--p-teal);
+                font-size: 0.95rem;
+            }
+
+    .clean-card-header-actions {
+        display: flex;
+        gap: 0.6rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .clean-card-body {
         padding: 1.5rem;
     }
 
-    .search-box {
-        padding: 10px 16px;
-        border-radius: 12px;
-        border: 1px solid #E2E8F0;
-        width: 280px;
-        font-size: 0.85rem;
+    .search-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 320px;
+        max-width: 100%;
     }
 
-        .search-box:focus {
-            outline: none;
-            border-color: #0841C9;
-            box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
+        .search-wrapper .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--p-text-muted);
+            font-size: 0.85rem;
+            pointer-events: none;
+            transition: color 0.2s;
+            z-index: 1;
         }
 
-    .category-section {
-        background: #F8FAFE;
-        border-radius: 16px;
-        padding: 1.2rem;
-        margin-bottom: 1rem;
+        .search-wrapper:focus-within .search-icon {
+            color: var(--p-teal);
+        }
+
+    .search-input {
+        width: 100%;
+        padding: 0.65rem 2.6rem 0.65rem 2.6rem;
+        border-radius: 10px;
+        border: 1px solid var(--p-border);
+        font-size: 0.85rem;
+        font-family: inherit;
+        background: var(--p-bg-soft);
+        transition: all 0.2s;
+        color: var(--p-text);
     }
 
-        .category-section h4 {
-            color: #032C7D;
-            font-size: 0.95rem;
-            margin: 0 0 0.8rem 0;
-            font-weight: 600;
+        .search-input::placeholder {
+            color: var(--p-text-muted);
+            font-size: 0.83rem;
+        }
+
+        .search-input:hover {
+            background: white;
+            border-color: #CBD5E1;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--p-teal);
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.12);
+            background: white;
+        }
+
+    .search-clear {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--p-bg-soft);
+        border: none;
+        color: var(--p-text-muted);
+        cursor: pointer;
+        padding: 0.3rem;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        width: 22px;
+        height: 22px;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        transition: 0.2s;
+        z-index: 1;
+    }
+
+        .search-clear.visible {
+            display: flex;
+        }
+
+        .search-clear:hover {
+            background: var(--p-teal);
+            color: white;
+        }
+
+    .toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.6rem 1rem;
+        border-radius: 10px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        border: 1px solid var(--p-border);
+        background: white;
+        color: var(--p-text-soft);
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+        font-family: inherit;
+        white-space: nowrap;
+    }
+
+        .toggle-btn:hover {
+            border-color: var(--p-teal);
+            color: var(--p-teal);
+        }
+
+        .toggle-btn.active {
+            background: var(--p-teal-grad);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+        }
+
+            .toggle-btn.active:hover {
+                color: white;
+            }
+
+    .category-section {
+        background: var(--p-bg-soft);
+        border-radius: 14px;
+        padding: 1.2rem;
+        margin-bottom: 1rem;
+        border: 1px solid var(--p-border);
+        animation: sectionFadeIn 0.4s ease-out;
+    }
+
+    @@keyframes sectionFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .category-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .category-section h4 {
+        color: var(--p-navy);
+        font-size: 0.9rem;
+        margin: 0 0 0.8rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .category-section h4 i {
+            color: var(--p-teal);
+            font-size: 0.85rem;
         }
 
     .medication-item {
@@ -79,120 +383,187 @@
         justify-content: space-between;
         align-items: center;
         background: white;
-        padding: 12px 16px;
-        border-radius: 12px;
-        margin-bottom: 8px;
-        border: 1px solid #F3F4F6;
+        padding: 0.8rem 1rem;
+        border-radius: 10px;
+        margin-bottom: 0.6rem;
+        border: 1px solid var(--p-border);
         transition: 0.2s;
+        gap: 0.8rem;
     }
 
-        .medication-item:hover {
-            border-color: #E0E7FF;
-            background: #F8FAFE;
+        .medication-item:last-child {
+            margin-bottom: 0;
         }
 
-    .medication-name {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-    }
+        .medication-item:hover {
+            border-color: rgba(6, 182, 212, 0.3);
+            transform: translateX(3px);
+            box-shadow: var(--shadow-sm);
+        }
 
-        .medication-name strong {
-            color: #032C7D;
+        .medication-item strong {
+            color: var(--p-navy);
             font-size: 0.9rem;
         }
 
-        .medication-name span {
-            color: #5A6E7A;
-            font-size: 0.75rem;
+        .medication-item .desc {
+            color: var(--p-text-soft);
+            font-size: 0.78rem;
+            margin-left: 0.6rem;
         }
 
     .medication-actions {
         display: flex;
-        gap: 6px;
-    }
-
-    .btn-primary {
-        background: #0841C9;
-        color: white;
-        border: none;
-        padding: 0.5rem 1.2rem;
-        border-radius: 30px;
-        cursor: pointer;
-        font-size: 0.8rem;
-        display: inline-flex;
-        align-items: center;
         gap: 0.4rem;
     }
 
-        .btn-primary:hover {
-            background: #032C7D;
-        }
-
-    .btn-outline {
-        background: transparent;
-        border: 1px solid #E2E8F0;
-        padding: 0.4rem 1rem;
-        border-radius: 30px;
-        cursor: pointer;
-        font-size: 0.75rem;
-        color: #032C7D;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.3rem;
+    .medication-item.deleted-item {
+        background: rgba(254, 242, 242, 0.5);
+        border-color: #FECACA;
+        opacity: 0.75;
     }
 
-        .btn-outline:hover {
-            background: #F8FAFE;
-            border-color: #0841C9;
+        .medication-item.deleted-item:hover {
+            border-color: var(--p-danger);
+            opacity: 1;
+            transform: none;
+        }
+
+        .medication-item.deleted-item strong {
+            color: #991B1B;
+            text-decoration: line-through;
+        }
+
+    .deleted-badge {
+        display: inline-block;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        background: #FEE2E2;
+        color: #991B1B;
+        font-size: 0.65rem;
+        font-weight: 700;
+        margin-left: 0.4rem;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.45rem 0.9rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border: 1px solid var(--p-border);
+        background: white;
+        color: var(--p-navy);
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+        font-family: inherit;
+        white-space: nowrap;
+    }
+
+        .btn:hover {
+            border-color: var(--p-teal);
+            color: var(--p-teal);
+            box-shadow: var(--shadow-sm);
+        }
+
+    .btn-primary {
+        background: var(--p-teal-grad);
+        color: white;
+        border: none;
+        padding: 0.6rem 1.1rem;
+        font-size: 0.8rem;
+        box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+    }
+
+        .btn-primary:hover {
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(6, 182, 212, 0.4);
         }
 
     .btn-danger {
-        color: #DC2626;
-        border-color: #FCA5A5;
+        color: var(--p-danger);
+        border-color: #FECACA;
     }
 
         .btn-danger:hover {
             background: #FEE2E2;
-            border-color: #DC2626;
+            border-color: var(--p-danger);
+            color: var(--p-danger);
         }
 
-    .alert-success {
-        background: #D1FAE5;
-        color: #065F46;
-        padding: 0.8rem 1rem;
+    .btn-success {
+        background: #059669;
+        color: white;
+        border-color: #059669;
+    }
+
+        .btn-success:hover {
+            background: #047857;
+            border-color: #047857;
+            color: white;
+        }
+
+    .alert {
+        padding: 0.85rem 1.2rem;
         border-radius: 12px;
-        margin-bottom: 1rem;
+        margin-bottom: 1.2rem;
         display: flex;
-        align-items: center;
-        gap: 0.5rem;
+        align-items: flex-start;
+        gap: 0.6rem;
         font-size: 0.85rem;
+    }
+
+    .alert-success {
+        background: #DCFCE7;
+        color: #166534;
+        border-left: 3px solid #059669;
     }
 
     .alert-error {
         background: #FEE2E2;
         color: #991B1B;
-        padding: 0.8rem 1rem;
-        border-radius: 12px;
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.85rem;
+        border-left: 3px solid #DC2626;
     }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: var(--p-text-muted);
+    }
+
+        .empty-state i {
+            font-size: 2.5rem;
+            opacity: 0.4;
+            margin-bottom: 0.8rem;
+            display: block;
+        }
+
+        .empty-state h3 {
+            color: var(--p-navy);
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 0 0 0.3rem;
+        }
+
+        .empty-state p {
+            margin: 0;
+            font-size: 0.85rem;
+        }
 
     .modal-overlay {
         display: none;
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
+        inset: 0;
+        background: rgba(15, 23, 42, 0.5);
+        backdrop-filter: blur(4px);
         z-index: 1000;
         justify-content: center;
         align-items: center;
+        padding: 1rem;
     }
 
         .modal-overlay.active {
@@ -204,7 +575,23 @@
         padding: 2rem;
         border-radius: 20px;
         max-width: 500px;
-        width: 90%;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: var(--shadow-lg);
+        animation: modalIn 0.3s ease-out;
+    }
+
+    @@keyframes modalIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
     }
 
     .modal-header {
@@ -215,9 +602,10 @@
     }
 
         .modal-header h3 {
-            color: #032C7D;
+            color: var(--p-navy);
             font-size: 1.1rem;
             margin: 0;
+            font-weight: 700;
         }
 
     .modal-close {
@@ -225,8 +613,15 @@
         border: none;
         font-size: 1.3rem;
         cursor: pointer;
-        color: #5A6E7A;
+        color: var(--p-text-soft);
+        padding: 0.3rem;
+        border-radius: 8px;
     }
+
+        .modal-close:hover {
+            background: var(--p-bg-soft);
+            color: var(--p-navy);
+        }
 
     .form-group {
         margin-bottom: 1rem;
@@ -236,103 +631,186 @@
             display: block;
             font-weight: 600;
             font-size: 0.8rem;
-            color: #032C7D;
-            margin-bottom: 0.3rem;
+            color: var(--p-navy);
+            margin-bottom: 0.4rem;
         }
 
         .form-group input, .form-group select, .form-group textarea {
             width: 100%;
-            padding: 10px 14px;
-            border-radius: 12px;
-            border: 1px solid #E2E8F0;
+            padding: 0.7rem 1rem;
+            border-radius: 10px;
+            border: 1px solid var(--p-border);
             font-size: 0.85rem;
             font-family: inherit;
+            background: white;
         }
 
             .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
                 outline: none;
-                border-color: #0841C9;
-                box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
+                border-color: var(--p-teal);
+                box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.12);
             }
+
+    .btn-submit {
+        width: 100%;
+        background: var(--p-teal-grad);
+        color: white;
+        border: none;
+        padding: 0.75rem;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 0.9rem;
+        box-shadow: 0 4px 14px rgba(6, 182, 212, 0.3);
+        transition: 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+    }
+
+        .btn-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+        }
+
+    @@media (max-width: 768px) {
+        .page-hero {
+            margin: -0.8rem -0.8rem 1.5rem -0.8rem;
+            height: 240px;
+            padding: 1.2rem;
+        }
+
+        .hero-pill {
+            padding: 1.1rem 1.3rem;
+        }
+
+            .hero-pill h1 {
+                font-size: 1.4rem;
+            }
+
+        .clean-card-body {
+            padding: 1.2rem;
+        }
+
+        .clean-card-header {
+            padding: 1rem 1.2rem;
+        }
+
+        .clean-card-header-actions {
+            width: 100%;
+        }
+
+        .search-wrapper {
+            width: 100%;
+        }
+    }
 </style>
+
+<div class="page-hero">
+    <div class="hero-pill">
+        <span class="hero-kicker"><i class="fas fa-capsules"></i> Admin</span>
+        <h1>Medications</h1>
+        <p>Manage the catalogue of medications patients can record in their medical history.</p>
+        <div class="hero-actions">
+            <a href="@Url.Action("Dashboard", "Admin")" class="hero-btn hero-btn-secondary"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+            <button class="hero-btn hero-btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> Add Medication</button>
+        </div>
+    </div>
+</div>
 
 @if (TempData["SuccessMessage"] != null)
 {
-    <div class="alert-success"><i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]</div>
+    <div class="alert alert-success"><i class="fas fa-check-circle" style="margin-top:2px;"></i><span>@TempData["SuccessMessage"]</span></div>
 }
-
 @if (TempData["ErrorMessage"] != null)
 {
-    <div class="alert-error"><i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]</div>
+    <div class="alert alert-error"><i class="fas fa-exclamation-circle" style="margin-top:2px;"></i><span>@TempData["ErrorMessage"]</span></div>
 }
 
-<div class="profile-card">
-    <div class="profile-card-header">
-        <h3><i class="fas fa-capsules"></i> Medications</h3>
-        <button class="btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> Add Medication</button>
+<div class="clean-card">
+    <div class="clean-card-header">
+        <h3><i class="fas fa-capsules"></i> All Medications</h3>
+        <div class="clean-card-header-actions">
+            <div class="search-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" class="search-input" placeholder="Search medications..." oninput="searchMedications()" />
+                <button type="button" class="search-clear" id="searchClear" onclick="clearSearch()" title="Clear search"><i class="fas fa-times"></i></button>
+            </div>
+            <a href="@Url.Action("Medications", "Admin", new { showDeleted = !showDeleted })" class="toggle-btn @(showDeleted ? "active" : "")">
+                <i class="fas fa-@(showDeleted ? "eye-slash" : "eye")"></i> @(showDeleted ? "Hide Deleted" : "Show Deleted")
+            </a>
+            <button class="btn btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> Add Medication</button>
+        </div>
     </div>
-    <div class="profile-card-body">
-        <input type="text" id="searchInput" class="search-box" placeholder="Search medications..." onkeyup="searchMedications()" style="margin-bottom: 1rem;" />
-
+    <div class="clean-card-body">
         @if (Model.Medications != null && Model.Medications.Any())
         {
             foreach (var category in Model.Categories)
             {
                 var medicationsInCategory = Model.Medications.Where(m => m.CategoryID == category.CategoryID).ToList();
-
                 if (medicationsInCategory.Any())
                 {
-                    <div class="category-section">
-                        <h4>@category.CategoryName</h4>
+                    <div class="category-section" data-section="@category.CategoryID">
+                        <h4><i class="fas fa-folder"></i> @category.CategoryName</h4>
                         @foreach (var medication in medicationsInCategory)
                         {
-                            <div class="medication-item" data-name="@medication.MedicationName.ToLower()">
-                                <div class="medication-name">
+                            <div class="medication-item @(!medication.IsActive ? "deleted-item" : "")" data-name="@medication.MedicationName.ToLower()">
+                                <span>
                                     <strong>@medication.MedicationName</strong>
                                     @if (!string.IsNullOrEmpty(medication.Description))
                                     {
-                                        <span>@medication.Description</span>
+                                        <span class="desc">@medication.Description</span>
                                     }
-                                </div>
+                                    @if (!medication.IsActive)
+                                    {
+                                        <span class="deleted-badge">Deleted</span>
+                                    }
+                                </span>
                                 <div class="medication-actions">
-                                    <a href="@Url.Action("EditMedication", "Admin", new { id = medication.MedicationID })" class="btn-outline">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </a>
-                                    <button class="btn-outline btn-danger" onclick="deleteMedication(@medication.MedicationID)">
-                                        <i class="fas fa-trash"></i> Delete
-                                    </button>
+                                    @if (medication.IsActive)
+                                    {
+                                        <a href="@Url.Action("EditMedication", "Admin", new { id = medication.MedicationID })" class="btn"><i class="fas fa-edit"></i> Edit</a>
+                                        <button class="btn btn-danger" onclick="deleteMedication(@medication.MedicationID)"><i class="fas fa-trash"></i> Delete</button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-success" onclick="reactivateMedication(@medication.MedicationID)"><i class="fas fa-undo"></i> Reactivate</button>
+                                    }
                                 </div>
                             </div>
                         }
                     </div>
                 }
             }
+
+            <div class="empty-state" id="noResultsState" style="display: none;">
+                <i class="fas fa-search"></i>
+                <h3>No matching medications</h3>
+                <p>Try a different search term or <button type="button" onclick="clearSearch()" style="background: none; border: none; color: var(--p-teal); cursor: pointer; text-decoration: underline; font-weight: 600; font-size: inherit; padding: 0;">clear the search</button></p>
+            </div>
         }
         else
         {
-            <p style="text-align: center; color: #9CA3AF; padding: 2rem;">
-                <i class="fas fa-inbox" style="font-size: 2rem; display: block; margin-bottom: 0.5rem; opacity: 0.5;"></i>
-                No medications found.
-            </p>
+            <div class="empty-state">
+                <i class="fas fa-capsules"></i>
+                <h3>No medications found</h3>
+                <p>Click "Add Medication" to create one.</p>
+            </div>
         }
     </div>
 </div>
 
-<!-- Add Medication Modal -->
 <div id="addModal" class="modal-overlay">
     <div class="modal-box">
         <div class="modal-header">
             <h3><i class="fas fa-plus-circle"></i> Add Medication</h3>
-            <button class="modal-close" onclick="closeAddModal()"><i class="fas fa-times"></i></button>
+            <button class="modal-close" onclick="closeAddModal()">&times;</button>
         </div>
         <form method="post" action="@Url.Action("AddMedication", "Admin")">
             @Html.AntiForgeryToken()
-
-            <div class="form-group">
-                <label>Medication Name</label>
-                <input type="text" name="medicationName" required />
-            </div>
-
+            <div class="form-group"><label>Medication Name</label><input type="text" name="medicationName" required /></div>
             <div class="form-group">
                 <label>Category</label>
                 <select name="categoryId" required>
@@ -343,15 +821,8 @@
                     }
                 </select>
             </div>
-
-            <div class="form-group">
-                <label>Description</label>
-                <textarea name="description" rows="3"></textarea>
-            </div>
-
-            <button type="submit" class="btn-primary" style="width:100%;">
-                <i class="fas fa-save"></i> Add Medication
-            </button>
+            <div class="form-group"><label>Description</label><textarea name="description" rows="3"></textarea></div>
+            <button type="submit" class="btn-submit"><i class="fas fa-save"></i> Add Medication</button>
         </form>
     </div>
 </div>
@@ -361,29 +832,56 @@
     function closeAddModal() { document.getElementById('addModal').classList.remove('active'); }
 
     function searchMedications() {
-        var searchText = document.getElementById('searchInput').value.toLowerCase();
-        document.querySelectorAll('.medication-item').forEach(function (item) {
-            var name = item.getAttribute('data-name');
-            item.style.display = (name && name.includes(searchText)) ? 'flex' : 'none';
+        var input = document.getElementById('searchInput');
+        var clearBtn = document.getElementById('searchClear');
+        var searchText = input.value.toLowerCase().trim();
+        if (searchText.length > 0) { clearBtn.classList.add('visible'); } else { clearBtn.classList.remove('visible'); }
+
+        var totalVisible = 0;
+        document.querySelectorAll('.category-section').forEach(function (section) {
+            var visibleInSection = 0;
+            section.querySelectorAll('.medication-item').forEach(function (item) {
+                var name = item.getAttribute('data-name') || '';
+                if (name.includes(searchText)) {
+                    item.style.display = 'flex';
+                    visibleInSection++;
+                    totalVisible++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            section.style.display = (visibleInSection === 0) ? 'none' : 'block';
         });
+
+        var noResults = document.getElementById('noResultsState');
+        if (noResults) noResults.style.display = (totalVisible === 0 && searchText.length > 0) ? 'block' : 'none';
+    }
+
+    function clearSearch() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('searchClear').classList.remove('visible');
+        document.querySelectorAll('.category-section').forEach(function (section) {
+            section.style.display = 'block';
+            section.querySelectorAll('.medication-item').forEach(function (item) { item.style.display = 'flex'; });
+        });
+        var noResults = document.getElementById('noResultsState');
+        if (noResults) noResults.style.display = 'none';
+        document.getElementById('searchInput').focus();
     }
 
     function deleteMedication(id) {
-        if (confirm('Delete this medication?')) {
-            fetch('@Url.Action("DeleteMedication", "Admin")', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: 'id=' + id
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) { alert(data.message); location.reload(); }
-                else { alert('Error: ' + data.message); }
-            });
+        if (confirm('Delete this medication? It will be soft-deleted and can be reactivated later.')) {
+            fetch('@Url.Action("DeleteMedication", "Admin")', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'id=' + id })
+            .then(r => r.json()).then(data => { if (data.success) { alert(data.message); location.reload(); } else { alert('Error: ' + data.message); } });
+        }
+    }
+    function reactivateMedication(id) {
+        if (confirm('Reactivate this medication?')) {
+            fetch('@Url.Action("ReactivateMedication", "Admin")', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'id=' + id })
+            .then(r => r.json()).then(data => { if (data.success) { alert(data.message); location.reload(); } else { alert('Error: ' + data.message); } });
         }
     }
 
-    document.getElementById('addModal').addEventListener('click', function (e) {
-        if (e.target === this) closeAddModal();
-    });
-</script>
+    document.getElementById('searchInput').addEventListener('keydown', function (e) { if (e.key === 'Escape') clearSearch(); });
+    document.getElementById('addModal').addEventListener('click', function (e) { if (e.target === this) closeAddModal(); });
+</script>3

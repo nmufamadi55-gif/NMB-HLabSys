@@ -11,137 +11,455 @@
 
 @section SidebarMenu {
     <li><a href="@Url.Action("Dashboard", "Admin")" class="active"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+    <li><a href="@Url.Action("Categories", "Admin")"><i class="fas fa-folder"></i> <span>Categories</span></a></li>
     <li><a href="@Url.Action("Conditions", "Admin")"><i class="fas fa-database"></i> <span>Conditions</span></a></li>
     <li><a href="@Url.Action("Allergies", "Admin")"><i class="fas fa-allergies"></i> <span>Allergies</span></a></li>
     <li><a href="@Url.Action("Medications", "Admin")"><i class="fas fa-capsules"></i> <span>Medications</span></a></li>
-    <li><a href="@Url.Action("Categories", "Admin")"><i class="fas fa-folder"></i> <span>Categories</span></a></li>
-    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+    <li><a href="@Url.Action("Profile", "Admin")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
 <style>
-    .profile-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-        gap: 1.5rem;
+    :root {
+        --p-teal: #0891B2;
+        --p-teal-light: #06B6D4;
+        --p-teal-grad: linear-gradient(135deg, #0891B2 0%, #06B6D4 100%);
+        --p-navy: #0F172A;
+        --p-text: #1E293B;
+        --p-text-soft: #64748B;
+        --p-text-muted: #94A3B8;
+        --p-border: #E2E8F0;
+        --p-bg-soft: #F8FAFC;
+        --p-success: #059669;
+        --p-danger: #DC2626;
+        --p-warning: #F59E0B;
+        --p-violet: #8B5CF6;
+        --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+        --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06), 0 2px 6px rgba(15, 23, 42, 0.04);
+        --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.10), 0 4px 12px rgba(15, 23, 42, 0.05);
+        --radius: 16px;
     }
 
-    .profile-card {
-        background: white;
-        border-radius: 20px;
-        border: 1px solid #E2E8F0;
+    /* ═══ HERO ═══ */
+    .page-hero {
+        position: relative;
+        margin: -1.2rem -1.2rem 2rem -1.2rem;
+        height: 320px;
+        border-radius: 0 0 24px 24px;
         overflow: hidden;
+        display: flex;
+        align-items: flex-end;
+        padding: 2rem;
+        box-shadow: var(--shadow-lg);
     }
 
-    .profile-card-header {
-        background: linear-gradient(135deg, #F8FAFE, #FFFFFF);
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid #E2E8F0;
-    }
-
-        .profile-card-header h3 {
-            margin: 0;
-            color: #032C7D;
-            font-size: 1.1rem;
+        .page-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url('https://images.unsplash.com/photo-1551076805-e1869033e561?w=1600&q=85');
+            background-size: cover;
+            background-position: center;
+            z-index: 0;
+            transition: transform 12s ease-out;
         }
 
-    .profile-card-body {
-        padding: 1.5rem;
+        .page-hero:hover::before {
+            transform: scale(1.04);
+        }
+
+        .page-hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient( to bottom, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 0) 40%, rgba(15, 23, 42, 0.25) 70%, rgba(15, 23, 42, 0.65) 100% );
+            z-index: 1;
+        }
+
+    .hero-pill {
+        position: relative;
+        z-index: 2;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 20px;
+        padding: 1.4rem 1.8rem;
+        color: white;
+        max-width: 720px;
+        width: 100%;
+        animation: heroFadeIn 0.8s ease-out;
     }
 
-    .stats-grid {
+    @@keyframes heroFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .hero-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(6, 182, 212, 0.25);
+        border: 1px solid rgba(6, 182, 212, 0.4);
+        padding: 0.35rem 0.9rem;
+        border-radius: 20px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 0.7rem;
+        color: #67E8F9;
+    }
+
+    .hero-pill h1 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 0 0 0.3rem;
+        line-height: 1.15;
+    }
+
+    .hero-pill p {
+        font-size: 0.88rem;
+        color: rgba(255, 255, 255, 0.8);
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .hero-actions {
+        margin-top: 1rem;
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+    }
+
+    .hero-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.55rem 1.1rem;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+        font-family: inherit;
+        cursor: pointer;
+        border: none;
+        white-space: nowrap;
+    }
+
+    .hero-btn-primary {
+        background: var(--p-teal-grad);
+        color: white;
+        box-shadow: 0 4px 14px rgba(6, 182, 212, 0.4);
+    }
+
+        .hero-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(6, 182, 212, 0.5);
+            color: white;
+        }
+
+    .hero-btn-secondary {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        color: white;
+        backdrop-filter: blur(10px);
+    }
+
+        .hero-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            color: white;
+        }
+
+    /* ═══ STATS ROW ═══ */
+    .stats-row {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 1rem;
+        margin-bottom: 1.5rem;
     }
 
-    .stat-box {
-        background: #F8FAFE;
-        border-radius: 16px;
+    .stat-card {
+        background: white;
+        border-radius: var(--radius);
+        border: 1px solid var(--p-border);
+        box-shadow: var(--shadow-sm);
         padding: 1.2rem;
         display: flex;
         align-items: center;
         gap: 1rem;
-        transition: all 0.2s;
+        transition: all 0.25s;
+        animation: cardFadeIn 0.6s ease-out backwards;
     }
 
-        .stat-box:hover {
+        .stat-card:nth-child(1) {
+            animation-delay: 0.05s;
+        }
+
+        .stat-card:nth-child(2) {
+            animation-delay: 0.15s;
+        }
+
+        .stat-card:nth-child(3) {
+            animation-delay: 0.25s;
+        }
+
+        .stat-card:nth-child(4) {
+            animation-delay: 0.35s;
+        }
+
+        .stat-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(8,65,201,0.08);
+            box-shadow: var(--shadow-lg);
+            border-color: rgba(6, 182, 212, 0.3);
         }
 
     .stat-icon {
-        width: 48px;
-        height: 48px;
-        background: linear-gradient(135deg, #0841C9, #1D97F1);
+        width: 44px;
+        height: 44px;
         border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
-        font-size: 1.2rem;
+        font-size: 1.05rem;
         flex-shrink: 0;
     }
 
-    .stat-info h3 {
-        margin: 0;
-        color: #032C7D;
-        font-size: 1.6rem;
-        font-weight: 700;
-    }
-
-    .stat-info p {
-        margin: 0;
-        color: #5A6E7A;
-        font-size: 0.8rem;
-        font-weight: 500;
-    }
-
-    .quick-action-list {
-        list-style: none;
-        padding-left: 0;
-        margin: 0;
-    }
-
-        .quick-action-list li {
-            margin-bottom: 10px;
+        .stat-icon.teal {
+            background: var(--p-teal-grad);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
         }
 
-        .quick-action-list a {
+        .stat-icon.warning {
+            background: linear-gradient(135deg, #F59E0B 0%, #F97316 100%);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .stat-icon.info {
+            background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 100%);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .stat-icon.success {
+            background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+        }
+
+    .stat-content h3 {
+        margin: 0;
+        color: var(--p-navy);
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -0.02em;
+    }
+
+    .stat-content p {
+        margin: 0.35rem 0 0;
+        color: var(--p-text-soft);
+        font-size: 0.72rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    /* ═══ CARDS ═══ */
+    .clean-card {
+        background: white;
+        border-radius: var(--radius);
+        border: 1px solid var(--p-border);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        animation: cardFadeIn 0.6s ease-out backwards;
+    }
+
+    @@keyframes cardFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(16px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .clean-card-header {
+        padding: 1.1rem 1.5rem;
+        border-bottom: 1px solid var(--p-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+        .clean-card-header h3 {
+            margin: 0;
+            color: var(--p-navy);
+            font-size: 1rem;
+            font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 0.8rem;
-            background: #F8FAFE;
-            padding: 12px 16px;
-            border-radius: 12px;
-            text-decoration: none;
-            color: #032C7D;
-            font-weight: 500;
-            font-size: 0.9rem;
-            transition: 0.2s;
+            gap: 0.55rem;
         }
 
-            .quick-action-list a:hover {
-                background: #EAF2FF;
-                transform: translateX(4px);
+            .clean-card-header h3 i {
+                color: var(--p-teal);
+                font-size: 0.95rem;
             }
 
-            .quick-action-list a i {
-                color: #0841C9;
-                font-size: 1rem;
-                width: 20px;
+    .clean-card-body {
+        padding: 1.5rem;
+    }
+
+    /* ═══ QUICK ACTIONS ═══ */
+    .quick-actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 0.9rem;
+    }
+
+    .quick-action-item {
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+        padding: 1rem 1.2rem;
+        background: var(--p-bg-soft);
+        border-radius: 12px;
+        border: 1px solid var(--p-border);
+        text-decoration: none;
+        color: var(--p-navy);
+        font-weight: 600;
+        font-size: 0.88rem;
+        transition: all 0.2s;
+    }
+
+        .quick-action-item:hover {
+            background: white;
+            border-color: var(--p-teal);
+            transform: translateX(4px);
+            box-shadow: var(--shadow-sm);
+            color: var(--p-teal);
+        }
+
+    .quick-action-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.95rem;
+        flex-shrink: 0;
+    }
+
+        .quick-action-icon.teal {
+            background: var(--p-teal-grad);
+        }
+
+        .quick-action-icon.warning {
+            background: linear-gradient(135deg, #F59E0B 0%, #F97316 100%);
+        }
+
+        .quick-action-icon.info {
+            background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 100%);
+        }
+
+        .quick-action-icon.success {
+            background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+        }
+
+    /* ═══ OVERVIEW ITEMS ═══ */
+    .overview-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.85rem 0;
+        border-bottom: 1px solid #F1F5F9;
+    }
+
+        .overview-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .overview-item .label {
+            color: var(--p-text-soft);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .overview-item .value {
+            color: var(--p-navy);
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+
+    /* ═══ TABLE ═══ */
+    .clean-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+
+        .clean-table thead th {
+            text-align: left;
+            padding: 0.85rem 1.2rem;
+            color: var(--p-text-soft);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            background: var(--p-bg-soft);
+            border-bottom: 1px solid var(--p-border);
+        }
+
+        .clean-table tbody td {
+            padding: 0.95rem 1.2rem;
+            color: var(--p-text);
+            border-bottom: 1px solid #F1F5F9;
+        }
+
+        .clean-table tbody tr {
+            transition: background 0.15s;
+        }
+
+            .clean-table tbody tr:hover {
+                background: var(--p-bg-soft);
             }
 
+            .clean-table tbody tr:last-child td {
+                border-bottom: none;
+            }
+
+    /* ═══ BADGES ═══ */
     .activity-badge {
         display: inline-block;
-        padding: 4px 12px;
+        padding: 0.28rem 0.75rem;
         border-radius: 20px;
         font-size: 0.7rem;
-        font-weight: 600;
+        font-weight: 700;
+        letter-spacing: 0.02em;
     }
 
     .badge-condition {
         background: #E0E7FF;
-        color: #032C7D;
+        color: #3730A3;
     }
 
     .badge-allergy {
@@ -159,248 +477,258 @@
         color: #065F46;
     }
 
-    .overview-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #F8FAFE;
-        padding: 12px 16px;
-        border-radius: 12px;
-        margin-bottom: 10px;
-        font-size: 0.85rem;
+    /* ═══ TWO-COL GRID ═══ */
+    .two-col-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
     }
 
-        .overview-item span:first-child {
-            color: #5A6E7A;
-        }
+    @@media (max-width: 900px) {
+        .two-col-grid
 
-        .overview-item span:last-child {
-            color: #032C7D;
-            font-weight: 700;
-            font-size: 1rem;
-        }
-
-    .activity-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.85rem;
+    {
+        grid-template-columns: 1fr;
     }
 
-        .activity-table thead th {
-            text-align: left;
-            padding: 10px 12px;
-            color: #5A6E7A;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid #E2E8F0;
-        }
+    }
 
-        .activity-table tbody td {
-            padding: 12px;
-            color: #1F2937;
-            border-bottom: 1px solid #F3F4F6;
-        }
-
-        .activity-table tbody tr:hover {
-            background: #F8FAFE;
-        }
-
-    .no-data {
+    /* ═══ EMPTY STATE ═══ */
+    .empty-state {
         text-align: center;
-        color: #9CA3AF;
-        padding: 2rem;
+        padding: 2.5rem 2rem;
+        color: var(--p-text-muted);
+    }
+
+        .empty-state i {
+            font-size: 2.2rem;
+            opacity: 0.4;
+            margin-bottom: 0.7rem;
+            display: block;
+        }
+
+        .empty-state p {
+            margin: 0;
+            font-size: 0.85rem;
+        }
+
+    /* ═══ ALERTS ═══ */
+    .alert {
+        padding: 0.85rem 1.2rem;
+        border-radius: 12px;
+        margin-bottom: 1.2rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.6rem;
         font-size: 0.85rem;
+        animation: cardFadeIn 0.4s ease-out;
     }
 
     .alert-success {
-        background: #D1FAE5;
-        color: #065F46;
-        padding: 0.8rem 1rem;
-        border-radius: 12px;
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.85rem;
+        background: #DCFCE7;
+        color: #166534;
+        border-left: 3px solid #059669;
     }
 
     .alert-error {
         background: #FEE2E2;
         color: #991B1B;
-        padding: 0.8rem 1rem;
-        border-radius: 12px;
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.85rem;
+        border-left: 3px solid #DC2626;
     }
 
+    /* ═══ RESPONSIVE ═══ */
     @@media (max-width: 768px) {
-        .profile-container {
-            grid-template-columns: 1fr;
+        .page-hero
+
+    {
+        margin: -0.8rem -0.8rem 1.5rem -0.8rem;
+        height: 280px;
+        padding: 1.2rem;
+    }
+
+    .hero-pill {
+        padding: 1.1rem 1.3rem;
+    }
+
+        .hero-pill h1 {
+            font-size: 1.4rem;
         }
+
+    .clean-card-body {
+        padding: 1.2rem;
+    }
+
+    .clean-card-header {
+        padding: 1rem 1.2rem;
+    }
+
     }
 </style>
 
+<!-- ═══ HERO ═══ -->
+<div class="page-hero">
+    <div class="hero-pill">
+        <span class="hero-kicker"><i class="fas fa-shield-alt"></i> Admin Portal</span>
+        <h1>Welcome back, Administrator</h1>
+        <p>Manage your lookup tables and monitor system activity from one central dashboard.</p>
+        <div class="hero-actions">
+            <a href="@Url.Action("Categories", "Admin")" class="hero-btn hero-btn-primary">
+                <i class="fas fa-folder-plus"></i> Manage Categories
+            </a>
+            <a href="@Url.Action("Conditions", "Admin")" class="hero-btn hero-btn-secondary">
+                <i class="fas fa-database"></i> Manage Conditions
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ ALERTS ═══ -->
 @if (TempData["SuccessMessage"] != null)
 {
-    <div class="alert-success">
-        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle" style="margin-top:2px;"></i>
+        <span>@TempData["SuccessMessage"]</span>
     </div>
 }
 
 @if (TempData["ErrorMessage"] != null)
 {
-    <div class="alert-error">
-        <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+    <div class="alert alert-error">
+        <i class="fas fa-exclamation-circle" style="margin-top:2px;"></i>
+        <span>@TempData["ErrorMessage"]</span>
     </div>
 }
 
-<!-- STAT CARDS -->
-<div class="profile-card" style="margin-bottom: 1.5rem;">
-    <div class="profile-card-header">
-        <h3><i class="fas fa-chart-pie"></i> System Statistics</h3>
+<!-- ═══ STATS ROW ═══ -->
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="stat-icon teal"><i class="fas fa-database"></i></div>
+        <div class="stat-content">
+            <h3>@Model.TotalConditions</h3>
+            <p>Conditions</p>
+        </div>
     </div>
-    <div class="profile-card-body">
-        <div class="stats-grid">
-            <div class="stat-box">
-                <div class="stat-icon"><i class="fas fa-database"></i></div>
-                <div class="stat-info">
-                    <h3>@Model.TotalConditions</h3>
-                    <p>Conditions</p>
-                </div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-icon"><i class="fas fa-allergies"></i></div>
-                <div class="stat-info">
-                    <h3>@Model.TotalAllergies</h3>
-                    <p>Allergies</p>
-                </div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-icon"><i class="fas fa-capsules"></i></div>
-                <div class="stat-info">
-                    <h3>@Model.TotalMedications</h3>
-                    <p>Medications</p>
-                </div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-icon"><i class="fas fa-folder"></i></div>
-                <div class="stat-info">
-                    <h3>@Model.TotalCategories</h3>
-                    <p>Categories</p>
-                </div>
-            </div>
+    <div class="stat-card">
+        <div class="stat-icon warning"><i class="fas fa-allergies"></i></div>
+        <div class="stat-content">
+            <h3>@Model.TotalAllergies</h3>
+            <p>Allergies</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon info"><i class="fas fa-capsules"></i></div>
+        <div class="stat-content">
+            <h3>@Model.TotalMedications</h3>
+            <p>Medications</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon success"><i class="fas fa-folder"></i></div>
+        <div class="stat-content">
+            <h3>@Model.TotalCategories</h3>
+            <p>Categories</p>
         </div>
     </div>
 </div>
 
-<!-- QUICK ACTIONS + OVERVIEW -->
-<div class="profile-container">
-    <div class="profile-card">
-        <div class="profile-card-header">
+<!-- ═══ QUICK ACTIONS + SYSTEM OVERVIEW ═══ -->
+<div class="two-col-grid">
+    <!-- Quick Actions -->
+    <div class="clean-card" style="margin-bottom:0;">
+        <div class="clean-card-header">
             <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
         </div>
-        <div class="profile-card-body">
-            <ul class="quick-action-list">
-                <li>
-                    <a href="@Url.Action("Conditions", "Admin")">
-                        <i class="fas fa-database"></i>
-                        <span>Manage Medical Conditions</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="@Url.Action("Allergies", "Admin")">
-                        <i class="fas fa-allergies"></i>
-                        <span>Manage Allergies</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="@Url.Action("Medications", "Admin")">
-                        <i class="fas fa-capsules"></i>
-                        <span>Manage Medications</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="@Url.Action("Categories", "Admin")">
-                        <i class="fas fa-folder"></i>
-                        <span>Manage Categories</span>
-                    </a>
-                </li>
-            </ul>
+        <div class="clean-card-body">
+            <div class="quick-actions-grid">
+                <a href="@Url.Action("Categories", "Admin")" class="quick-action-item">
+                    <div class="quick-action-icon success"><i class="fas fa-folder"></i></div>
+                    <span>Manage Categories</span>
+                </a>
+                <a href="@Url.Action("Conditions", "Admin")" class="quick-action-item">
+                    <div class="quick-action-icon teal"><i class="fas fa-database"></i></div>
+                    <span>Manage Conditions</span>
+                </a>
+                <a href="@Url.Action("Allergies", "Admin")" class="quick-action-item">
+                    <div class="quick-action-icon warning"><i class="fas fa-allergies"></i></div>
+                    <span>Manage Allergies</span>
+                </a>
+                <a href="@Url.Action("Medications", "Admin")" class="quick-action-item">
+                    <div class="quick-action-icon info"><i class="fas fa-capsules"></i></div>
+                    <span>Manage Medications</span>
+                </a>
+            </div>
         </div>
     </div>
 
-    <div class="profile-card">
-        <div class="profile-card-header">
+    <!-- System Overview -->
+    <div class="clean-card" style="margin-bottom:0;">
+        <div class="clean-card-header">
             <h3><i class="fas fa-users"></i> System Overview</h3>
         </div>
-        <div class="profile-card-body">
+        <div class="clean-card-body">
             <div class="overview-item">
-                <span>Total Patients</span>
-                <span>@Model.TotalPatients</span>
+                <span class="label">Total Patients</span>
+                <span class="value">@Model.TotalPatients</span>
             </div>
             <div class="overview-item">
-                <span>Doctors Registered</span>
-                <span>@Model.TotalDoctors</span>
+                <span class="label">Doctors Registered</span>
+                <span class="value">@Model.TotalDoctors</span>
             </div>
             <div class="overview-item">
-                <span>Lab Technicians</span>
-                <span>@Model.TotalTechnicians</span>
+                <span class="label">Lab Technicians</span>
+                <span class="value">@Model.TotalTechnicians</span>
             </div>
-            <div class="overview-item" style="margin-bottom: 0;">
-                <span>Conditions Tracked</span>
-                <span>@Model.TotalConditions</span>
+            <div class="overview-item">
+                <span class="label">Conditions Tracked</span>
+                <span class="value">@Model.TotalConditions</span>
             </div>
         </div>
     </div>
 </div>
 
-<!-- RECENT ACTIVITY -->
-<div class="profile-card" style="margin-top: 1.5rem;">
-    <div class="profile-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+<!-- ═══ RECENT ACTIVITY ═══ -->
+<div class="clean-card">
+    <div class="clean-card-header">
         <h3><i class="fas fa-history"></i> Recent Lookup Table Changes</h3>
-        <small style="color: #5A6E7A; font-size: 0.75rem;">Last 10 changes</small>
+        <span style="color: var(--p-text-muted); font-size: 0.72rem; font-weight: 600;">
+            Last 10 changes
+        </span>
     </div>
-    <div class="profile-card-body" style="padding: 0;">
-        @if (Model.RecentActivities != null && Model.RecentActivities.Any())
-        {
-            <table class="activity-table">
-                <thead>
+    @if (Model.RecentActivities != null && Model.RecentActivities.Any())
+    {
+        <table class="clean-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Item</th>
+                    <th>Action</th>
+                    <th>User</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var activity in Model.RecentActivities)
+                {
+                    var badgeClass = activity.Type == "Condition" ? "badge-condition" :
+                    activity.Type == "Allergy" ? "badge-allergy" :
+                    "badge-medication";
                     <tr>
-                        <th>Date</th>
-                        <th>Type</th>
-                        <th>Item</th>
-                        <th>Action</th>
-                        <th>User</th>
+                        <td>@activity.Date.ToString("dd MMM yyyy HH:mm")</td>
+                        <td><span class="activity-badge @badgeClass">@activity.Type</span></td>
+                        <td><strong>@activity.Name</strong></td>
+                        <td><span class="activity-badge badge-action">@activity.Action</span></td>
+                        <td>@activity.UserName</td>
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach (var activity in Model.RecentActivities)
-                    {
-                        var badgeClass = activity.Type == "Condition" ? "badge-condition" :
-                                         activity.Type == "Allergy" ? "badge-allergy" :
-                                         "badge-medication";
-                        <tr>
-                            <td>@activity.Date.ToString("dd MMM yyyy HH:mm")</td>
-                            <td><span class="activity-badge @badgeClass">@activity.Type</span></td>
-                            <td><strong>@activity.Name</strong></td>
-                            <td><span class="activity-badge badge-action">@activity.Action</span></td>
-                            <td>@activity.UserName</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        }
-        else
-        {
-            <p class="no-data">
-                <i class="fas fa-inbox" style="font-size: 2rem; display: block; margin-bottom: 0.5rem; opacity: 0.5;"></i>
-                No recent activity yet. Add some conditions, allergies, or medications.
-            </p>
-        }
-    </div>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <p>No recent activity yet. Add some conditions, allergies, or medications.</p>
+        </div>
+    }
 </div>

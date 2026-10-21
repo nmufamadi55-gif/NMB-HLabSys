@@ -26,6 +26,7 @@ builder.Services.AddScoped<IDoctorService, DoctorService>();
 builder.Services.AddScoped<IBarcodeService, BarcodeService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<ITechnicianService, TechnicianService>();
 
 QuestPDF.Settings.License = LicenseType.Community;
 

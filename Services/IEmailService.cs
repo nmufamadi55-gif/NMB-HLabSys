@@ -1,7 +1,9 @@
 ﻿using System.Net;
-using System.Net.Mail;
+using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using MimeKit;
 using NMB_HLabSys.Models.ViewModels;
 using NMB_HLabSys.Models;
 using NMB_HLabSys.Data;
@@ -11,6 +13,7 @@ namespace NMB_HLabSys.Services
     public interface IEmailService
     {
         Task SendEmailAsync(string toEmail, string subject, string body, bool isHtml = true);
+        Task SendEmailWithAttachmentAsync(string toEmail, string subject, string body, byte[] attachmentBytes, string attachmentFileName, string contentType = "application/pdf", bool isHtml = true);
         Task SendOrderEmailAsync(PurchaseOrder order);
         Task SendOrderCancellationEmailAsync(PurchaseOrder order, string reason);
         Task SendTechnicianWelcomeEmailAsync(string email, string name, string password);
@@ -78,31 +81,79 @@ namespace NMB_HLabSys.Services
         {
             try
             {
-                var smtpSettings = _configuration.GetSection("EmailSettings");
-                var smtpClient = new SmtpClient(smtpSettings["Host"])
-                {
-                    Port = int.Parse(smtpSettings["Port"] ?? "587"),
-                    Credentials = new NetworkCredential(smtpSettings["Username"], smtpSettings["Password"]),
-                    EnableSsl = bool.Parse(smtpSettings["EnableSsl"] ?? "true")
-                };
-
-                var mailMessage = new MailMessage
-                {
-                    From = new MailAddress(smtpSettings["FromEmail"], smtpSettings["FromName"]),
-                    Subject = subject,
-                    Body = body,
-                    IsBodyHtml = isHtml
-                };
-                mailMessage.To.Add(toEmail);
-
-                await smtpClient.SendMailAsync(mailMessage);
-                _logger.LogInformation($"Email sent to {toEmail}: {subject}");
+                var message = CreateMessage(toEmail, subject, body, isHtml);
+                await SendWithSmtpAsync(message);
+                _logger.LogInformation("Email sent to {Recipient}: {Subject}", toEmail, subject);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error sending email to {toEmail}: {subject}");
                 throw;
             }
+        }
+
+        /// <summary>Sends an HTML email with a single generated attachment, such as a verified result report.</summary>
+        public async Task SendEmailWithAttachmentAsync(
+            string toEmail,
+            string subject,
+            string body,
+            byte[] attachmentBytes,
+            string attachmentFileName,
+            string contentType = "application/pdf",
+            bool isHtml = true)
+        {
+            if (attachmentBytes is null || attachmentBytes.Length == 0)
+                throw new ArgumentException("The email attachment is empty.", nameof(attachmentBytes));
+
+            try
+            {
+                var message = CreateMessage(toEmail, subject, body, isHtml);
+                var builder = new BodyBuilder
+                {
+                    HtmlBody = isHtml ? body : null,
+                    TextBody = isHtml ? "Please view this email in an HTML-capable email client." : body
+                };
+                builder.Attachments.Add(attachmentFileName, attachmentBytes, ContentType.Parse(contentType));
+                message.Body = builder.ToMessageBody();
+
+                await SendWithSmtpAsync(message);
+                _logger.LogInformation("Email with attachment sent to {Recipient}: {Subject}", toEmail, subject);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending email with attachment to {Recipient}: {Subject}", toEmail, subject);
+                throw;
+            }
+        }
+
+        private MimeMessage CreateMessage(string toEmail, string subject, string body, bool isHtml)
+        {
+            var smtpSettings = _configuration.GetSection("EmailSettings");
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(smtpSettings["FromName"], smtpSettings["FromEmail"]));
+            message.To.Add(MailboxAddress.Parse(toEmail));
+            message.Subject = subject;
+            message.Body = new BodyBuilder
+            {
+                HtmlBody = isHtml ? body : null,
+                TextBody = isHtml ? "Please view this email in an HTML-capable email client." : body
+            }.ToMessageBody();
+            return message;
+        }
+
+        private async Task SendWithSmtpAsync(MimeMessage message)
+        {
+            var smtpSettings = _configuration.GetSection("EmailSettings");
+            var host = smtpSettings["Host"] ?? throw new InvalidOperationException("SMTP host is not configured.");
+            var username = smtpSettings["Username"] ?? throw new InvalidOperationException("SMTP username is not configured.");
+            var password = smtpSettings["Password"] ?? throw new InvalidOperationException("SMTP password is not configured.");
+            var port = int.Parse(smtpSettings["Port"] ?? "587");
+
+            using var client = new SmtpClient();
+            await client.ConnectAsync(host, port, SecureSocketOptions.StartTls);
+            await client.AuthenticateAsync(username, password);
+            await client.SendAsync(message);
+            await client.DisconnectAsync(true);
         }
 
         // ═══════════════════════════════════════════════════════════

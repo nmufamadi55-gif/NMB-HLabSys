@@ -6,123 +6,521 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Medical History";
     ViewData["RoleSubtitle"] = "Patient Portal";
-    ViewData["UserGreeting"] = $"🩺 {Model.FullName} (ID: {Model.PatientID})";
+    ViewData["UserGreeting"] = $"{Model.FullName} (ID: {Model.PatientID})";
     ViewData["UserInitials"] = Model.FullName.Substring(0, 1);
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Patient")">📋 My Results</a></li>
-    <li><a href="@Url.Action("MedicalHistory", "Patient")" class="active">📝 Medical History</a></li>
-    <li><a href="@Url.Action("Consent", "Patient")">🔐 Consent Management</a></li>
-    <li><a href="@Url.Action("Trends", "Patient")">📈 Track Trends</a></li>
-    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+    <li><a href="@Url.Action("Dashboard", "Patient")"><i class="fas fa-notes-medical"></i> <span>My Results</span></a></li>
+    <li><a href="@Url.Action("MedicalHistory", "Patient")" class="active"><i class="fas fa-history"></i> <span>Medical History</span></a></li>
+    <li><a href="@Url.Action("Consent", "Patient")"><i class="fas fa-hand-peace"></i> <span>Consent</span></a></li>
+    <li><a href="@Url.Action("Trends", "Patient")"><i class="fas fa-chart-line"></i> <span>Trends</span></a></li>
+    <li><a href="@Url.Action("Profile", "Patient")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
 <style>
-    .history-section {
-        margin-bottom: 2rem;
+    :root {
+        --p-teal: #0891B2;
+        --p-teal-light: #06B6D4;
+        --p-teal-grad: linear-gradient(135deg, #0891B2 0%, #06B6D4 100%);
+        --p-navy: #0F172A;
+        --p-text: #1E293B;
+        --p-text-soft: #64748B;
+        --p-text-muted: #94A3B8;
+        --p-border: #E2E8F0;
+        --p-bg-soft: #F8FAFC;
+        --p-success: #059669;
+        --p-danger: #DC2626;
+        --p-warning: #F59E0B;
+        --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+        --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06), 0 2px 6px rgba(15, 23, 42, 0.04);
+        --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.10), 0 4px 12px rgba(15, 23, 42, 0.05);
+        --radius: 16px;
     }
 
-        .history-section h3 {
-            border-bottom: 2px solid #E5E7EB;
-            padding-bottom: 0.5rem;
-            margin-bottom: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+    /* ═══ HERO ═══ */
+    .page-hero {
+        position: relative;
+        margin: -1.2rem -1.2rem 2rem -1.2rem;
+        height: 320px;
+        border-radius: 0 0 24px 24px;
+        overflow: hidden;
+        display: flex;
+        align-items: flex-end;
+        padding: 2rem;
+        box-shadow: var(--shadow-lg);
+    }
+
+        .page-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url('https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=1600&q=85');
+            background-size: cover;
+            background-position: center;
+            z-index: 0;
+            transition: transform 12s ease-out;
         }
 
-    .add-btn {
-        background: #4F46E5;
-        color: white;
-        border: none;
-        padding: 6px 16px;
+        .page-hero:hover::before {
+            transform: scale(1.04);
+        }
+
+        .page-hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient( to bottom, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 0) 40%, rgba(15, 23, 42, 0.25) 70%, rgba(15, 23, 42, 0.65) 100% );
+            z-index: 1;
+        }
+
+    .hero-pill {
+        position: relative;
+        z-index: 2;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 20px;
-        cursor: pointer;
-        font-size: 0.875rem;
-        font-weight: 600;
+        padding: 1.4rem 1.8rem;
+        color: white;
+        max-width: 700px;
+        width: 100%;
+        animation: heroFadeIn 0.8s ease-out;
     }
 
-        .add-btn:hover {
-            background: #4338CA;
+    @@keyframes heroFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
         }
 
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .hero-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(6, 182, 212, 0.25);
+        border: 1px solid rgba(6, 182, 212, 0.4);
+        padding: 0.35rem 0.9rem;
+        border-radius: 20px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 0.7rem;
+        color: #67E8F9;
+    }
+
+    .hero-pill h1 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 0 0 0.3rem;
+        line-height: 1.15;
+    }
+
+    .hero-pill p {
+        font-size: 0.88rem;
+        color: rgba(255, 255, 255, 0.8);
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .hero-actions {
+        margin-top: 1rem;
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+    }
+
+    .hero-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.55rem 1.1rem;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+        font-family: inherit;
+        cursor: pointer;
+        border: none;
+        white-space: nowrap;
+    }
+
+    .hero-btn-primary {
+        background: var(--p-teal-grad);
+        color: white;
+        box-shadow: 0 4px 14px rgba(6, 182, 212, 0.4);
+    }
+
+        .hero-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(6, 182, 212, 0.5);
+            color: white;
+        }
+
+    /* ═══ STATS ROW ═══ */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: var(--radius);
+        border: 1px solid var(--p-border);
+        box-shadow: var(--shadow-sm);
+        padding: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.25s;
+        animation: cardFadeIn 0.6s ease-out backwards;
+    }
+
+        .stat-card:nth-child(1) {
+            animation-delay: 0.05s;
+        }
+
+        .stat-card:nth-child(2) {
+            animation-delay: 0.15s;
+        }
+
+        .stat-card:nth-child(3) {
+            animation-delay: 0.25s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+            border-color: rgba(6, 182, 212, 0.3);
+        }
+
+    .stat-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.05rem;
+        flex-shrink: 0;
+    }
+
+        .stat-icon.teal {
+            background: var(--p-teal-grad);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+        }
+
+        .stat-icon.warning {
+            background: linear-gradient(135deg, #F59E0B 0%, #F97316 100%);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .stat-icon.info {
+            background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 100%);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+    .stat-content h3 {
+        margin: 0;
+        color: var(--p-navy);
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -0.02em;
+    }
+
+    .stat-content p {
+        margin: 0.35rem 0 0;
+        color: var(--p-text-soft);
+        font-size: 0.72rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    /* ═══ CARDS ═══ */
+    .clean-card {
+        background: white;
+        border-radius: var(--radius);
+        border: 1px solid var(--p-border);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        animation: cardFadeIn 0.6s ease-out backwards;
+    }
+
+    @@keyframes cardFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(16px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .clean-card-header {
+        padding: 1.1rem 1.5rem;
+        border-bottom: 1px solid var(--p-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+        .clean-card-header h3 {
+            margin: 0;
+            color: var(--p-navy);
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+        }
+
+            .clean-card-header h3 i {
+                color: var(--p-teal);
+                font-size: 0.95rem;
+            }
+
+    .clean-card-body {
+        padding: 1.5rem;
+    }
+
+    /* ═══ HISTORY ITEM ═══ */
     .history-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 10px 12px;
-        background: #F8FAFE;
+        padding: 0.9rem 1.1rem;
+        background: var(--p-bg-soft);
         border-radius: 12px;
-        margin-bottom: 8px;
-        transition: 0.2s;
+        margin-bottom: 0.6rem;
+        transition: all 0.2s;
+        border: 1px solid var(--p-border);
+        gap: 0.8rem;
     }
+
+        .history-item:last-child {
+            margin-bottom: 0;
+        }
 
         .history-item:hover {
-            background: #EAF2FF;
-            transform: translateX(4px);
+            background: white;
+            border-color: rgba(6, 182, 212, 0.3);
+            transform: translateX(3px);
+            box-shadow: var(--shadow-sm);
         }
 
-    .item-info {
+    .history-item-info {
         display: flex;
         flex-direction: column;
+        gap: 0.2rem;
+        flex: 1;
+        min-width: 0;
     }
 
-    .item-name {
+    .history-item-name {
         font-weight: 600;
-        color: #1F2937;
+        color: var(--p-navy);
+        font-size: 0.9rem;
     }
 
-    .item-details {
+    .history-item-details {
         font-size: 0.75rem;
-        color: #6B7280;
+        color: var(--p-text-soft);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
     }
 
-    .remove-btn {
-        background: none;
-        border: none;
-        color: #DC2626;
-        cursor: pointer;
-        font-size: 0.875rem;
-        padding: 4px 8px;
-        border-radius: 8px;
-    }
-
-        .remove-btn:hover {
-            background: #FEE2E2;
+        .history-item-details span + span::before {
+            content: '·';
+            margin: 0 0.25rem;
+            color: var(--p-text-muted);
         }
 
-    .status-active {
-        background: #DCFCE7;
-        color: #166534;
-        padding: 2px 10px;
-        border-radius: 20px;
-        font-size: 0.75rem;
+    .history-item-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        flex-shrink: 0;
     }
 
+    /* Severity colors */
     .severity-mild {
-        color: #16A34A;
+        color: #059669;
+        font-weight: 600;
     }
 
     .severity-moderate {
         color: #F59E0B;
+        font-weight: 600;
     }
 
     .severity-severe {
         color: #DC2626;
+        font-weight: 600;
     }
 
+    /* Pills */
+    .pill {
+        display: inline-block;
+        padding: 0.25rem 0.7rem;
+        border-radius: 20px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+    }
+
+    .pill-active {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+
+    .pill-current {
+        background: rgba(6, 182, 212, 0.15);
+        color: var(--p-teal);
+    }
+
+    /* ═══ BUTTONS ═══ */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        border: 1px solid var(--p-border);
+        background: white;
+        color: var(--p-navy);
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+
+        .btn:hover {
+            border-color: var(--p-teal);
+            color: var(--p-teal);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+    .btn-primary {
+        background: var(--p-teal-grad);
+        color: white;
+        border: none;
+        box-shadow: 0 4px 14px rgba(6, 182, 212, 0.3);
+    }
+
+        .btn-primary:hover {
+            color: white;
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+        }
+
+    .add-btn {
+        background: var(--p-teal-grad);
+        color: white;
+        border: none;
+        padding: 0.45rem 1rem;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 0.78rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        transition: 0.2s;
+        box-shadow: 0 4px 12px rgba(6, 182, 212, 0.25);
+        font-family: inherit;
+    }
+
+        .add-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(6, 182, 212, 0.35);
+        }
+
+    .remove-btn {
+        background: none;
+        border: 1px solid transparent;
+        color: var(--p-danger);
+        cursor: pointer;
+        font-size: 0.9rem;
+        padding: 0.35rem 0.55rem;
+        border-radius: 8px;
+        transition: 0.2s;
+        line-height: 1;
+    }
+
+        .remove-btn:hover {
+            background: #FEE2E2;
+            border-color: #FECACA;
+        }
+
+    /* ═══ EMPTY STATE ═══ */
+    .empty-state {
+        text-align: center;
+        padding: 2rem 1rem;
+        color: var(--p-text-muted);
+    }
+
+        .empty-state i {
+            font-size: 2rem;
+            opacity: 0.4;
+            margin-bottom: 0.6rem;
+            display: block;
+        }
+
+        .empty-state p {
+            margin: 0;
+            font-size: 0.85rem;
+        }
+
+    /* ═══ GRID ═══ */
+    .two-col-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    @@media (max-width: 768px) {
+        .two-col-grid
+
+    {
+        grid-template-columns: 1fr;
+    }
+
+    }
+
+    /* ═══ MODAL ═══ */
     .modal-overlay {
         display: none;
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
+        inset: 0;
+        background: rgba(15, 23, 42, 0.5);
+        backdrop-filter: blur(4px);
         z-index: 1000;
         justify-content: center;
         align-items: center;
+        padding: 1rem;
     }
 
         .modal-overlay.active {
@@ -134,9 +532,23 @@
         padding: 2rem;
         border-radius: 20px;
         max-width: 500px;
-        width: 90%;
+        width: 100%;
         max-height: 90vh;
         overflow-y: auto;
+        box-shadow: var(--shadow-lg);
+        animation: modalIn 0.3s ease-out;
+    }
+
+    @@keyframes modalIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
     }
 
     .modal-header {
@@ -146,183 +558,299 @@
         margin-bottom: 1.5rem;
     }
 
+        .modal-header h3 {
+            margin: 0;
+            color: var(--p-navy);
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
     .modal-close {
         background: none;
         border: none;
-        font-size: 1.5rem;
+        font-size: 1.4rem;
         cursor: pointer;
+        color: var(--p-text-soft);
+        padding: 0.3rem;
+        border-radius: 8px;
+        line-height: 1;
     }
 
+        .modal-close:hover {
+            background: #F1F5F9;
+            color: var(--p-navy);
+        }
+
     .form-group {
-        margin-bottom: 1rem;
+        margin-bottom: 1.1rem;
     }
 
         .form-group label {
             display: block;
-            font-weight: 500;
-            margin-bottom: 0.25rem;
+            font-weight: 600;
+            font-size: 0.82rem;
+            color: var(--p-navy);
+            margin-bottom: 0.4rem;
         }
 
-        .form-group input, .form-group select, .form-group textarea {
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
             width: 100%;
-            padding: 10px;
-            border-radius: 12px;
-            border: 1px solid #D1D5DB;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            border: 1px solid var(--p-border);
+            font-size: 0.9rem;
+            font-family: inherit;
+            background: white;
+            transition: 0.2s;
+        }
+
+            .form-group input:focus,
+            .form-group select:focus,
+            .form-group textarea:focus {
+                outline: none;
+                border-color: var(--p-teal);
+                box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.12);
+            }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
         }
 
     .btn-submit {
-        background: #4F46E5;
+        background: var(--p-teal-grad);
         color: white;
         border: none;
-        padding: 10px 24px;
-        border-radius: 12px;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
         font-weight: 600;
         cursor: pointer;
         width: 100%;
+        font-family: inherit;
+        font-size: 0.9rem;
+        box-shadow: 0 4px 14px rgba(6, 182, 212, 0.3);
+        transition: 0.2s;
     }
 
         .btn-submit:hover {
-            background: #4338CA;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
         }
+
+    /* ═══ RESPONSIVE ═══ */
+    @@media (max-width: 768px) {
+        .page-hero
+
+    {
+        margin: -0.8rem -0.8rem 1.5rem -0.8rem;
+        height: 280px;
+        padding: 1.2rem;
+    }
+
+    .hero-pill {
+        padding: 1.1rem 1.3rem;
+    }
+
+        .hero-pill h1 {
+            font-size: 1.4rem;
+        }
+
+    .clean-card-body {
+        padding: 1.2rem;
+    }
+
+    .clean-card-header {
+        padding: 1rem 1.2rem;
+    }
+
+    }
 </style>
 
-<div class="stat-cards">
-    <div class="stat-item">
-        <div class="stat-icon">🩺</div>
-        <div><h3>@Model.Conditions?.Count ?? 0</h3><p>Conditions</p></div>
-    </div>
-    <div class="stat-item">
-        <div class="stat-icon">⚠️</div>
-        <div><h3>@Model.Allergies?.Count ?? 0</h3><p>Allergies</p></div>
-    </div>
-    <div class="stat-item">
-        <div class="stat-icon">💊</div>
-        <div><h3>@Model.Medications?.Count ?? 0</h3><p>Medications</p></div>
+<!-- ═══ HERO ═══ -->
+<div class="page-hero">
+    <div class="hero-pill">
+        <span class="hero-kicker"><i class="fas fa-history"></i> Medical History</span>
+        <h1>@Model.FullName</h1>
+        <p>Your complete medical profile — conditions, allergies, and medications in one place.</p>
+        <div class="hero-actions">
+            <a href="@Url.Action("DownloadMedicalHistoryPDF", "Patient")" class="hero-btn hero-btn-primary">
+                <i class="fas fa-download"></i> Download PDF
+            </a>
+        </div>
     </div>
 </div>
-<!-- Download PDF Button -->
-<div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
-    <a href="@Url.Action("DownloadMedicalHistoryPDF", "Patient")" class="btn-primary">
-        <i class="fas fa-download"></i> Download Medical History PDF
-    </a>
-</div>
-<!-- Conditions -->
-<div class="card-modern history-section">
-    <h3>
-        <span>🩺 Medical Conditions</span>
-        <button class="add-btn" onclick="openModal('condition')">+ Add Condition</button>
-    </h3>
 
-    @if (Model.Conditions != null && Model.Conditions.Any())
-    {
-        @foreach (var c in Model.Conditions)
+<!-- ═══ STATS ═══ -->
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="stat-icon teal"><i class="fas fa-stethoscope"></i></div>
+        <div class="stat-content">
+            <h3>@(Model.Conditions?.Count ?? 0)</h3>
+            <p>Conditions</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon warning"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="stat-content">
+            <h3>@(Model.Allergies?.Count ?? 0)</h3>
+            <p>Allergies</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon info"><i class="fas fa-pills"></i></div>
+        <div class="stat-content">
+            <h3>@(Model.Medications?.Count ?? 0)</h3>
+            <p>Medications</p>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ CONDITIONS ═══ -->
+<div class="clean-card">
+    <div class="clean-card-header">
+        <h3><i class="fas fa-stethoscope"></i> Medical Conditions</h3>
+        <button class="add-btn" onclick="openModal('condition')">
+            <i class="fas fa-plus"></i> Add Condition
+        </button>
+    </div>
+    <div class="clean-card-body">
+        @if (Model.Conditions != null && Model.Conditions.Any())
         {
-            <div class="history-item">
-                <div class="item-info">
-                    <span class="item-name">@c.ConditionName</span>
-                    <span class="item-details">
-                        @c.CategoryName
-                        @if (c.DiagnosedDate.HasValue)
-                        {
-                            <span>• Diagnosed: @c.DiagnosedDate.Value.ToString("dd MMM yyyy")</span>
-                        }
-                        @if (!string.IsNullOrEmpty(c.Notes))
-                        {
-                            <span>• @c.Notes</span>
-                        }
-                    </span>
+            @foreach (var c in Model.Conditions)
+            {
+                <div class="history-item">
+                    <div class="history-item-info">
+                        <span class="history-item-name">@c.ConditionName</span>
+                        <span class="history-item-details">
+                            <span>@c.CategoryName</span>
+                            @if (c.DiagnosedDate.HasValue)
+                            {
+                                <span>Diagnosed @c.DiagnosedDate.Value.ToString("dd MMM yyyy")</span>
+                            }
+                            @if (!string.IsNullOrEmpty(c.Notes))
+                            {
+                                <span>@c.Notes</span>
+                            }
+                        </span>
+                    </div>
+                    <div class="history-item-actions">
+                        <span class="pill pill-active">Active</span>
+                        <button class="remove-btn" onclick="removeItem('condition', @c.PatientConditionID)" title="Remove">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                 </div>
-                <div>
-                    <span class="status-active">Active</span>
-                    <button class="remove-btn" onclick="removeItem('condition', @c.PatientConditionID)">✕</button>
-                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="fas fa-stethoscope"></i>
+                <p>No medical conditions recorded</p>
             </div>
         }
-    }
-    else
-    {
-        <p style="color: #9CA3AF; text-align: center; padding: 2rem;">No medical conditions recorded</p>
-    }
+    </div>
 </div>
 
-<!-- Allergies -->
-<div class="card-modern history-section">
-    <h3>
-        <span>⚠️ Allergies</span>
-        <button class="add-btn" onclick="openModal('allergy')">+ Add Allergy</button>
-    </h3>
-
-    @if (Model.Allergies != null && Model.Allergies.Any())
-    {
-        @foreach (var a in Model.Allergies)
-        {
-            <div class="history-item">
-                <div class="item-info">
-                    <span class="item-name">@a.AllergyName</span>
-                    <span class="item-details">
-                        @a.CategoryName
-                        <span class="severity-@(a.Severity?.ToLower() ?? "mild")">• @(a.Severity ?? "Mild")</span>
-                        @if (!string.IsNullOrEmpty(a.Notes))
-                        {
-                            <span>• @a.Notes</span>
-                        }
-                    </span>
+<!-- ═══ ALLERGIES + MEDICATIONS ═══ -->
+<div class="two-col-grid">
+    <div class="clean-card" style="margin-bottom: 0;">
+        <div class="clean-card-header">
+            <h3><i class="fas fa-exclamation-triangle"></i> Allergies</h3>
+            <button class="add-btn" onclick="openModal('allergy')">
+                <i class="fas fa-plus"></i> Add
+            </button>
+        </div>
+        <div class="clean-card-body">
+            @if (Model.Allergies != null && Model.Allergies.Any())
+            {
+                @foreach (var a in Model.Allergies)
+                {
+                    <div class="history-item">
+                        <div class="history-item-info">
+                            <span class="history-item-name">@a.AllergyName</span>
+                            <span class="history-item-details">
+                                <span>@a.CategoryName</span>
+                                <span class="severity-@(a.Severity?.ToLower() ?? "mild")">@(a.Severity ?? "Mild")</span>
+                                @if (!string.IsNullOrEmpty(a.Notes))
+                                {
+                                    <span>@a.Notes</span>
+                                }
+                            </span>
+                        </div>
+                        <div class="history-item-actions">
+                            <button class="remove-btn" onclick="removeItem('allergy', @a.PatientAllergyID)" title="Remove">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>No allergies recorded</p>
                 </div>
-                <button class="remove-btn" onclick="removeItem('allergy', @a.PatientAllergyID)">✕</button>
-            </div>
-        }
-    }
-    else
-    {
-        <p style="color: #9CA3AF; text-align: center; padding: 2rem;">No allergies recorded</p>
-    }
+            }
+        </div>
+    </div>
+
+    <div class="clean-card" style="margin-bottom: 0;">
+        <div class="clean-card-header">
+            <h3><i class="fas fa-pills"></i> Medications</h3>
+            <button class="add-btn" onclick="openModal('medication')">
+                <i class="fas fa-plus"></i> Add
+            </button>
+        </div>
+        <div class="clean-card-body">
+            @if (Model.Medications != null && Model.Medications.Any())
+            {
+                @foreach (var m in Model.Medications)
+                {
+                    <div class="history-item">
+                        <div class="history-item-info">
+                            <span class="history-item-name">@m.MedicationName</span>
+                            <span class="history-item-details">
+                                <span>@m.CategoryName</span>
+                                @if (!string.IsNullOrEmpty(m.Dosage))
+                                {
+                                    <span>@m.Dosage</span>
+                                }
+                                @if (!string.IsNullOrEmpty(m.Frequency))
+                                {
+                                    <span>@m.Frequency</span>
+                                }
+                            </span>
+                        </div>
+                        <div class="history-item-actions">
+                            <span class="pill pill-current">Current</span>
+                            <button class="remove-btn" onclick="removeItem('medication', @m.PatientMedicationID)" title="Remove">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-pills"></i>
+                    <p>No medications recorded</p>
+                </div>
+            }
+        </div>
+    </div>
 </div>
 
-<!-- Medications -->
-<div class="card-modern history-section">
-    <h3>
-        <span>💊 Medications</span>
-        <button class="add-btn" onclick="openModal('medication')">+ Add Medication</button>
-    </h3>
-
-    @if (Model.Medications != null && Model.Medications.Any())
-    {
-        @foreach (var m in Model.Medications)
-        {
-            <div class="history-item">
-                <div class="item-info">
-                    <span class="item-name">@m.MedicationName</span>
-                    <span class="item-details">
-                        @m.CategoryName
-                        @if (!string.IsNullOrEmpty(m.Dosage))
-                        {
-                            <span>• Dosage: @m.Dosage</span>
-                        }
-                        @if (!string.IsNullOrEmpty(m.Frequency))
-                        {
-                            <span>• @m.Frequency</span>
-                        }
-                    </span>
-                </div>
-                <div>
-                    <span class="status-active">Current</span>
-                    <button class="remove-btn" onclick="removeItem('medication', @m.PatientMedicationID)">✕</button>
-                </div>
-            </div>
-        }
-    }
-    else
-    {
-        <p style="color: #9CA3AF; text-align: center; padding: 2rem;">No medications recorded</p>
-    }
-</div>
-
-<!-- Add Modal -->
+<!-- ═══ ADD MODAL ═══ -->
 <div id="addModal" class="modal-overlay">
     <div class="modal-box">
         <div class="modal-header">
             <h3 id="modalTitle">Add Item</h3>
-            <button class="modal-close" onclick="closeModal()">✕</button>
+            <button class="modal-close" onclick="closeModal()">×</button>
         </div>
 
         <form id="addForm" onsubmit="submitForm(event)">

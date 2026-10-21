@@ -3,8 +3,8 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Register Patient";
     ViewData["RoleSubtitle"] = "Doctor Portal";
-    ViewData["UserGreeting"] = "Register a new patient";
-
+    ViewData["UserGreeting"] = "Register Patient";
+    ViewData["UserSubtitle"] = "Capture a new patient record";
 }
 
 @section SidebarMenu {
@@ -260,7 +260,7 @@
     </style>
 }
 
-<form asp-action="RegisterPatient" method="post" id="registerForm" autocomplete="off">
+<form asp-action="RegisterPatient" method="post" id="registerForm" autocomplete="off" novalidate>
     @Html.AntiForgeryToken()
 
     @if (!ViewData.ModelState.IsValid)
@@ -283,12 +283,14 @@
         <div class="row-2col">
             <div class="form-group">
                 <label>First Name <span class="req">*</span></label>
-                <input asp-for="Name" id="regName" class="form-control" required maxlength="100" />
+                <input asp-for="Name" id="regName" class="form-control" required maxlength="100"
+                       oninput="validateName('regName','nameError','First name')" />
                 <div class="error-msg" id="nameError"></div>
             </div>
             <div class="form-group">
                 <label>Last Name <span class="req">*</span></label>
-                <input asp-for="Surname" id="regSurname" class="form-control" required maxlength="100" />
+                <input asp-for="Surname" id="regSurname" class="form-control" required maxlength="100"
+                       oninput="validateName('regSurname','surnameError','Last name')" />
                 <div class="error-msg" id="surnameError"></div>
             </div>
         </div>
@@ -304,7 +306,7 @@
             <div class="form-group">
                 <label>Date of Birth <span class="req">*</span></label>
                 <input asp-for="DateOfBirth" id="regDOB" type="date" class="form-control" required
-                       onchange="validateDOB()" />
+                       onchange="validateDOB(false)" />
                 <div class="error-msg" id="dobError"></div>
             </div>
         </div>
@@ -318,13 +320,13 @@
                 <div class="error-msg" id="phoneError"></div>
             </div>
             <div class="form-group">
-                <label>Email Address</label>
+                <label>Email Address <span class="req">*</span></label>
                 <input asp-for="Email" id="regEmail" type="email" class="form-control"
-                       placeholder="patient@example.com" maxlength="255"
+                       placeholder="patient@example.com" maxlength="255" required
                        oninput="validateEmail()" />
                 <div class="error-msg" id="emailError"></div>
                 <div style="font-size:0.7rem; color:#5A6E7A; margin-top:0.25rem;">
-                    Login credentials will be emailed here (optional — if empty, a system address is used).
+                    Login credentials will be emailed here.
                 </div>
             </div>
         </div>
@@ -434,355 +436,353 @@
         var jsonAllergies = System.Text.Json.JsonSerializer.Serialize(Model.AvailableAllergies, jsonOptions);
         var jsonMedications = System.Text.Json.JsonSerializer.Serialize(Model.AvailableMedications, jsonOptions);
     }
-    <script>
-        var lookups = {
-            conditions: @Html.Raw(jsonConditions),
-            allergies:  @Html.Raw(jsonAllergies),
-            medications: @Html.Raw(jsonMedications)
-        };
+    <text>
+        <script>
+            // ═══════════════════════════════════════════════════════════
+            // LOOKUPS
+            // ═══════════════════════════════════════════════════════════
+            var lookups = {
+                conditions:  @Html.Raw(jsonConditions),
+                allergies:   @Html.Raw(jsonAllergies),
+                medications: @Html.Raw(jsonMedications)
+            };
 
-        var selected = { conditions: [], allergies: [], medications: [] };
+            var selected = { conditions: [], allergies: [], medications: [] };
 
-        function filterDropdown(type, term) {
-            var container = document.getElementById(type + 'Results');
-            var list = lookups[type] || [];
-            var t = (term || '').toLowerCase().trim();
+            function filterDropdown(type, term) {
+                var container = document.getElementById(type + 'Results');
+                var list = lookups[type] || [];
+                var t = (term || '').toLowerCase().trim();
 
-            var matches = list.filter(function (item) {
-                return !t || item.name.toLowerCase().indexOf(t) !== -1;
-            });
+                var matches = list.filter(function (item) {
+                    return !t || item.name.toLowerCase().indexOf(t) !== -1;
+                }).filter(function (item) {
+                    return !selected[type].some(function (s) { return s.id === item.id; });
+                });
 
-            matches = matches.filter(function (item) {
-                return !selected[type].some(function (s) { return s.id === item.id; });
-            });
+                if (matches.length === 0) {
+                    container.classList.remove('show');
+                    container.innerHTML = '';
+                    return;
+                }
 
-            if (matches.length === 0) {
-                container.classList.remove('show');
-                container.innerHTML = '';
-                return;
+                container.innerHTML = matches.slice(0, 40).map(function (item) {
+                    return '<div class="dropdown-item" onclick="addItem(\'' + type + '\',' + item.id + ',\'' +
+                            item.name.replace(/'/g, "\\'") + '\')">' + item.name + '</div>';
+                }).join('');
+                container.classList.add('show');
             }
 
-            container.innerHTML = matches.slice(0, 40).map(function (item) {
-                return '<div class="dropdown-item" onclick="addItem(\'' + type + '\',' + item.id + ',\'' +
-                        item.name.replace(/'/g, "\\'") + '\')">' + item.name + '</div>';
-            }).join('');
-            container.classList.add('show');
-        }
+            function addItem(type, id, name) {
+                if (selected[type].some(function (s) { return s.id === id; })) return;
+                selected[type].push({ id: id, name: name });
+                renderSelected(type);
 
-        function addItem(type, id, name) {
-            if (selected[type].some(function (s) { return s.id === id; })) return;
-            selected[type].push({ id: id, name: name });
-            renderSelected(type);
+                var input = document.querySelector('[oninput*="' + type + '"]');
+                if (input) input.value = '';
+                document.getElementById(type + 'Results').classList.remove('show');
 
-            var input = document.querySelector('[oninput*="' + type + '"]');
-            if (input) input.value = '';
-            document.getElementById(type + 'Results').classList.remove('show');
+                syncHiddenInputs(type);
+            }
 
-            syncHiddenInputs(type);
-        }
+            function removeItem(type, id) {
+                selected[type] = selected[type].filter(function (s) { return s.id !== id; });
+                renderSelected(type);
+                syncHiddenInputs(type);
+            }
 
-        function removeItem(type, id) {
-            selected[type] = selected[type].filter(function (s) { return s.id !== id; });
-            renderSelected(type);
-            syncHiddenInputs(type);
-        }
+            function renderSelected(type) {
+                var container = document.getElementById(type + 'Selected');
+                var cls = type === 'conditions' ? 'cond' : type === 'allergies' ? 'allg' : 'med';
+                container.innerHTML = selected[type].map(function (item) {
+                    return '<span class="selected-tag ' + cls + '">' +
+                             item.name +
+                             ' <button type="button" class="remove-tag" onclick="removeItem(\'' + type + '\',' + item.id + ')">&times;</button>' +
+                           '</span>';
+                }).join('');
+            }
 
-        function renderSelected(type) {
-            var container = document.getElementById(type + 'Selected');
-            var cls = type === 'conditions' ? 'cond' : type === 'allergies' ? 'allg' : 'med';
-            container.innerHTML = selected[type].map(function (item) {
-                return '<span class="selected-tag ' + cls + '">' +
-                         item.name +
-                         ' <button type="button" class="remove-tag" onclick="removeItem(\'' + type + '\',' + item.id + ')">&times;</button>' +
-                       '</span>';
-            }).join('');
-        }
+            function syncHiddenInputs(type) {
+                var form = document.getElementById('registerForm');
+                var fieldMap = {
+                    conditions: 'SelectedConditionIDs',
+                    allergies:  'SelectedAllergyIDs',
+                    medications: 'SelectedMedicationIDs'
+                };
+                var name = fieldMap[type];
 
-        function syncHiddenInputs(type) {
-            var form = document.getElementById('registerForm');
-            var fieldMap = {
-                conditions: 'SelectedConditionIDs',
-                allergies:  'SelectedAllergyIDs',
-                medications: 'SelectedMedicationIDs'
-            };
-            var name = fieldMap[type];
+                form.querySelectorAll('input[name="' + name + '"]').forEach(function (el) { el.remove(); });
 
-            form.querySelectorAll('input[name="' + name + '"]').forEach(function (el) { el.remove(); });
-
-            selected[type].forEach(function (item) {
-                var input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = name;
-                input.value = item.id;
-                form.appendChild(input);
-            });
-        }
-
-        document.addEventListener('click', function (e) {
-            if (!e.target.closest('.searchable')) {
-                document.querySelectorAll('.dropdown-results').forEach(function (el) {
-                    el.classList.remove('show');
+                selected[type].forEach(function (item) {
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = name;
+                    input.value = item.id;
+                    form.appendChild(input);
                 });
             }
-        });
 
-        // Clear dropdown-input text when it loses focus (nothing selected)
-        document.querySelectorAll('.dropdown-input').forEach(function (inp) {
-            inp.addEventListener('blur', function () {
-                setTimeout(function () { inp.value = ''; }, 200);
+            document.addEventListener('click', function (e) {
+                if (!e.target.closest('.searchable')) {
+                    document.querySelectorAll('.dropdown-results').forEach(function (el) {
+                        el.classList.remove('show');
+                    });
+                }
             });
-        });
 
-        // ─── VALIDATION ───
-               // ─── Parse a "yyyy-mm-dd" (or any Date-parseable) string into a local Date, or null ───
-        function parseLocalDate(value) {
-            if (!value) return null;
-            // Already yyyy-mm-dd?
-            var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-            if (m) {
-                var y = parseInt(m[1], 10);
-                var mo = parseInt(m[2], 10) - 1;
-                var d = parseInt(m[3], 10);
-                var dt = new Date(y, mo, d);
-                
-                if (dt.getFullYear() === y && dt.getMonth() === mo && dt.getDate() === d) return dt;
-                return null;
-            }
-            // Fallback: anything else the browser might hand us (with time component, etc.)
-            var parsed = new Date(value);
-            if (isNaN(parsed.getTime())) return null;
-            // Normalize to local midnight so timezone doesn't shift the day
-            return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
-        }
+            document.querySelectorAll('.dropdown-input').forEach(function (inp) {
+                inp.addEventListener('blur', function () {
+                    setTimeout(function () { inp.value = ''; }, 200);
+                });
+            });
 
-        function sameYMD(a, b) {
-            return a && b &&
-                a.getFullYear() === b.getFullYear() &&
-                a.getMonth() === b.getMonth() &&
-                a.getDate() === b.getDate();
-        }
-
-        function formatYMD(dt) {
-            return dt.getFullYear() + '-' +
-                String(dt.getMonth() + 1).padStart(2, '0') + '-' +
-                String(dt.getDate()).padStart(2, '0');
-        }
-
-        // ─── Validate SA ID ───
-        function validateID() {
-            var input = document.getElementById('regID');
-            var errEl = document.getElementById('idError');
-            var id = (input.value || '').replace(/\D/g, '');
-            input.value = id;
-
-            if (id.length === 0) {
-                errEl.classList.remove('show');
-                errEl.textContent = '';
-                input.classList.remove('error');
-                return false; // not "valid yet", but no error to show
+            // ═══════════════════════════════════════════════════════════
+            // DATE HELPERS
+            // ═══════════════════════════════════════════════════════════
+            function parseLocalDate(value) {
+                if (!value) return null;
+                var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+                if (m) {
+                    var y = parseInt(m[1], 10);
+                    var mo = parseInt(m[2], 10) - 1;
+                    var d = parseInt(m[3], 10);
+                    var dt = new Date(y, mo, d);
+                    if (dt.getFullYear() === y && dt.getMonth() === mo && dt.getDate() === d) return dt;
+                    return null;
+                }
+                var parsed = new Date(value);
+                if (isNaN(parsed.getTime())) return null;
+                return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
             }
 
-            if (id.length !== 13) {
-                errEl.textContent = 'SA ID must be exactly 13 digits';
-                errEl.classList.add('show');
-                input.classList.add('error');
-                return false;
+            function sameYMD(a, b) {
+                return a && b &&
+                    a.getFullYear() === b.getFullYear() &&
+                    a.getMonth() === b.getMonth() &&
+                    a.getDate() === b.getDate();
             }
 
-            var yy = parseInt(id.substring(0, 2), 10);
-            var mm = parseInt(id.substring(2, 4), 10);
-            var dd = parseInt(id.substring(4, 6), 10);
-
-            // SA ID: YYMMDD. Century heuristic — assume 1900–1999 for 25+, 2000+ for 00–24
-            var year = (yy >= 0 && yy <= 24) ? 2000 + yy : 1900 + yy;
-            var idDate = new Date(year, mm - 1, dd);
-
-            var validDate = idDate.getFullYear() === year &&
-                            idDate.getMonth() === mm - 1 &&
-                            idDate.getDate() === dd &&
-                            mm >= 1 && mm <= 12 &&
-                            dd >= 1 && dd <= 31;
-
-            var today = new Date(); today.setHours(0, 0, 0, 0);
-            if (!validDate || idDate > today) {
-                errEl.textContent = 'SA ID contains an invalid date (YYMMDD)';
-                errEl.classList.add('show');
-                input.classList.add('error');
-                return false;
+            function formatYMD(dt) {
+                return dt.getFullYear() + '-' +
+                    String(dt.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(dt.getDate()).padStart(2, '0');
             }
 
-            errEl.classList.remove('show');
-            input.classList.remove('error');
+            // ═══════════════════════════════════════════════════════════
+            // VALIDATORS
+            // ═══════════════════════════════════════════════════════════
+            function validateID() {
+                var input = document.getElementById('regID');
+                var errEl = document.getElementById('idError');
+                var id = (input.value || '').replace(/\D/g, '');
+                input.value = id;
 
-            // Auto-fill DOB only if it's empty OR was already auto-filled by us
-            // (so we don't overwrite something the user typed by hand)
-            var dobInput = document.getElementById('regDOB');
-            if (!dobInput.dataset.autofilled || dobInput.dataset.autofilled === '1') {
-                dobInput.value = formatYMD(idDate);
-                dobInput.dataset.autofilled = '1';
-                // Silently re-run DOB validation to clear stale errors
-                validateDOB();
-            }
+                if (id.length === 0) {
+                    errEl.textContent = 'SA ID is required';
+                    errEl.classList.add('show');
+                    input.classList.add('error');
+                    return false;
+                }
 
-            return true;
-        }
+                if (id.length !== 13) {
+                    errEl.textContent = 'SA ID must be exactly 13 digits';
+                    errEl.classList.add('show');
+                    input.classList.add('error');
+                    return false;
+                }
 
-        // ─── Validate DOB against ID ───
-        function validateDOB() {
-            var dobInput = document.getElementById('regDOB');
-            var errEl = document.getElementById('dobError');
-
-            // If the user edits DOB manually, mark it as no-longer-autofilled
-            dobInput.dataset.autofilled = '0';
-
-            if (!dobInput.value) {
-                errEl.textContent = 'Please select date of birth';
-                errEl.classList.add('show');
-                dobInput.classList.add('error');
-                return false;
-            }
-
-            var dobDate = parseLocalDate(dobInput.value);
-            if (!dobDate) {
-                errEl.textContent = 'Please enter a valid date';
-                errEl.classList.add('show');
-                dobInput.classList.add('error');
-                return false;
-            }
-
-            var today = new Date(); today.setHours(0, 0, 0, 0);
-            if (dobDate > today) {
-                errEl.textContent = 'Date of birth cannot be in the future';
-                errEl.classList.add('show');
-                dobInput.classList.add('error');
-                return false;
-            }
-
-            var minDate = new Date(1900, 0, 1);
-            if (dobDate < minDate) {
-                errEl.textContent = 'Date of birth must be after 1 Jan 1900';
-                errEl.classList.add('show');
-                dobInput.classList.add('error');
-                return false;
-            }
-
-            // Cross-check with SA ID if the ID field is filled in
-            var id = (document.getElementById('regID').value || '').replace(/\D/g, '');
-            if (id.length === 13) {
                 var yy = parseInt(id.substring(0, 2), 10);
                 var mm = parseInt(id.substring(2, 4), 10);
                 var dd = parseInt(id.substring(4, 6), 10);
                 var year = (yy >= 0 && yy <= 24) ? 2000 + yy : 1900 + yy;
                 var idDate = new Date(year, mm - 1, dd);
 
-                if (!sameYMD(idDate, dobDate)) {
-                    errEl.textContent =
-                        'Date of birth does not match the SA ID (YYMMDD ' +
-                        String(yy).padStart(2, '0') + String(mm).padStart(2, '0') + String(dd).padStart(2, '0') + ')';
+                var validDate = idDate.getFullYear() === year &&
+                                idDate.getMonth() === mm - 1 &&
+                                idDate.getDate() === dd &&
+                                mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31;
+
+                var today = new Date(); today.setHours(0, 0, 0, 0);
+                if (!validDate || idDate > today) {
+                    errEl.textContent = 'SA ID contains an invalid date (YYMMDD)';
+                    errEl.classList.add('show');
+                    input.classList.add('error');
+                    return false;
+                }
+
+                errEl.classList.remove('show');
+                errEl.textContent = '';
+                input.classList.remove('error');
+
+                var dobInput = document.getElementById('regDOB');
+                if (!dobInput.dataset.autofilled || dobInput.dataset.autofilled === '1') {
+                    dobInput.value = formatYMD(idDate);
+                    dobInput.dataset.autofilled = '1';
+                    validateDOB(true);
+                }
+
+                return true;
+            }
+
+            function validateDOB(fromAutoFill) {
+                var dobInput = document.getElementById('regDOB');
+                var errEl = document.getElementById('dobError');
+
+                if (!fromAutoFill) {
+                    dobInput.dataset.autofilled = '0';
+                }
+
+                if (!dobInput.value) {
+                    errEl.textContent = 'Please select date of birth';
                     errEl.classList.add('show');
                     dobInput.classList.add('error');
                     return false;
                 }
+
+                var dobDate = parseLocalDate(dobInput.value);
+                if (!dobDate) {
+                    errEl.textContent = 'Please enter a valid date';
+                    errEl.classList.add('show');
+                    dobInput.classList.add('error');
+                    return false;
+                }
+
+                var today = new Date(); today.setHours(0, 0, 0, 0);
+                if (dobDate > today) {
+                    errEl.textContent = 'Date of birth cannot be in the future';
+                    errEl.classList.add('show');
+                    dobInput.classList.add('error');
+                    return false;
+                }
+
+                var minDate = new Date(1900, 0, 1);
+                if (dobDate < minDate) {
+                    errEl.textContent = 'Date of birth must be after 1 Jan 1900';
+                    errEl.classList.add('show');
+                    dobInput.classList.add('error');
+                    return false;
+                }
+
+                var id = (document.getElementById('regID').value || '').replace(/\D/g, '');
+                if (id.length === 13) {
+                    var yy = parseInt(id.substring(0, 2), 10);
+                    var mm = parseInt(id.substring(2, 4), 10);
+                    var dd = parseInt(id.substring(4, 6), 10);
+                    var year = (yy >= 0 && yy <= 24) ? 2000 + yy : 1900 + yy;
+                    var idDate = new Date(year, mm - 1, dd);
+
+                    if (!sameYMD(idDate, dobDate)) {
+                        errEl.textContent = 'Date of birth does not match the SA ID (YYMMDD ' +
+                            String(yy).padStart(2, '0') + String(mm).padStart(2, '0') + String(dd).padStart(2, '0') + ')';
+                        errEl.classList.add('show');
+                        dobInput.classList.add('error');
+                        return false;
+                    }
+                }
+
+                errEl.classList.remove('show');
+                errEl.textContent = '';
+                dobInput.classList.remove('error');
+                return true;
             }
 
-            errEl.classList.remove('show');
-            errEl.textContent = '';
-            dobInput.classList.remove('error');
-            return true;
-        }
+            function validatePhone() {
+                var input = document.getElementById('regPhone');
+                var errEl = document.getElementById('phoneError');
+                var val = (input.value || '').replace(/[\s\-]/g, '');
 
-        function validatePhone() {
-            var input = document.getElementById('regPhone');
-            var errEl = document.getElementById('phoneError');
-            var val = (input.value || '').replace(/[\s\-]/g, '');
+                if (val === '') {
+                    errEl.textContent = 'Cellphone is required';
+                    errEl.classList.add('show');
+                    input.classList.add('error');
+                    return false;
+                }
 
-            if (val === '') {
+                var re = /^(0[1-9][0-9]{8}|\+27[1-9][0-9]{8})$/;
+                if (!re.test(val)) {
+                    errEl.textContent = 'Enter a valid SA number (e.g. 0821234567 or +27821234567)';
+                    errEl.classList.add('show');
+                    input.classList.add('error');
+                    return false;
+                }
+
                 errEl.classList.remove('show');
                 input.classList.remove('error');
                 return true;
             }
 
-            // SA numbers: 0XXXXXXXXX (10 digits) or +27XXXXXXXXX
-            var re = /^(0[1-9][0-9]{8}|\+27[1-9][0-9]{8})$/;
-            if (!re.test(val)) {
-                errEl.textContent = 'Enter a valid SA number (e.g. 0821234567 or +27821234567)';
-                errEl.classList.add('show');
-                input.classList.add('error');
-                return false;
-            }
+            function validateEmail() {
+                var input = document.getElementById('regEmail');
+                var errEl = document.getElementById('emailError');
+                var val = input.value.trim();
 
-            errEl.classList.remove('show');
-            input.classList.remove('error');
-            return true;
-        }
+                if (val === '') {
+                    errEl.textContent = 'Email is required';
+                    errEl.classList.add('show');
+                    input.classList.add('error');
+                    return false;
+                }
 
-        function validateEmail() {
-            var input = document.getElementById('regEmail');
-            var errEl = document.getElementById('emailError');
-            var val = input.value.trim();
+                var re = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]{2,}$/;
+                if (!re.test(val)) {
+                    errEl.textContent = 'Please enter a valid email address';
+                    errEl.classList.add('show');
+                    input.classList.add('error');
+                    return false;
+                }
 
-            if (val === '') {
                 errEl.classList.remove('show');
                 input.classList.remove('error');
                 return true;
             }
 
-            var re = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]{2,}$/;
-            if (!re.test(val)) {
-                errEl.textContent = 'Please enter a valid email address';
-                errEl.classList.add('show');
-                input.classList.add('error');
-                return false;
+            function validateName(inputId, errId, label) {
+                var input = document.getElementById(inputId);
+                var errEl = document.getElementById(errId);
+                var val = (input.value || '').trim();
+
+                if (val.length === 0) {
+                    errEl.textContent = label + ' is required';
+                    errEl.classList.add('show');
+                    input.classList.add('error');
+                    return false;
+                }
+                if (val.length < 2) {
+                    errEl.textContent = label + ' must be at least 2 characters';
+                    errEl.classList.add('show');
+                    input.classList.add('error');
+                    return false;
+                }
+
+                errEl.classList.remove('show');
+                input.classList.remove('error');
+                return true;
             }
 
-            errEl.classList.remove('show');
-            input.classList.remove('error');
-            return true;
-        }
+            // ═══════════════════════════════════════════════════════════
+            // SUBMIT HANDLER
+            // ═══════════════════════════════════════════════════════════
+            document.getElementById('registerForm').addEventListener('submit', function (e) {
+                var ok = true;
 
-        function validateName(inputId, errId, label) {
-            var input = document.getElementById(inputId);
-            var errEl = document.getElementById(errId);
-            var val = (input.value || '').trim();
+                if (!validateName('regName', 'nameError', 'First name')) ok = false;
+                if (!validateName('regSurname', 'surnameError', 'Last name')) ok = false;
+                if (!validateID()) ok = false;
+                if (!validateDOB(false)) ok = false;
+                if (!validatePhone()) ok = false;
+                if (!validateEmail()) ok = false;
 
-            if (val.length === 0) {
-                errEl.textContent = label + ' is required';
-                errEl.classList.add('show');
-                input.classList.add('error');
-                return false;
-            }
-            if (val.length < 2) {
-                errEl.textContent = label + ' must be at least 2 characters';
-                errEl.classList.add('show');
-                input.classList.add('error');
-                return false;
-            }
+                if (!ok) {
+                    e.preventDefault();
+                    var firstErr = document.querySelector('#registerForm .form-control.error');
+                    if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
 
-            errEl.classList.remove('show');
-            input.classList.remove('error');
-            return true;
-        }
-
-        document.getElementById('registerForm').addEventListener('submit', function (e) {
-            var ok = true;
-
-            if (!validateName('regName', 'nameError', 'First name')) ok = false;
-            if (!validateName('regSurname', 'surnameError', 'Last name')) ok = false;
-            if (!validateID()) ok = false;
-            if (!validateDOB()) ok = false;
-            if (!validatePhone()) ok = false;
-            if (!validateEmail()) ok = false;
-
-            if (!ok) {
-                e.preventDefault();
-                var firstErr = document.querySelector('#registerForm .form-control.error');
-                if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                return;
-            }
-
-            var btn = document.getElementById('submitBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
-        });
-    </script>
+                var btn = document.getElementById('submitBtn');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
+            });
+        </script>
+    </text>
 }
