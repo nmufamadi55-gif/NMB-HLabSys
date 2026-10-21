@@ -4,6 +4,7 @@
     ViewData["Title"] = "Test Requests";
     ViewData["RoleSubtitle"] = "Doctor Portal";
     ViewData["UserGreeting"] = "Manage and track all test requests";
+    ViewData["UserSubtitle"] = "Create, track, and manage your laboratory requests";
 }
 
 @section SidebarMenu {
@@ -18,6 +19,76 @@
 
 @section Styles {
     <style>
+        /* ─── COLORFUL STATS ROW ─── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .stat-box {
+            background: white;
+            border-radius: 16px;
+            padding: 1rem 1.2rem;
+            border: 1px solid #E2E8F0;
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            transition: all 0.2s;
+        }
+
+            .stat-box:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 24px rgba(8,65,201,0.08);
+            }
+
+        .stat-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.05rem;
+            flex-shrink: 0;
+        }
+
+            .stat-icon.blue {
+                background: linear-gradient(135deg, #0841C9, #1D97F1);
+            }
+
+            .stat-icon.amber {
+                background: linear-gradient(135deg, #F59E0B, #D97706);
+            }
+
+            .stat-icon.green {
+                background: linear-gradient(135deg, #10B981, #059669);
+            }
+
+            .stat-icon.red {
+                background: linear-gradient(135deg, #DC2626, #EF4444);
+            }
+
+        .stat-text h3 {
+            font-size: 1.4rem;
+            color: #032C7D;
+            margin: 0;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .stat-text p {
+            margin: 0;
+            font-size: 0.7rem;
+            color: #5A6E7A;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-weight: 600;
+        }
+
+        /* ─── MAIN PANEL & FILTERS ─── */
         .card {
             background: white;
             border-radius: 20px;
@@ -42,6 +113,7 @@
             font-family: inherit;
         }
 
+        /* ─── TABLE ─── */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -105,6 +177,17 @@
             color: #991B1B;
         }
 
+        .status-appointment {
+            background: #FDE68A;
+            color: #92400E;
+            border: 1px solid #FCD34D;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            line-height: 1.2;
+        }
+
         .priority-stat {
             color: #DC2626;
             font-weight: 700;
@@ -119,6 +202,7 @@
             color: #10B981;
         }
 
+        /* ─── BUTTONS ─── */
         .btn-sm {
             background: #0841C9;
             color: white;
@@ -162,37 +246,38 @@
                 background: #F1F5F9;
             }
 
-        .stats-mini {
-            display: flex;
-            gap: 0.8rem;
-            flex-wrap: wrap;
-            margin-bottom: 1rem;
-        }
-
-        .stat-mini {
-            background: white;
-            border-radius: 12px;
+        /* ─── MISC ─── */
+        .alert {
             padding: 0.7rem 1rem;
-            flex: 1;
-            text-align: center;
-            border: 1px solid #E2E8F0;
-            min-width: 120px;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
         }
 
-            .stat-mini h4 {
-                font-size: 1.4rem;
-                color: #032C7D;
-                margin: 0;
+        .alert-success {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .alert-danger {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #5A6E7A;
+        }
+
+            .empty-state i {
+                font-size: 3rem;
+                color: #CBD5E1;
+                margin-bottom: 0.8rem;
+                display: block;
             }
 
-            .stat-mini p {
-                margin: 0;
-                font-size: 0.7rem;
-                color: #5A6E7A;
-                text-transform: uppercase;
-                letter-spacing: 0.03em;
-            }
-
+        /* ─── MODAL ─── */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -265,43 +350,44 @@
                 box-shadow: 0 0 0 3px rgba(8,65,201,0.1);
             }
 
-        .alert {
-            padding: 0.7rem 1rem;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            font-size: 0.85rem;
-        }
-
-        .alert-success {
-            background: #D1FAE5;
-            color: #065F46;
-        }
-
-        .alert-danger {
-            background: #FEE2E2;
-            color: #991B1B;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: #5A6E7A;
-        }
-
-            .empty-state i {
-                font-size: 3rem;
-                color: #CBD5E1;
-                margin-bottom: 0.8rem;
-                display: block;
+        @@media (max-width: 900px) {
+            .stats-row {
+                grid-template-columns: 1fr 1fr;
             }
+        }
     </style>
 }
 
-<div class="stats-mini">
-    <div class="stat-mini"><h4>@Model.Statistics.Total</h4><p>Total Requests</p></div>
-    <div class="stat-mini"><h4>@(Model.Statistics.Submitted + Model.Statistics.InProgress)</h4><p>Pending</p></div>
-    <div class="stat-mini"><h4>@Model.Statistics.Completed</h4><p>Completed</p></div>
-    <div class="stat-mini"><h4>@Model.Statistics.Abnormal</h4><p>Abnormal</p></div>
+<!-- ─── COLORFUL STATS ─── -->
+<div class="stats-row">
+    <div class="stat-box">
+        <div class="stat-icon blue"><i class="fas fa-clipboard-list"></i></div>
+        <div class="stat-text">
+            <h3>@Model.Statistics.Total</h3>
+            <p>Total Requests</p>
+        </div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-icon amber"><i class="fas fa-clock"></i></div>
+        <div class="stat-text">
+            <h3>@(Model.Statistics.Submitted + Model.Statistics.InProgress)</h3>
+            <p>Pending</p>
+        </div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+        <div class="stat-text">
+            <h3>@Model.Statistics.Completed</h3>
+            <p>Completed</p>
+        </div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-icon red"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="stat-text">
+            <h3>@Model.Statistics.Abnormal</h3>
+            <p>Abnormal</p>
+        </div>
+    </div>
 </div>
 
 @if (TempData["SuccessMessage"] != null)
@@ -374,7 +460,9 @@
                     : r.Status == "Verified" ? "status-verified"
                     : r.Status == "Released" ? "status-released"
                     : r.Status == "Cancelled" ? "status-cancelled"
+                    : r.Status == "Appointment Requested" ? "status-appointment"
                     : "status-submitted";
+
                     var urgencyClass = r.Urgency == "stat" ? "priority-stat"
                     : r.Urgency == "urgent" ? "priority-urgent"
                     : "priority-routine";

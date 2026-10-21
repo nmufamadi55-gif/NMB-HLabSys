@@ -15,7 +15,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         :root {
             --accent-grad: linear-gradient(135deg, #2563EB 0%, #06B6D4 100%);
@@ -32,8 +36,10 @@
 
         .register-video {
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             object-fit: cover;
             z-index: 0;
         }
@@ -41,12 +47,7 @@
         .register-overlay {
             position: fixed;
             inset: 0;
-            background: linear-gradient(
-                135deg,
-                rgba(15, 23, 42, 0.78) 0%,
-                rgba(15, 23, 42, 0.6) 50%,
-                rgba(37, 99, 235, 0.5) 100%
-            );
+            background: linear-gradient( 135deg, rgba(15, 23, 42, 0.78) 0%, rgba(15, 23, 42, 0.6) 50%, rgba(37, 99, 235, 0.5) 100% );
             z-index: 1;
         }
 
@@ -66,7 +67,7 @@
             width: 100%;
             max-width: 1080px;
             height: 88vh;
-            max-height: 720px;
+            max-height: 780px;
             border-radius: 28px;
             overflow: hidden;
             background: rgba(255, 255, 255, 0.98);
@@ -75,8 +76,15 @@
         }
 
         @@keyframes cardIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to   { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .register-visual {
@@ -91,17 +99,12 @@
             color: white;
         }
 
-        .register-visual::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(
-                to top,
-                rgba(15, 23, 42, 0.94) 0%,
-                rgba(37, 99, 235, 0.6) 55%,
-                rgba(6, 182, 212, 0.3) 100%
-            );
-        }
+            .register-visual::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: linear-gradient( to top, rgba(15, 23, 42, 0.94) 0%, rgba(37, 99, 235, 0.6) 55%, rgba(6, 182, 212, 0.3) 100% );
+            }
 
         .visual-content {
             position: relative;
@@ -152,15 +155,18 @@
             font-size: 1.05rem;
         }
 
-        .visual-logo i {
-            width: 36px; height: 36px;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.95rem;
-        }
+            .visual-logo i {
+                width: 36px;
+                height: 36px;
+                background: rgba(255, 255, 255, 0.2);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.95rem;
+            }
 
         .register-form-panel {
             padding: 2.5rem 2.8rem;
@@ -170,11 +176,14 @@
             position: relative;
         }
 
-        .register-form-panel::-webkit-scrollbar { width: 6px; }
-        .register-form-panel::-webkit-scrollbar-thumb {
-            background: #CBD5E1;
-            border-radius: 3px;
-        }
+            .register-form-panel::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            .register-form-panel::-webkit-scrollbar-thumb {
+                background: #CBD5E1;
+                border-radius: 3px;
+            }
 
         .back-home {
             position: absolute;
@@ -191,73 +200,89 @@
             z-index: 1;
         }
 
-        .back-home:hover { color: #2563EB; }
+            .back-home:hover {
+                color: #2563EB;
+            }
 
-        .form-head { margin-bottom: 1.6rem; }
-
-        .form-head h1 {
-            font-size: 1.7rem;
-            font-weight: 800;
-            color: var(--text-primary);
-            letter-spacing: -0.02em;
-            margin-bottom: 0.4rem;
+        .form-head {
+            margin-bottom: 1.6rem;
         }
 
-        .form-head p {
-            color: var(--text-secondary);
-            font-size: 0.88rem;
-            line-height: 1.5;
+            .form-head h1 {
+                font-size: 1.7rem;
+                font-weight: 800;
+                color: var(--text-primary);
+                letter-spacing: -0.02em;
+                margin-bottom: 0.4rem;
+            }
+
+            .form-head p {
+                color: var(--text-secondary);
+                font-size: 0.88rem;
+                line-height: 1.5;
+            }
+
+        .form-group {
+            margin-bottom: 0.95rem;
         }
 
-        .form-group { margin-bottom: 0.95rem; }
+            .form-group label {
+                display: block;
+                font-weight: 600;
+                font-size: 0.8rem;
+                color: #334155;
+                margin-bottom: 0.35rem;
+            }
 
-        .form-group label {
-            display: block;
-            font-weight: 600;
-            font-size: 0.8rem;
-            color: #334155;
-            margin-bottom: 0.35rem;
+        .required {
+            color: #DC2626;
         }
 
-        .required { color: #DC2626; }
-
-        .input-wrap { position: relative; }
-
-        .input-wrap i.input-icon {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94A3B8;
-            font-size: 0.85rem;
-            pointer-events: none;
+        .input-wrap {
+            position: relative;
         }
 
-        .input-wrap input {
-            width: 100%;
-            padding: 0.75rem 1rem 0.75rem 2.6rem;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-size: 0.9rem;
-            font-family: inherit;
-            background: #F8FAFC;
-            transition: 0.2s;
-        }
+            .input-wrap > i.input-icon {
+                position: absolute;
+                left: 14px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #94A3B8;
+                font-size: 0.85rem;
+                pointer-events: none;
+                z-index: 2;
+            }
 
-        .input-wrap input:focus {
-            outline: none;
-            background: white;
-            border-color: #2563EB;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-        }
+            .input-wrap input {
+                width: 100%;
+                padding: 0.75rem 1rem 0.75rem 2.6rem;
+                border: 1.5px solid var(--border);
+                border-radius: 10px;
+                font-size: 0.9rem;
+                font-family: inherit;
+                background: #F8FAFC;
+                transition: 0.2s;
+            }
 
-        .input-wrap.password-wrap input {
-            padding-right: 3rem;
-        }
+                .input-wrap input:focus {
+                    outline: none;
+                    background: white;
+                    border-color: #2563EB;
+                    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+                }
+
+                .input-wrap input.error {
+                    border-color: #DC2626;
+                    background: #FEF2F2;
+                }
+
+            .input-wrap.password-wrap input {
+                padding-right: 3rem;
+            }
 
         .password-toggle {
             position: absolute;
-            right: 12px;
+            right: 10px;
             top: 50%;
             transform: translateY(-50%);
             background: none;
@@ -265,21 +290,37 @@
             color: #64748B;
             cursor: pointer;
             font-size: 0.95rem;
-            padding: 0.3rem;
+            padding: 0.4rem;
             transition: 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 2;
+            line-height: 1;
         }
 
-        .password-toggle:hover { color: #2563EB; }
+            .password-toggle:hover {
+                color: #2563EB;
+            }
+
+            .password-toggle i {
+                position: static;
+                transform: none;
+                left: auto;
+                top: auto;
+                pointer-events: none;
+            }
 
         .field-error {
             color: #DC2626;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             margin-top: 0.3rem;
-            display: block;
+            display: none;
         }
+
+            .field-error.show {
+                display: block;
+            }
 
         .form-row {
             display: grid;
@@ -295,19 +336,49 @@
             display: flex;
             align-items: flex-start;
             gap: 0.5rem;
+            border-left: 4px solid;
         }
 
-        .alert-success { background: #DCFCE7; color: #166534; border-left: 4px solid #059669; }
-        .alert-error { background: #FEE2E2; color: #991B1B; border-left: 4px solid #DC2626; }
+        .alert-success {
+            background: #DCFCE7;
+            color: #166534;
+            border-color: #059669;
+        }
 
-        .password-hint {
-            font-size: 0.7rem;
+        .alert-error {
+            background: #FEE2E2;
+            color: #991B1B;
+            border-color: #DC2626;
+        }
+
+        .password-hints {
+            font-size: 0.72rem;
             color: #64748B;
-            margin-top: 0.25rem;
-            display: block;
+            margin-top: 0.35rem;
+            line-height: 1.9;
         }
 
-        /* DOB field turns green when auto-filled from SA ID */
+            .password-hints > div {
+                display: flex;
+                align-items: center;
+                gap: 0.4rem;
+                transition: color 0.2s;
+            }
+
+                .password-hints > div i {
+                    font-size: 0.5rem;
+                    color: #CBD5E1;
+                    transition: color 0.2s;
+                }
+
+                .password-hints > div.met {
+                    color: #10B981;
+                }
+
+                    .password-hints > div.met i {
+                        color: #10B981;
+                    }
+
         .input-wrap input.auto-filled {
             background: #ECFDF5;
             border-color: #10B981;
@@ -323,7 +394,9 @@
             margin-top: 0.25rem;
         }
 
-        .dob-badge.visible { display: block; }
+            .dob-badge.visible {
+                display: block;
+            }
 
         .btn-register {
             width: 100%;
@@ -345,16 +418,16 @@
             margin-top: 1rem;
         }
 
-        .btn-register:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 12px 28px rgba(37, 99, 235, 0.45);
-        }
+            .btn-register:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 12px 28px rgba(37, 99, 235, 0.45);
+            }
 
-        .btn-register:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
+            .btn-register:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
 
         .form-footer {
             margin-top: 1.3rem;
@@ -365,35 +438,63 @@
             color: var(--text-secondary);
         }
 
-        .form-footer a {
-            color: #2563EB;
-            text-decoration: none;
-            font-weight: 600;
-        }
+            .form-footer a {
+                color: #2563EB;
+                text-decoration: none;
+                font-weight: 600;
+            }
 
-        .form-footer a:hover { text-decoration: underline; }
+                .form-footer a:hover {
+                    text-decoration: underline;
+                }
 
         @@media (max-width: 900px) {
-            html, body { overflow: auto; }
+            html, body {
+                overflow: auto;
+            }
+
             .register-split {
                 grid-template-columns: 1fr;
                 height: auto;
                 max-height: none;
             }
+
             .register-visual {
                 min-height: 220px;
                 padding: 2rem;
             }
-            .visual-logo { position: static; margin-bottom: 1.5rem; }
-            .visual-content h2 { font-size: 1.5rem; }
-            .register-form-panel { padding: 2rem; }
+
+            .visual-logo {
+                position: static;
+                margin-bottom: 1.5rem;
+            }
+
+            .visual-content h2 {
+                font-size: 1.5rem;
+            }
+
+            .register-form-panel {
+                padding: 2rem;
+            }
         }
 
         @@media (max-width: 480px) {
-            .register-wrap { padding: 1rem; }
-            .register-form-panel { padding: 1.8rem 1.5rem; }
-            .form-head h1 { font-size: 1.4rem; }
-            .form-row { grid-template-columns: 1fr; gap: 0; }
+            .register-wrap {
+                padding: 1rem;
+            }
+
+            .register-form-panel {
+                padding: 1.8rem 1.5rem;
+            }
+
+            .form-head h1 {
+                font-size: 1.4rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
         }
     </style>
 </head>
@@ -453,7 +554,7 @@
                     </div>
                 }
 
-                <form method="post" asp-action="Register" id="registerForm">
+                <form method="post" asp-action="Register" id="registerForm" novalidate>
                     @Html.AntiForgeryToken()
 
                     <div class="form-row">
@@ -461,16 +562,22 @@
                             <label asp-for="FirstName">First Name <span class="required">*</span></label>
                             <div class="input-wrap">
                                 <i class="fas fa-user input-icon"></i>
-                                <input asp-for="FirstName" placeholder="First name" required autocomplete="given-name" />
+                                <input asp-for="FirstName" id="regFirstName" placeholder="First name" required
+                                       autocomplete="given-name"
+                                       oninput="validateName('regFirstName','firstNameError','First name')" />
                             </div>
+                            <div class="field-error" id="firstNameError"></div>
                             <span asp-validation-for="FirstName" class="field-error"></span>
                         </div>
                         <div class="form-group">
                             <label asp-for="LastName">Last Name <span class="required">*</span></label>
                             <div class="input-wrap">
                                 <i class="fas fa-user input-icon"></i>
-                                <input asp-for="LastName" placeholder="Last name" required autocomplete="family-name" />
+                                <input asp-for="LastName" id="regLastName" placeholder="Last name" required
+                                       autocomplete="family-name"
+                                       oninput="validateName('regLastName','lastNameError','Last name')" />
                             </div>
+                            <div class="field-error" id="lastNameError"></div>
                             <span asp-validation-for="LastName" class="field-error"></span>
                         </div>
                     </div>
@@ -479,12 +586,12 @@
                         <label asp-for="SAIDNumber">SA ID Number <span class="required">*</span></label>
                         <div class="input-wrap">
                             <i class="fas fa-id-card input-icon"></i>
-                            <input asp-for="SAIDNumber" id="saIdInput"
+                            <input type="text" name="SAIDNumber" id="saIdInput"
                                    placeholder="13 digits (e.g. 8001015009087)"
-                                   pattern="[0-9]{13}" maxlength="13" inputmode="numeric"
-                                   title="SA ID must be exactly 13 digits"
-                                   required autocomplete="off" />
+                                   maxlength="13" inputmode="numeric" required autocomplete="off"
+                                   oninput="this.value=this.value.replace(/\D/g,''); validateID();" />
                         </div>
+                        <div class="field-error" id="idError"></div>
                         <span asp-validation-for="SAIDNumber" class="field-error"></span>
                     </div>
 
@@ -492,9 +599,11 @@
                         <label asp-for="Email">Email Address <span class="required">*</span></label>
                         <div class="input-wrap">
                             <i class="fas fa-envelope input-icon"></i>
-                            <input asp-for="Email" type="email" placeholder="you@email.com"
-                                   required autocomplete="email" />
+                            <input asp-for="Email" id="regEmail" type="email" placeholder="you@email.com"
+                                   required autocomplete="email"
+                                   oninput="validateEmail()" />
                         </div>
+                        <div class="field-error" id="emailError"></div>
                         <span asp-validation-for="Email" class="field-error"></span>
                     </div>
 
@@ -503,24 +612,26 @@
                             <label asp-for="Cellphone">Cellphone <span class="required">*</span></label>
                             <div class="input-wrap">
                                 <i class="fas fa-phone input-icon"></i>
-                                <input asp-for="Cellphone" placeholder="0821234567"
-                                       pattern="[0-9]{10}" maxlength="10" inputmode="numeric"
-                                       title="Cellphone must be exactly 10 digits"
-                                       required autocomplete="tel" />
+                                <input asp-for="Cellphone" id="regPhone" placeholder="0821234567"
+                                       maxlength="15" inputmode="tel" required autocomplete="tel"
+                                       oninput="validatePhone()" />
                             </div>
+                            <div class="field-error" id="phoneError"></div>
                             <span asp-validation-for="Cellphone" class="field-error"></span>
                         </div>
                         <div class="form-group">
                             <label asp-for="DateOfBirth">Date of Birth <span class="required">*</span></label>
                             <div class="input-wrap">
                                 <i class="fas fa-calendar input-icon"></i>
-                                <input asp-for="DateOfBirth" id="dobInput" type="date" required
+                                <input type="date" name="DateOfBirth" id="dobInput" required
                                        max="@DateTime.Now.ToString("yyyy-MM-dd")"
-                                       min="1900-01-01" />
+                                       min="1900-01-01"
+                                       onchange="validateDOB(false)" />
                             </div>
                             <span class="dob-badge" id="dobBadge">
                                 <i class="fas fa-magic"></i> Auto-filled from your SA ID
                             </span>
+                            <div class="field-error" id="dobError"></div>
                             <span asp-validation-for="DateOfBirth" class="field-error"></span>
                         </div>
                     </div>
@@ -541,13 +652,21 @@
                                 <i class="fas fa-lock input-icon"></i>
                                 <input asp-for="Password" type="password" id="passwordInput"
                                        placeholder="Create a password" required
-                                       minlength="8" autocomplete="new-password" />
+                                       minlength="8" autocomplete="new-password"
+                                       oninput="validatePassword()" />
                                 <button type="button" class="password-toggle" id="togglePassword"
                                         aria-label="Show password">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </div>
-                            <span class="password-hint">Min 8 characters, include uppercase & number</span>
+                            <div class="password-hints" id="pwdHints">
+                                <div data-req="length"><i class="fas fa-circle"></i> At least 8 characters</div>
+                                <div data-req="upper"><i class="fas fa-circle"></i> One uppercase letter</div>
+                                <div data-req="lower"><i class="fas fa-circle"></i> One lowercase letter</div>
+                                <div data-req="number"><i class="fas fa-circle"></i> One number</div>
+                                <div data-req="special"><i class="fas fa-circle"></i> One special character</div>
+                            </div>
+                            <div class="field-error" id="passwordError"></div>
                             <span asp-validation-for="Password" class="field-error"></span>
                         </div>
                         <div class="form-group">
@@ -556,12 +675,14 @@
                                 <i class="fas fa-lock input-icon"></i>
                                 <input asp-for="ConfirmPassword" type="password" id="confirmPasswordInput"
                                        placeholder="Confirm password" required
-                                       minlength="8" autocomplete="new-password" />
+                                       minlength="8" autocomplete="new-password"
+                                       oninput="validateConfirm()" />
                                 <button type="button" class="password-toggle" id="toggleConfirmPassword"
                                         aria-label="Show password">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </div>
+                            <div class="field-error" id="confirmError"></div>
                             <span asp-validation-for="ConfirmPassword" class="field-error"></span>
                         </div>
                     </div>
@@ -579,116 +700,326 @@
         </div>
     </div>
 
-    <script>
-        // ─── Password show/hide toggles ───
-        function setupPasswordToggle(toggleId, inputId) {
-            const toggle = document.getElementById(toggleId);
-            const input = document.getElementById(inputId);
-            if (!toggle || !input) return;
+    <text>
+        <script>
+            (function () {
+                'use strict';
 
-            toggle.addEventListener('click', function () {
-                const isPassword = input.type === 'password';
-                input.type = isPassword ? 'text' : 'password';
-                const icon = toggle.querySelector('i');
-                icon.classList.toggle('fa-eye', !isPassword);
-                icon.classList.toggle('fa-eye-slash', isPassword);
-                toggle.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
-            });
-        }
-
-        setupPasswordToggle('togglePassword', 'passwordInput');
-        setupPasswordToggle('toggleConfirmPassword', 'confirmPasswordInput');
-
-        // ─── SA ID → DOB auto-fill ───
-        const saIdInput = document.getElementById('saIdInput');
-        const dobInput = document.getElementById('dobInput');
-        const dobBadge = document.getElementById('dobBadge');
-
-        function extractDobFromSaId(saId) {
-            if (!/^\d{13}$/.test(saId)) return null;
-
-            const yy = parseInt(saId.substring(0, 2), 10);
-            const mm = parseInt(saId.substring(2, 4), 10);
-            const dd = parseInt(saId.substring(4, 6), 10);
-
-            const currentYY = new Date().getFullYear() % 100;
-            const century = yy <= currentYY ? 2000 : 1900;
-            const fullYear = century + yy;
-
-            const date = new Date(fullYear, mm - 1, dd);
-            if (
-                date.getFullYear() !== fullYear ||
-                date.getMonth() !== mm - 1 ||
-                date.getDate() !== dd
-            ) {
-                return null;
-            }
-
-            return `${fullYear}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
-        }
-
-        saIdInput.addEventListener('input', function () {
-            this.value = this.value.replace(/\D/g, '').slice(0, 13);
-
-            if (this.value.length === 13) {
-                const dob = extractDobFromSaId(this.value);
-                if (dob) {
-                    dobInput.value = dob;
-                    dobInput.classList.add('auto-filled');
-                    dobBadge.classList.add('visible');
-                } else {
-                    dobInput.value = '';
-                    dobInput.classList.remove('auto-filled');
-                    dobBadge.classList.remove('visible');
+                // ═══════════════════════════════════════════════════════════
+                // PASSWORD SHOW/HIDE
+                // ═══════════════════════════════════════════════════════════
+                function setupToggle(toggleId, inputId) {
+                    var btn = document.getElementById(toggleId);
+                    var inp = document.getElementById(inputId);
+                    if (!btn || !inp) return;
+                    btn.addEventListener('click', function () {
+                        var isPwd = inp.type === 'password';
+                        inp.type = isPwd ? 'text' : 'password';
+                        var icon = btn.querySelector('i');
+                        icon.classList.toggle('fa-eye', !isPwd);
+                        icon.classList.toggle('fa-eye-slash', isPwd);
+                        btn.setAttribute('aria-label', isPwd ? 'Hide password' : 'Show password');
+                    });
                 }
-            } else {
-                dobInput.classList.remove('auto-filled');
-                dobBadge.classList.remove('visible');
-            }
-        });
+                setupToggle('togglePassword', 'passwordInput');
+                setupToggle('toggleConfirmPassword', 'confirmPasswordInput');
 
-        // If the user manually edits DOB, drop the "auto-filled" style
-        dobInput.addEventListener('change', function () {
-            const fromId = extractDobFromSaId(saIdInput.value);
-            if (fromId !== this.value) {
-                this.classList.remove('auto-filled');
-                dobBadge.classList.remove('visible');
-            }
-        });
+                // ═══════════════════════════════════════════════════════════
+                // HELPERS
+                // ═══════════════════════════════════════════════════════════
+                function setErr(el, errId, msg) {
+                    el.classList.add('error');
+                    var box = document.getElementById(errId);
+                    if (box) { box.textContent = msg; box.classList.add('show'); }
+                }
 
-        // ─── Confirm password + DOB vs ID checks before submit ───
-        document.getElementById('registerForm').addEventListener('submit', function (e) {
-            const pwd = document.getElementById('passwordInput').value;
-            const confirm = document.getElementById('confirmPasswordInput').value;
+                function clearErr(el, errId) {
+                    el.classList.remove('error');
+                    var box = document.getElementById(errId);
+                    if (box) { box.textContent = ''; box.classList.remove('show'); }
+                }
 
-            if (pwd !== confirm) {
-                e.preventDefault();
-                alert('Passwords do not match. Please check and try again.');
-                document.getElementById('confirmPasswordInput').focus();
-                return false;
-            }
+                function parseLocalDate(v) {
+                    if (!v) return null;
+                    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
+                    if (!m) return null;
+                    var dt = new Date(+m[1], +m[2] - 1, +m[3]);
+                    if (dt.getFullYear() !== +m[1] || dt.getMonth() !== +m[2] - 1 || dt.getDate() !== +m[3]) return null;
+                    return dt;
+                }
 
-            const dob = extractDobFromSaId(saIdInput.value);
-            if (!dob) {
-                e.preventDefault();
-                alert('Please enter a valid 13-digit SA ID number with a real date of birth.');
-                saIdInput.focus();
-                return false;
-            }
+                function formatYMD(dt) {
+                    return dt.getFullYear() + '-' +
+                        String(dt.getMonth() + 1).padStart(2, '0') + '-' +
+                        String(dt.getDate()).padStart(2, '0');
+                }
 
-            if (dobInput.value !== dob) {
-                e.preventDefault();
-                alert('Date of Birth does not match the SA ID number. Please check the ID or update the date.');
-                dobInput.focus();
-                return false;
-            }
-        });
+                // ═══════════════════════════════════════════════════════════
+                // SA ID → decode the embedded date
+                // ═══════════════════════════════════════════════════════════
+                function decodeSaIdDate(id13) {
+                    var yy = parseInt(id13.substr(0, 2), 10);
+                    var mm = parseInt(id13.substr(2, 2), 10);
+                    var dd = parseInt(id13.substr(4, 2), 10);
 
-        // ─── Cellphone: digits only ───
-        document.querySelector('input[name="Cellphone"]').addEventListener('input', function () {
-            this.value = this.value.replace(/\D/g, '').slice(0, 10);
-        });
-    </script>
+                    if (mm < 1 || mm > 12) {
+                        return { ok: false, reason: 'SA ID has an invalid month (' + mm + ') in position 3-4' };
+                    }
+                    if (dd < 1 || dd > 31) {
+                        return { ok: false, reason: 'SA ID has an invalid day (' + dd + ') in position 5-6' };
+                    }
+
+                    var year = (yy >= 0 && yy <= 24) ? 2000 + yy : 1900 + yy;
+                    var dt = new Date(year, mm - 1, dd);
+
+                    if (dt.getFullYear() !== year || dt.getMonth() !== mm - 1 || dt.getDate() !== dd) {
+                        return {
+                            ok: false,
+                            reason: 'SA ID has an impossible date (' +
+                                yy + '-' + String(mm).padStart(2, '0') + '-' + String(dd).padStart(2, '0') + ')'
+                        };
+                    }
+
+                    var today = new Date(); today.setHours(0, 0, 0, 0);
+                    if (dt > today) {
+                        return { ok: false, reason: 'SA ID encodes a date in the future' };
+                    }
+
+                    return { ok: true, date: dt, dob: formatYMD(dt) };
+                }
+
+                // ═══════════════════════════════════════════════════════════
+                // NAME
+                // ═══════════════════════════════════════════════════════════
+                function validateName(inputId, errId, label) {
+                    var el = document.getElementById(inputId);
+                    var v = (el.value || '').trim();
+                    if (v.length === 0) { setErr(el, errId, label + ' is required'); return false; }
+                    if (v.length < 2)   { setErr(el, errId, label + ' must be at least 2 characters'); return false; }
+                    clearErr(el, errId);
+                    return true;
+                }
+
+                // ═══════════════════════════════════════════════════════════
+                // SA ID — live validation + DOB auto-fill
+                // ═══════════════════════════════════════════════════════════
+                function validateID() {
+                    var el = document.getElementById('saIdInput');
+                    if (!el) return false;
+                    var v = (el.value || '').replace(/\D/g, '');
+                    el.value = v;
+
+                    if (v.length === 0) { clearErr(el, 'idError'); return false; }
+                    if (v.length < 13)  { clearErr(el, 'idError'); return false; }
+                    if (v.length > 13)  { el.value = v = v.substr(0, 13); }
+
+                    var decoded = decodeSaIdDate(v);
+                    if (!decoded.ok) {
+                        setErr(el, 'idError', decoded.reason);
+                        return false;
+                    }
+
+                    clearErr(el, 'idError');
+
+                    // ─── Auto-fill DOB ───
+                    var dobEl = document.getElementById('dobInput');
+                    var badge = document.getElementById('dobBadge');
+                    if (!dobEl) return true;
+
+                    if (!dobEl.dataset.userEdited || dobEl.dataset.userEdited === '0') {
+                        dobEl.value = decoded.dob;
+                        dobEl.classList.add('auto-filled');
+                        if (badge) badge.classList.add('visible');
+                        dobEl.dataset.userEdited = '0';
+                        clearErr(dobEl, 'dobError');
+                    }
+
+                    return true;
+                }
+
+                // ═══════════════════════════════════════════════════════════
+                // DOB
+                // ═══════════════════════════════════════════════════════════
+                function validateDOB(fromAutoFill) {
+                    var el = document.getElementById('dobInput');
+                    if (!el) return false;
+
+                    if (!fromAutoFill) {
+                        el.dataset.userEdited = '1';
+                        el.classList.remove('auto-filled');
+                        var badge = document.getElementById('dobBadge');
+                        if (badge) badge.classList.remove('visible');
+                    }
+
+                    if (!el.value) { setErr(el, 'dobError', 'Please select date of birth'); return false; }
+
+                    var dt = parseLocalDate(el.value);
+                    if (!dt) { setErr(el, 'dobError', 'Please enter a valid date'); return false; }
+
+                    var today = new Date(); today.setHours(0, 0, 0, 0);
+                    if (dt > today) { setErr(el, 'dobError', 'Date of birth cannot be in the future'); return false; }
+
+                    var idEl = document.getElementById('saIdInput');
+                    var id = idEl ? (idEl.value || '').replace(/\D/g, '') : '';
+                    if (id.length === 13) {
+                        var decoded = decodeSaIdDate(id);
+                        if (decoded.ok && el.value !== decoded.dob) {
+                            setErr(el, 'dobError', 'Date of birth does not match the SA ID (' + decoded.dob + ')');
+                            return false;
+                        }
+                    }
+
+                    clearErr(el, 'dobError');
+                    return true;
+                }
+
+                // ═══════════════════════════════════════════════════════════
+                // PHONE
+                // ═══════════════════════════════════════════════════════════
+                function validatePhone() {
+                    var el = document.getElementById('regPhone');
+                    if (!el) return false;
+                    var v = (el.value || '').replace(/[\s\-]/g, '');
+
+                    if (!v) { setErr(el, 'phoneError', 'Cellphone is required'); return false; }
+                    if (!/^(0[1-9][0-9]{8}|\+27[1-9][0-9]{8})$/.test(v)) {
+                        setErr(el, 'phoneError', 'Enter a valid SA number (e.g. 0821234567)');
+                        return false;
+                    }
+                    clearErr(el, 'phoneError');
+                    return true;
+                }
+
+                // ═══════════════════════════════════════════════════════════
+                // EMAIL
+                // ═══════════════════════════════════════════════════════════
+                function validateEmail() {
+                    var el = document.getElementById('regEmail');
+                    if (!el) return false;
+                    var v = (el.value || '').trim();
+
+                    if (!v) { setErr(el, 'emailError', 'Email is required'); return false; }
+                    if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]{2,}$/.test(v)) {
+                        setErr(el, 'emailError', 'Enter a valid email address');
+                        return false;
+                    }
+                    clearErr(el, 'emailError');
+                    return true;
+                }
+
+                // ═══════════════════════════════════════════════════════════
+                // PASSWORD
+                // ═══════════════════════════════════════════════════════════
+                function validatePassword() {
+                    var el = document.getElementById('passwordInput');
+                    if (!el) return false;
+                    var v = el.value;
+
+                    var hints = document.querySelectorAll('#pwdHints > div');
+                    var tests = {
+                        length:  v.length >= 8,
+                        upper:   /[A-Z]/.test(v),
+                        lower:   /[a-z]/.test(v),
+                        number:  /[0-9]/.test(v),
+                        special: /[^A-Za-z0-9]/.test(v)
+                    };
+                    var allMet = true;
+                    hints.forEach(function (hint) {
+                        var key = hint.getAttribute('data-req');
+                        var met = tests[key];
+                        hint.classList.toggle('met', met);
+                        var icon = hint.querySelector('i');
+                        if (icon) icon.className = met ? 'fas fa-check-circle' : 'fas fa-circle';
+                        if (!met) allMet = false;
+                    });
+
+                    if (!v) {
+                        setErr(el, 'passwordError', 'Password is required');
+                        return false;
+                    }
+                    if (!allMet) {
+                        setErr(el, 'passwordError', 'Password must meet all requirements above');
+                        return false;
+                    }
+                    clearErr(el, 'passwordError');
+
+                    var confirmEl = document.getElementById('confirmPasswordInput');
+                    if (confirmEl && confirmEl.value) {
+                        validateConfirm();
+                    }
+                    return true;
+                }
+
+                // ═══════════════════════════════════════════════════════════
+                // CONFIRM PASSWORD
+                // ═══════════════════════════════════════════════════════════
+                function validateConfirm() {
+                    var el = document.getElementById('confirmPasswordInput');
+                    if (!el) return false;
+                    var pwdEl = document.getElementById('passwordInput');
+                    var pwd = pwdEl ? pwdEl.value : '';
+
+                    if (!el.value) { setErr(el, 'confirmError', 'Please confirm your password'); return false; }
+                    if (el.value !== pwd) { setErr(el, 'confirmError', 'Passwords do not match'); return false; }
+                    clearErr(el, 'confirmError');
+                    return true;
+                }
+
+                // ═══════════════════════════════════════════════════════════
+                // EXPOSE VALIDATORS TO GLOBAL SCOPE
+                // (required because HTML has inline oninput/onchange handlers)
+                // ═══════════════════════════════════════════════════════════
+                window.validateName     = validateName;
+                window.validateID       = validateID;
+                window.validateDOB      = validateDOB;
+                window.validatePhone    = validatePhone;
+                window.validateEmail    = validateEmail;
+                window.validatePassword = validatePassword;
+                window.validateConfirm  = validateConfirm;
+
+                // ═══════════════════════════════════════════════════════════
+                // WIRE UP FORM SUBMIT
+                // ═══════════════════════════════════════════════════════════
+                var form = document.getElementById('registerForm');
+                if (!form) return;
+
+                // Strip "0001-01-01" default if Razor injected it
+                var dobInit = document.getElementById('dobInput');
+                if (dobInit && dobInit.value && dobInit.value.startsWith('0001')) {
+                    dobInit.value = '';
+                }
+
+                form.addEventListener('submit', function (e) {
+                    var ok = true;
+                    ok = validateName('regFirstName', 'firstNameError', 'First name') && ok;
+                    ok = validateName('regLastName', 'lastNameError', 'Last name') && ok;
+                    ok = validateID() && ok;
+                    ok = validateDOB(true) && ok;
+                    ok = validatePhone() && ok;
+                    ok = validateEmail() && ok;
+                    ok = validatePassword() && ok;
+                    ok = validateConfirm() && ok;
+
+                    if (!ok) {
+                        e.preventDefault();
+                        var firstErr = form.querySelector('input.error');
+                        if (firstErr) {
+                            firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            firstErr.focus();
+                        }
+                        return;
+                    }
+
+                    var btn = document.getElementById('registerBtn');
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating account...';
+                });
+
+                // Prefill check on load
+                if (document.getElementById('saIdInput').value) validateID();
+            })();
+        </script>
+    </text>
 
 </body>
 </html>

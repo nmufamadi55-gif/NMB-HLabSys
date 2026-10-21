@@ -4,6 +4,7 @@
     ViewData["Title"] = "Test Results";
     ViewData["RoleSubtitle"] = "Doctor Portal";
     ViewData["UserGreeting"] = "View and release patient test results";
+    ViewData["UserSubtitle"] = "Review, release, or request an appointment";
 }
 
 @section SidebarMenu {
@@ -263,6 +264,13 @@
             color: #065F46;
         }
 
+        /* ─── IMPROVEMENT: Darker, more readable appointment badge ─── */
+        .badge-appointment {
+            background: #FDE68A;
+            color: #92400E;
+            border: 1px solid #FCD34D;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -436,10 +444,13 @@
                 display: block;
             }
 
-        @@media (max-width: 900px) {
-            .stats-row {
-                grid-template-columns: 1fr 1fr;
-            }
+        media (max-width: 900px) {
+            .stats-row
+
+        {
+            grid-template-columns: 1fr 1fr;
+        }
+
         }
     </style>
 }
@@ -554,7 +565,7 @@ else
                     }
                     else if (anyAppointment || group.RequestStatus == "Appointment Requested")
                     {
-                        <span class="badge" style="background:#FEF3C7; color:#78350F;">Appointment Requested</span>
+                        <span class="badge badge-appointment">Appointment Requested</span>
                     }
                     else
                     {
@@ -598,7 +609,7 @@ else
                                     }
                                     else if (r.AppointmentRequestedDate.HasValue)
                                     {
-                                        <span class="badge" style="background:#FEF3C7; color:#78350F;">Appointment</span>
+                                        <span class="badge badge-appointment">Appointment</span>
                                     }
                                     else
                                     {

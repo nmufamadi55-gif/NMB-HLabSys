@@ -8,14 +8,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="~/css/site.css">
     @await RenderSectionAsync("Styles", required: false)
-    @* ── Prevent browser from caching authenticated pages (blocks back-button replay) ── *@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
 </head>
 <body>
     <div class="app-grid">
-        <!-- Sidebar -->
         <aside class="sidebar-lab">
             <div class="logo-area">
                 <h2><i class="fas fa-flask"></i> NMB-HLabSys</h2>
@@ -26,16 +24,49 @@
             </ul>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-panel">
-            <div class="header-glass">
+            @{
+                var currentRole = Context.Session.GetString("UserRole") ?? "";
+                var isDoctor = string.Equals(currentRole, "Doctor", StringComparison.OrdinalIgnoreCase);
+
+                // Derive initials from session name — works on every page
+                var sessionName = Context.Session.GetString("UserName") ?? "";
+                var nameParts = sessionName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                var derivedInitials =
+                (nameParts.Length > 0 ? nameParts[0][0].ToString() : "") +
+                (nameParts.Length > 1 ? nameParts[1][0].ToString() : "");
+                derivedInitials = derivedInitials.ToUpper();
+
+                var userInitials = (ViewData["UserInitials"] as string)
+                ?? (string.IsNullOrEmpty(derivedInitials) ? "??" : derivedInitials);
+
+                var greetingText = ViewData["UserGreeting"] as string ?? "";
+                var greetingSubtitle = ViewData["UserSubtitle"] as string;
+            }
+            <div class="header-glass @(isDoctor ? "header-glass-doctor" : "")">
                 <div class="flex-between" style="width:100%;">
-                    <div>
-                        <button class="menu-toggle" id="menuToggleBtn" aria-label="Toggle navigation"><i class="fas fa-bars"></i></button>
-                        <span class="user-greeting">@ViewData["UserGreeting"]</span>
+                    <div style="display:flex; align-items:center; gap:0.8rem; min-width:0;">
+                        <button class="menu-toggle" id="menuToggleBtn" aria-label="Toggle navigation">
+                            <i class="fas fa-bars"></i>
+                        </button>
+
+                        @if (isDoctor)
+                        {
+                            <div class="greeting-block greeting-doctor">
+                                <div class="greeting-title">@greetingText</div>
+                                @if (!string.IsNullOrWhiteSpace(greetingSubtitle))
+                                {
+                                    <div class="greeting-subtitle">@greetingSubtitle</div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="user-greeting">@greetingText</span>
+                        }
                     </div>
                     <div class="user-tag">
-                        <div class="avatar">@ViewData["UserInitials"]</div>
+                        <div class="avatar">@userInitials</div>
                         <div class="logout-pill" id="logoutBtn" role="button" tabindex="0">Logout</div>
                     </div>
                 </div>
@@ -44,29 +75,17 @@
         </main>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         LOGOUT CONFIRMATION MODAL
-         ═══════════════════════════════════════════════════════════ -->
     <div id="logoutModal" class="logout-modal-overlay">
         <div class="logout-modal-box">
             <div class="logout-modal-header">
-                <h3>
-                    <i class="fas fa-sign-out-alt"></i>
-                    Log out?
-                </h3>
+                <h3><i class="fas fa-sign-out-alt"></i> Log out?</h3>
                 <button type="button" class="logout-modal-close" onclick="closeLogoutModal()" aria-label="Close">&times;</button>
             </div>
             <div class="logout-modal-body">
-                <p>
-                    Are you sure you want to log out of
-                    <strong>NMB Haematology</strong>?
-                    You will need to sign in again to continue.
-                </p>
+                <p>Are you sure you want to log out of <strong>NMB Haematology</strong>? You will need to sign in again to continue.</p>
             </div>
             <div class="logout-modal-footer">
-                <button type="button" class="logout-btn-cancel" onclick="closeLogoutModal()">
-                    Stay logged in
-                </button>
+                <button type="button" class="logout-btn-cancel" onclick="closeLogoutModal()">Stay logged in</button>
                 <button type="button" class="logout-btn-confirm" onclick="confirmLogout()">
                     <i class="fas fa-sign-out-alt"></i> Yes, log out
                 </button>
@@ -74,27 +93,16 @@
         </div>
     </div>
 
-    <!-- Hidden POST form for CSRF-safe logout -->
-    <form id="logoutForm"
-          asp-controller="Account"
-          asp-action="Logout"
-          method="post"
-          style="display:none;"
-          novalidate>
+    <form id="logoutForm" asp-controller="Account" asp-action="Logout" method="post" style="display:none;" novalidate>
         @Html.AntiForgeryToken()
     </form>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="~/js/site.js"></script>
     <script>
-        // ═══════════════════════════════════════════════════════════
-        // LOGOUT MODAL — wired up on DOM ready, namespace-free globals
-        // ═══════════════════════════════════════════════════════════
         (function () {
             'use strict';
-
             var modal, form, logoutTrigger;
-
             function openModal() {
                 if (!modal) return;
                 modal.classList.add('active');
@@ -104,16 +112,13 @@
                     if (btn) btn.focus();
                 }, 60);
             }
-
             function closeModal() {
                 if (!modal) return;
                 modal.classList.remove('active');
                 document.body.style.overflow = '';
             }
-
             function doLogout() {
                 if (!form) return;
-                // Guard against double-submit
                 var confirmBtn = modal.querySelector('.logout-btn-confirm');
                 if (confirmBtn) {
                     confirmBtn.disabled = true;
@@ -121,8 +126,6 @@
                 }
                 form.submit();
             }
-
-            // Expose to inline onclick="" handlers
             window.openLogoutModal  = openModal;
             window.closeLogoutModal = closeModal;
             window.confirmLogout    = doLogout;
@@ -131,117 +134,62 @@
                 modal         = document.getElementById('logoutModal');
                 form          = document.getElementById('logoutForm');
                 logoutTrigger = document.getElementById('logoutBtn');
-
                 if (!modal || !form || !logoutTrigger) return;
 
-                // ── OPEN: click ──
                 logoutTrigger.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    openModal();
+                    e.preventDefault(); e.stopPropagation(); openModal();
                 });
-
-                // ── OPEN: keyboard ──
                 logoutTrigger.addEventListener('keydown', function (e) {
                     if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        openModal();
+                        e.preventDefault(); e.stopPropagation(); openModal();
                     }
                 });
-
-                // ── CLOSE: backdrop click — only if the click STARTED on the backdrop ──
                 modal.addEventListener('mousedown', function (e) {
-                    // Remember where the press began
                     modal._pressedOnBackdrop = (e.target === modal);
                 });
-
                 modal.addEventListener('click', function (e) {
-                    if (e.target === modal && modal._pressedOnBackdrop) {
-                        closeModal();
-                    }
+                    if (e.target === modal && modal._pressedOnBackdrop) closeModal();
                     modal._pressedOnBackdrop = false;
                 });
-
-                // ── CLOSE: Escape ──
                 document.addEventListener('keydown', function (e) {
                     if (e.key === 'Escape' && modal.classList.contains('active')) {
-                        e.preventDefault();
-                        closeModal();
+                        e.preventDefault(); closeModal();
                     }
                 });
-
-                // ── CONFIRM (button inside modal) ──
                 var confirmBtn = modal.querySelector('.logout-btn-confirm');
-                if (confirmBtn) {
-                    confirmBtn.addEventListener('click', function (e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        doLogout();
-                    });
-                }
-
-                // ── CANCEL (button inside modal) ──
+                if (confirmBtn) confirmBtn.addEventListener('click', function (e) {
+                    e.preventDefault(); e.stopPropagation(); doLogout();
+                });
                 var cancelBtn = modal.querySelector('.logout-btn-cancel');
-                if (cancelBtn) {
-                    cancelBtn.addEventListener('click', function (e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        closeModal();
-                    });
-                }
-
-                // ── CLOSE (X button inside modal) ──
+                if (cancelBtn) cancelBtn.addEventListener('click', function (e) {
+                    e.preventDefault(); e.stopPropagation(); closeModal();
+                });
                 var closeBtn = modal.querySelector('.logout-modal-close');
-                if (closeBtn) {
-                    closeBtn.addEventListener('click', function (e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        closeModal();
-                    });
-                }
+                if (closeBtn) closeBtn.addEventListener('click', function (e) {
+                    e.preventDefault(); e.stopPropagation(); closeModal();
+                });
             });
         })();
     </script>
     <script>
-        // ═══════════════════════════════════════════════════════════
-        // PREVENT BACK-BUTTON FROM RETURNING TO LOGIN AFTER AUTHENTICATION
-        // Only runs on authenticated pages (this layout is not used on Login)
-        // ═══════════════════════════════════════════════════════════
         (function () {
             try {
-                // If the previous history entry was the Login page, replace
-                // the current entry so Back skips Login and goes further back.
                 var referrer = document.referrer || '';
                 if (referrer.indexOf('/Account/Login') !== -1 ||
                     referrer.indexOf('/Account/ForgotPassword') !== -1) {
-                    // Rewrite history so this page replaces the Login entry.
-                    // User presses Back → goes to whatever came BEFORE Login,
-                    // never back to the Login form itself.
                     history.replaceState({ page: 'dashboard-after-login' }, '', location.href);
                 }
-            } catch (e) {
-                // Older browsers — no-op
-            }
+            } catch (e) { }
         })();
     </script>
     <script>
-        // ═══════════════════════════════════════════════════════════
-        // BACK-BUTTON HARDENING — hide stale content on bfcache restore
-        // ═══════════════════════════════════════════════════════════
         (function () {
-            // Run BEFORE anything else renders from bfcache.
-           
             window.addEventListener('pageshow', function (event) {
                 if (event.persisted) {
-                    // Hide the stale page instantly
                     document.documentElement.style.visibility = 'hidden';
-                    // Then force a real network request
                     window.location.reload();
                 }
             });
-
-            // Belt-and-braces for HTTP cache replay (navigation type = back_forward)
             window.addEventListener('load', function () {
                 try {
                     var nav = performance.getEntriesByType('navigation')[0];
@@ -257,22 +205,16 @@
                     }
                 }
             });
-
-            //
             document.addEventListener('visibilitychange', function () {
                 if (document.visibilityState === 'visible') {
-                   
                     var age = (Date.now() - (window._pageRenderedAt || Date.now())) / 1000;
                     if (age > 300) window.location.reload();
                 }
             });
-
-            // Record when this page first rendered
             window._pageRenderedAt = Date.now();
         })();
     </script>
     <style>
-        /* ========== LAYOUT ========== */
         * {
             margin: 0;
             padding: 0;
@@ -290,7 +232,6 @@
             min-height: 100vh;
         }
 
-        /* ========== SIDEBAR ========== */
         .sidebar-lab {
             width: 280px;
             background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFE 100%);
@@ -303,7 +244,7 @@
         }
 
         .logo-area {
-            padding: 1.5rem 1.2rem;
+            padding: 1.5rem 1.2rem 1.5rem 1.5rem;
             border-bottom: 1px solid #E2E8F0;
         }
 
@@ -334,7 +275,7 @@
                 display: flex;
                 align-items: center;
                 gap: 12px;
-                padding: 0.7rem 1.2rem;
+                padding: 0.7rem 1.2rem 0.7rem 1.5rem; 
                 margin: 0 0.8rem;
                 color: #1A2C3A;
                 text-decoration: none;
@@ -369,23 +310,96 @@
                         color: white;
                     }
 
-        /* ========== MAIN ========== */
         .main-panel {
             flex: 1;
             margin-left: 280px;
             padding: 1.2rem;
         }
 
+        /* ─── DEFAULT HEADER (non-Doctor) ─── */
         .header-glass {
             background: white;
             border-radius: 16px;
-            padding: 0.8rem 1.2rem;
+            padding: 0.8rem 1.5rem; 
             margin-bottom: 1.2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             border: 1px solid #E2E8F0;
+        }
+
+            /* ─── DOCTOR HEADER — blue gradient card ─── */
+            .header-glass.header-glass-doctor {
+                background: linear-gradient(135deg, #0841C9 0%, #1D97F1 60%, #06B6D4 100%);
+                border: 1px solid rgba(8, 65, 201, 0.25);
+                box-shadow: 0 6px 24px rgba(8, 65, 201, 0.22);
+                padding: 0.85rem 1.6rem;
+            }
+
+                /* Text colours inside the gradient card */
+                .header-glass.header-glass-doctor .greeting-title {
+                    color: #ffffff !important;
+                    -webkit-text-fill-color: #ffffff;
+                    background: none;
+                    font-size: 1.35rem;
+                    font-weight: 800;
+                    letter-spacing: -0.02em;
+                    line-height: 1.2;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+
+                .header-glass.header-glass-doctor .greeting-subtitle {
+                    color: rgba(255, 255, 255, 0.85);
+                    font-size: 0.82rem;
+                    font-weight: 500;
+                    line-height: 1.2;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    margin-top: 0.15rem;
+                }
+
+                .header-glass.header-glass-doctor .menu-toggle {
+                    color: #ffffff;
+                }
+
+                /* Avatar: white background, navy initials, contrasts with gradient */
+                .header-glass.header-glass-doctor .avatar {
+                    background: #ffffff;
+                    color: #0841C9;
+                    font-weight: 800;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+                }
+
+                /* Logout pill: translucent white style */
+                .header-glass.header-glass-doctor .logout-pill {
+                    background: rgba(255, 255, 255, 0.18);
+                    color: #ffffff;
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    padding: 0.35rem 0.9rem; /* slightly tighter than default */
+                    font-size: 0.72rem; /* slightly smaller so it doesn't compete with the title */
+                }
+
+                    .header-glass.header-glass-doctor .logout-pill:hover,
+                    .header-glass.header-glass-doctor .logout-pill:focus {
+                        background: rgba(255, 255, 255, 0.28);
+                        color: #ffffff;
+                    }
+
+        media (max-width: 600px) {
+            .header-glass.header-glass-doctor .greeting-title
+
+        {
+            font-size: 1.05rem;
+        }
+
+        .header-glass.header-glass-doctor .greeting-subtitle {
+            font-size: 0.72rem;
+        }
+
         }
 
         .flex-between {
@@ -409,6 +423,13 @@
             font-size: 0.85rem;
             font-weight: 500;
             color: #1A2C3A;
+        }
+
+        .greeting-block {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
         }
 
         .user-tag {
@@ -449,7 +470,6 @@
                 outline: none;
             }
 
-        /* ========== LOGOUT MODAL ========== */
         .logout-modal-overlay {
             display: none;
             position: fixed;
@@ -477,16 +497,19 @@
             animation: logoutModalIn 0.18s ease-out;
         }
 
-        @@keyframes logoutModalIn {
-            from {
-                opacity: 0;
-                transform: translateY(-8px) scale(0.98);
-            }
+        keyframes logoutModalIn {
+            from
 
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
+        {
+            opacity: 0;
+            transform: translateY(-8px) scale(0.98);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
         }
 
         .logout-modal-header {
@@ -580,29 +603,30 @@
                 background: #991B1B;
             }
 
-        /* ========== MOBILE ========== */
-        @@media (max-width: 768px) {
-            .sidebar-lab {
-                transform: translateX(-100%);
-                position: fixed;
-                transition: transform 0.3s ease;
-                z-index: 1000;
-            }
+        media (max-width: 768px) {
+            .sidebar-lab
 
-                .sidebar-lab.mobile-open {
-                    transform: translateX(0);
-                }
-
-            .main-panel {
-                margin-left: 0;
-            }
-
-            .menu-toggle {
-                display: block;
-            }
+        {
+            transform: translateX(-100%);
+            position: fixed;
+            transition: transform 0.3s ease;
+            z-index: 1000;
         }
 
-        /* ========== SCROLLBAR ========== */
+        .sidebar-lab.mobile-open {
+            transform: translateX(0);
+        }
+
+        .main-panel {
+            margin-left: 0;
+        }
+
+        .menu-toggle {
+            display: block;
+        }
+
+        }
+
         .sidebar-lab::-webkit-scrollbar {
             width: 4px;
         }
