@@ -6,318 +6,882 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Health Trends";
     ViewData["RoleSubtitle"] = "Patient Portal";
-    ViewData["UserGreeting"] = $"🩺 {Model.FullName} (ID: {Model.PatientID})";
+    ViewData["UserGreeting"] = $"{Model.FullName} (ID: {Model.PatientID})";
     ViewData["UserInitials"] = string.IsNullOrEmpty(Model.FullName) ? "P" : Model.FullName.Substring(0, 1);
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Patient")">📋 My Results</a></li>
-    <li><a href="@Url.Action("MedicalHistory", "Patient")">📝 Medical History</a></li>
-    <li><a href="@Url.Action("Consent", "Patient")">🔐 Consent Management</a></li>
-    <li><a href="@Url.Action("Trends", "Patient")" class="active">📈 Track Trends</a></li>
-    <li><a href="@Url.Action("Index", "Profile")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+    <li><a href="@Url.Action("Dashboard", "Patient")"><i class="fas fa-notes-medical"></i> <span>My Results</span></a></li>
+    <li><a href="@Url.Action("MedicalHistory", "Patient")"><i class="fas fa-history"></i> <span>Medical History</span></a></li>
+    <li><a href="@Url.Action("Consent", "Patient")"><i class="fas fa-hand-peace"></i> <span>Consent</span></a></li>
+    <li><a href="@Url.Action("Trends", "Patient")" class="active"><i class="fas fa-chart-line"></i> <span>Trends</span></a></li>
+    <li><a href="@Url.Action("Profile", "Patient")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
 <style>
-    .chart-box {
-        background: #F8FAFE;
-        border-radius: 20px;
-        padding: 20px;
-        margin: 1rem 0;
-        height: 380px;
-        position: relative;
+    :root {
+        --p-teal: #0891B2;
+        --p-teal-light: #06B6D4;
+        --p-teal-grad: linear-gradient(135deg, #0891B2 0%, #06B6D4 100%);
+        --p-navy: #0F172A;
+        --p-text: #1E293B;
+        --p-text-soft: #64748B;
+        --p-text-muted: #94A3B8;
+        --p-border: #E2E8F0;
+        --p-bg-soft: #F8FAFC;
+        --p-success: #059669;
+        --p-danger: #DC2626;
+        --p-warning: #F59E0B;
+        --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+        --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06), 0 2px 6px rgba(15, 23, 42, 0.04);
+        --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.10), 0 4px 12px rgba(15, 23, 42, 0.05);
+        --radius: 16px;
     }
 
+    /* ═══ HERO ═══ */
+    .page-hero {
+        position: relative;
+        margin: -1.2rem -1.2rem 2rem -1.2rem;
+        height: 320px;
+        border-radius: 0 0 24px 24px;
+        overflow: hidden;
+        display: flex;
+        align-items: flex-end;
+        padding: 2rem;
+        box-shadow: var(--shadow-lg);
+    }
+
+        .page-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url('https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=1600&q=85');
+            background-size: cover;
+            background-position: center;
+            z-index: 0;
+            transition: transform 12s ease-out;
+        }
+
+        .page-hero:hover::before {
+            transform: scale(1.04);
+        }
+
+        .page-hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient( to bottom, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 0) 40%, rgba(15, 23, 42, 0.25) 70%, rgba(15, 23, 42, 0.65) 100% );
+            z-index: 1;
+        }
+
+    .hero-pill {
+        position: relative;
+        z-index: 2;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 20px;
+        padding: 1.4rem 1.8rem;
+        color: white;
+        max-width: 700px;
+        width: 100%;
+        animation: heroFadeIn 0.8s ease-out;
+    }
+
+    @@keyframes heroFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .hero-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(6, 182, 212, 0.25);
+        border: 1px solid rgba(6, 182, 212, 0.4);
+        padding: 0.35rem 0.9rem;
+        border-radius: 20px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 0.7rem;
+        color: #67E8F9;
+    }
+
+    .hero-pill h1 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 0 0 0.3rem;
+        line-height: 1.15;
+    }
+
+    .hero-pill p {
+        font-size: 0.88rem;
+        color: rgba(255, 255, 255, 0.8);
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .hero-actions {
+        margin-top: 1rem;
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+    }
+
+    .hero-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.55rem 1.1rem;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+        font-family: inherit;
+        cursor: pointer;
+        border: none;
+        white-space: nowrap;
+    }
+
+    .hero-btn-primary {
+        background: var(--p-teal-grad);
+        color: white;
+        box-shadow: 0 4px 14px rgba(6, 182, 212, 0.4);
+    }
+
+        .hero-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(6, 182, 212, 0.5);
+            color: white;
+        }
+
+    .hero-btn-secondary {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        color: white;
+        backdrop-filter: blur(10px);
+    }
+
+        .hero-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            color: white;
+        }
+
+    /* ═══ CARDS ═══ */
+    .clean-card {
+        background: white;
+        border-radius: var(--radius);
+        border: 1px solid var(--p-border);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        animation: cardFadeIn 0.6s ease-out backwards;
+    }
+
+    @@keyframes cardFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(16px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .clean-card-header {
+        padding: 1.1rem 1.5rem;
+        border-bottom: 1px solid var(--p-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+        .clean-card-header h3 {
+            margin: 0;
+            color: var(--p-navy);
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+        }
+
+            .clean-card-header h3 i {
+                color: var(--p-teal);
+                font-size: 0.95rem;
+            }
+
+    .clean-card-body {
+        padding: 1.5rem;
+    }
+
+    /* ═══ FILTER BAR ═══ */
     .filter-bar {
         display: flex;
-        gap: 12px;
+        gap: 1rem;
         align-items: flex-end;
         flex-wrap: wrap;
-        margin-bottom: 1.5rem;
-        padding: 1rem;
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        padding: 1.2rem 1.5rem;
+        background: var(--p-bg-soft);
+        border-radius: var(--radius);
+        border: 1px solid var(--p-border);
+        margin-bottom: 1rem;
     }
 
-        .filter-bar label {
-            display: block;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 4px;
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+        .filter-group label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--p-text-soft);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
         }
 
-        .filter-bar select, .filter-bar input {
-            padding: 8px 14px;
+        .filter-group select,
+        .filter-group input {
+            padding: 0.6rem 0.9rem;
             border-radius: 10px;
-            border: 1px solid #D1D5DB;
-            font-size: 0.875rem;
+            border: 1px solid var(--p-border);
+            font-size: 0.85rem;
+            font-family: inherit;
+            background: white;
             min-width: 160px;
+            transition: 0.2s;
         }
 
-        .filter-bar button {
-            background: #4F46E5;
+            .filter-group select:focus,
+            .filter-group input:focus {
+                outline: none;
+                border-color: var(--p-teal);
+                box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.12);
+            }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.6rem 1.2rem;
+        border-radius: 10px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        border: 1px solid var(--p-border);
+        background: white;
+        color: var(--p-navy);
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+
+        .btn:hover {
+            border-color: var(--p-teal);
+            color: var(--p-teal);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+    .btn-primary {
+        background: var(--p-teal-grad);
+        color: white;
+        border: none;
+        box-shadow: 0 4px 14px rgba(6, 182, 212, 0.3);
+    }
+
+        .btn-primary:hover {
             color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
         }
 
-            .filter-bar button:hover {
-                background: #4338CA;
-            }
+    /* ═══ QUICK RANGE BUTTONS ═══ */
+    .quick-ranges {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+    }
 
-        .filter-bar .quick-range {
-            background: #F3F4F6;
-            color: #4F46E5;
-            border: 1px solid #E5E7EB;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin-right: 4px;
+    .quick-range {
+        background: white;
+        color: var(--p-text-soft);
+        border: 1px solid var(--p-border);
+        padding: 0.45rem 0.95rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+
+        .quick-range:hover {
+            background: rgba(6, 182, 212, 0.08);
+            border-color: var(--p-teal);
+            color: var(--p-teal);
+            transform: translateY(-1px);
         }
 
-            .filter-bar .quick-range:hover {
-                background: #E0E7FF;
-            }
+    /* ═══ CHART BOX ═══ */
+    .chart-box {
+        background: linear-gradient(180deg, #F8FAFC 0%, #FFFFFF 100%);
+        border-radius: 14px;
+        padding: 1.5rem;
+        height: 440px;
+        position: relative;
+        border: 1px solid var(--p-border);
+    }
 
+    /* ═══ TREND STATS ROW (above chart) ═══ */
+    .trend-stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0.8rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .trend-stat {
+        background: white;
+        border: 1px solid var(--p-border);
+        border-radius: 12px;
+        padding: 0.9rem 1.1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+    }
+
+    .trend-stat-label {
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: var(--p-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .trend-stat-value {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: var(--p-navy);
+        letter-spacing: -0.02em;
+    }
+
+        .trend-stat-value.up {
+            color: #DC2626;
+        }
+
+        .trend-stat-value.down {
+            color: #059669;
+        }
+
+        .trend-stat-value.normal {
+            color: var(--p-teal);
+        }
+
+        .trend-stat-value.abnormal {
+            color: #DC2626;
+        }
+
+    /* ═══ INSIGHT BOX ═══ */
     .insight-box {
-        background: #E8F7EF;
-        border-radius: 16px;
-        padding: 1.2rem;
-        margin-top: 1rem;
-        border-left: 4px solid #16A34A;
+        background: rgba(6, 182, 212, 0.06);
+        border-radius: 12px;
+        padding: 1.2rem 1.4rem;
+        margin-top: 1.2rem;
+        border-left: 4px solid var(--p-teal);
+        animation: cardFadeIn 0.6s ease-out;
     }
 
         .insight-box.warning {
-            background: #FEF3C7;
-            border-left-color: #F59E0B;
+            background: rgba(245, 158, 11, 0.08);
+            border-left-color: var(--p-warning);
         }
 
         .insight-box.danger {
-            background: #FEE2E2;
-            border-left-color: #DC2626;
+            background: rgba(220, 38, 38, 0.06);
+            border-left-color: var(--p-danger);
         }
 
-    .no-data {
+        .insight-box strong {
+            color: var(--p-navy);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.92rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .insight-box p {
+            margin: 0.4rem 0 0;
+            color: var(--p-text);
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        .insight-box .trend-up {
+            color: #DC2626;
+            font-weight: 700;
+        }
+
+        .insight-box .trend-down {
+            color: #059669;
+            font-weight: 700;
+        }
+
+    .insight-warning-text {
+        color: #991B1B;
+        margin-top: 0.6rem !important;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.4rem;
+    }
+
+    /* ═══ EMPTY STATE ═══ */
+    .empty-state {
         text-align: center;
-        color: #9CA3AF;
-        padding: 4rem 2rem;
-        font-size: 1rem;
+        padding: 3.5rem 2rem;
+        color: var(--p-text-muted);
+    }
+
+        .empty-state i {
+            font-size: 3rem;
+            opacity: 0.35;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .empty-state h3 {
+            color: var(--p-navy);
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 0 0 0.4rem;
+        }
+
+        .empty-state p {
+            margin: 0;
+            font-size: 0.85rem;
+            max-width: 400px;
+            margin: 0.3rem auto 0;
+            line-height: 1.6;
+        }
+
+    /* ═══ RESPONSIVE ═══ */
+    @@media (max-width: 768px) {
+        .page-hero
+
+    {
+        margin: -0.8rem -0.8rem 1.5rem -0.8rem;
+        height: 280px;
+        padding: 1.2rem;
+    }
+
+    .hero-pill {
+        padding: 1.1rem 1.3rem;
+    }
+
+        .hero-pill h1 {
+            font-size: 1.4rem;
+        }
+
+    .clean-card-body {
+        padding: 1.2rem;
+    }
+
+    .clean-card-header {
+        padding: 1rem 1.2rem;
+    }
+
+    .chart-box {
+        height: 320px;
+        padding: 1rem;
+    }
+
+    .filter-bar {
+        padding: 1rem;
+    }
+
+    .filter-group select,
+    .filter-group input {
+        min-width: 130px;
+    }
+
+    .trend-stat-value {
+        font-size: 1.1rem;
+    }
+
     }
 </style>
 
-<div class="card-modern">
-    <div class="card-header-flex">
-        <h3>📈 Health Trends</h3>
-        <a href="@Url.Action("Dashboard", "Patient")" class="btn-outline-lab">← Back to Dashboard</a>
-    </div>
-
-    @if (Model.AvailableTestTypes == null || !Model.AvailableTestTypes.Any())
-    {
-        <!-- ─── No released results at all ─── -->
-        <div class="no-data">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
-            <p><strong>No test results available yet.</strong></p>
-            <p style="font-size: 0.875rem; margin-top: 0.5rem;">
-                Trends will appear here once your doctor releases your test results.
-            </p>
-        </div>
-    }
-    else
-    {
-        <!-- Filter Bar -->
-        <div class="filter-bar">
-            <div>
-                <label>Test Type</label>
-                <select id="testTypeSelect">
-                    @foreach (var type in Model.AvailableTestTypes)
-                    {
-                        if (type == Model.SelectedTestType)
-                        {
-                            <option value="@type" selected>@type</option>
-                        }
-                        else
-                        {
-                            <option value="@type">@type</option>
-                        }
-                    }
-                </select>
-            </div>
-
-            <div>
-                <label>From Date</label>
-                <input type="date" id="fromDateSelect" value="@Model.FromDate.ToString("yyyy-MM-dd")" />
-            </div>
-
-            <div>
-                <label>To Date</label>
-                <input type="date" id="toDateSelect" value="@Model.ToDate.ToString("yyyy-MM-dd")" />
-            </div>
-
-            <button onclick="applyFilter()">Apply</button>
-        </div>
-
-        <!-- Quick Range Buttons -->
-        <div style="margin-bottom: 1rem; display: flex; gap: 8px; flex-wrap: wrap;">
-            <button class="quick-range" onclick="setQuickRange(3)">Last 3 Months</button>
-            <button class="quick-range" onclick="setQuickRange(6)">Last 6 Months</button>
-            <button class="quick-range" onclick="setQuickRange(12)">Last 12 Months</button>
-            <button class="quick-range" onclick="setQuickRange(24)">Last 24 Months</button>
-            <button class="quick-range" onclick="setYearToDate()">Year to Date</button>
-        </div>
-
-        <!-- Chart -->
-        <div class="card-modern">
-            <div class="card-header-flex">
-                <h3>📊 @Model.SelectedTestType Trend</h3>
-            </div>
-
-            @if (Model.TrendData != null && Model.TrendData.Any())
+<!-- ═══ HERO ═══ -->
+<div class="page-hero">
+    <div class="hero-pill">
+        <span class="hero-kicker"><i class="fas fa-chart-line"></i> Health Trends</span>
+        <h1>@(string.IsNullOrEmpty(Model.SelectedTestType) ? "Track Your Health" : Model.SelectedTestType)</h1>
+        <p>Visualize how your test results change over time. Spot patterns and monitor your health progress.</p>
+        <div class="hero-actions">
+            <a href="@Url.Action("Dashboard", "Patient")" class="hero-btn hero-btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            @if (Model.AvailableTestTypes != null && Model.AvailableTestTypes.Any())
             {
-                <div class="chart-box">
-                    <canvas id="trendChart"></canvas>
+                <a href="@Url.Action("DownloadTestResultsPDF", "Patient")" class="hero-btn hero-btn-primary">
+                    <i class="fas fa-download"></i> Download PDF
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+@if (Model.AvailableTestTypes == null || !Model.AvailableTestTypes.Any())
+{
+    <!-- ═══ EMPTY STATE ═══ -->
+    <div class="clean-card">
+        <div class="empty-state" style="padding: 5rem 2rem;">
+            <i class="fas fa-chart-line"></i>
+            <h3>No test results available yet</h3>
+            <p>Trends will appear here once your doctor releases your test results. Check back after your next appointment.</p>
+        </div>
+    </div>
+}
+else
+{
+    <!-- ═══ FILTERS ═══ -->
+    <div class="clean-card">
+        <div class="clean-card-header">
+            <h3><i class="fas fa-filter"></i> Filters</h3>
+        </div>
+        <div class="clean-card-body">
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label>Test Type</label>
+                    <select id="testTypeSelect">
+                        @foreach (var type in Model.AvailableTestTypes)
+                        {
+                            if (type == Model.SelectedTestType)
+                            {
+                                <option value="@type" selected>@type</option>
+                            }
+                            else
+                            {
+                                <option value="@type">@type</option>
+                            }
+                        }
+                    </select>
                 </div>
 
+                <div class="filter-group">
+                    <label>From Date</label>
+                    <input type="date" id="fromDateSelect" value="@Model.FromDate.ToString("yyyy-MM-dd")" />
+                </div>
+
+                <div class="filter-group">
+                    <label>To Date</label>
+                    <input type="date" id="toDateSelect" value="@Model.ToDate.ToString("yyyy-MM-dd")" />
+                </div>
+
+                <button class="btn btn-primary" onclick="applyFilter()">
+                    <i class="fas fa-check"></i> Apply
+                </button>
+            </div>
+
+            <div class="quick-ranges">
+                <button class="quick-range" onclick="setQuickRange(3)">Last 3 Months</button>
+                <button class="quick-range" onclick="setQuickRange(6)">Last 6 Months</button>
+                <button class="quick-range" onclick="setQuickRange(12)">Last 12 Months</button>
+                <button class="quick-range" onclick="setQuickRange(24)">Last 24 Months</button>
+                <button class="quick-range" onclick="setYearToDate()">Year to Date</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ CHART ═══ -->
+    <div class="clean-card">
+        <div class="clean-card-header">
+            <h3><i class="fas fa-chart-area"></i> @Model.SelectedTestType Over Time</h3>
+        </div>
+        <div class="clean-card-body">
+            @if (Model.TrendData != null && Model.TrendData.Any())
+            {
                 var lastValue = Model.TrendData.Last().Value;
                 var firstValue = Model.TrendData.First().Value;
-                var trend = lastValue > firstValue ? "increasing" : "decreasing";
-                var trendIcon = lastValue > firstValue ? "📈" : "📉";
-                var trendColor = lastValue > firstValue ? "#DC2626" : "#16A34A";
+                var trendUp = lastValue > firstValue;
+                var delta = lastValue - firstValue;
+                var avg = Model.TrendData.Average(x => x.Value);
                 var latest = Model.TrendData.Last();
                 var isAboveUpper = latest.UpperLimit.HasValue && latest.Value > latest.UpperLimit.Value;
                 var isBelowLower = latest.LowerLimit.HasValue && latest.Value < latest.LowerLimit.Value;
                 var isAbnormal = isAboveUpper || isBelowLower;
 
-                <div class="insight-box @(isAbnormal ? "danger" : "warning")">
-                    <strong>📊 Summary</strong>
-                    <p style="margin-top: 8px;">
+                <!-- ═══ QUICK STATS ═══ -->
+                <div class="trend-stats-row">
+                    <div class="trend-stat">
+                        <span class="trend-stat-label">Latest</span>
+                        <span class="trend-stat-value @(isAbnormal ? "abnormal" : "normal")">
+                            @latest.Value.ToString("F2")
+                        </span>
+                    </div>
+                    <div class="trend-stat">
+                        <span class="trend-stat-label">Average</span>
+                        <span class="trend-stat-value">@avg.ToString("F2")</span>
+                    </div>
+                    <div class="trend-stat">
+                        <span class="trend-stat-label">Change</span>
+                        <span class="trend-stat-value @(trendUp ? "up" : "down")">
+                            @(delta >= 0 ? "+" : "")@delta.ToString("F2")
+                        </span>
+                    </div>
+                    <div class="trend-stat">
+                        <span class="trend-stat-label">Readings</span>
+                        <span class="trend-stat-value">@Model.TrendData.Count()</span>
+                    </div>
+                </div>
+
+                <!-- ═══ CHART ═══ -->
+                <div class="chart-box">
+                    <canvas id="trendChart"></canvas>
+                </div>
+
+                <!-- ═══ INSIGHT ═══ -->
+                var trendText = trendUp ? "increasing" : "decreasing";
+                var insightClass = isAbnormal ? "danger" : "";
+
+                <div class="insight-box @insightClass">
+                    <strong><i class="fas fa-chart-simple"></i> Summary</strong>
+                    <p>
                         <strong>@Model.SelectedTestType</strong> is
-                        <span style="color: @trendColor; font-weight: 600;">@trend</span> @trendIcon
-                        from <strong>@Model.FromDate.ToString("dd MMM yyyy")</strong>
-                        to <strong>@Model.ToDate.ToString("dd MMM yyyy")</strong>.
+                        <span class="@(trendUp ? "trend-up" : "trend-down")">
+                            <i class="fas @(trendUp ? "fa-arrow-trend-up" : "fa-arrow-trend-down")"></i> @trendText
+                        </span>
+                        between <strong>@Model.FromDate.ToString("dd MMM yyyy")</strong>
+                        and <strong>@Model.ToDate.ToString("dd MMM yyyy")</strong>.
                     </p>
                     <p>
                         Latest value: <strong>@latest.Value.ToString("F2")</strong>
                         @if (latest.LowerLimit.HasValue && latest.UpperLimit.HasValue)
                         {
-                            <span> (Normal range: @latest.LowerLimit.Value.ToString("F2") - @latest.UpperLimit.Value.ToString("F2"))</span>
+                            <span>(Normal range: @latest.LowerLimit.Value.ToString("F2") - @latest.UpperLimit.Value.ToString("F2"))</span>
                         }
                     </p>
                     @if (isAboveUpper)
                     {
-                        <p style="color: #991B1B; margin-top: 8px;">
-                            ⚠️ Your latest result is <strong>above the normal range</strong>. Please consult your doctor.
+                        <p class="insight-warning-text">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Your latest result is <strong>above the normal range</strong>. Please consult your doctor.
                         </p>
                     }
                     else if (isBelowLower)
                     {
-                        <p style="color: #991B1B; margin-top: 8px;">
-                            ⚠️ Your latest result is <strong>below the normal range</strong>. Please consult your doctor.
+                        <p class="insight-warning-text">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Your latest result is <strong>below the normal range</strong>. Please consult your doctor.
                         </p>
                     }
                 </div>
             }
             else
             {
-                <div class="no-data">
-                    <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
-                    <p>No test results available for <strong>@Model.SelectedTestType</strong> in the selected date range.</p>
-                    <p style="font-size: 0.875rem; margin-top: 0.5rem;">
-                        Try adjusting the dates or selecting a different test type.
-                    </p>
+                <div class="empty-state">
+                    <i class="fas fa-chart-area"></i>
+                    <h3>No data in this range</h3>
+                    <p>No results for <strong>@Model.SelectedTestType</strong> between @Model.FromDate.ToString("dd MMM yyyy") and @Model.ToDate.ToString("dd MMM yyyy").</p>
+                    <p style="margin-top: 0.5rem;">Try adjusting the date range or selecting a different test type.</p>
                 </div>
             }
         </div>
-    }
-</div>
+    </div>
+}
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <script>
     var trendData = @Html.Raw(JsonSerializer.Serialize(Model.TrendData ?? new List<NMB_HLabSys.ViewModels.PatientViewModels.TrendDataPoint>()));
     var testType = '@Html.Raw(Model.SelectedTestType ?? "")';
 
     function initChart() {
-        if (!trendData || trendData.length === 0) return;
+        var canvas = document.getElementById('trendChart');
+        if (!canvas || !trendData || trendData.length === 0) return;
 
         var labels = trendData.map(d => new Date(d.Date).toLocaleDateString('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' }));
         var values = trendData.map(d => d.Value);
-        var lowerLimits = trendData.map(d => d.LowerLimit);
+
         var upperLimits = trendData.map(d => d.UpperLimit);
+        var lowerLimits = trendData.map(d => d.LowerLimit);
+        var hasLimits = upperLimits.some(v => v != null) && lowerLimits.some(v => v != null);
 
-        var datasets = [{
-            label: testType + ' Value',
-            data: values,
-            borderColor: '#4F46E5',
-            backgroundColor: 'rgba(79, 70, 229, 0.15)',
-            borderWidth: 3,
-            pointRadius: 6,
-            pointBackgroundColor: '#4F46E5',
-            pointBorderColor: '#FFFFFF',
-            pointBorderWidth: 2,
-            tension: 0.4,
-            fill: true
-        }];
+        // ─── Custom plugin: soft green band for normal range ───
+        var normalRangeBand = {
+            id: 'normalRangeBand',
+            beforeDatasetsDraw(chart) {
+                if (!hasLimits) return;
 
-        if (upperLimits.some(v => v !== null && v !== undefined)) {
-            datasets.push({
-                label: 'Upper Limit',
-                data: upperLimits,
-                borderColor: '#DC2626',
-                borderDash: [6, 6],
-                borderWidth: 2,
-                pointRadius: 0,
-                fill: false
-            });
-        }
+                var { ctx, chartArea, scales } = chart;
+                if (!chartArea || !scales.y) return;
 
-        if (lowerLimits.some(v => v !== null && v !== undefined)) {
-            datasets.push({
-                label: 'Lower Limit',
-                data: lowerLimits,
-                borderColor: '#DC2626',
-                borderDash: [6, 6],
-                borderWidth: 2,
-                pointRadius: 0,
-                fill: false
-            });
-        }
+                var yScale = scales.y;
+                var upper = upperLimits.find(v => v != null);
+                var lower = lowerLimits.find(v => v != null);
+                if (upper == null || lower == null) return;
 
-        new Chart(document.getElementById('trendChart'), {
+                var yUpper = yScale.getPixelForValue(upper);
+                var yLower = yScale.getPixelForValue(lower);
+
+                ctx.save();
+                ctx.fillStyle = 'rgba(16, 185, 129, 0.08)';
+                ctx.fillRect(
+                    chartArea.left,
+                    yUpper,
+                    chartArea.right - chartArea.left,
+                    yLower - yUpper
+                );
+
+                ctx.strokeStyle = 'rgba(16, 185, 129, 0.25)';
+                ctx.setLineDash([4, 4]);
+                ctx.lineWidth = 1;
+
+                ctx.beginPath();
+                ctx.moveTo(chartArea.left, yUpper);
+                ctx.lineTo(chartArea.right, yUpper);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(chartArea.left, yLower);
+                ctx.lineTo(chartArea.right, yLower);
+                ctx.stroke();
+
+                ctx.restore();
+            }
+        };
+
+        // ─── Gradient fill under line ───
+        var ctx = canvas.getContext('2d');
+        var gradient = ctx.createLinearGradient(0, 0, 0, 440);
+        gradient.addColorStop(0, 'rgba(6, 182, 212, 0.35)');
+        gradient.addColorStop(1, 'rgba(6, 182, 212, 0.02)');
+
+        // ─── Custom point colors (abnormal = red) ───
+        var pointBackgroundColors = trendData.map(d => {
+            var val = d.Value;
+            var upper = d.UpperLimit;
+            var lower = d.LowerLimit;
+            if ((upper != null && val > upper) || (lower != null && val < lower)) {
+                return '#DC2626';
+            }
+            return '#0891B2';
+        });
+
+        new Chart(canvas, {
             type: 'line',
             data: {
                 labels: labels,
-                datasets: datasets
+                datasets: [{
+                    label: testType,
+                    data: values,
+                    borderColor: '#0891B2',
+                    backgroundColor: gradient,
+                    borderWidth: 3,
+                    pointRadius: 7,
+                    pointHoverRadius: 10,
+                    pointBackgroundColor: pointBackgroundColors,
+                    pointBorderColor: '#FFFFFF',
+                    pointBorderWidth: 3,
+                    pointHoverBorderWidth: 4,
+                    tension: 0.4,
+                    cubicInterpolationMode: 'monotone',
+                    fill: true,
+                    animation: {
+                        duration: 1200,
+                        easing: 'easeOutQuart'
+                    }
+                }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                layout: {
+                    padding: { top: 20, right: 20, bottom: 10, left: 10 }
+                },
                 plugins: {
                     legend: {
-                        position: 'top',
-                        labels: { usePointStyle: true }
+                        display: false
                     },
                     tooltip: {
-                        mode: 'index',
-                        intersect: false
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        titleColor: '#F1F5F9',
+                        bodyColor: '#CBD5E1',
+                        padding: 14,
+                        cornerRadius: 10,
+                        borderColor: 'rgba(6, 182, 212, 0.3)',
+                        borderWidth: 1,
+                        titleFont: { family: 'Inter', size: 13, weight: 'bold' },
+                        bodyFont: { family: 'Inter', size: 12 },
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                var idx = context.dataIndex;
+                                var d = trendData[idx];
+                                var lines = [
+                                    'Value: ' + d.Value.toFixed(2)
+                                ];
+                                if (d.LowerLimit != null && d.UpperLimit != null) {
+                                    lines.push('Normal: ' + d.LowerLimit.toFixed(2) + ' – ' + d.UpperLimit.toFixed(2));
+                                }
+                                var isAbnormal = (d.UpperLimit != null && d.Value > d.UpperLimit) ||
+                                                 (d.LowerLimit != null && d.Value < d.LowerLimit);
+                                if (isAbnormal) lines.push('⚠ Abnormal');
+                                return lines;
+                            }
+                        }
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: false,
-                        grid: { color: '#F3F4F6' }
+                        grid: {
+                            color: 'rgba(226, 232, 240, 0.4)',
+                            drawTicks: false
+                        },
+                        border: { display: false },
+                        ticks: {
+                            font: { family: 'Inter', size: 11 },
+                            color: '#64748B',
+                            padding: 8
+                        }
                     },
                     x: {
-                        grid: { display: false }
+                        grid: { display: false },
+                        border: { display: false },
+                        ticks: {
+                            font: { family: 'Inter', size: 11 },
+                            color: '#64748B',
+                            padding: 8
+                        }
                     }
                 }
-            }
+            },
+            plugins: [normalRangeBand]
         });
     }
 

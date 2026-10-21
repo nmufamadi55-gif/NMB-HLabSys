@@ -5,113 +5,627 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "My Profile";
     ViewData["RoleSubtitle"] = "Patient Portal";
-    ViewData["UserGreeting"] = $"👤 {Model.FullName} (ID: {Model.SAIDNumber})";
+    ViewData["UserGreeting"] = $"{Model.FullName} (ID: {Model.SAIDNumber})";
     ViewData["UserInitials"] = Model.FirstName.Substring(0, 1) + Model.LastName.Substring(0, 1);
 }
 
 @section SidebarMenu {
-    <li><a href="@Url.Action("Dashboard", "Patient")">📋 My Results</a></li>
-    <li><a href="@Url.Action("MedicalHistory", "Patient")">📝 Medical History</a></li>
-    <li><a href="@Url.Action("Consent", "Patient")">🔐 Consent Management</a></li>
-    <li><a href="@Url.Action("Trends", "Patient")">📈 Track Trends</a></li>
+    <li><a href="@Url.Action("Dashboard", "Patient")"><i class="fas fa-notes-medical"></i> <span>My Results</span></a></li>
+    <li><a href="@Url.Action("MedicalHistory", "Patient")"><i class="fas fa-history"></i> <span>Medical History</span></a></li>
+    <li><a href="@Url.Action("Consent", "Patient")"><i class="fas fa-hand-peace"></i> <span>Consent</span></a></li>
+    <li><a href="@Url.Action("Trends", "Patient")"><i class="fas fa-chart-line"></i> <span>Trends</span></a></li>
     <li><a href="@Url.Action("Profile", "Patient")" class="active"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
 }
 
 <style>
-    .info-row {
+    :root {
+        --p-teal: #0891B2;
+        --p-teal-light: #06B6D4;
+        --p-teal-grad: linear-gradient(135deg, #0891B2 0%, #06B6D4 100%);
+        --p-navy: #0F172A;
+        --p-text: #1E293B;
+        --p-text-soft: #64748B;
+        --p-text-muted: #94A3B8;
+        --p-border: #E2E8F0;
+        --p-bg-soft: #F8FAFC;
+        --p-success: #059669;
+        --p-danger: #DC2626;
+        --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+        --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06), 0 2px 6px rgba(15, 23, 42, 0.04);
+        --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.10), 0 4px 12px rgba(15, 23, 42, 0.05);
+        --radius: 16px;
+    }
+
+    /* ═══ HERO — image fully visible ═══ */
+    .page-hero {
+        position: relative;
+        margin: -1.2rem -1.2rem 2rem -1.2rem;
+        height: 320px;
+        border-radius: 0 0 24px 24px;
+        overflow: hidden;
         display: flex;
-        justify-content: space-between;
-        padding: 8px 0;
-        border-bottom: 1px solid #F3F4F6;
+        align-items: flex-end;
+        padding: 2rem;
+        box-shadow: var(--shadow-lg);
     }
 
-    .info-label {
-        color: #6B7280;
-        font-weight: 500;
+        .page-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=1600&q=85');
+            background-size: cover;
+            background-position: center;
+            z-index: 0;
+            transition: transform 12s ease-out;
+        }
+
+        .page-hero:hover::before {
+            transform: scale(1.04);
+        }
+
+        .page-hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient( to bottom, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 0) 40%, rgba(15, 23, 42, 0.25) 70%, rgba(15, 23, 42, 0.65) 100% );
+            z-index: 1;
+        }
+
+    .hero-pill {
+        position: relative;
+        z-index: 2;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 20px;
+        padding: 1.4rem 1.8rem;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 1.4rem;
+        flex-wrap: wrap;
+        animation: heroFadeIn 0.8s ease-out;
     }
 
-    .info-value {
-        font-weight: 500;
-        color: #1F2937;
+    @@keyframes heroFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
-    .avatar-circle {
-        width: 100px;
-        height: 100px;
-        background: linear-gradient(135deg, #4F46E5, #7C3AED);
+    .hero-avatar {
+        width: 76px;
+        height: 76px;
+        background: var(--p-teal-grad);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 2.5rem;
+        font-size: 1.7rem;
+        font-weight: 700;
+        color: white;
+        border: 3px solid rgba(255, 255, 255, 0.9);
+        flex-shrink: 0;
+        box-shadow: 0 8px 24px rgba(6, 182, 212, 0.4);
+    }
+
+    .hero-text {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .hero-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(6, 182, 212, 0.25);
+        border: 1px solid rgba(6, 182, 212, 0.4);
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+        color: #67E8F9;
+    }
+
+    .hero-text h1 {
+        font-size: 1.7rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 0 0 0.2rem;
+        line-height: 1.15;
+    }
+
+    .hero-text p {
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.8);
+        margin: 0;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-left: auto;
+    }
+
+    .hero-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.55rem 1.1rem;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+        font-family: inherit;
+        cursor: pointer;
+        border: none;
+        white-space: nowrap;
+    }
+
+    .hero-btn-primary {
+        background: var(--p-teal-grad);
+        color: white;
+        box-shadow: 0 4px 14px rgba(6, 182, 212, 0.4);
+    }
+
+        .hero-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(6, 182, 212, 0.5);
+            color: white;
+        }
+
+    /* ═══ CARDS ═══ */
+    .clean-card {
+        background: white;
+        border-radius: var(--radius);
+        border: 1px solid var(--p-border);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        animation: cardFadeIn 0.6s ease-out backwards;
+    }
+
+        .clean-card:nth-child(1) {
+            animation-delay: 0.05s;
+        }
+
+        .clean-card:nth-child(2) {
+            animation-delay: 0.15s;
+        }
+
+        .clean-card:nth-child(3) {
+            animation-delay: 0.25s;
+        }
+
+    @@keyframes cardFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(16px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .clean-card-header {
+        padding: 1.1rem 1.5rem;
+        border-bottom: 1px solid var(--p-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+        .clean-card-header h3,
+        .clean-card-header h4 {
+            margin: 0;
+            color: var(--p-navy);
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+        }
+
+            .clean-card-header h3 i,
+            .clean-card-header h4 i {
+                color: var(--p-teal);
+                font-size: 0.95rem;
+            }
+
+    .clean-card-body {
+        padding: 1.5rem;
+    }
+
+    /* ═══ PROFILE LAYOUT ═══ */
+    .profile-grid {
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    @@media (max-width: 900px) {
+        .profile-grid
+
+    {
+        grid-template-columns: 1fr;
+    }
+
+    }
+
+    .profile-main-card {
+        text-align: center;
+        padding: 2rem 1.5rem;
+    }
+
+    .avatar-large {
+        width: 110px;
+        height: 110px;
+        background: var(--p-teal-grad);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.4rem;
         font-weight: 700;
         color: white;
         margin: 0 auto 1rem;
+        box-shadow: 0 12px 28px rgba(6, 182, 212, 0.3);
+        border: 4px solid white;
     }
 
-    .badge-count {
-        background: #4F46E5;
-        color: white;
-        padding: 2px 10px;
-        border-radius: 20px;
+    .profile-main-card h2 {
+        color: var(--p-navy);
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin: 0 0 0.3rem;
+    }
+
+    .profile-main-card .profile-email {
+        color: var(--p-text-soft);
+        font-size: 0.85rem;
+        margin: 0 0 0.3rem;
+    }
+
+    .profile-main-card .profile-id {
+        color: var(--p-text-muted);
+        font-size: 0.78rem;
+        margin: 0 0 1.3rem;
+    }
+
+    .profile-main-card .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .divider {
+        height: 1px;
+        background: var(--p-border);
+        margin: 1.5rem 0;
+    }
+
+    .info-section-title {
+        color: var(--p-navy);
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-align: left;
+        margin: 0 0 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .info-section-title i {
+            color: var(--p-teal);
+        }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid #F1F5F9;
+        text-align: left;
+    }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+    .info-label {
+        color: var(--p-text-soft);
+        font-size: 0.82rem;
+        font-weight: 500;
+    }
+
+    .info-value {
+        color: var(--p-text);
+        font-size: 0.82rem;
+        font-weight: 600;
+        text-align: right;
+        max-width: 60%;
+        word-break: break-word;
+    }
+
+    /* ═══ MEDICAL SECTION ═══ */
+    .medical-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    @@media (max-width: 768px) {
+        .medical-grid
+
+    {
+        grid-template-columns: 1fr;
+    }
+
+    }
+
+    .list-item {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.8rem;
+        padding: 0.8rem 0;
+        border-bottom: 1px solid #F1F5F9;
+    }
+
+        .list-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+    .list-item-content {
+        flex: 1;
+    }
+
+    .list-item-name {
+        font-weight: 600;
+        color: var(--p-navy);
+        font-size: 0.88rem;
+        display: block;
+        margin-bottom: 0.2rem;
+    }
+
+    .list-item-meta {
+        color: var(--p-text-soft);
         font-size: 0.75rem;
     }
 
+    .badge-count {
+        background: rgba(6, 182, 212, 0.1);
+        color: var(--p-teal);
+        padding: 0.28rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.72rem;
+        font-weight: 700;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 1.5rem 1rem;
+        color: var(--p-text-muted);
+    }
+
+        .empty-state i {
+            font-size: 1.8rem;
+            opacity: 0.4;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .empty-state p {
+            margin: 0;
+            font-size: 0.82rem;
+        }
+
+    /* ═══ PASSWORD CARD ═══ */
+    .password-card {
+        max-width: 600px;
+    }
+
     .form-group {
-        margin-bottom: 1rem;
+        margin-bottom: 1.1rem;
     }
 
         .form-group label {
             display: block;
-            font-weight: 500;
-            margin-bottom: 0.25rem;
-            color: #374151;
+            font-weight: 600;
+            font-size: 0.82rem;
+            color: var(--p-navy);
+            margin-bottom: 0.4rem;
         }
 
         .form-group input {
             width: 100%;
-            padding: 10px 14px;
-            border-radius: 12px;
-            border: 1px solid #D1D5DB;
-            font-size: 0.95rem;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            border: 1px solid var(--p-border);
+            font-size: 0.9rem;
+            font-family: inherit;
+            background: white;
+            transition: 0.2s;
         }
 
             .form-group input:focus {
                 outline: none;
-                border-color: #4F46E5;
-                box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+                border-color: var(--p-teal);
+                box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.12);
             }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.6rem 1.2rem;
+        border-radius: 10px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        border: 1px solid var(--p-border);
+        background: white;
+        color: var(--p-navy);
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+
+        .btn:hover {
+            border-color: var(--p-teal);
+            color: var(--p-teal);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+    .btn-primary {
+        background: var(--p-teal-grad);
+        color: white;
+        border: none;
+        box-shadow: 0 4px 14px rgba(6, 182, 212, 0.3);
+    }
+
+        .btn-primary:hover {
+            color: white;
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+        }
+
+    /* ═══ ALERTS ═══ */
+    .alert {
+        padding: 0.85rem 1.2rem;
+        border-radius: 12px;
+        margin-bottom: 1.2rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.6rem;
+        font-size: 0.85rem;
+        animation: cardFadeIn 0.4s ease-out;
+    }
+
+    .alert-success {
+        background: #DCFCE7;
+        color: #166534;
+        border-left: 3px solid #059669;
+    }
+
+    .alert-error {
+        background: #FEE2E2;
+        color: #991B1B;
+        border-left: 3px solid #DC2626;
+    }
+
+    /* ═══ RESPONSIVE ═══ */
+    @@media (max-width: 768px) {
+        .page-hero
+
+    {
+        margin: -0.8rem -0.8rem 1.5rem -0.8rem;
+        height: 280px;
+        padding: 1.2rem;
+    }
+
+    .hero-pill {
+        padding: 1.1rem 1.3rem;
+        gap: 1rem;
+    }
+
+    .hero-text h1 {
+        font-size: 1.4rem;
+    }
+
+    .hero-avatar {
+        width: 64px;
+        height: 64px;
+        font-size: 1.4rem;
+    }
+
+    .hero-actions {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .clean-card-body {
+        padding: 1.2rem;
+    }
+
+    }
 </style>
 
+<!-- ═══ HERO ═══ -->
+<div class="page-hero">
+    <div class="hero-pill">
+        <div class="hero-avatar">
+            @(string.IsNullOrEmpty(Model.FirstName) ? "P" : Model.FirstName.Substring(0, 1))@(string.IsNullOrEmpty(Model.LastName) ? "" : Model.LastName.Substring(0, 1))
+        </div>
+        <div class="hero-text">
+            <span class="hero-kicker"><i class="fas fa-user-circle"></i> My Profile</span>
+            <h1>@Model.FullName</h1>
+            <p>Your personal information and medical details</p>
+        </div>
+        <div class="hero-actions">
+            <a href="@Url.Action("EditProfile", "Patient")" class="hero-btn hero-btn-primary">
+                <i class="fas fa-pen"></i> Edit Profile
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ ALERTS ═══ -->
 @if (TempData["SuccessMessage"] != null)
 {
-    <div style="background:#DCFCE7; color:#166534; padding:12px; border-radius:12px; margin-bottom:1rem;">
-        ✅ @TempData["SuccessMessage"]
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle" style="margin-top:2px;"></i>
+        <span>@TempData["SuccessMessage"]</span>
     </div>
 }
 
 @if (TempData["ErrorMessage"] != null)
 {
-    <div style="background:#FEE2E2; color:#991B1B; padding:12px; border-radius:12px; margin-bottom:1rem;">
-        ❌ @TempData["ErrorMessage"]
+    <div class="alert alert-error">
+        <i class="fas fa-exclamation-circle" style="margin-top:2px;"></i>
+        <span>@TempData["ErrorMessage"]</span>
     </div>
 }
 
-<div class="grid-2col">
-    <div class="card-modern" style="text-align: center;">
-        <div class="avatar-circle">@Model.FirstName.Substring(0, 1)@Model.LastName.Substring(0, 1)</div>
-        <h2>@Model.FullName</h2>
-        <p style="color: #6B7280;">@Model.Email</p>
-        <p style="color: #6B7280; font-size: 0.875rem;">ID: @Model.SAIDNumber</p>
+<!-- ═══ PROFILE GRID ═══ -->
+<div class="profile-grid">
+    <!-- Main profile card -->
+    <div class="clean-card">
+        <div class="profile-main-card">
+            <div class="avatar-large">
+                @(string.IsNullOrEmpty(Model.FirstName) ? "P" : Model.FirstName.Substring(0, 1))@(string.IsNullOrEmpty(Model.LastName) ? "" : Model.LastName.Substring(0, 1))
+            </div>
+            <h2>@Model.FullName</h2>
+            <p class="profile-email">@Model.Email</p>
+            <p class="profile-id">SA ID: @Model.SAIDNumber</p>
 
-        <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 1rem;">
-            <a href="@Url.Action("EditProfile", "Patient")" class="btn-sm-lab">✏️ Edit Profile</a>
-        </div>
+            <a href="@Url.Action("EditProfile", "Patient")" class="btn btn-primary">
+                <i class="fas fa-pen"></i> Edit Profile
+            </a>
 
-        <hr style="margin: 1.5rem 0;" />
+            <div class="divider"></div>
 
-        <div style="text-align: left;">
-            <h4>Personal Information</h4>
+            <h4 class="info-section-title">
+                <i class="fas fa-info-circle"></i> Personal Information
+            </h4>
+
             <div class="info-row">
                 <span class="info-label">Date of Birth</span>
                 <span class="info-value">@Model.DateOfBirth.ToString("dd MMM yyyy")</span>
@@ -126,110 +640,130 @@
             </div>
             <div class="info-row">
                 <span class="info-label">Home Address</span>
-                <span class="info-value">@Model.HomeAddress</span>
+                <span class="info-value">@(string.IsNullOrEmpty(Model.HomeAddress) ? "—" : Model.HomeAddress)</span>
             </div>
         </div>
     </div>
 
+    <!-- Medical overview -->
     <div>
-        <div class="card-modern" style="margin-bottom: 1rem;">
-            <div class="card-header-flex">
-                <h4>🩺 Medical Conditions</h4>
-                <span class="badge-count">@Model.Conditions?.Count ?? 0</span>
+        <!-- Conditions -->
+        <div class="clean-card">
+            <div class="clean-card-header">
+                <h4><i class="fas fa-stethoscope"></i> Medical Conditions</h4>
+                <span class="badge-count">@(Model.Conditions?.Count ?? 0)</span>
             </div>
-
-            @if (Model.Conditions != null && Model.Conditions.Any())
-            {
-                <ul style="list-style: none; padding: 0;">
-                    @foreach (var c in Model.Conditions)
+            <div class="clean-card-body">
+                @if (Model.Conditions != null && Model.Conditions.Any())
+                {
+                    foreach (var c in Model.Conditions)
                     {
-                        <li style="padding: 8px 0; border-bottom: 1px solid #F3F4F6;">
-                            <strong>@c.ConditionName</strong>
-                            <span style="color: #6B7280; font-size: 0.875rem;">(@c.CategoryName)</span>
-                        </li>
+                        <div class="list-item">
+                            <div class="list-item-content">
+                                <span class="list-item-name">@c.ConditionName</span>
+                                <span class="list-item-meta">@(string.IsNullOrEmpty(c.CategoryName) ? "General" : c.CategoryName)</span>
+                            </div>
+                        </div>
                     }
-                </ul>
-            }
-            else
-            {
-                <p style="color: #9CA3AF; text-align: center; padding: 1rem;">No conditions recorded</p>
-            }
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <i class="fas fa-stethoscope"></i>
+                        <p>No conditions recorded</p>
+                    </div>
+                }
+            </div>
         </div>
 
-        <div class="grid-2col" style="gap: 1rem;">
-            <div class="card-modern">
-                <div class="card-header-flex">
-                    <h4>⚠️ Allergies</h4>
-                    <span class="badge-count">@Model.Allergies?.Count ?? 0</span>
+        <!-- Allergies + Medications -->
+        <div class="medical-grid">
+            <div class="clean-card" style="margin-bottom: 0;">
+                <div class="clean-card-header">
+                    <h4><i class="fas fa-exclamation-triangle"></i> Allergies</h4>
+                    <span class="badge-count">@(Model.Allergies?.Count ?? 0)</span>
                 </div>
-                @if (Model.Allergies != null && Model.Allergies.Any())
-                {
-                    <ul style="list-style: none; padding: 0;">
-                        @foreach (var a in Model.Allergies)
+                <div class="clean-card-body">
+                    @if (Model.Allergies != null && Model.Allergies.Any())
+                    {
+                        foreach (var a in Model.Allergies)
                         {
-                            <li style="padding: 6px 0; border-bottom: 1px solid #F3F4F6;">
-                                <strong>@a.AllergyName</strong>
-                                <span style="color: #6B7280; font-size: 0.75rem;">(@a.CategoryName)</span>
-                            </li>
+                            <div class="list-item">
+                                <div class="list-item-content">
+                                    <span class="list-item-name">@a.AllergyName</span>
+                                    <span class="list-item-meta">@(string.IsNullOrEmpty(a.CategoryName) ? "General" : a.CategoryName)</span>
+                                </div>
+                            </div>
                         }
-                    </ul>
-                }
-                else
-                {
-                    <p style="color: #9CA3AF; text-align: center; padding: 0.5rem;">No allergies</p>
-                }
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>No allergies</p>
+                        </div>
+                    }
+                </div>
             </div>
 
-            <div class="card-modern">
-                <div class="card-header-flex">
-                    <h4>💊 Medications</h4>
-                    <span class="badge-count">@Model.Medications?.Count ?? 0</span>
+            <div class="clean-card" style="margin-bottom: 0;">
+                <div class="clean-card-header">
+                    <h4><i class="fas fa-pills"></i> Medications</h4>
+                    <span class="badge-count">@(Model.Medications?.Count ?? 0)</span>
                 </div>
-                @if (Model.Medications != null && Model.Medications.Any())
-                {
-                    <ul style="list-style: none; padding: 0;">
-                        @foreach (var m in Model.Medications)
+                <div class="clean-card-body">
+                    @if (Model.Medications != null && Model.Medications.Any())
+                    {
+                        foreach (var m in Model.Medications)
                         {
-                            <li style="padding: 6px 0; border-bottom: 1px solid #F3F4F6;">
-                                <strong>@m.MedicationName</strong>
-                                <span style="color: #6B7280; font-size: 0.75rem;">@m.Dosage</span>
-                            </li>
+                            <div class="list-item">
+                                <div class="list-item-content">
+                                    <span class="list-item-name">@m.MedicationName</span>
+                                    <span class="list-item-meta">@(string.IsNullOrEmpty(m.Dosage) ? "No dosage set" : m.Dosage)</span>
+                                </div>
+                            </div>
                         }
-                    </ul>
-                }
-                else
-                {
-                    <p style="color: #9CA3AF; text-align: center; padding: 0.5rem;">No medications</p>
-                }
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <i class="fas fa-pills"></i>
+                            <p>No medications</p>
+                        </div>
+                    }
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- CHANGE PASSWORD — MOVED OUTSIDE THE GRID -->
-<div class="card-modern" style="margin-top: 2rem; max-width: 600px;">
-    <div class="card-header-flex">
-        <h3>🔒 Change Password</h3>
+<!-- ═══ CHANGE PASSWORD ═══ -->
+<div class="clean-card password-card">
+    <div class="clean-card-header">
+        <h3><i class="fas fa-lock"></i> Change Password</h3>
     </div>
+    <div class="clean-card-body">
+        <form method="post" action="/Profile/ChangePassword">
+            @* @Html.AntiForgeryToken() *@
 
-    <form method="post" action="/Profile/ChangePassword">
-        @* @Html.AntiForgeryToken() *@
+            <div class="form-group">
+                <label>Current Password *</label>
+                <input type="password" name="currentPassword" required />
+            </div>
 
-        <div class="form-group">
-            <label>Current Password *</label>
-            <input type="password" name="currentPassword" required />
-        </div>
+            <div class="form-group">
+                <label>New Password *</label>
+                <input type="password" name="newPassword" required />
+            </div>
 
-        <div class="form-group">
-            <label>New Password *</label>
-            <input type="password" name="newPassword" required />
-        </div>
+            <div class="form-group">
+                <label>Confirm New Password *</label>
+                <input type="password" name="confirmPassword" required />
+            </div>
 
-        <div class="form-group">
-            <label>Confirm New Password *</label>
-            <input type="password" name="confirmPassword" required />
-        </div>
-
-        <button type="submit" class="btn-sm-lab">🔒 Change Password</button>
-    </form>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-lock"></i> Change Password
+            </button>
+        </form>
+    </div>
 </div>
