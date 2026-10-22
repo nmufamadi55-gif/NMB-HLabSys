@@ -40,89 +40,91 @@ builder.Services.AddSession(options =>
 
 var app = builder.Build();
 
-
-
-// ═══════════════════════════════════════════════════════════
-// STARTUP: migrate legacy SHA256 hashes → PBKDF2, then seed
-// ═══════════════════════════════════════════════════════════
-using (var scope = app.Services.CreateScope())
+if (app.Environment.IsDevelopment())
 {
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
-
-    // ─── Migrate legacy hashes ───
-    // SHA256 output (base64) is 44 chars. PBKDF2 is 68 chars.
-    // Any user still on the old format gets silently upgraded.
-    var knownUsers = new Dictionary<string, string>
+    using (var scope = app.Services.CreateScope())
     {
-        ["manager@nmblab.co.za"] = "Nmb#Manager2025!",
-        ["doctor@nmblab.co.za"] = "Nmb#Doctor2025!"
-    };
+        // ═══════════════════════════════════════════════════════════
+        // STARTUP: migrate legacy SHA256 hashes → PBKDF2, then seed
+        // ═══════════════════════════════════════════════════════════
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
 
-    foreach (var (email, plain) in knownUsers)
-    {
-        var user = context.Users.FirstOrDefault(u => u.Email == email);
-        if (user == null) continue;
+            // ─── Migrate legacy hashes ───
+            // SHA256 output (base64) is 44 chars. PBKDF2 is 68 chars.
+            // Any user still on the old format gets silently upgraded.
+            var knownUsers = new Dictionary<string, string>
+            {
+                ["manager@nmblab.co.za"] = "Nmb#Manager2025!",
+                ["doctor@nmblab.co.za"] = "Nmb#Doctor2025!"
+            };
 
-        if (user.PasswordHash.Length == 44)   // ← legacy SHA256
-        {
-            user.PasswordHash = hasher.HashPassword(plain);
-            Console.WriteLine($"🔁 Migrated {email} → PBKDF2");
-        }
-    }
-    context.SaveChanges();
+            foreach (var (email, plain) in knownUsers)
+            {
+                var user = context.Users.FirstOrDefault(u => u.Email == email);
+                if (user == null) continue;
 
-    // ─── Seed manager if missing ───
-    if (!context.Users.Any(u => u.UserRole == "Manager"))
-    {
-        context.Users.Add(new User
-        {
-            Name = "Lab",
-            Surname = "Manager",
-            Email = "manager@nmblab.co.za",
-            ContactNumber = "0820000000",
-            PasswordHash = hasher.HashPassword("Nmb#Manager2025!"),
-            UserRole = "Manager",
-            IsActive = true,
-            IsPasswordChanged = true,
-            CreatedDate = DateTime.Now
-        });
-        context.SaveChanges();
-        Console.WriteLine("✅ Manager seeded: manager@nmblab.co.za / Nmb#Manager2025!");
-    }
+                if (user.PasswordHash.Length == 44)   // ← legacy SHA256
+                {
+                    user.PasswordHash = hasher.HashPassword(plain);
+                    Console.WriteLine($"🔁 Migrated {email} → PBKDF2");
+                }
+            }
+            context.SaveChanges();
 
-    // ─── Seed doctor if missing ───
-    if (!context.Doctors.Any())
-    {
-        var doctorUser = new User
-        {
-            Name = "Sarah",
-            Surname = "Johnson",
-            Email = "doctor@nmblab.co.za",
-            ContactNumber = "0825555678",
-            PasswordHash = hasher.HashPassword("Nmb#Doctor2025!"),
-            UserRole = "Doctor",
-            IsActive = true,
-            IsPasswordChanged = false,
-            CreatedDate = DateTime.Now
-        };
-        context.Users.Add(doctorUser);
-        context.SaveChanges();
+            // ─── Seed manager if missing ───
+            if (!context.Users.Any(u => u.UserRole == "Manager"))
+            {
+                context.Users.Add(new User
+                {
+                    Name = "Lab",
+                    Surname = "Manager",
+                    Email = "manager@nmblab.co.za",
+                    ContactNumber = "0820000000",
+                    PasswordHash = hasher.HashPassword("Nmb#Manager2025!"),
+                    UserRole = "Manager",
+                    IsActive = true,
+                    IsPasswordChanged = true,
+                    CreatedDate = DateTime.Now
+                });
+                context.SaveChanges();
+                Console.WriteLine("✅ Manager seeded: manager@nmblab.co.za / Nmb#Manager2025!");
+            }
 
-        context.Doctors.Add(new Doctor
-        {
-            UserID = doctorUser.UserID,
-            HPCSANumber = "HPCSA001",
-            PracticeName = "Johnson Medical Practice",
-            PracticeAddress = "123 Medical Street, Gqeberha, 6001",
-            Specialization = "Haematology",
-            IsVerified = true,
-            RegisteredDate = DateTime.Now
-        });
-        context.SaveChanges();
-        Console.WriteLine("✅ Doctor seeded: doctor@nmblab.co.za / Nmb#Doctor2025!");
+            // ─── Seed doctor if missing ───
+            if (!context.Doctors.Any())
+            {
+                var doctorUser = new User
+                {
+                    Name = "Sarah",
+                    Surname = "Johnson",
+                    Email = "doctor@nmblab.co.za",
+                    ContactNumber = "0825555678",
+                    PasswordHash = hasher.HashPassword("Nmb#Doctor2025!"),
+                    UserRole = "Doctor",
+                    IsActive = true,
+                    IsPasswordChanged = false,
+                    CreatedDate = DateTime.Now
+                };
+                context.Users.Add(doctorUser);
+                context.SaveChanges();
+
+                context.Doctors.Add(new Doctor
+                {
+                    UserID = doctorUser.UserID,
+                    HPCSANumber = "HPCSA001",
+                    PracticeName = "Johnson Medical Practice",
+                    PracticeAddress = "123 Medical Street, Gqeberha, 6001",
+                    Specialization = "Haematology",
+                    IsVerified = true,
+                    RegisteredDate = DateTime.Now
+                });
+                context.SaveChanges();
+                Console.WriteLine("✅ Doctor seeded: doctor@nmblab.co.za / Nmb#Doctor2025!");
+            }
     }
 }
+
 
 if (!app.Environment.IsDevelopment())
 {

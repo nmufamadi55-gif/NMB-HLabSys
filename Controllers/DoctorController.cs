@@ -1,4 +1,5 @@
-﻿
+﻿// File: DoctorController.cs
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NMB_HLabSys.Data;
@@ -49,11 +50,9 @@ namespace NMB_HLabSys.Controllers
             {
                 var vm = await _doctorService.GetDashboardDataAsync(GetDoctorId());
 
-
                 var displayName = HttpContext.Session.GetString("UserName");
                 if (string.IsNullOrWhiteSpace(displayName))
                 {
-                    // Fallback: fetch the user from the DB
                     var userId = _currentUser.UserId;
                     if (userId.HasValue)
                     {
@@ -74,7 +73,9 @@ namespace NMB_HLabSys.Controllers
                 TempData["ErrorMessage"] = "Could not load dashboard: " + ex.Message;
                 return View(new DoctorDashboardViewModel());
             }
-        }        // ═══════════════════════════════════════════════════════════
+        }
+
+        // ═══════════════════════════════════════════════════════════
         // TEST REQUESTS
         // ═══════════════════════════════════════════════════════════
         public async Task<IActionResult> TestRequests(TestRequestFilterViewModel filter)
@@ -97,10 +98,19 @@ namespace NMB_HLabSys.Controllers
         public async Task<IActionResult> TestRequestDetails(int id)
         {
             var request = await _doctorService.GetTestRequestDetailsAsync(id);
-            if (request == null) return NotFound();
-            if (request.DoctorID != GetDoctorId()) return Forbid();
 
-            ViewBag.PatientInfo = await _doctorService.GetPatientMedicalInfoAsync(request.PatientID);
+            // 404 if this doctor can't see it at all (neither owns it nor has consent).
+            if (request == null || !await CanDoctorSeeRequestAsync(request.RequestID))
+                return NotFound();
+
+            // Only the owner can act on this request. Consent grants view-only.
+            var isOwner = request.DoctorID == GetDoctorId();
+            ViewBag.CanAct = isOwner;
+            ViewBag.IsConsentViewOnly = !isOwner;
+
+            ViewBag.PatientInfo = await _doctorService.GetPatientMedicalInfoAsync(
+                request.PatientID, GetDoctorId());
+
             return View(request);
         }
 
@@ -110,6 +120,14 @@ namespace NMB_HLabSys.Controllers
         {
             try
             {
+                // Owner only — consent grants are view-only.
+                var request = await _context.TestRequests
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(r => r.RequestID == id);
+
+                if (request == null || request.DoctorID != GetDoctorId())
+                    return NotFound();
+
                 await _doctorService.CancelTestRequestAsync(id, reason);
                 TempData["SuccessMessage"] = "Test request cancelled.";
             }
@@ -135,7 +153,6 @@ namespace NMB_HLabSys.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateTestRequest(CreateTestRequestViewModel model)
         {
-            // Refill dropdowns on any error path
             async Task<IActionResult> ReloadViewAsync()
             {
                 var refreshed = await _doctorService.GetCreateTestRequestViewModelAsync(GetDoctorId(), model.PatientID);
@@ -194,6 +211,7 @@ namespace NMB_HLabSys.Controllers
                 medications = patient.Medications.Select(m => m.MedicationName).ToList()
             });
         }
+
         // ═══════════════════════════════════════════════════════════
         // AJAX: Pre-flight barcode availability check
         // ═══════════════════════════════════════════════════════════
@@ -218,6 +236,7 @@ namespace NMB_HLabSys.Controllers
 
             return Json(new { taken });
         }
+
         // ═══════════════════════════════════════════════════════════
         // PATIENTS
         // ═══════════════════════════════════════════════════════════
@@ -242,7 +261,7 @@ namespace NMB_HLabSys.Controllers
         {
             try
             {
-                var vm = await _doctorService.GetPatientMedicalInfoAsync(id);
+                var vm = await _doctorService.GetPatientMedicalInfoAsync(id, GetDoctorId());
                 return View(vm);
             }
             catch (ArgumentException ex)
@@ -316,13 +335,22 @@ namespace NMB_HLabSys.Controllers
             try
             {
                 var vm = await _doctorService.GetResultDetailsAsync(id);
-                ViewBag.OpenRelease = release;
+
+                if (!await CanDoctorSeeRequestAsync(vm.RequestID))
+                    return NotFound();
+
+                var isOwner = await _context.TestRequests
+                    .AnyAsync(r => r.RequestID == vm.RequestID && r.DoctorID == GetDoctorId());
+
+                ViewBag.CanAct = isOwner;
+                ViewBag.IsConsentViewOnly = !isOwner;
+                ViewBag.OpenRelease = release && isOwner;
+
                 return View(vm);
             }
             catch (ArgumentException)
             {
-                TempData["ErrorMessage"] = "Result not found.";
-                return RedirectToAction(nameof(Results));
+                return NotFound();
             }
         }
 
@@ -352,7 +380,7 @@ namespace NMB_HLabSys.Controllers
         }
 
         // ═══════════════════════════════════════════════════════════
-        // DOWNLOAD: Single result PDF
+        // DOWNLOAD: Single result PDF (allowed for own OR consent-shared)
         // ═══════════════════════════════════════════════════════════
         public async Task<IActionResult> DownloadResultPdf(int id)
         {
@@ -360,8 +388,9 @@ namespace NMB_HLabSys.Controllers
             {
                 var vm = await _doctorService.GetResultDetailsAsync(id);
 
-                // We need the raw patient/request to render the full report;
-                // build a DoctorReportData for a single request.
+                if (!await CanDoctorSeeRequestAsync(vm.RequestID))
+                    return NotFound();
+
                 var request = await _context.TestRequests
                     .Include(r => r.Patient)
                     .Include(r => r.RequestTestTypes).ThenInclude(rt => rt.TestType).ThenInclude(t => t.Category)
@@ -488,6 +517,25 @@ namespace NMB_HLabSys.Controllers
                 TempData["ErrorMessage"] = "Failed to generate report: " + ex.Message;
                 return RedirectToAction(nameof(Reports));
             }
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // HELPER — can this doctor see the request at all?
+        // True if (a) owns the request OR (b) has active consent covering it.
+        // ═══════════════════════════════════════════════════════════
+        private async Task<bool> CanDoctorSeeRequestAsync(int requestId)
+        {
+            var doctorId = GetDoctorId();
+
+            var ownsRequest = await _context.TestRequests
+                .AnyAsync(r => r.RequestID == requestId && r.DoctorID == doctorId);
+            if (ownsRequest) return true;
+
+            return await _context.ConsentTestRequestAccesses
+                .AnyAsync(a => a.RequestID == requestId
+                            && a.PatientConsent != null
+                            && a.PatientConsent.DoctorID == doctorId
+                            && a.PatientConsent.IsActive);
         }
     }
 }

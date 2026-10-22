@@ -222,13 +222,21 @@
             position: relative;
         }
 
-        .input-wrap i {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94A3B8;
-            font-size: 0.85rem;
+            .input-wrap > i {
+                position: absolute;
+                left: 14px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #94A3B8;
+                font-size: 0.85rem;
+                pointer-events: none;
+            }
+
+        .pwd-toggle i {
+            position: static;
+            transform: none;
+            left: auto;
+            top: auto;
         }
 
         .input-wrap input {
@@ -314,6 +322,25 @@
             transform: translateY(-1px);
             box-shadow: 0 12px 28px rgba(37, 99, 235, 0.45);
         }
+
+        .pwd-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #94A3B8;
+            cursor: pointer;
+            font-size: 0.95rem;
+            padding: 0.3rem;
+            z-index: 2;
+            transition: color 0.2s;
+        }
+
+            .pwd-toggle:hover {
+                color: #2563EB;
+            }
 
         .alert {
             padding: 0.75rem 1rem;
@@ -445,7 +472,11 @@
                         <label asp-for="Password">Password</label>
                         <div class="input-wrap">
                             <i class="fas fa-lock"></i>
-                            <input asp-for="Password" type="password" placeholder="Enter your password" required autocomplete="current-password" />
+                            <input asp-for="Password" type="password" id="loginPassword" placeholder="Enter your password" required autocomplete="current-password"
+                                   style="padding-right: 2.8rem;" />
+                            <button type="button" class="pwd-toggle" id="toggleLoginPassword" aria-label="Toggle password visibility">
+                                <i class="fas fa-eye"></i>
+                            </button>
                         </div>
                         <span asp-validation-for="Password" class="field-error"></span>
                     </div>
@@ -470,6 +501,20 @@
 
         </div>
     </div>
+    <script>
+        (function () {
+            var toggle = document.getElementById('toggleLoginPassword');
+            var input = document.getElementById('loginPassword');
+            if (!toggle || !input) return;
 
+            toggle.addEventListener('click', function () {
+                var isPassword = input.type === 'password';
+                input.type = isPassword ? 'text' : 'password';
+                var icon = toggle.querySelector('i');
+                icon.classList.toggle('fa-eye', !isPassword);
+                icon.classList.toggle('fa-eye-slash', isPassword);
+            });
+        })();
+    </script>
 </body>
 </html>

@@ -9,8 +9,16 @@ using QuestPDF.Infrastructure;
 namespace NMB_HLabSys.Services;
 public sealed class TechnicianService : ITechnicianService
 {
-    private readonly ApplicationDbContext _db; private readonly ICurrentUserService _current;
-    public TechnicianService(ApplicationDbContext db, ICurrentUserService current) { _db = db; _current = current; }
+    private readonly ApplicationDbContext _db;
+    private readonly ICurrentUserService _current;
+    private readonly IEmailService _emailService;
+
+    public TechnicianService(ApplicationDbContext db, ICurrentUserService current, IEmailService emailService)
+    {
+        _db = db;
+        _current = current;
+        _emailService = emailService;
+    }
     private async Task<LabTechnician> TechAsync() => await _db.LabTechnicians.Include(x => x.User).SingleOrDefaultAsync(x => x.UserID == _current.UserId && x.IsActive) ?? throw new UnauthorizedAccessException("Your active technician profile could not be found.");
     private static TechnicianIdentityViewModel Identity(LabTechnician t) => new() { Name = $"{t.User.Name} {t.User.Surname}".Trim(), EmployeeNumber = t.EmployeeNumber };
     private IQueryable<RequestTestType> Assigned(int techId) => _db.RequestTestTypes.Include(x => x.TestRequest).ThenInclude(x => x.Patient).ThenInclude(x => x.PatientConditions).ThenInclude(x => x.Condition).Include(x => x.TestRequest).ThenInclude(x => x.Patient).ThenInclude(x => x.PatientAllergies).ThenInclude(x => x.Allergy).Include(x => x.TestRequest).ThenInclude(x => x.Patient).ThenInclude(x => x.PatientMedications).ThenInclude(x => x.Medication).Include(x => x.TestResults!).ThenInclude(x => x.Verifications).Include(x => x.TestType).ThenInclude(x => x.Category).Where(x => _db.TechnicianTestAssignments.Any(a => a.TechnicianID == techId && a.TestID == x.TestTypeID && a.IsActive));
@@ -39,7 +47,119 @@ public sealed class TechnicianService : ITechnicianService
     public async Task<VerificationQueueViewModel> GetVerificationQueueAsync()
     { var tech=await TechAsync(); var rows=await Assigned(tech.TechnicianID).Include(x=>x.TestResults!).ThenInclude(x=>x.Verifications).Where(x=>x.Status=="Completed"&&x.AssignedTechnicianID!=tech.TechnicianID).ToListAsync(); return new(){Technician=Identity(tech),Results=rows.SelectMany(x=>x.TestResults!.OrderByDescending(r=>r.ResultDate).Take(1).Select(r=>new VerificationItemViewModel{ResultId=r.ResultID,RequestTestId=x.RequestTestID,RequestNumber=x.TestRequest!.RequestNumber,TestName=x.TestType!.TestName,PerformedBy=x.AssignedTechnicianID?.ToString()??"",ResultValue=r.ResultValue??"",IsAbnormal=r.IsAbnormal,Status=x.Status})).ToList()}; }
     public async Task VerifyResultAsync(VerifyResultViewModel model,bool approve)
-    { var tech=await TechAsync(); var result=await _db.TestResults.Include(x=>x.RequestTestType).ThenInclude(x=>x!.TestRequest).SingleOrDefaultAsync(x=>x.ResultID==model.ResultId)??throw new ArgumentException("Result was not found."); var test=result.RequestTestType!; var assigned=await _db.TechnicianTestAssignments.AnyAsync(x=>x.TechnicianID==tech.TechnicianID&&x.TestID==test.TestTypeID&&x.IsActive); if(!assigned) throw new UnauthorizedAccessException("You are not assigned to verify this test type."); if(test.AssignedTechnicianID==tech.TechnicianID) throw new InvalidOperationException("A technician cannot verify their own result."); if(test.Status!="Completed") throw new InvalidOperationException("Only completed results may be verified."); if(!approve&&string.IsNullOrWhiteSpace(model.ReviewNotes)) throw new ArgumentException("A review note is required when returning a result."); await using var tx=await _db.Database.BeginTransactionAsync(); _db.TestVerifications.Add(new TestVerification{ResultID=result.ResultID,VerifiedByTechnicianID=tech.TechnicianID,VerificationDate=DateTime.Now,Status=approve?"Verified":"Returned",ReviewNotes=model.ReviewNotes?.Trim()}); test.Status=approve?"Verified":"To Be Reviewed"; if(approve&&await _db.RequestTestTypes.Where(x=>x.RequestID==test.RequestID).AllAsync(x=>x.Status=="Verified")) test.TestRequest!.Status="Verified"; await _db.SaveChangesAsync(); await tx.CommitAsync(); }
+    {
+        var tech = await TechAsync();
+        var result = await _db.TestResults
+            .Include(x => x.RequestTestType)
+            .ThenInclude(x => x!.TestRequest)
+            .SingleOrDefaultAsync(x => x.ResultID == model.ResultId)
+            ?? throw new ArgumentException("Result was not found.");
+
+        var test = result.RequestTestType!;
+        var assigned = await _db.TechnicianTestAssignments.AnyAsync(x =>
+            x.TechnicianID == tech.TechnicianID && x.TestID == test.TestTypeID && x.IsActive);
+
+        if (!assigned) throw new UnauthorizedAccessException("You are not assigned to verify this test type.");
+        if (test.AssignedTechnicianID == tech.TechnicianID) throw new InvalidOperationException("A technician cannot verify their own result.");
+        if (test.Status != "Completed") throw new InvalidOperationException("Only completed results may be verified.");
+        if (!approve && string.IsNullOrWhiteSpace(model.ReviewNotes)) throw new ArgumentException("A review note is required when returning a result.");
+
+        var requestId = test.RequestID;
+        var requestFullyVerified = false;
+
+        await using (var tx = await _db.Database.BeginTransactionAsync())
+        {
+            _db.TestVerifications.Add(new TestVerification
+            {
+                ResultID = result.ResultID,
+                VerifiedByTechnicianID = tech.TechnicianID,
+                VerificationDate = DateTime.Now,
+                Status = approve ? "Verified" : "Returned",
+                ReviewNotes = model.ReviewNotes?.Trim()
+            });
+
+            test.Status = approve ? "Verified" : "To Be Reviewed";
+            requestFullyVerified = approve && !await _db.RequestTestTypes.AnyAsync(x =>
+                x.RequestID == requestId &&
+                x.RequestTestID != test.RequestTestID &&
+                x.Status != "Verified");
+
+            if (requestFullyVerified)
+                test.TestRequest!.Status = "Verified";
+
+            await _db.SaveChangesAsync();
+            await tx.CommitAsync();
+        }
+
+        // Send after committing clinical data: a temporary SMTP outage must not undo a valid verification.
+        if (requestFullyVerified)
+            await SendVerifiedResultsToDoctorAsync(requestId);
+    }
+
+    private async Task SendVerifiedResultsToDoctorAsync(int requestId)
+    {
+        var request = await _db.TestRequests
+            .Include(x => x.Doctor).ThenInclude(x => x!.User)
+            .Include(x => x.Patient)
+            .Include(x => x.RequestTestTypes!).ThenInclude(x => x.TestType)
+            .Include(x => x.RequestTestTypes!).ThenInclude(x => x.TestResults)
+            .SingleAsync(x => x.RequestID == requestId);
+
+        var doctorEmail = request.Doctor?.User?.Email;
+        if (string.IsNullOrWhiteSpace(doctorEmail))
+            throw new InvalidOperationException("The results were verified, but the requesting doctor's email address is unavailable.");
+
+        var report = BuildVerifiedResultsPdf(request);
+        var doctorName = $"{request.Doctor!.User.Name} {request.Doctor.User.Surname}".Trim();
+        var body = $"<p>Dear Dr. {System.Net.WebUtility.HtmlEncode(doctorName)},</p>" +
+                   $"<p>All tests for request <strong>{System.Net.WebUtility.HtmlEncode(request.RequestNumber)}</strong> have been independently verified.</p>" +
+                   "<p>The verified result report is attached.</p><p>Regards,<br/>NMB-HLabSys Laboratory</p>";
+
+        await _emailService.SendEmailWithAttachmentAsync(
+            doctorEmail,
+            $"Verified laboratory results — {request.RequestNumber}",
+            body,
+            report,
+            $"Verified-Results-{request.RequestNumber}.pdf");
+    }
+
+    private static byte[] BuildVerifiedResultsPdf(TestRequest request) => Document.Create(document => document.Page(page =>
+    {
+        page.Size(PageSizes.A4);
+        page.Margin(30);
+        page.DefaultTextStyle(x => x.FontFamily("Arial").FontSize(9));
+        page.Header().Column(column =>
+        {
+            column.Item().Text("NMB-HLabSys Laboratory").Bold().FontSize(18).FontColor("0C3D82");
+            column.Item().Text("Verified laboratory result report").SemiBold().FontSize(12).FontColor("176FE4");
+            column.Item().PaddingTop(6).Text($"Request: {request.RequestNumber} | Generated: {DateTime.Now:dd MMM yyyy HH:mm}");
+        });
+        page.Content().PaddingVertical(16).Column(column =>
+        {
+            column.Item().Text($"Patient: {request.Patient?.FirstName} {request.Patient?.LastName}").Bold();
+            column.Item().Text($"Urgency: {request.Urgency.ToUpperInvariant()}");
+            column.Item().PaddingVertical(10).LineHorizontal(1).LineColor("CBD5E1");
+            column.Item().Table(table =>
+            {
+                table.ColumnsDefinition(columns => { columns.RelativeColumn(3); columns.RelativeColumn(2); columns.RelativeColumn(2); columns.RelativeColumn(2); });
+                table.Header(header =>
+                {
+                    foreach (var heading in new[] { "Test", "Result", "Flag", "Completed" })
+                        header.Cell().Background("0D5AC6").Padding(5).Text(heading).FontColor(Colors.White).Bold();
+                });
+
+                foreach (var test in request.RequestTestTypes ?? [])
+                {
+                    var result = test.TestResults?.OrderByDescending(x => x.ResultDate).FirstOrDefault();
+                    table.Cell().BorderBottom(1).BorderColor("E5E7EB").Padding(5).Text(test.TestType?.TestName ?? "Test");
+                    table.Cell().BorderBottom(1).BorderColor("E5E7EB").Padding(5).Text(result?.ResultValue ?? "—");
+                    table.Cell().BorderBottom(1).BorderColor("E5E7EB").Padding(5).Text(result?.IsAbnormal == true ? "Abnormal" : "Normal");
+                    table.Cell().BorderBottom(1).BorderColor("E5E7EB").Padding(5).Text(test.CompletedDateTime?.ToString("dd MMM yyyy HH:mm") ?? "—");
+                }
+            });
+        });
+        page.Footer().AlignCenter().Text("NMB-HLabSys • Confidential verified laboratory result report").FontSize(8).FontColor(Colors.Grey.Medium);
+    })).GeneratePdf();
 }
 
 

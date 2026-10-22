@@ -232,10 +232,20 @@ namespace NMB_HLabSys.Controllers
         {
             var doctor = await _context.Doctors
                 .AsNoTracking()
+                .Include(d => d.User)
                 .FirstOrDefaultAsync(d => d.UserID == userId);
 
             if (doctor != null)
             {
+                // Full display name — "First Last" from the User row
+                var first = doctor.User?.Name ?? "";
+                var last = doctor.User?.Surname ?? "";
+                var fullName = $"{first} {last}".Trim();
+
+                ViewBag.DoctorName = string.IsNullOrWhiteSpace(fullName)
+                    ? "Doctor"
+                    : $"Dr. {fullName}";
+
                 ViewBag.DoctorID = doctor.DoctorID;
                 ViewBag.HPCSANumber = doctor.HPCSANumber;
                 ViewBag.PracticeName = doctor.PracticeName;
@@ -243,6 +253,11 @@ namespace NMB_HLabSys.Controllers
                 ViewBag.Specialization = doctor.Specialization;
                 ViewBag.IsVerified = doctor.IsVerified;
                 ViewBag.RegisteredDate = doctor.RegisteredDate;
+            }
+            else
+            {
+                // Fallback if the doctor row is missing (shouldn't happen for a real doctor)
+                ViewBag.DoctorName = "Doctor";
             }
         }
 

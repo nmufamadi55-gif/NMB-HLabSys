@@ -41,7 +41,6 @@
                 color: #0841C9;
             }
 
-        /* ─── PATIENT HEADER ─── */
         .patient-header {
             display: flex;
             justify-content: space-between;
@@ -99,7 +98,6 @@
                 color: #0841C9;
             }
 
-        /* ─── TAGS ─── */
         .medical-tag {
             display: inline-block;
             padding: 0.2rem 0.7rem;
@@ -130,7 +128,6 @@
             font-style: italic;
         }
 
-        /* ─── GRID FOR MEDICAL INFO ─── */
         .info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -190,7 +187,6 @@
                 font-style: italic;
             }
 
-        /* ─── TABLE ─── */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -279,16 +275,6 @@
                 color: white;
             }
 
-        .btn-success {
-            background: #10B981;
-            color: white;
-        }
-
-            .btn-success:hover {
-                background: #059669;
-                color: white;
-            }
-
         .btn-outline {
             background: transparent;
             border: 1px solid #E2E8F0;
@@ -318,6 +304,26 @@
             border-left: 4px solid #10B981;
         }
 
+        /* ─── NEW: consent notice banner ─── */
+        .alert-info {
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            font-size: 0.82rem;
+            background: #EFF6FF;
+            color: #1E40AF;
+            border-left: 4px solid #0841C9;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            line-height: 1.5;
+        }
+
+            .alert-info i {
+                margin-top: 0.1rem;
+                flex-shrink: 0;
+            }
+
         .empty-state {
             text-align: center;
             padding: 1.5rem 1rem;
@@ -337,6 +343,19 @@
 @if (TempData["SuccessMessage"] != null)
 {
     <div class="alert-success">@TempData["SuccessMessage"]</div>
+}
+
+<!-- ─── CONSENT NOTICE (only shown when requests are hidden) ─── -->
+@if (ViewBag.HiddenRequestCount is int hidden && hidden > 0)
+{
+    <div class="alert-info">
+        <i class="fas fa-lock"></i>
+        <div>
+            <strong>@hidden request(s) hidden.</strong>
+            These were created by other providers and the patient has not shared them with you.
+            Ask the patient to grant consent from their portal if you need to review them.
+        </div>
+    </div>
 }
 
 <!-- ─── PATIENT HEADER ─── -->
@@ -380,7 +399,6 @@
     <h3 class="panel-title"><i class="fas fa-notes-medical"></i> Medical History</h3>
 
     <div class="info-grid">
-        <!-- Conditions -->
         <div class="info-block conditions">
             <h4><i class="fas fa-stethoscope"></i> Conditions</h4>
             @if (Model.Conditions != null && Model.Conditions.Any())
@@ -402,7 +420,6 @@
             }
         </div>
 
-        <!-- Allergies -->
         <div class="info-block allergies">
             <h4><i class="fas fa-allergies"></i> Allergies</h4>
             @if (Model.Allergies != null && Model.Allergies.Any())
@@ -424,7 +441,6 @@
             }
         </div>
 
-        <!-- Medications -->
         <div class="info-block medications">
             <h4><i class="fas fa-pills"></i> Current Medications</h4>
             @if (Model.Medications != null && Model.Medications.Any())

@@ -71,7 +71,7 @@
             width: 100%;
             max-width: 1080px;
             height: 88vh;
-            max-height: 750px;
+            max-height: 780px;
             border-radius: 28px;
             overflow: hidden;
             background: rgba(255, 255, 255, 0.98);
@@ -248,7 +248,7 @@
             position: relative;
         }
 
-            .input-wrap i.input-icon {
+            .input-wrap > i.input-icon {
                 position: absolute;
                 left: 14px;
                 top: 50%;
@@ -256,12 +256,13 @@
                 color: #94A3B8;
                 font-size: 0.85rem;
                 pointer-events: none;
+                z-index: 2;
             }
 
             .input-wrap input {
                 width: 100%;
                 padding: 0.75rem 1rem 0.75rem 2.6rem;
-                border: 1px solid var(--border);
+                border: 1.5px solid var(--border);
                 border-radius: 10px;
                 font-size: 0.9rem;
                 font-family: inherit;
@@ -276,7 +277,7 @@
                     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
                 }
 
-                /* ─── Invalid input styling ─── */
+                /* ─── Invalid input styling (server-side) ─── */
                 .input-wrap input.input-validation-error,
                 .input-wrap input.is-invalid {
                     border-color: var(--danger) !important;
@@ -288,13 +289,19 @@
                         box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
                     }
 
+                /* ─── Invalid input styling (client-side) ─── */
+                .input-wrap input.error {
+                    border-color: #DC2626;
+                    background: #FEF2F2;
+                }
+
             .input-wrap.password-wrap input {
                 padding-right: 3rem;
             }
 
         .password-toggle {
             position: absolute;
-            right: 12px;
+            right: 10px;
             top: 50%;
             transform: translateY(-50%);
             background: none;
@@ -302,38 +309,53 @@
             color: #64748B;
             cursor: pointer;
             font-size: 0.95rem;
-            padding: 0.3rem;
+            padding: 0.4rem;
             transition: 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 2;
+            line-height: 1;
         }
 
             .password-toggle:hover {
                 color: #2563EB;
             }
 
+            .password-toggle i {
+                position: static;
+                transform: none;
+                left: auto;
+                top: auto;
+                pointer-events: none;
+            }
+
         /* ─── Inline error messages (under each field) ─── */
         .field-error {
-            color: var(--danger);
-            font-size: 0.75rem;
-            margin-top: 0.35rem;
-            display: block;
-            font-weight: 500;
-            line-height: 1.4;
+            color: #DC2626;
+            font-size: 0.72rem;
+            margin-top: 0.3rem;
+            display: none;
         }
 
-            .field-error:not(:empty) {
+            .field-error.show {
+                display: block;
                 animation: errorFadeIn 0.2s ease-out;
             }
 
-                .field-error:not(:empty)::before {
+                .field-error.show::before,
+                .field-error:not(:empty):not(.show)::before {
                     content: '\f06a';
                     font-family: 'Font Awesome 6 Free';
                     font-weight: 900;
                     margin-right: 0.3rem;
                     font-size: 0.7rem;
                 }
+
+            /* Server-side errors (written by Razor) must show */
+            .field-error:not(:empty):not(.show) {
+                display: block;
+            }
 
         @@keyframes errorFadeIn {
             from {
@@ -361,26 +383,48 @@
             display: flex;
             align-items: flex-start;
             gap: 0.5rem;
+            border-left: 4px solid;
         }
 
         .alert-success {
-            background: var(--success-bg);
+            background: #DCFCE7;
             color: #166534;
-            border-left: 4px solid var(--success);
+            border-color: #059669;
         }
 
         .alert-error {
-            background: var(--danger-bg);
+            background: #FEE2E2;
             color: #991B1B;
-            border-left: 4px solid var(--danger);
+            border-color: #DC2626;
         }
 
-        .password-hint {
-            font-size: 0.7rem;
+        .password-hints {
+            font-size: 0.72rem;
             color: #64748B;
-            margin-top: 0.25rem;
-            display: block;
+            margin-top: 0.35rem;
+            line-height: 1.9;
         }
+
+            .password-hints > div {
+                display: flex;
+                align-items: center;
+                gap: 0.4rem;
+                transition: color 0.2s;
+            }
+
+                .password-hints > div i {
+                    font-size: 0.5rem;
+                    color: #CBD5E1;
+                    transition: color 0.2s;
+                }
+
+                .password-hints > div.met {
+                    color: #10B981;
+                }
+
+                    .password-hints > div.met i {
+                        color: #10B981;
+                    }
 
         .input-wrap input.auto-filled {
             background: #ECFDF5;
@@ -580,7 +624,7 @@
                     </div>
                 }
 
-                <form method="post" asp-action="Register" id="registerForm">
+                <form method="post" asp-action="Register" id="registerForm" novalidate>
                     @Html.AntiForgeryToken()
 
                     <div class="form-row">
@@ -588,16 +632,22 @@
                             <label asp-for="FirstName">First Name <span class="required">*</span></label>
                             <div class="input-wrap">
                                 <i class="fas fa-user input-icon"></i>
-                                <input asp-for="FirstName" placeholder="First name" required autocomplete="given-name" />
+                                <input asp-for="FirstName" id="regFirstName" placeholder="First name" required
+                                       autocomplete="given-name"
+                                       oninput="validateName('regFirstName','firstNameError','First name')" />
                             </div>
+                            <div class="field-error" id="firstNameError"></div>
                             <span asp-validation-for="FirstName" class="field-error"></span>
                         </div>
                         <div class="form-group">
                             <label asp-for="LastName">Last Name <span class="required">*</span></label>
                             <div class="input-wrap">
                                 <i class="fas fa-user input-icon"></i>
-                                <input asp-for="LastName" placeholder="Last name" required autocomplete="family-name" />
+                                <input asp-for="LastName" id="regLastName" placeholder="Last name" required
+                                       autocomplete="family-name"
+                                       oninput="validateName('regLastName','lastNameError','Last name')" />
                             </div>
+                            <div class="field-error" id="lastNameError"></div>
                             <span asp-validation-for="LastName" class="field-error"></span>
                         </div>
                     </div>
@@ -607,11 +657,13 @@
                         <div class="input-wrap">
                             <i class="fas fa-id-card input-icon"></i>
                             <input asp-for="SAIDNumber" id="saIdInput"
-                                   placeholder="13 digits (e.g., 8001015009087)"
+                                   placeholder="13 digits (e.g. 8001015009087)"
                                    pattern="[0-9]{13}" maxlength="13" inputmode="numeric"
                                    title="SA ID must be exactly 13 digits"
-                                   required autocomplete="off" />
+                                   required autocomplete="off"
+                                   oninput="this.value=this.value.replace(/\D/g,''); validateID();" />
                         </div>
+                        <div class="field-error" id="idError"></div>
                         <span asp-validation-for="SAIDNumber" class="field-error"></span>
                     </div>
 
@@ -619,9 +671,11 @@
                         <label asp-for="Email">Email Address <span class="required">*</span></label>
                         <div class="input-wrap">
                             <i class="fas fa-envelope input-icon"></i>
-                            <input asp-for="Email" type="email" placeholder="you@email.com"
-                                   required autocomplete="email" />
+                            <input asp-for="Email" id="regEmail" type="email" placeholder="you@email.com"
+                                   required autocomplete="email"
+                                   oninput="validateEmail()" />
                         </div>
+                        <div class="field-error" id="emailError"></div>
                         <span asp-validation-for="Email" class="field-error"></span>
                     </div>
 
@@ -630,24 +684,26 @@
                             <label asp-for="Cellphone">Cellphone <span class="required">*</span></label>
                             <div class="input-wrap">
                                 <i class="fas fa-phone input-icon"></i>
-                                <input asp-for="Cellphone" placeholder="0821234567"
-                                       pattern="[0-9]{10}" maxlength="10" inputmode="numeric"
-                                       title="Cellphone must be exactly 10 digits"
-                                       required autocomplete="tel" />
+                                <input asp-for="Cellphone" id="regPhone" placeholder="0821234567"
+                                       maxlength="15" inputmode="tel" required autocomplete="tel"
+                                       oninput="validatePhone()" />
                             </div>
+                            <div class="field-error" id="phoneError"></div>
                             <span asp-validation-for="Cellphone" class="field-error"></span>
                         </div>
                         <div class="form-group">
                             <label asp-for="DateOfBirth">Date of Birth <span class="required">*</span></label>
                             <div class="input-wrap">
                                 <i class="fas fa-calendar input-icon"></i>
-                                <input asp-for="DateOfBirth" id="dobInput" type="date" required
+                                <input type="date" name="DateOfBirth" id="dobInput" required
                                        max="@DateTime.Now.ToString("yyyy-MM-dd")"
-                                       min="1900-01-01" />
+                                       min="1900-01-01"
+                                       onchange="validateDOB(false)" />
                             </div>
                             <span class="dob-badge" id="dobBadge">
                                 <i class="fas fa-magic"></i> Auto-filled from your SA ID
                             </span>
+                            <div class="field-error" id="dobError"></div>
                             <span asp-validation-for="DateOfBirth" class="field-error"></span>
                         </div>
                     </div>
@@ -668,13 +724,21 @@
                                 <i class="fas fa-lock input-icon"></i>
                                 <input asp-for="Password" type="password" id="passwordInput"
                                        placeholder="Create a password" required
-                                       minlength="8" autocomplete="new-password" />
+                                       minlength="8" autocomplete="new-password"
+                                       oninput="validatePassword()" />
                                 <button type="button" class="password-toggle" id="togglePassword"
                                         aria-label="Show password">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </div>
-                            <span class="password-hint">Min 8 characters, include uppercase, number & special character</span>
+                            <div class="password-hints" id="pwdHints">
+                                <div data-req="length"><i class="fas fa-circle"></i> At least 8 characters</div>
+                                <div data-req="upper"><i class="fas fa-circle"></i> One uppercase letter</div>
+                                <div data-req="lower"><i class="fas fa-circle"></i> One lowercase letter</div>
+                                <div data-req="number"><i class="fas fa-circle"></i> One number</div>
+                                <div data-req="special"><i class="fas fa-circle"></i> One special character</div>
+                            </div>
+                            <div class="field-error" id="passwordError"></div>
                             <span asp-validation-for="Password" class="field-error"></span>
                         </div>
                         <div class="form-group">
@@ -683,12 +747,14 @@
                                 <i class="fas fa-lock input-icon"></i>
                                 <input asp-for="ConfirmPassword" type="password" id="confirmPasswordInput"
                                        placeholder="Confirm password" required
-                                       minlength="8" autocomplete="new-password" />
+                                       minlength="8" autocomplete="new-password"
+                                       oninput="validateConfirm()" />
                                 <button type="button" class="password-toggle" id="toggleConfirmPassword"
                                         aria-label="Show password">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </div>
+                            <div class="field-error" id="confirmError"></div>
                             <span asp-validation-for="ConfirmPassword" class="field-error"></span>
                         </div>
                     </div>
@@ -707,125 +773,322 @@
     </div>
 
     <script>
-        // ─── Password show / hide toggles ───
-        function setupPasswordToggle(toggleId, inputId) {
-            const toggle = document.getElementById(toggleId);
-            const input = document.getElementById(inputId);
-            if (!toggle || !input) return;
+        (function () {
+            'use strict';
 
-            toggle.addEventListener('click', function () {
-                const isPassword = input.type === 'password';
-                input.type = isPassword ? 'text' : 'password';
-                const icon = toggle.querySelector('i');
-                icon.classList.toggle('fa-eye', !isPassword);
-                icon.classList.toggle('fa-eye-slash', isPassword);
-                toggle.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
-            });
-        }
+            // ═══════════════════════════════════════════════════════════
+            // PASSWORD SHOW/HIDE
+            // ═══════════════════════════════════════════════════════════
+            function setupToggle(toggleId, inputId) {
+                var btn = document.getElementById(toggleId);
+                var inp = document.getElementById(inputId);
+                if (!btn || !inp) return;
+                btn.addEventListener('click', function () {
+                    var isPwd = inp.type === 'password';
+                    inp.type = isPwd ? 'text' : 'password';
+                    var icon = btn.querySelector('i');
+                    icon.classList.toggle('fa-eye', !isPwd);
+                    icon.classList.toggle('fa-eye-slash', isPwd);
+                    btn.setAttribute('aria-label', isPwd ? 'Hide password' : 'Show password');
+                });
+            }
+            setupToggle('togglePassword', 'passwordInput');
+            setupToggle('toggleConfirmPassword', 'confirmPasswordInput');
 
-        setupPasswordToggle('togglePassword', 'passwordInput');
-        setupPasswordToggle('toggleConfirmPassword', 'confirmPasswordInput');
-
-        // ─── SA ID → auto-fill Date of Birth ───
-        const saIdInput = document.getElementById('saIdInput');
-        const dobInput = document.getElementById('dobInput');
-        const dobBadge = document.getElementById('dobBadge');
-
-        function extractDobFromSaId(saId) {
-            if (!/^\d{13}$/.test(saId)) return null;
-
-            const yy = parseInt(saId.substring(0, 2), 10);
-            const mm = parseInt(saId.substring(2, 4), 10);
-            const dd = parseInt(saId.substring(4, 6), 10);
-
-            const currentYY = new Date().getFullYear() % 100;
-            const century = yy <= currentYY ? 2000 : 1900;
-            const fullYear = century + yy;
-
-            const date = new Date(fullYear, mm - 1, dd);
-            if (
-                date.getFullYear() !== fullYear ||
-                date.getMonth() !== mm - 1 ||
-                date.getDate() !== dd
-            ) {
-                return null;
+            // ═══════════════════════════════════════════════════════════
+            // HELPERS
+            // ═══════════════════════════════════════════════════════════
+            function setErr(el, errId, msg) {
+                el.classList.add('error');
+                var box = document.getElementById(errId);
+                if (box) { box.textContent = msg; box.classList.add('show'); }
             }
 
-            return `${fullYear}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
-        }
+            function clearErr(el, errId) {
+                el.classList.remove('error');
+                var box = document.getElementById(errId);
+                if (box) { box.textContent = ''; box.classList.remove('show'); }
+            }
 
-        saIdInput.addEventListener('input', function () {
-            this.value = this.value.replace(/\D/g, '').slice(0, 13);
+            function parseLocalDate(v) {
+                if (!v) return null;
+                var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
+                if (!m) return null;
+                var dt = new Date(+m[1], +m[2] - 1, +m[3]);
+                if (dt.getFullYear() !== +m[1] || dt.getMonth() !== +m[2] - 1 || dt.getDate() !== +m[3]) return null;
+                return dt;
+            }
 
-            if (this.value.length === 13) {
-                const dob = extractDobFromSaId(this.value);
-                if (dob) {
-                    dobInput.value = dob;
-                    dobInput.classList.add('auto-filled');
-                    dobBadge.classList.add('visible');
-                } else {
-                    dobInput.value = '';
-                    dobInput.classList.remove('auto-filled');
-                    dobBadge.classList.remove('visible');
+            function formatYMD(dt) {
+                return dt.getFullYear() + '-' +
+                    String(dt.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(dt.getDate()).padStart(2, '0');
+            }
+
+            // ═══════════════════════════════════════════════════════════
+            // SA ID → decode the embedded date
+            // ═══════════════════════════════════════════════════════════
+            function decodeSaIdDate(id13) {
+                var yy = parseInt(id13.substr(0, 2), 10);
+                var mm = parseInt(id13.substr(2, 2), 10);
+                var dd = parseInt(id13.substr(4, 2), 10);
+
+                if (mm < 1 || mm > 12) {
+                    return { ok: false, reason: 'SA ID has an invalid month (' + mm + ') in position 3-4' };
                 }
-            } else {
-                dobInput.classList.remove('auto-filled');
-                dobBadge.classList.remove('visible');
-            }
-        });
+                if (dd < 1 || dd > 31) {
+                    return { ok: false, reason: 'SA ID has an invalid day (' + dd + ') in position 5-6' };
+                }
 
-        dobInput.addEventListener('change', function () {
-            const fromId = extractDobFromSaId(saIdInput.value);
-            if (fromId !== this.value) {
-                this.classList.remove('auto-filled');
-                dobBadge.classList.remove('visible');
-            }
-        });
+                var year = (yy >= 0 && yy <= 24) ? 2000 + yy : 1900 + yy;
+                var dt = new Date(year, mm - 1, dd);
 
-        // ─── Client-side pre-submit validation ───
-        document.getElementById('registerForm').addEventListener('submit', function (e) {
-            const pwd = document.getElementById('passwordInput').value;
-            const confirm = document.getElementById('confirmPasswordInput').value;
+                if (dt.getFullYear() !== year || dt.getMonth() !== mm - 1 || dt.getDate() !== dd) {
+                    return {
+                        ok: false,
+                        reason: 'SA ID has an impossible date (' +
+                            yy + '-' + String(mm).padStart(2, '0') + '-' + String(dd).padStart(2, '0') + ')'
+                    };
+                }
 
-            // Password rule check (matches server):
-            // >=8 chars, at least one uppercase, one number, one special character
-            if (pwd.length < 8 ||
-                !/[A-Z]/.test(pwd) ||
-                !/[0-9]/.test(pwd) ||
-                !/[^A-Za-z0-9]/.test(pwd)) {
-                e.preventDefault();
-                alert('Password must be at least 8 characters with one uppercase letter, one number, and one special character.');
-                document.getElementById('passwordInput').focus();
-                return false;
+                var today = new Date(); today.setHours(0, 0, 0, 0);
+                if (dt > today) {
+                    return { ok: false, reason: 'SA ID encodes a date in the future' };
+                }
+
+                return { ok: true, date: dt, dob: formatYMD(dt) };
             }
 
-            if (pwd !== confirm) {
-                e.preventDefault();
-                alert('Passwords do not match. Please check and try again.');
-                document.getElementById('confirmPasswordInput').focus();
-                return false;
+            // ═══════════════════════════════════════════════════════════
+            // NAME
+            // ═══════════════════════════════════════════════════════════
+            function validateName(inputId, errId, label) {
+                var el = document.getElementById(inputId);
+                var v = (el.value || '').trim();
+                if (v.length === 0) { setErr(el, errId, label + ' is required'); return false; }
+                if (v.length < 2)   { setErr(el, errId, label + ' must be at least 2 characters'); return false; }
+                clearErr(el, errId);
+                return true;
             }
 
-            const dob = extractDobFromSaId(saIdInput.value);
-            if (!dob) {
-                e.preventDefault();
-                alert('Please enter a valid 13-digit SA ID number with a real date of birth.');
-                saIdInput.focus();
-                return false;
+            // ═══════════════════════════════════════════════════════════
+            // SA ID — live validation + DOB auto-fill
+            // ═══════════════════════════════════════════════════════════
+            function validateID() {
+                var el = document.getElementById('saIdInput');
+                if (!el) return false;
+                var v = (el.value || '').replace(/\D/g, '');
+                el.value = v;
+
+                if (v.length === 0) { clearErr(el, 'idError'); return false; }
+                if (v.length < 13)  { clearErr(el, 'idError'); return false; }
+                if (v.length > 13)  { el.value = v = v.substr(0, 13); }
+
+                var decoded = decodeSaIdDate(v);
+                if (!decoded.ok) {
+                    setErr(el, 'idError', decoded.reason);
+                    return false;
+                }
+
+                clearErr(el, 'idError');
+
+                // ─── Auto-fill DOB ───
+                var dobEl = document.getElementById('dobInput');
+                var badge = document.getElementById('dobBadge');
+                if (!dobEl) return true;
+
+                if (!dobEl.dataset.userEdited || dobEl.dataset.userEdited === '0') {
+                    dobEl.value = decoded.dob;
+                    dobEl.classList.add('auto-filled');
+                    if (badge) badge.classList.add('visible');
+                    dobEl.dataset.userEdited = '0';
+                    clearErr(dobEl, 'dobError');
+                }
+
+                return true;
             }
 
-            if (dobInput.value !== dob) {
-                e.preventDefault();
-                alert('Date of Birth does not match the SA ID number. Please check the ID or update the date.');
-                dobInput.focus();
-                return false;
-            }
-        });
+            // ═══════════════════════════════════════════════════════════
+            // DOB
+            // ═══════════════════════════════════════════════════════════
+            function validateDOB(fromAutoFill) {
+                var el = document.getElementById('dobInput');
+                if (!el) return false;
 
-        // ─── Cellphone: digits only ───
-        document.querySelector('input[name="Cellphone"]').addEventListener('input', function () {
-            this.value = this.value.replace(/\D/g, '').slice(0, 10);
-        });
+                if (!fromAutoFill) {
+                    el.dataset.userEdited = '1';
+                    el.classList.remove('auto-filled');
+                    var badge = document.getElementById('dobBadge');
+                    if (badge) badge.classList.remove('visible');
+                }
+
+                if (!el.value) { setErr(el, 'dobError', 'Please select date of birth'); return false; }
+
+                var dt = parseLocalDate(el.value);
+                if (!dt) { setErr(el, 'dobError', 'Please enter a valid date'); return false; }
+
+                var today = new Date(); today.setHours(0, 0, 0, 0);
+                if (dt > today) { setErr(el, 'dobError', 'Date of birth cannot be in the future'); return false; }
+
+                var idEl = document.getElementById('saIdInput');
+                var id = idEl ? (idEl.value || '').replace(/\D/g, '') : '';
+                if (id.length === 13) {
+                    var decoded = decodeSaIdDate(id);
+                    if (decoded.ok && el.value !== decoded.dob) {
+                        setErr(el, 'dobError', 'Date of birth does not match the SA ID (' + decoded.dob + ')');
+                        return false;
+                    }
+                }
+
+                clearErr(el, 'dobError');
+                return true;
+            }
+
+            // ═══════════════════════════════════════════════════════════
+            // PHONE
+            // ═══════════════════════════════════════════════════════════
+            function validatePhone() {
+                var el = document.getElementById('regPhone');
+                if (!el) return false;
+                var v = (el.value || '').replace(/[\s\-]/g, '');
+
+                if (!v) { setErr(el, 'phoneError', 'Cellphone is required'); return false; }
+                if (!/^(0[1-9][0-9]{8}|\+27[1-9][0-9]{8})$/.test(v)) {
+                    setErr(el, 'phoneError', 'Enter a valid SA number (e.g. 0821234567)');
+                    return false;
+                }
+                clearErr(el, 'phoneError');
+                return true;
+            }
+
+            // ═══════════════════════════════════════════════════════════
+            // EMAIL
+            // ═══════════════════════════════════════════════════════════
+            function validateEmail() {
+                var el = document.getElementById('regEmail');
+                if (!el) return false;
+                var v = (el.value || '').trim();
+
+                if (!v) { setErr(el, 'emailError', 'Email is required'); return false; }
+                if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]{2,}$/.test(v)) {
+                    setErr(el, 'emailError', 'Enter a valid email address');
+                    return false;
+                }
+                clearErr(el, 'emailError');
+                return true;
+            }
+
+            // ═══════════════════════════════════════════════════════════
+            // PASSWORD
+            // ═══════════════════════════════════════════════════════════
+            function validatePassword() {
+                var el = document.getElementById('passwordInput');
+                if (!el) return false;
+                var v = el.value;
+
+                var hints = document.querySelectorAll('#pwdHints > div');
+                var tests = {
+                    length:  v.length >= 8,
+                    upper:   /[A-Z]/.test(v),
+                    lower:   /[a-z]/.test(v),
+                    number:  /[0-9]/.test(v),
+                    special: /[^A-Za-z0-9]/.test(v)
+                };
+                var allMet = true;
+                hints.forEach(function (hint) {
+                    var key = hint.getAttribute('data-req');
+                    var met = tests[key];
+                    hint.classList.toggle('met', met);
+                    var icon = hint.querySelector('i');
+                    if (icon) icon.className = met ? 'fas fa-check-circle' : 'fas fa-circle';
+                    if (!met) allMet = false;
+                });
+
+                if (!v) {
+                    setErr(el, 'passwordError', 'Password is required');
+                    return false;
+                }
+                if (!allMet) {
+                    setErr(el, 'passwordError', 'Password must meet all requirements above');
+                    return false;
+                }
+                clearErr(el, 'passwordError');
+
+                var confirmEl = document.getElementById('confirmPasswordInput');
+                if (confirmEl && confirmEl.value) {
+                    validateConfirm();
+                }
+                return true;
+            }
+
+            // ═══════════════════════════════════════════════════════════
+            // CONFIRM PASSWORD
+            // ═══════════════════════════════════════════════════════════
+            function validateConfirm() {
+                var el = document.getElementById('confirmPasswordInput');
+                if (!el) return false;
+                var pwdEl = document.getElementById('passwordInput');
+                var pwd = pwdEl ? pwdEl.value : '';
+
+                if (!el.value) { setErr(el, 'confirmError', 'Please confirm your password'); return false; }
+                if (el.value !== pwd) { setErr(el, 'confirmError', 'Passwords do not match'); return false; }
+                clearErr(el, 'confirmError');
+                return true;
+            }
+
+            // ═══════════════════════════════════════════════════════════
+            // EXPOSE VALIDATORS TO GLOBAL SCOPE
+            // (required because HTML has inline oninput/onchange handlers)
+            // ═══════════════════════════════════════════════════════════
+            window.validateName     = validateName;
+            window.validateID       = validateID;
+            window.validateDOB      = validateDOB;
+            window.validatePhone    = validatePhone;
+            window.validateEmail    = validateEmail;
+            window.validatePassword = validatePassword;
+            window.validateConfirm  = validateConfirm;
+
+            // ═══════════════════════════════════════════════════════════
+            // WIRE UP FORM SUBMIT
+            // ═══════════════════════════════════════════════════════════
+            var form = document.getElementById('registerForm');
+            if (!form) return;
+
+            // Strip "0001-01-01" default if Razor injected it
+            var dobInit = document.getElementById('dobInput');
+            if (dobInit && dobInit.value && dobInit.value.startsWith('0001')) {
+                dobInit.value = '';
+            }
+
+            form.addEventListener('submit', function (e) {
+                var ok = true;
+                ok = validateName('regFirstName', 'firstNameError', 'First name') && ok;
+                ok = validateName('regLastName', 'lastNameError', 'Last name') && ok;
+                ok = validateID() && ok;
+                ok = validateDOB(true) && ok;
+                ok = validatePhone() && ok;
+                ok = validateEmail() && ok;
+                ok = validatePassword() && ok;
+                ok = validateConfirm() && ok;
+
+                if (!ok) {
+                    e.preventDefault();
+                    var firstErr = form.querySelector('input.error');
+                    if (firstErr) {
+                        firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        firstErr.focus();
+                    }
+                    return;
+                }
+
+                var btn = document.getElementById('registerBtn');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating account...';
+            });
+
+            // Prefill check on load
+            if (document.getElementById('saIdInput').value) validateID();
+        })();
     </script>
 
 </body>

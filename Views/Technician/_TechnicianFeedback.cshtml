@@ -1,0 +1,16 @@
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="tech-toast tech-toast-success" role="status" data-tech-toast>
+        <span class="tech-toast-icon"><i class="fas fa-check"></i></span>
+        <div><strong>Saved successfully</strong><p>@successMessage</p></div>
+        <button type="button" class="tech-toast-close" aria-label="Dismiss notification" data-tech-toast-close><i class="fas fa-xmark"></i></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="tech-toast tech-toast-error" role="alert" data-tech-toast>
+        <span class="tech-toast-icon"><i class="fas fa-triangle-exclamation"></i></span>
+        <div><strong>Action needs attention</strong><p>@errorMessage</p></div>
+        <button type="button" class="tech-toast-close" aria-label="Dismiss notification" data-tech-toast-close><i class="fas fa-xmark"></i></button>
+    </div>
+}
