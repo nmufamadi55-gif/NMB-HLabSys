@@ -11,6 +11,7 @@
 
 @section SidebarMenu {
     <li><a href="@Url.Action("Dashboard", "Patient")" class="active"><i class="fas fa-notes-medical"></i> <span>My Results</span></a></li>
+    <li><a href="@Url.Action("Requests", "Patient")"><i class="fas fa-vials"></i> <span>My Requests</span></a></li>
     <li><a href="@Url.Action("MedicalHistory", "Patient")"><i class="fas fa-history"></i> <span>Medical History</span></a></li>
     <li><a href="@Url.Action("Consent", "Patient")"><i class="fas fa-hand-peace"></i> <span>Consent</span></a></li>
     <li><a href="@Url.Action("Trends", "Patient")"><i class="fas fa-chart-line"></i> <span>Trends</span></a></li>
@@ -36,7 +37,6 @@
         --radius: 16px;
     }
 
-    /* ═══ PAGE HERO — image fully visible, text pill at bottom ═══ */
     .page-hero {
         position: relative;
         margin: -1.2rem -1.2rem 2rem -1.2rem;
@@ -64,7 +64,6 @@
             transform: scale(1.04);
         }
 
-        /* Only a soft bottom gradient for text readability — image fully visible above */
         .page-hero::after {
             content: '';
             position: absolute;
@@ -73,7 +72,6 @@
             z-index: 1;
         }
 
-    /* Glass text pill — small, refined, sits on the image */
     .hero-pill {
         position: relative;
         z-index: 2;
@@ -178,7 +176,6 @@
             color: white;
         }
 
-    /* ═══ CLEAN WHITE CARDS ═══ */
     .clean-card {
         background: white;
         border-radius: var(--radius);
@@ -248,7 +245,6 @@
         padding: 1.5rem;
     }
 
-    /* ═══ STAT CARDS — clean with gradient icon chips ═══ */
     .stats-row {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -329,7 +325,6 @@
         letter-spacing: 0.06em;
     }
 
-    /* ═══ HEALTH SCORE — circular ring + trend = 2-column ═══ */
     .health-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -338,12 +333,9 @@
     }
 
     @@media (max-width: 768px) {
-        .health-grid
-
-    {
-        grid-template-columns: 1fr;
-    }
-
+        .health-grid {
+            grid-template-columns: 1fr;
+        }
     }
 
     .health-ring-card {
@@ -433,7 +425,6 @@
         margin: 0;
     }
 
-    /* trend card */
     .trend-mini-card {
         background: white;
         border-radius: var(--radius);
@@ -480,7 +471,6 @@
         margin-bottom: 1rem;
     }
 
-    /* ═══ TABLE — clean, subtle ═══ */
     .clean-table {
         width: 100%;
         border-collapse: collapse;
@@ -505,37 +495,31 @@
             border-bottom: 1px solid #F1F5F9;
         }
 
-        .clean-table tbody tr {
-            transition: background 0.15s;
+        .clean-table tbody tr:hover {
+            background: var(--p-bg-soft);
         }
 
-            .clean-table tbody tr:hover {
-                background: var(--p-bg-soft);
+        .clean-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .clean-table tbody tr.abnormal-row td:first-child {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+            .clean-table tbody tr.abnormal-row td:first-child::before {
+                content: '';
+                position: absolute;
+                left: 0.85rem;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: var(--p-danger);
             }
 
-            .clean-table tbody tr:last-child td {
-                border-bottom: none;
-            }
-
-            /* Abnormal row — subtle, red dot on the left */
-            .clean-table tbody tr.abnormal-row td:first-child {
-                position: relative;
-                padding-left: 2rem;
-            }
-
-                .clean-table tbody tr.abnormal-row td:first-child::before {
-                    content: '';
-                    position: absolute;
-                    left: 0.85rem;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    width: 6px;
-                    height: 6px;
-                    border-radius: 50%;
-                    background: var(--p-danger);
-                }
-
-    /* ═══ PILLS ═══ */
     .pill {
         display: inline-block;
         padding: 0.28rem 0.75rem;
@@ -560,7 +544,6 @@
         color: #991B1B;
     }
 
-    /* ═══ BUTTONS ═══ */
     .btn {
         display: inline-flex;
         align-items: center;
@@ -597,7 +580,6 @@
             box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
         }
 
-    /* ═══ EMPTY STATE ═══ */
     .empty-state {
         text-align: center;
         padding: 2.5rem 2rem;
@@ -616,7 +598,6 @@
             font-size: 0.85rem;
         }
 
-    /* ═══ ALERTS ═══ */
     .alert {
         padding: 0.85rem 1.2rem;
         border-radius: 12px;
@@ -640,7 +621,6 @@
         border-left: 3px solid #DC2626;
     }
 
-    /* ═══ UPCOMING ITEM ═══ */
     .upcoming-item {
         display: flex;
         justify-content: space-between;
@@ -685,41 +665,36 @@
         font-size: 1rem;
     }
 
-    /* ═══ RESPONSIVE ═══ */
     @@media (max-width: 768px) {
-        .page-hero
-
-    {
-        margin: -0.8rem -0.8rem 1.5rem -0.8rem;
-        height: 280px;
-        padding: 1.2rem;
-    }
-
-    .hero-pill {
-        padding: 1.1rem 1.3rem;
-    }
-
-        .hero-pill h1 {
-            font-size: 1.4rem;
+        .page-hero {
+            margin: -0.8rem -0.8rem 1.5rem -0.8rem;
+            height: 280px;
+            padding: 1.2rem;
         }
 
-    .clean-card-body {
-        padding: 1.2rem;
-    }
+        .hero-pill {
+            padding: 1.1rem 1.3rem;
+        }
 
-    .ring-wrap {
-        width: 140px;
-        height: 140px;
-    }
+            .hero-pill h1 {
+                font-size: 1.4rem;
+            }
 
-    .ring-center .ring-score {
-        font-size: 1.9rem;
-    }
+        .clean-card-body {
+            padding: 1.2rem;
+        }
 
+        .ring-wrap {
+            width: 140px;
+            height: 140px;
+        }
+
+        .ring-center .ring-score {
+            font-size: 1.9rem;
+        }
     }
 </style>
 
-<!-- ═══ HERO — image fully visible, glass pill at bottom ═══ -->
 <div class="page-hero">
     <div class="hero-pill">
         <span class="hero-kicker"><i class="fas fa-heartbeat"></i> Health Portal</span>
@@ -736,7 +711,6 @@
     </div>
 </div>
 
-<!-- ═══ ALERTS ═══ -->
 @if (TempData["SuccessMessage"] != null)
 {
     <div class="alert alert-success">
@@ -753,7 +727,6 @@
     </div>
 }
 
-<!-- ═══ STAT CARDS ═══ -->
 <div class="stats-row">
     <div class="stat-card">
         <div class="stat-icon"><i class="fas fa-vial"></i></div>
@@ -778,14 +751,12 @@
     </div>
 </div>
 
-<!-- ═══ HEALTH RING + TREND MINI ═══ -->
 @{
-    var circumference = 2 * Math.PI * 65;   // r=65
+    var circumference = 2 * Math.PI * 65;
     var dashOffset = circumference - (Model.HealthScore / 100.0) * circumference;
 }
 
 <div class="health-grid">
-    <!-- Circular health ring -->
     <div class="health-ring-card">
         <h3><i class="fas fa-heartbeat"></i> Overall Health Status</h3>
         <div class="ring-wrap">
@@ -809,7 +780,6 @@
         <p class="health-status-msg">@Model.HealthStatusMessage</p>
     </div>
 
-    <!-- Trend mini card -->
     <div class="trend-mini-card">
         <h3><i class="fas fa-chart-line"></i> Health Trends</h3>
         <div>
@@ -825,7 +795,6 @@
     </div>
 </div>
 
-<!-- ═══ RECENT TEST RESULTS ═══ -->
 <div class="clean-card">
     <div class="clean-card-header">
         <h3><i class="fas fa-notes-medical"></i> Recent Test Results</h3>
@@ -879,7 +848,6 @@
     }
 </div>
 
-<!-- ═══ UPCOMING TESTS ═══ -->
 <div class="clean-card">
     <div class="clean-card-header">
         <h3><i class="fas fa-calendar-alt"></i> Upcoming Tests</h3>

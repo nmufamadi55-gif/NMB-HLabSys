@@ -14,12 +14,12 @@ namespace NMB_HLabSys.Controllers
     public class AdminController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly IPasswordHasher _passwordHasher;   // ← add this
+        private readonly IPasswordHasher _passwordHasher;
 
-        public AdminController(ApplicationDbContext context, IPasswordHasher passwordHasher)   // ← update
+        public AdminController(ApplicationDbContext context, IPasswordHasher passwordHasher)
         {
             _context = context;
-            _passwordHasher = passwordHasher;   // ← add this
+            _passwordHasher = passwordHasher;
         }
 
         // ============================================
@@ -123,7 +123,6 @@ namespace NMB_HLabSys.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            // Redirect non-admin to the shared profile page
             if (user.UserRole != "Admin")
                 return RedirectToAction("Index", "Profile");
 
@@ -140,6 +139,98 @@ namespace NMB_HLabSys.Controllers
             };
 
             return View(viewModel);
+        }
+
+        public async Task<IActionResult> EditProfile()
+        {
+            var userId = HttpContext.Session.GetInt32("UserID");
+            if (!userId.HasValue)
+                return RedirectToAction("Login", "Account");
+
+            var user = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.UserID == userId.Value);
+
+            if (user == null)
+            {
+                HttpContext.Session.Clear();
+                return RedirectToAction("Login", "Account");
+            }
+
+            if (user.UserRole != "Admin")
+                return RedirectToAction("Index", "Profile");
+
+            var viewModel = new AdminProfileViewModel
+            {
+                UserID = user.UserID,
+                Name = user.Name,
+                Surname = user.Surname,
+                Email = user.Email,
+                ContactNumber = user.ContactNumber,
+                IsActive = user.IsActive,
+                CreatedDate = user.CreatedDate,
+                LastLogin = user.ModifiedDate
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditProfile(AdminProfileViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var userId = HttpContext.Session.GetInt32("UserID");
+            if (!userId.HasValue)
+                return RedirectToAction("Login", "Account");
+
+            var user = await _context.Users.FindAsync(userId.Value);
+            if (user == null)
+                return RedirectToAction("Login", "Account");
+
+            if (user.UserRole != "Admin")
+                return RedirectToAction("Index", "Profile");
+
+            if (string.IsNullOrWhiteSpace(model.Name) || string.IsNullOrWhiteSpace(model.Surname))
+            {
+                ModelState.AddModelError("", "Name and Surname are required.");
+                return View(model);
+            }
+
+            var newEmail = (model.Email ?? "").Trim().ToLower();
+            if (string.IsNullOrWhiteSpace(newEmail))
+            {
+                ModelState.AddModelError("Email", "Email is required.");
+                return View(model);
+            }
+
+            if (newEmail != user.Email.ToLower())
+            {
+                var emailTaken = await _context.Users
+                    .AnyAsync(u => u.Email.ToLower() == newEmail && u.UserID != user.UserID);
+
+                if (emailTaken)
+                {
+                    ModelState.AddModelError("Email", "This email is already registered to another account.");
+                    return View(model);
+                }
+            }
+
+            user.Name = model.Name.Trim();
+            user.Surname = model.Surname.Trim();
+            user.Email = newEmail;
+            user.ContactNumber = model.ContactNumber?.Trim();
+            user.ModifiedDate = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            HttpContext.Session.SetString("UserEmail", newEmail);
+            HttpContext.Session.SetString("UserName", $"{user.Name} {user.Surname}");
+
+            TempData["SuccessMessage"] = "Profile updated successfully!";
+            return RedirectToAction("Profile");
         }
 
         [HttpPost]
@@ -169,6 +260,12 @@ namespace NMB_HLabSys.Controllers
                 return RedirectToAction("Profile");
             }
 
+            if (!IsPasswordComplex(newPassword))
+            {
+                TempData["ErrorMessage"] = "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.";
+                return RedirectToAction("Profile");
+            }
+
             if (newPassword != confirmPassword)
             {
                 TempData["ErrorMessage"] = "New password and confirmation do not match.";
@@ -194,6 +291,15 @@ namespace NMB_HLabSys.Controllers
 
             TempData["SuccessMessage"] = "Password changed successfully.";
             return RedirectToAction("Profile");
+        }
+
+        private static bool IsPasswordComplex(string password)
+        {
+            if (string.IsNullOrEmpty(password) || password.Length < 8) return false;
+            return password.Any(char.IsUpper)
+                && password.Any(char.IsLower)
+                && password.Any(char.IsDigit)
+                && password.Any(ch => !char.IsLetterOrDigit(ch));
         }
 
         // ============================================
@@ -238,6 +344,13 @@ namespace NMB_HLabSys.Controllers
             if (string.IsNullOrWhiteSpace(categoryType))
             {
                 TempData["ErrorMessage"] = "Category type is required";
+                return RedirectToAction("Categories");
+            }
+
+            var validCategoryTypes = new[] { "Condition", "Allergy", "Medication" };
+            if (!validCategoryTypes.Contains(categoryType))
+            {
+                TempData["ErrorMessage"] = "❌ Invalid category type. Must be Condition, Allergy, or Medication.";
                 return RedirectToAction("Categories");
             }
 
@@ -310,6 +423,13 @@ namespace NMB_HLabSys.Controllers
         public async Task<IActionResult> EditCategory(ManageCategoryViewModel model)
         {
             if (!ModelState.IsValid) return View(model);
+
+            var validCategoryTypes = new[] { "Condition", "Allergy", "Medication" };
+            if (!validCategoryTypes.Contains(model.CategoryType))
+            {
+                ModelState.AddModelError("CategoryType", "Invalid category type. Must be Condition, Allergy, or Medication.");
+                return View(model);
+            }
 
             try
             {
@@ -432,6 +552,18 @@ namespace NMB_HLabSys.Controllers
             if (string.IsNullOrWhiteSpace(conditionName))
             {
                 TempData["ErrorMessage"] = "Condition name is required";
+                return RedirectToAction("Conditions");
+            }
+
+            // Validate category exists, is active, and is the right type
+            var category = await _context.LookupCategories
+                .FirstOrDefaultAsync(c => c.CategoryID == categoryId
+                                       && c.CategoryType == "Condition"
+                                       && c.IsActive);
+
+            if (category == null)
+            {
+                TempData["ErrorMessage"] = "❌ Please select a valid active Condition category.";
                 return RedirectToAction("Conditions");
             }
 
@@ -626,6 +758,18 @@ namespace NMB_HLabSys.Controllers
                 return RedirectToAction("Allergies");
             }
 
+            // Validate category exists, is active, and is the right type
+            var category = await _context.LookupCategories
+                .FirstOrDefaultAsync(c => c.CategoryID == categoryId
+                                       && c.CategoryType == "Allergy"
+                                       && c.IsActive);
+
+            if (category == null)
+            {
+                TempData["ErrorMessage"] = "❌ Please select a valid active Allergy category.";
+                return RedirectToAction("Allergies");
+            }
+
             try
             {
                 var trimmedName = allergyName.Trim();
@@ -814,6 +958,18 @@ namespace NMB_HLabSys.Controllers
             if (string.IsNullOrWhiteSpace(medicationName))
             {
                 TempData["ErrorMessage"] = "Medication name is required";
+                return RedirectToAction("Medications");
+            }
+
+            // Validate category exists, is active, and is the right type
+            var category = await _context.LookupCategories
+                .FirstOrDefaultAsync(c => c.CategoryID == categoryId
+                                       && c.CategoryType == "Medication"
+                                       && c.IsActive);
+
+            if (category == null)
+            {
+                TempData["ErrorMessage"] = "❌ Please select a valid active Medication category.";
                 return RedirectToAction("Medications");
             }
 

@@ -6,11 +6,12 @@
     ViewData["Title"] = "My Profile";
     ViewData["RoleSubtitle"] = "Patient Portal";
     ViewData["UserGreeting"] = $"{Model.FullName} (ID: {Model.SAIDNumber})";
-    ViewData["UserInitials"] = Model.FirstName.Substring(0, 1) + Model.LastName.Substring(0, 1);
+    ViewData["UserInitials"] = (Model.FirstName?.Substring(0, 1) ?? "P") + (Model.LastName?.Substring(0, 1) ?? "");
 }
 
 @section SidebarMenu {
     <li><a href="@Url.Action("Dashboard", "Patient")"><i class="fas fa-notes-medical"></i> <span>My Results</span></a></li>
+    <li><a href="@Url.Action("Requests", "Patient")"><i class="fas fa-vials"></i> <span>My Requests</span></a></li>
     <li><a href="@Url.Action("MedicalHistory", "Patient")"><i class="fas fa-history"></i> <span>Medical History</span></a></li>
     <li><a href="@Url.Action("Consent", "Patient")"><i class="fas fa-hand-peace"></i> <span>Consent</span></a></li>
     <li><a href="@Url.Action("Trends", "Patient")"><i class="fas fa-chart-line"></i> <span>Trends</span></a></li>
@@ -20,7 +21,6 @@
 <style>
     :root {
         --p-teal: #0891B2;
-        --p-teal-light: #06B6D4;
         --p-teal-grad: linear-gradient(135deg, #0891B2 0%, #06B6D4 100%);
         --p-navy: #0F172A;
         --p-text: #1E293B;
@@ -28,7 +28,6 @@
         --p-text-muted: #94A3B8;
         --p-border: #E2E8F0;
         --p-bg-soft: #F8FAFC;
-        --p-success: #059669;
         --p-danger: #DC2626;
         --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
         --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06), 0 2px 6px rgba(15, 23, 42, 0.04);
@@ -36,7 +35,6 @@
         --radius: 16px;
     }
 
-    /* ═══ HERO — image fully visible ═══ */
     .page-hero {
         position: relative;
         margin: -1.2rem -1.2rem 2rem -1.2rem;
@@ -68,7 +66,7 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient( to bottom, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 0) 40%, rgba(15, 23, 42, 0.25) 70%, rgba(15, 23, 42, 0.65) 100% );
+            background: linear-gradient(to bottom, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 0) 40%, rgba(15, 23, 42, 0.25) 70%, rgba(15, 23, 42, 0.65) 100%);
             z-index: 1;
         }
 
@@ -187,7 +185,6 @@
             color: white;
         }
 
-    /* ═══ CARDS ═══ */
     .clean-card {
         background: white;
         border-radius: var(--radius);
@@ -232,8 +229,7 @@
         flex-wrap: wrap;
     }
 
-        .clean-card-header h3,
-        .clean-card-header h4 {
+        .clean-card-header h3, .clean-card-header h4 {
             margin: 0;
             color: var(--p-navy);
             font-size: 1rem;
@@ -243,8 +239,7 @@
             gap: 0.55rem;
         }
 
-            .clean-card-header h3 i,
-            .clean-card-header h4 i {
+            .clean-card-header h3 i, .clean-card-header h4 i {
                 color: var(--p-teal);
                 font-size: 0.95rem;
             }
@@ -253,7 +248,6 @@
         padding: 1.5rem;
     }
 
-    /* ═══ PROFILE LAYOUT ═══ */
     .profile-grid {
         display: grid;
         grid-template-columns: 340px 1fr;
@@ -262,12 +256,9 @@
     }
 
     @@media (max-width: 900px) {
-        .profile-grid
-
-    {
-        grid-template-columns: 1fr;
-    }
-
+        .profile-grid {
+            grid-template-columns: 1fr;
+        }
     }
 
     .profile-main-card {
@@ -363,7 +354,6 @@
         word-break: break-word;
     }
 
-    /* ═══ MEDICAL SECTION ═══ */
     .medical-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -371,12 +361,9 @@
     }
 
     @@media (max-width: 768px) {
-        .medical-grid
-
-    {
-        grid-template-columns: 1fr;
-    }
-
+        .medical-grid {
+            grid-template-columns: 1fr;
+        }
     }
 
     .list-item {
@@ -437,7 +424,6 @@
             font-size: 0.82rem;
         }
 
-    /* ═══ PASSWORD CARD ═══ */
     .password-card {
         max-width: 600px;
     }
@@ -470,6 +456,13 @@
                 border-color: var(--p-teal);
                 box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.12);
             }
+
+        .form-group .password-hint {
+            font-size: 0.72rem;
+            color: var(--p-text-muted);
+            margin-top: 0.3rem;
+            display: block;
+        }
 
     .btn {
         display: inline-flex;
@@ -507,7 +500,6 @@
             box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
         }
 
-    /* ═══ ALERTS ═══ */
     .alert {
         padding: 0.85rem 1.2rem;
         border-radius: 12px;
@@ -531,44 +523,39 @@
         border-left: 3px solid #DC2626;
     }
 
-    /* ═══ RESPONSIVE ═══ */
     @@media (max-width: 768px) {
-        .page-hero
+        .page-hero {
+            margin: -0.8rem -0.8rem 1.5rem -0.8rem;
+            height: 280px;
+            padding: 1.2rem;
+        }
 
-    {
-        margin: -0.8rem -0.8rem 1.5rem -0.8rem;
-        height: 280px;
-        padding: 1.2rem;
-    }
+        .hero-pill {
+            padding: 1.1rem 1.3rem;
+            gap: 1rem;
+        }
 
-    .hero-pill {
-        padding: 1.1rem 1.3rem;
-        gap: 1rem;
-    }
+        .hero-text h1 {
+            font-size: 1.4rem;
+        }
 
-    .hero-text h1 {
-        font-size: 1.4rem;
-    }
+        .hero-avatar {
+            width: 64px;
+            height: 64px;
+            font-size: 1.4rem;
+        }
 
-    .hero-avatar {
-        width: 64px;
-        height: 64px;
-        font-size: 1.4rem;
-    }
+        .hero-actions {
+            margin-left: 0;
+            width: 100%;
+        }
 
-    .hero-actions {
-        margin-left: 0;
-        width: 100%;
-    }
-
-    .clean-card-body {
-        padding: 1.2rem;
-    }
-
+        .clean-card-body {
+            padding: 1.2rem;
+        }
     }
 </style>
 
-<!-- ═══ HERO ═══ -->
 <div class="page-hero">
     <div class="hero-pill">
         <div class="hero-avatar">
@@ -587,7 +574,6 @@
     </div>
 </div>
 
-<!-- ═══ ALERTS ═══ -->
 @if (TempData["SuccessMessage"] != null)
 {
     <div class="alert alert-success">
@@ -604,9 +590,7 @@
     </div>
 }
 
-<!-- ═══ PROFILE GRID ═══ -->
 <div class="profile-grid">
-    <!-- Main profile card -->
     <div class="clean-card">
         <div class="profile-main-card">
             <div class="avatar-large">
@@ -645,9 +629,7 @@
         </div>
     </div>
 
-    <!-- Medical overview -->
     <div>
-        <!-- Conditions -->
         <div class="clean-card">
             <div class="clean-card-header">
                 <h4><i class="fas fa-stethoscope"></i> Medical Conditions</h4>
@@ -676,7 +658,6 @@
             </div>
         </div>
 
-        <!-- Allergies + Medications -->
         <div class="medical-grid">
             <div class="clean-card" style="margin-bottom: 0;">
                 <div class="clean-card-header">
@@ -737,14 +718,12 @@
     </div>
 </div>
 
-<!-- ═══ CHANGE PASSWORD ═══ -->
 <div class="clean-card password-card">
     <div class="clean-card-header">
         <h3><i class="fas fa-lock"></i> Change Password</h3>
     </div>
     <div class="clean-card-body">
-        <form method="post" action="/Profile/ChangePassword">
-            @* @Html.AntiForgeryToken() *@
+        <form method="post" asp-action="ChangePassword" asp-controller="Patient">
 
             <div class="form-group">
                 <label>Current Password *</label>
@@ -753,12 +732,13 @@
 
             <div class="form-group">
                 <label>New Password *</label>
-                <input type="password" name="newPassword" required />
+                <input type="password" name="newPassword" required minlength="8" />
+                <span class="password-hint">Min 8 characters, one uppercase, one number, one special character.</span>
             </div>
 
             <div class="form-group">
                 <label>Confirm New Password *</label>
-                <input type="password" name="confirmPassword" required />
+                <input type="password" name="confirmPassword" required minlength="8" />
             </div>
 
             <button type="submit" class="btn btn-primary">

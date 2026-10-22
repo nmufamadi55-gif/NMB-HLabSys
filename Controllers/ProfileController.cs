@@ -59,7 +59,14 @@ namespace NMB_HLabSys.Controllers
             // Doctor, Technician, Manager, Admin → shared profile page
             return RedirectToAction("Index", "Profile", new { tab });
         }
-
+        private static bool IsPasswordComplex(string password)
+        {
+            if (string.IsNullOrEmpty(password) || password.Length < 8) return false;
+            return password.Any(char.IsUpper)
+                && password.Any(char.IsLower)
+                && password.Any(char.IsDigit)
+                && password.Any(ch => !char.IsLetterOrDigit(ch));
+        }
         // ═══════════════════════════════════════════════════════════
         // GET: /Profile/Index
         // ═══════════════════════════════════════════════════════════
@@ -180,6 +187,12 @@ namespace NMB_HLabSys.Controllers
             if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 8)
             {
                 TempData["ErrorMessage"] = "New password must be at least 8 characters.";
+                return RedirectToProfileTab("security");
+            }
+
+            if (!IsPasswordComplex(newPassword))
+            {
+                TempData["ErrorMessage"] = "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.";
                 return RedirectToProfileTab("security");
             }
 

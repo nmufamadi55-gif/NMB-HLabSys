@@ -6,6 +6,7 @@ using NMB_HLabSys.ViewModels.PatientViewModels;
 using NMB_HLabSys.Services;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -31,7 +32,7 @@ namespace NMB_HLabSys.Controllers
             _emailService = emailService;
         }
 
-        // GET LOGGED-IN PATIENT
+        // ─── GET LOGGED-IN PATIENT ───
         private async Task<Patient> GetLoggedInPatient()
         {
             var userId = HttpContext.Session.GetInt32("UserID");
@@ -42,10 +43,22 @@ namespace NMB_HLabSys.Controllers
                 .FirstOrDefaultAsync(p => p.UserID == userId.Value && p.IsActive);
         }
 
+        // ─── Formats "12 - 16 g/dL" using invariant culture (fixes 12,0000) ───
+        private static string FormatNormalRange(decimal? min, decimal? max, string unit)
+        {
+            var inv = CultureInfo.InvariantCulture;
+            if (!min.HasValue && !max.HasValue) return "N/A";
+            if (min.HasValue && max.HasValue)
+                return $"{min.Value.ToString("0.##", inv)} - {max.Value.ToString("0.##", inv)}" +
+                       (string.IsNullOrWhiteSpace(unit) ? "" : $" {unit}");
+            if (min.HasValue) return $"≥ {min.Value.ToString("0.##", inv)} {unit}".Trim();
+            return $"≤ {max.Value.ToString("0.##", inv)} {unit}".Trim();
+        }
+
         // ============================================
-        // DOWNLOAD TEST RESULTS PDF — 24 month default
+        // DOWNLOAD TEST RESULTS PDF (optionally per-request)
         // ============================================
-        public async Task<IActionResult> DownloadTestResultsPDF(DateTime? fromDate, DateTime? toDate)
+        public async Task<IActionResult> DownloadTestResultsPDF(DateTime? fromDate, DateTime? toDate, int? requestId)
         {
             var patient = await GetLoggedInPatient();
             if (patient == null) return RedirectToAction("Login", "Account");
@@ -55,7 +68,6 @@ namespace NMB_HLabSys.Controllers
 
             try
             {
-                // Reload patient with all related data needed for PDF
                 var patientWithHistory = await _context.Patients
                     .Include(p => p.TestRequests)
                         .ThenInclude(r => r.RequestTestTypes)
@@ -71,6 +83,19 @@ namespace NMB_HLabSys.Controllers
                 {
                     TempData["ErrorMessage"] = "Could not load patient data.";
                     return RedirectToAction("Dashboard");
+                }
+
+                // If a specific request was requested, enforce ownership + release gate
+                if (requestId.HasValue)
+                {
+                    var req = patientWithHistory.TestRequests
+                        .FirstOrDefault(r => r.RequestID == requestId.Value);
+
+                    if (req == null ||
+                        (req.Status != "Released" && req.Status != "Appointment Requested"))
+                        return Forbid();
+
+                    patientWithHistory.TestRequests = new List<TestRequest> { req };
                 }
 
                 var pdfBytes = _pdfReportService.GeneratePatientTestResultsPdf(patientWithHistory, from, to);
@@ -117,7 +142,69 @@ namespace NMB_HLabSys.Controllers
         }
 
         // ============================================
-        // DASHBOARD — only shows RELEASED results
+        // ALL TEST REQUESTS (with status filter)
+        // ============================================
+        public async Task<IActionResult> Requests(string status = null)
+        {
+            var patient = await GetLoggedInPatient();
+            if (patient == null) return RedirectToAction("Login", "Account");
+
+            var query = _context.TestRequests
+                .Include(tr => tr.Doctor).ThenInclude(d => d.User)
+                .Include(tr => tr.RequestTestTypes).ThenInclude(rtt => rtt.TestType).ThenInclude(t => t.Category)
+                .Include(tr => tr.RequestTestTypes).ThenInclude(rtt => rtt.TestResults)
+                .Where(tr => tr.PatientID == patient.PatientID)
+                .AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(status))
+                query = query.Where(tr => tr.Status == status);
+
+            var requests = await query
+                .OrderByDescending(tr => tr.RequestDate)
+                .ToListAsync();
+
+            var vm = new PatientRequestsViewModel
+            {
+                PatientID = patient.PatientID,
+                FullName = $"{patient.FirstName} {patient.LastName}",
+                Requests = requests.Select(tr => new TestRequestSummaryViewModel
+                {
+                    TestRequestID = tr.RequestID,
+                    RequestNumber = tr.RequestNumber ?? $"REQ-{tr.RequestID}",
+                    RequestDate = tr.RequestDate,
+                    Status = tr.Status ?? "Unknown",
+                    Urgency = tr.Urgency ?? "Routine",
+                    DoctorName = tr.Doctor?.User != null
+                        ? $"Dr. {tr.Doctor.User.Name} {tr.Doctor.User.Surname}".Trim()
+                        : "Unknown Doctor",
+                    TestCount = tr.RequestTestTypes?.Count ?? 0,
+                    CanViewResults = tr.Status == "Released" || tr.Status == "Appointment Requested",
+                    IsCancelled = tr.Status == "Cancelled",
+                    CancellationReason = tr.CancellationReason,
+                    Results = (tr.RequestTestTypes ?? new List<RequestTestType>())
+                        .Where(rtt => rtt.TestResults != null && rtt.TestResults.Any())
+                        .SelectMany(rtt => rtt.TestResults.Select(res => new TestResultRowViewModel
+                        {
+                            TestResultID = res.ResultID,
+                            TestName = rtt.TestType?.TestName ?? "Unknown Test",
+                            CategoryName = rtt.TestType?.Category?.CategoryName ?? "",
+                            ResultValue = res.ResultValue ?? "",
+                            Unit = rtt.TestType?.UnitOfMeasurement ?? "",
+                            NormalRangeDisplay = FormatNormalRange(
+                                rtt.TestType?.NormalRangeMin,
+                                rtt.TestType?.NormalRangeMax,
+                                rtt.TestType?.UnitOfMeasurement),
+                            IsAbnormal = res.IsAbnormal,
+                            StatusLabel = res.IsAbnormal ? "Abnormal" : "Normal"
+                        })).ToList()
+                }).ToList()
+            };
+
+            return View(vm);
+        }
+
+        // ============================================
+        // DASHBOARD
         // ============================================
         public async Task<IActionResult> Dashboard()
         {
@@ -150,7 +237,7 @@ namespace NMB_HLabSys.Controllers
                                   || tr.RequestTestType.TestRequest.Status == "Appointment Requested"))
                     .CountAsync();
 
-                var recentResults = await _context.TestResults
+                var recentResultsRaw = await _context.TestResults
                     .Include(tr => tr.RequestTestType)
                         .ThenInclude(rtt => rtt.TestType)
                     .Include(tr => tr.RequestTestType)
@@ -164,26 +251,28 @@ namespace NMB_HLabSys.Controllers
                                   || tr.RequestTestType.TestRequest.Status == "Appointment Requested"))
                     .OrderByDescending(tr => tr.RequestTestType.TestRequest.RequestDate)
                     .Take(5)
-                    .Select(tr => new RecentTestResultViewModel
-                    {
-                        TestRequestID = tr.RequestTestType.RequestTestID,
-                        RequestDate = tr.RequestTestType.TestRequest.RequestDate,
-                        TestName = tr.RequestTestType.TestType != null ? tr.RequestTestType.TestType.TestName : "Unknown Test",
-                        ResultValue = tr.ResultValue ?? "Pending",
-                        NormalRange = tr.RequestTestType.TestType != null
-                            && tr.RequestTestType.TestType.NormalRangeMin.HasValue
-                            && tr.RequestTestType.TestType.NormalRangeMax.HasValue
-                            ? $"{tr.RequestTestType.TestType.NormalRangeMin} - {tr.RequestTestType.TestType.NormalRangeMax}"
-                            : "N/A",
-                        Status = tr.IsAbnormal ? "Abnormal" : "Normal",
-                        DoctorName = tr.RequestTestType.TestRequest.Doctor != null
-                            && tr.RequestTestType.TestRequest.Doctor.User != null
-                            ? $"Dr. {tr.RequestTestType.TestRequest.Doctor.User.Name} {tr.RequestTestType.TestRequest.Doctor.User.Surname}"
-                            : "Unknown Doctor",
-                        ReportUrl = "#",
-                        IsAbnormal = tr.IsAbnormal
-                    })
                     .ToListAsync();
+
+                var recentResults = recentResultsRaw.Select(tr => new RecentTestResultViewModel
+                {
+                    TestRequestID = tr.RequestTestType.RequestTestID,
+                    RequestDate = tr.RequestTestType.TestRequest.RequestDate,
+                    TestName = tr.RequestTestType.TestType != null ? tr.RequestTestType.TestType.TestName : "Unknown Test",
+                    ResultValue = tr.ResultValue ?? "Pending",
+                    NormalRange = tr.RequestTestType.TestType != null
+                        ? FormatNormalRange(
+                            tr.RequestTestType.TestType.NormalRangeMin,
+                            tr.RequestTestType.TestType.NormalRangeMax,
+                            tr.RequestTestType.TestType.UnitOfMeasurement)
+                        : "N/A",
+                    Status = tr.IsAbnormal ? "Abnormal" : "Normal",
+                    DoctorName = tr.RequestTestType.TestRequest.Doctor != null
+                        && tr.RequestTestType.TestRequest.Doctor.User != null
+                        ? $"Dr. {tr.RequestTestType.TestRequest.Doctor.User.Name} {tr.RequestTestType.TestRequest.Doctor.User.Surname}"
+                        : "Unknown Doctor",
+                    ReportUrl = "#",
+                    IsAbnormal = tr.IsAbnormal
+                }).ToList();
 
                 var upcomingTests = await _context.TestRequests
                     .Where(tr => tr.PatientID == patient.PatientID
@@ -218,7 +307,7 @@ namespace NMB_HLabSys.Controllers
 
                 return View(viewModel);
             }
-            catch (Exception ex)
+            catch
             {
                 var viewModel = new PatientDashboardViewModel
                 {
@@ -318,7 +407,9 @@ namespace NMB_HLabSys.Controllers
             return View(viewModel);
         }
 
+        // ============================================
         // EDIT PROFILE
+        // ============================================
         public async Task<IActionResult> EditProfile()
         {
             var patient = await GetLoggedInPatient();
@@ -344,10 +435,31 @@ namespace NMB_HLabSys.Controllers
             var patient = await GetLoggedInPatient();
             if (patient == null) return RedirectToAction("Login", "Account");
 
+            var newEmail = (model.Email ?? "").Trim().ToLower();
+            if (string.IsNullOrWhiteSpace(newEmail))
+            {
+                ModelState.AddModelError("Email", "Email is required.");
+                return View(model);
+            }
+
+            var currentEmail = (patient.User?.Email ?? patient.Email ?? "").ToLower();
+            if (newEmail != currentEmail)
+            {
+                var emailTaken = await _context.Users
+                    .AnyAsync(u => u.Email.ToLower() == newEmail && u.UserID != patient.UserID);
+
+                if (emailTaken)
+                {
+                    ModelState.AddModelError("Email", "This email is already registered to another account.");
+                    return View(model);
+                }
+            }
+
             patient.FirstName = model.FirstName.Trim();
             patient.LastName = model.LastName.Trim();
             patient.Cellphone = model.Cellphone.Trim();
             patient.HomeAddress = model.HomeAddress?.Trim();
+            patient.Email = newEmail;
             patient.ModifiedDate = DateTime.Now;
 
             if (patient.User != null)
@@ -355,10 +467,71 @@ namespace NMB_HLabSys.Controllers
                 patient.User.Name = model.FirstName.Trim();
                 patient.User.Surname = model.LastName.Trim();
                 patient.User.ContactNumber = model.Cellphone.Trim();
+                patient.User.Email = newEmail;
+                patient.User.ModifiedDate = DateTime.Now;
             }
 
             await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Profile updated!";
+
+            HttpContext.Session.SetString("UserEmail", newEmail);
+            HttpContext.Session.SetString("UserName", $"{patient.FirstName} {patient.LastName}");
+
+            TempData["SuccessMessage"] = "Profile updated successfully!";
+            return RedirectToAction("Profile");
+        }
+
+        // ============================================
+        // CHANGE PASSWORD
+        // ============================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(string currentPassword, string newPassword, string confirmPassword)
+        {
+            var patient = await GetLoggedInPatient();
+            if (patient == null) return RedirectToAction("Login", "Account");
+
+            if (string.IsNullOrWhiteSpace(currentPassword) ||
+                string.IsNullOrWhiteSpace(newPassword) ||
+                string.IsNullOrWhiteSpace(confirmPassword))
+            {
+                TempData["ErrorMessage"] = "All password fields are required.";
+                return RedirectToAction("Profile");
+            }
+
+            if (newPassword != confirmPassword)
+            {
+                TempData["ErrorMessage"] = "New password and confirmation do not match.";
+                return RedirectToAction("Profile");
+            }
+
+            // Enforce password rules: >=8, upper, number, special char
+            if (newPassword.Length < 8 ||
+                !Regex.IsMatch(newPassword, "[A-Z]") ||
+                !Regex.IsMatch(newPassword, "[0-9]") ||
+                !Regex.IsMatch(newPassword, @"[^A-Za-z0-9]"))
+            {
+                TempData["ErrorMessage"] = "New password must be 8+ characters with at least one uppercase letter, one number, and one special character.";
+                return RedirectToAction("Profile");
+            }
+
+            if (patient.User == null)
+            {
+                TempData["ErrorMessage"] = "User account not found.";
+                return RedirectToAction("Profile");
+            }
+
+            if (!_passwordHasher.VerifyPassword(currentPassword, patient.User.PasswordHash))
+            {
+                TempData["ErrorMessage"] = "Current password is incorrect.";
+                return RedirectToAction("Profile");
+            }
+
+            patient.User.PasswordHash = _passwordHasher.HashPassword(newPassword);
+            patient.User.IsPasswordChanged = true;
+            patient.User.ModifiedDate = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Password changed successfully.";
             return RedirectToAction("Profile");
         }
 
@@ -428,6 +601,12 @@ namespace NMB_HLabSys.Controllers
             var patient = await GetLoggedInPatient();
             if (patient == null) return Json(new { success = false, message = "Not authenticated" });
 
+            var conditionExists = await _context.MedicalConditions
+                .AnyAsync(c => c.ConditionID == conditionId && c.IsActive);
+
+            if (!conditionExists)
+                return Json(new { success = false, message = "Selected condition not found." });
+
             var exists = await _context.PatientConditions
                 .AnyAsync(pc => pc.PatientID == patient.PatientID && pc.ConditionID == conditionId && pc.IsActive);
             if (exists) return Json(new { success = false, message = "Already have this condition" });
@@ -469,6 +648,16 @@ namespace NMB_HLabSys.Controllers
             var patient = await GetLoggedInPatient();
             if (patient == null) return Json(new { success = false, message = "Not authenticated" });
 
+            var allergyExists = await _context.Allergies
+                .AnyAsync(a => a.AllergyID == allergyId && a.IsActive);
+
+            if (!allergyExists)
+                return Json(new { success = false, message = "Selected allergy not found." });
+
+            var validSeverities = new[] { "Mild", "Moderate", "Severe", "Unknown" };
+            if (!validSeverities.Contains(severity ?? "Unknown"))
+                return Json(new { success = false, message = "Invalid severity value." });
+
             var exists = await _context.PatientAllergies
                 .AnyAsync(pa => pa.PatientID == patient.PatientID && pa.AllergyID == allergyId);
             if (exists) return Json(new { success = false, message = "Already have this allergy" });
@@ -509,6 +698,15 @@ namespace NMB_HLabSys.Controllers
             var patient = await GetLoggedInPatient();
             if (patient == null) return Json(new { success = false, message = "Not authenticated" });
 
+            var medicationExists = await _context.Medications
+                .AnyAsync(m => m.MedicationID == medicationId && m.IsActive);
+
+            if (!medicationExists)
+                return Json(new { success = false, message = "Selected medication not found." });
+
+            if (startDate.HasValue && endDate.HasValue && endDate < startDate)
+                return Json(new { success = false, message = "End date cannot be before start date." });
+
             var exists = await _context.PatientMedications
                 .AnyAsync(pm => pm.PatientID == patient.PatientID && pm.MedicationID == medicationId);
             if (exists) return Json(new { success = false, message = "Already have this medication" });
@@ -545,7 +743,7 @@ namespace NMB_HLabSys.Controllers
         }
 
         // ============================================
-        // CONSENT — GET (loads requests for picker)
+        // CONSENT
         // ============================================
         public async Task<IActionResult> Consent()
         {
@@ -600,9 +798,6 @@ namespace NMB_HLabSys.Controllers
             return View(viewModel);
         }
 
-        // ============================================
-        // GRANT CONSENT
-        // ============================================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> GrantConsent(int doctorId, int[] requestIds, string? notes)
@@ -612,6 +807,10 @@ namespace NMB_HLabSys.Controllers
 
             if (requestIds == null || requestIds.Length == 0)
                 return Json(new { success = false, message = "Please select at least one test request to share." });
+
+            var doctorExists = await _context.Doctors.AnyAsync(d => d.DoctorID == doctorId);
+            if (!doctorExists)
+                return Json(new { success = false, message = "Selected doctor not found." });
 
             var existing = await _context.PatientConsentManagements
                 .FirstOrDefaultAsync(pcm => pcm.PatientID == patient.PatientID && pcm.DoctorID == doctorId && pcm.IsActive);
@@ -678,9 +877,6 @@ namespace NMB_HLabSys.Controllers
             return Json(new { success = true, message = $"Consent granted for {validRequestIds.Count} request(s)!" });
         }
 
-        // ============================================
-        // REVOKE CONSENT
-        // ============================================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RevokeConsent(int consentId)
@@ -704,7 +900,7 @@ namespace NMB_HLabSys.Controllers
         }
 
         // ============================================
-        // TRENDS — 24 month default range
+        // TRENDS
         // ============================================
         public async Task<IActionResult> Trends(string testType = null, DateTime? fromDate = null, DateTime? toDate = null)
         {
@@ -836,10 +1032,28 @@ namespace NMB_HLabSys.Controllers
                 return View(model);
             }
 
+            if (!IsValidSaIdChecksum(model.SAIDNumber))
+            {
+                ModelState.AddModelError("SAIDNumber", "SA ID number is invalid. Please check and try again.");
+                return View(model);
+            }
+
             if (model.DateOfBirth.Date != expectedDob.Value.Date)
             {
                 ModelState.AddModelError("DateOfBirth",
                     $"Date of birth must match the SA ID number (the ID indicates {expectedDob.Value:yyyy-MM-dd}).");
+                return View(model);
+            }
+
+            // Password rules: >=8, upper, number, special char
+            if (string.IsNullOrEmpty(model.Password) ||
+                model.Password.Length < 8 ||
+                !Regex.IsMatch(model.Password, "[A-Z]") ||
+                !Regex.IsMatch(model.Password, "[0-9]") ||
+                !Regex.IsMatch(model.Password, @"[^A-Za-z0-9]"))
+            {
+                ModelState.AddModelError("Password",
+                    "Password must be at least 8 characters and contain one uppercase letter, one number, and one special character.");
                 return View(model);
             }
 
@@ -889,6 +1103,7 @@ namespace NMB_HLabSys.Controllers
             return RedirectToAction("Login", "Account");
         }
 
+        // ─── SA ID DOB extraction ───
         private DateTime? ExtractDobFromSaId(string saId)
         {
             if (string.IsNullOrWhiteSpace(saId) || !Regex.IsMatch(saId, @"^\d{13}$"))
@@ -910,15 +1125,34 @@ namespace NMB_HLabSys.Controllers
                 return null;
             }
         }
-    }
 
-    public class EditPatientProfileViewModel
-    {
-        public int PatientID { get; set; }
-        public string FirstName { get; set; } = string.Empty;
-        public string LastName { get; set; } = string.Empty;
-        public string Cellphone { get; set; } = string.Empty;
-        public string HomeAddress { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
+        // ─── SA ID Luhn checksum validation ───
+        private static bool IsValidSaIdChecksum(string saId)
+        {
+            if (string.IsNullOrWhiteSpace(saId) || !Regex.IsMatch(saId, @"^\d{13}$"))
+                return false;
+
+            int sum = 0;
+            bool doubleDigit = false;
+
+            for (int i = saId.Length - 2; i >= 0; i--)
+            {
+                int digit = saId[i] - '0';
+
+                if (doubleDigit)
+                {
+                    digit *= 2;
+                    if (digit > 9) digit -= 9;
+                }
+
+                sum += digit;
+                doubleDigit = !doubleDigit;
+            }
+
+            int checkDigit = (10 - (sum % 10)) % 10;
+            int lastDigit = saId[saId.Length - 1] - '0';
+
+            return checkDigit == lastDigit;
+        }
     }
 }

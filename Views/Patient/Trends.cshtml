@@ -12,6 +12,7 @@
 
 @section SidebarMenu {
     <li><a href="@Url.Action("Dashboard", "Patient")"><i class="fas fa-notes-medical"></i> <span>My Results</span></a></li>
+    <li><a href="@Url.Action("Requests", "Patient")"><i class="fas fa-vials"></i> <span>My Requests</span></a></li>
     <li><a href="@Url.Action("MedicalHistory", "Patient")"><i class="fas fa-history"></i> <span>Medical History</span></a></li>
     <li><a href="@Url.Action("Consent", "Patient")"><i class="fas fa-hand-peace"></i> <span>Consent</span></a></li>
     <li><a href="@Url.Action("Trends", "Patient")" class="active"><i class="fas fa-chart-line"></i> <span>Trends</span></a></li>
@@ -675,10 +676,14 @@ else
                         and <strong>@Model.ToDate.ToString("dd MMM yyyy")</strong>.
                     </p>
                     <p>
-                        Latest value: <strong>@latest.Value.ToString("F2")</strong>
-                        @if (latest.LowerLimit.HasValue && latest.UpperLimit.HasValue)
+                        Latest value: <strong>@latest.Value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)</strong>                        @if (latest.LowerLimit.HasValue && latest.UpperLimit.HasValue)
                         {
-                            <span>(Normal range: @latest.LowerLimit.Value.ToString("F2") - @latest.UpperLimit.Value.ToString("F2"))</span>
+                            <span>
+                                (Normal ra@{
+                                var inv = System.Globalization.CultureInfo.InvariantCulture;
+                            }
+                            <span>(Normal range: @latest.LowerLimit.Value.ToString("0.##", inv) - @latest.UpperLimit.Value.ToString("0.##", inv))</span>nge: @latest.LowerLimit.Value.ToString("F2") - @latest.UpperLimit.Value.ToString("F2"))
+                        </span>
                         }
                     </p>
                     @if (isAboveUpper)

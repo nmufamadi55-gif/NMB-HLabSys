@@ -22,6 +22,7 @@ namespace NMB_HLabSys.ViewModels.PatientViewModels
         [StringLength(500)]
         public string HomeAddress { get; set; }
 
+        [Required]
         [EmailAddress]
         public string Email { get; set; }
     }
