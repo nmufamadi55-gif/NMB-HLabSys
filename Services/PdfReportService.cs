@@ -207,9 +207,9 @@ namespace NMB_HLabSys.Services
 
             if (fromDate > toDate) (fromDate, toDate) = (toDate, fromDate);
 
-            var results = (patient.TestRequests ?? Enumerable.Empty<TestRequest>())
-    .Where(r => r.RequestDate >= fromDate && r.RequestDate <= toDate.AddDays(1))
-    .Where(r => r.Status == "Released" || r.Status == "Appointment Requested")
+            var allResults = (patient.TestRequests ?? Enumerable.Empty<TestRequest>())
+                .Where(r => r.RequestDate >= fromDate && r.RequestDate <= toDate.AddDays(1))
+                .Where(r => r.Status == "Released" || r.Status == "Appointment Requested")
                 .SelectMany(r => (r.RequestTestTypes ?? Enumerable.Empty<RequestTestType>())
                     .SelectMany(rt => (rt.TestResults ?? Enumerable.Empty<TestResult>())
                         .Select(t => new
@@ -218,7 +218,7 @@ namespace NMB_HLabSys.Services
                             r.RequestDate,
                             r.Status,
                             TestName = rt.TestType?.TestName ?? "Unknown",
-                            Category = rt.TestType?.Category?.CategoryName ?? "—",
+                            Category = rt.TestType?.Category?.CategoryName ?? "Uncategorized",
                             Unit = rt.TestType?.UnitOfMeasurement ?? "",
                             RangeMin = rt.TestType?.NormalRangeMin,
                             RangeMax = rt.TestType?.NormalRangeMax,
@@ -227,11 +227,17 @@ namespace NMB_HLabSys.Services
                             t.ResultDate,
                             t.Notes
                         })))
-                .OrderByDescending(x => x.RequestDate)
-                .ThenBy(x => x.TestName)
+                .ToList();
+
+            var groupedResults = allResults
+                .GroupBy(x => x.Category)
+                .OrderBy(g => g.Key)
                 .ToList();
 
             var fullName = $"{patient.FirstName} {patient.LastName}".Trim();
+            var totalResults = allResults.Count;
+            var abnormalCount = allResults.Count(x => x.IsAbnormal);
+            var requestCount = allResults.Select(x => x.RequestNumber).Distinct().Count();
 
             return Document.Create(container =>
             {
@@ -258,15 +264,16 @@ namespace NMB_HLabSys.Services
                                c.Item().Text("Summary").FontSize(12).Bold().FontColor(Navy);
                                c.Item().PaddingTop(6).Row(row =>
                                {
-                                   SummaryStat(row, "Results", results.Count.ToString());
-                                   SummaryStat(row, "Abnormal", results.Count(x => x.IsAbnormal).ToString());
-                                   SummaryStat(row, "Requests", results.Select(x => x.RequestNumber).Distinct().Count().ToString());
+                                   SummaryStat(row, "Results", totalResults.ToString());
+                                   SummaryStat(row, "Abnormal", abnormalCount.ToString());
+                                   SummaryStat(row, "Requests", requestCount.ToString());
+                                   SummaryStat(row, "Categories", groupedResults.Count.ToString());
                                });
                            });
 
                         col.Item().PaddingTop(20);
 
-                        if (results.Count == 0)
+                        if (totalResults == 0)
                         {
                             col.Item()
                                .Border(1).BorderColor(Border)
@@ -277,50 +284,90 @@ namespace NMB_HLabSys.Services
                             return;
                         }
 
-                        col.Item().Text("1. Test Results").FontSize(13).Bold().FontColor(Navy);
-                        col.Item().PaddingBottom(6).Text(" ").FontSize(1);
+                        col.Item().Text("Test Results by Category")
+                           .FontSize(13).Bold().FontColor(Navy);
+                        col.Item().PaddingBottom(10).Text(" ").FontSize(1);
 
-                        col.Item().Table(table =>
+                        int categoryIndex = 1;
+                        foreach (var category in groupedResults)
                         {
-                            table.ColumnsDefinition(cols =>
+                            var categoryResults = category
+                                .OrderByDescending(x => x.RequestDate)
+                                .ThenBy(x => x.TestName)
+                                .ToList();
+
+                            var categoryAbnormal = categoryResults.Count(x => x.IsAbnormal);
+
+                            col.Item().PaddingTop(categoryIndex == 1 ? 0 : 15);
+
+                            col.Item()
+                               .Background(Navy)
+                               .Padding(10)
+                               .Row(row =>
+                               {
+                                   row.RelativeItem().Column(c =>
+                                   {
+                                       c.Item().Text($"{categoryIndex}. {category.Key}")
+                                          .FontSize(12).Bold().FontColor(Colors.White);
+                                       c.Item().Text($"{categoryResults.Count} result{(categoryResults.Count == 1 ? "" : "s")} {(categoryAbnormal > 0 ? $"• {categoryAbnormal} abnormal" : "")}")
+                                          .FontSize(9).FontColor(Colors.White).Italic();
+                                   });
+                               });
+
+                            col.Item().Table(table =>
                             {
-                                cols.ConstantColumn(60);
-                                cols.ConstantColumn(55);
-                                cols.RelativeColumn(3);
-                                cols.RelativeColumn(2);
-                                cols.RelativeColumn(2);
-                                cols.RelativeColumn(2);
+                                table.ColumnsDefinition(cols =>
+                                {
+                                    cols.ConstantColumn(55);
+                                    cols.ConstantColumn(55);
+                                    cols.RelativeColumn(3);
+                                    cols.RelativeColumn(2);
+                                    cols.RelativeColumn(2);
+                                    cols.ConstantColumn(50);
+                                });
+
+                                table.Header(h =>
+                                {
+                                    h.Cell().Element(HeaderCell).Text("Request").Bold();
+                                    h.Cell().Element(HeaderCell).Text("Date").Bold();
+                                    h.Cell().Element(HeaderCell).Text("Test").Bold();
+                                    h.Cell().Element(HeaderCell).Text("Result").Bold();
+                                    h.Cell().Element(HeaderCell).Text("Normal Range").Bold();
+                                    h.Cell().Element(HeaderCell).Text("Status").Bold();
+                                });
+
+                                bool alt = false;
+                                foreach (var r in categoryResults)
+                                {
+                                    var bg = r.IsAbnormal
+                                        ? "#FEF2F2"
+                                        : (alt ? LightBg : "#FFFFFF");
+                                    alt = !alt;
+
+                                    table.Cell().Element(c => BodyCell(c, bg)).Text(r.RequestNumber ?? "").FontSize(8);
+                                    table.Cell().Element(c => BodyCell(c, bg)).Text(r.ResultDate.ToString("yyyy-MM-dd")).FontSize(8);
+                                    table.Cell().Element(c => BodyCell(c, bg)).Text(r.TestName).FontSize(8);
+                                    table.Cell().Element(c => BodyCell(c, bg))
+                                         .Text($"{r.ResultValue} {r.Unit}".Trim())
+                                         .FontSize(8)
+                                         .FontColor(r.IsAbnormal ? "#DC2626" : Navy);
+                                    table.Cell().Element(c => BodyCell(c, bg))
+                                         .Text(r.RangeMin.HasValue && r.RangeMax.HasValue
+                                             ? $"{r.RangeMin} - {r.RangeMax}"
+                                             : "—").FontSize(8);
+                                    table.Cell().Element(c => BodyCell(c, bg))
+                                         .Text(r.IsAbnormal ? "Abnormal" : "Normal")
+                                         .FontSize(8)
+                                         .FontColor(r.IsAbnormal ? "#DC2626" : Navy);
+                                }
                             });
 
-                            table.Header(h =>
-                            {
-                                h.Cell().Element(HeaderCell).Text("Request").Bold();
-                                h.Cell().Element(HeaderCell).Text("Date").Bold();
-                                h.Cell().Element(HeaderCell).Text("Test").Bold();
-                                h.Cell().Element(HeaderCell).Text("Result").Bold();
-                                h.Cell().Element(HeaderCell).Text("Normal Range").Bold();
-                                h.Cell().Element(HeaderCell).Text("Status").Bold();
-                            });
+                            categoryIndex++;
+                        }
 
-                            bool alt = false;
-                            foreach (var r in results)
-                            {
-                                var bg = alt ? LightBg : "#FFFFFF"; alt = !alt;
-
-                                table.Cell().Element(c => BodyCell(c, bg)).Text(r.RequestNumber ?? "").FontSize(9);
-                                table.Cell().Element(c => BodyCell(c, bg)).Text(r.RequestDate.ToString("yyyy-MM-dd")).FontSize(9);
-                                table.Cell().Element(c => BodyCell(c, bg)).Text(r.TestName).FontSize(9);
-                                table.Cell().Element(c => BodyCell(c, bg)).Text($"{r.ResultValue} {r.Unit}".Trim()).FontSize(9);
-                                table.Cell().Element(c => BodyCell(c, bg))
-                                     .Text(r.RangeMin.HasValue && r.RangeMax.HasValue
-                                         ? $"{r.RangeMin} - {r.RangeMax}"
-                                         : "—").FontSize(9);
-                                table.Cell().Element(c => BodyCell(c, bg))
-                                     .Text(r.IsAbnormal ? "Abnormal" : "Normal").FontSize(9);
-                            }
-                        });
-
-                        col.Item().PaddingTop(10)
+                        col.Item().PaddingTop(20)
+                           .BorderTop(1).BorderColor(Border)
+                           .PaddingTop(10)
                            .Text("Note: This report is for information only and does not replace medical advice. Please consult your doctor to discuss these results.")
                            .FontSize(8).Italic().FontColor(Grey);
                     });

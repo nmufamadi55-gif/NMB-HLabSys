@@ -15,13 +15,21 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         :root {
             --accent-grad: linear-gradient(135deg, #2563EB 0%, #06B6D4 100%);
             --text-primary: #0F172A;
             --text-secondary: #475569;
             --border: #E2E8F0;
+            --danger: #DC2626;
+            --danger-bg: #FEF2F2;
+            --success: #059669;
+            --success-bg: #DCFCE7;
         }
 
         html, body {
@@ -32,8 +40,10 @@
 
         .register-video {
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             object-fit: cover;
             z-index: 0;
         }
@@ -41,12 +51,7 @@
         .register-overlay {
             position: fixed;
             inset: 0;
-            background: linear-gradient(
-                135deg,
-                rgba(15, 23, 42, 0.78) 0%,
-                rgba(15, 23, 42, 0.6) 50%,
-                rgba(37, 99, 235, 0.5) 100%
-            );
+            background: linear-gradient( 135deg, rgba(15, 23, 42, 0.78) 0%, rgba(15, 23, 42, 0.6) 50%, rgba(37, 99, 235, 0.5) 100% );
             z-index: 1;
         }
 
@@ -66,7 +71,7 @@
             width: 100%;
             max-width: 1080px;
             height: 88vh;
-            max-height: 720px;
+            max-height: 750px;
             border-radius: 28px;
             overflow: hidden;
             background: rgba(255, 255, 255, 0.98);
@@ -75,10 +80,18 @@
         }
 
         @@keyframes cardIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to   { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
+        /* Left panel */
         .register-visual {
             position: relative;
             background-image: url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1000&q=80');
@@ -91,17 +104,12 @@
             color: white;
         }
 
-        .register-visual::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(
-                to top,
-                rgba(15, 23, 42, 0.94) 0%,
-                rgba(37, 99, 235, 0.6) 55%,
-                rgba(6, 182, 212, 0.3) 100%
-            );
-        }
+            .register-visual::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: linear-gradient( to top, rgba(15, 23, 42, 0.94) 0%, rgba(37, 99, 235, 0.6) 55%, rgba(6, 182, 212, 0.3) 100% );
+            }
 
         .visual-content {
             position: relative;
@@ -152,16 +160,20 @@
             font-size: 1.05rem;
         }
 
-        .visual-logo i {
-            width: 36px; height: 36px;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.95rem;
-        }
+            .visual-logo i {
+                width: 36px;
+                height: 36px;
+                background: rgba(255, 255, 255, 0.2);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.95rem;
+            }
 
+        /* Right panel */
         .register-form-panel {
             padding: 2.5rem 2.8rem;
             display: flex;
@@ -170,11 +182,14 @@
             position: relative;
         }
 
-        .register-form-panel::-webkit-scrollbar { width: 6px; }
-        .register-form-panel::-webkit-scrollbar-thumb {
-            background: #CBD5E1;
-            border-radius: 3px;
-        }
+            .register-form-panel::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            .register-form-panel::-webkit-scrollbar-thumb {
+                background: #CBD5E1;
+                border-radius: 3px;
+            }
 
         .back-home {
             position: absolute;
@@ -191,69 +206,91 @@
             z-index: 1;
         }
 
-        .back-home:hover { color: #2563EB; }
+            .back-home:hover {
+                color: #2563EB;
+            }
 
-        .form-head { margin-bottom: 1.6rem; }
-
-        .form-head h1 {
-            font-size: 1.7rem;
-            font-weight: 800;
-            color: var(--text-primary);
-            letter-spacing: -0.02em;
-            margin-bottom: 0.4rem;
+        .form-head {
+            margin-bottom: 1.6rem;
         }
 
-        .form-head p {
-            color: var(--text-secondary);
-            font-size: 0.88rem;
-            line-height: 1.5;
+            .form-head h1 {
+                font-size: 1.7rem;
+                font-weight: 800;
+                color: var(--text-primary);
+                letter-spacing: -0.02em;
+                margin-bottom: 0.4rem;
+            }
+
+            .form-head p {
+                color: var(--text-secondary);
+                font-size: 0.88rem;
+                line-height: 1.5;
+            }
+
+        .form-group {
+            margin-bottom: 0.95rem;
         }
 
-        .form-group { margin-bottom: 0.95rem; }
+            .form-group label {
+                display: block;
+                font-weight: 600;
+                font-size: 0.8rem;
+                color: #334155;
+                margin-bottom: 0.35rem;
+            }
 
-        .form-group label {
-            display: block;
-            font-weight: 600;
-            font-size: 0.8rem;
-            color: #334155;
-            margin-bottom: 0.35rem;
+        .required {
+            color: #DC2626;
         }
 
-        .required { color: #DC2626; }
-
-        .input-wrap { position: relative; }
-
-        .input-wrap i.input-icon {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94A3B8;
-            font-size: 0.85rem;
-            pointer-events: none;
+        .input-wrap {
+            position: relative;
         }
 
-        .input-wrap input {
-            width: 100%;
-            padding: 0.75rem 1rem 0.75rem 2.6rem;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-size: 0.9rem;
-            font-family: inherit;
-            background: #F8FAFC;
-            transition: 0.2s;
-        }
+            .input-wrap i.input-icon {
+                position: absolute;
+                left: 14px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #94A3B8;
+                font-size: 0.85rem;
+                pointer-events: none;
+            }
 
-        .input-wrap input:focus {
-            outline: none;
-            background: white;
-            border-color: #2563EB;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-        }
+            .input-wrap input {
+                width: 100%;
+                padding: 0.75rem 1rem 0.75rem 2.6rem;
+                border: 1px solid var(--border);
+                border-radius: 10px;
+                font-size: 0.9rem;
+                font-family: inherit;
+                background: #F8FAFC;
+                transition: 0.2s;
+            }
 
-        .input-wrap.password-wrap input {
-            padding-right: 3rem;
-        }
+                .input-wrap input:focus {
+                    outline: none;
+                    background: white;
+                    border-color: #2563EB;
+                    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+                }
+
+                /* ─── Invalid input styling ─── */
+                .input-wrap input.input-validation-error,
+                .input-wrap input.is-invalid {
+                    border-color: var(--danger) !important;
+                    background: var(--danger-bg) !important;
+                }
+
+                    .input-wrap input.input-validation-error:focus,
+                    .input-wrap input.is-invalid:focus {
+                        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
+                    }
+
+            .input-wrap.password-wrap input {
+                padding-right: 3rem;
+            }
 
         .password-toggle {
             position: absolute;
@@ -272,13 +309,42 @@
             justify-content: center;
         }
 
-        .password-toggle:hover { color: #2563EB; }
+            .password-toggle:hover {
+                color: #2563EB;
+            }
 
+        /* ─── Inline error messages (under each field) ─── */
         .field-error {
-            color: #DC2626;
+            color: var(--danger);
             font-size: 0.75rem;
-            margin-top: 0.3rem;
+            margin-top: 0.35rem;
             display: block;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+            .field-error:not(:empty) {
+                animation: errorFadeIn 0.2s ease-out;
+            }
+
+                .field-error:not(:empty)::before {
+                    content: '\f06a';
+                    font-family: 'Font Awesome 6 Free';
+                    font-weight: 900;
+                    margin-right: 0.3rem;
+                    font-size: 0.7rem;
+                }
+
+        @@keyframes errorFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .form-row {
@@ -297,8 +363,17 @@
             gap: 0.5rem;
         }
 
-        .alert-success { background: #DCFCE7; color: #166534; border-left: 4px solid #059669; }
-        .alert-error { background: #FEE2E2; color: #991B1B; border-left: 4px solid #DC2626; }
+        .alert-success {
+            background: var(--success-bg);
+            color: #166534;
+            border-left: 4px solid var(--success);
+        }
+
+        .alert-error {
+            background: var(--danger-bg);
+            color: #991B1B;
+            border-left: 4px solid var(--danger);
+        }
 
         .password-hint {
             font-size: 0.7rem;
@@ -307,7 +382,6 @@
             display: block;
         }
 
-        /* DOB field turns green when auto-filled from SA ID */
         .input-wrap input.auto-filled {
             background: #ECFDF5;
             border-color: #10B981;
@@ -323,7 +397,9 @@
             margin-top: 0.25rem;
         }
 
-        .dob-badge.visible { display: block; }
+            .dob-badge.visible {
+                display: block;
+            }
 
         .btn-register {
             width: 100%;
@@ -345,16 +421,16 @@
             margin-top: 1rem;
         }
 
-        .btn-register:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 12px 28px rgba(37, 99, 235, 0.45);
-        }
+            .btn-register:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 12px 28px rgba(37, 99, 235, 0.45);
+            }
 
-        .btn-register:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
+            .btn-register:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
 
         .form-footer {
             margin-top: 1.3rem;
@@ -365,48 +441,79 @@
             color: var(--text-secondary);
         }
 
-        .form-footer a {
-            color: #2563EB;
-            text-decoration: none;
-            font-weight: 600;
-        }
+            .form-footer a {
+                color: #2563EB;
+                text-decoration: none;
+                font-weight: 600;
+            }
 
-        .form-footer a:hover { text-decoration: underline; }
+                .form-footer a:hover {
+                    text-decoration: underline;
+                }
 
         @@media (max-width: 900px) {
-            html, body { overflow: auto; }
+            html, body {
+                overflow: auto;
+            }
+
             .register-split {
                 grid-template-columns: 1fr;
                 height: auto;
                 max-height: none;
             }
+
             .register-visual {
                 min-height: 220px;
                 padding: 2rem;
             }
-            .visual-logo { position: static; margin-bottom: 1.5rem; }
-            .visual-content h2 { font-size: 1.5rem; }
-            .register-form-panel { padding: 2rem; }
+
+            .visual-logo {
+                position: static;
+                margin-bottom: 1.5rem;
+            }
+
+            .visual-content h2 {
+                font-size: 1.5rem;
+            }
+
+            .register-form-panel {
+                padding: 2rem;
+            }
         }
 
         @@media (max-width: 480px) {
-            .register-wrap { padding: 1rem; }
-            .register-form-panel { padding: 1.8rem 1.5rem; }
-            .form-head h1 { font-size: 1.4rem; }
-            .form-row { grid-template-columns: 1fr; gap: 0; }
+            .register-wrap {
+                padding: 1rem;
+            }
+
+            .register-form-panel {
+                padding: 1.8rem 1.5rem;
+            }
+
+            .form-head h1 {
+                font-size: 1.4rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
         }
     </style>
 </head>
 <body>
 
+    <!-- Video background -->
     <video autoplay muted loop playsinline class="register-video">
         <source src="~/videos/262188_medium.mp4" type="video/mp4">
     </video>
     <div class="register-overlay"></div>
 
+    <!-- Split screen -->
     <div class="register-wrap">
         <div class="register-split">
 
+            <!-- Left: picture panel -->
             <div class="register-visual">
                 <div class="visual-logo">
                     <i class="fas fa-microscope"></i>
@@ -422,6 +529,7 @@
                 </div>
             </div>
 
+            <!-- Right: form -->
             <div class="register-form-panel">
                 <a href="@Url.Action("Index", "Home")" class="back-home">
                     <i class="fas fa-arrow-left"></i> Back to Home
@@ -432,6 +540,7 @@
                     <p>Join the patient portal in under a minute.</p>
                 </div>
 
+                @* ─── Success / general error banners ─── *@
                 @if (TempData["SuccessMessage"] != null)
                 {
                     <div class="alert alert-success">
@@ -440,14 +549,32 @@
                     </div>
                 }
 
-                @if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Any()))
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-error">
+                        <i class="fas fa-exclamation-circle" style="margin-top:2px;"></i>
+                        <span>@TempData["ErrorMessage"]</span>
+                    </div>
+                }
+
+                @{
+                    // Only show general model errors (no field key) at the top.
+                    // Field-specific errors appear inline under each field instead.
+                    var generalErrors = ViewData.ModelState
+                    .Where(kvp => string.IsNullOrEmpty(kvp.Key))
+                    .SelectMany(kvp => kvp.Value.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .Where(m => !string.IsNullOrEmpty(m))
+                    .ToList();
+                }
+                @if (generalErrors.Any())
                 {
                     <div class="alert alert-error">
                         <i class="fas fa-exclamation-circle" style="margin-top:2px;"></i>
                         <div>
-                            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            @foreach (var error in generalErrors)
                             {
-                                <div>@error.ErrorMessage</div>
+                                <div>@error</div>
                             }
                         </div>
                     </div>
@@ -480,7 +607,7 @@
                         <div class="input-wrap">
                             <i class="fas fa-id-card input-icon"></i>
                             <input asp-for="SAIDNumber" id="saIdInput"
-                                   placeholder="13 digits (e.g. 8001015009087)"
+                                   placeholder="13 digits (e.g., 8001015009087)"
                                    pattern="[0-9]{13}" maxlength="13" inputmode="numeric"
                                    title="SA ID must be exactly 13 digits"
                                    required autocomplete="off" />
@@ -547,7 +674,7 @@
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </div>
-                            <span class="password-hint">Min 8 characters, include uppercase & number</span>
+                            <span class="password-hint">Min 8 characters, include uppercase, number & special character</span>
                             <span asp-validation-for="Password" class="field-error"></span>
                         </div>
                         <div class="form-group">
@@ -580,7 +707,7 @@
     </div>
 
     <script>
-        // ─── Password show/hide toggles ───
+        // ─── Password show / hide toggles ───
         function setupPasswordToggle(toggleId, inputId) {
             const toggle = document.getElementById(toggleId);
             const input = document.getElementById(inputId);
@@ -599,7 +726,7 @@
         setupPasswordToggle('togglePassword', 'passwordInput');
         setupPasswordToggle('toggleConfirmPassword', 'confirmPasswordInput');
 
-        // ─── SA ID → DOB auto-fill ───
+        // ─── SA ID → auto-fill Date of Birth ───
         const saIdInput = document.getElementById('saIdInput');
         const dobInput = document.getElementById('dobInput');
         const dobBadge = document.getElementById('dobBadge');
@@ -647,7 +774,6 @@
             }
         });
 
-        // If the user manually edits DOB, drop the "auto-filled" style
         dobInput.addEventListener('change', function () {
             const fromId = extractDobFromSaId(saIdInput.value);
             if (fromId !== this.value) {
@@ -656,10 +782,22 @@
             }
         });
 
-        // ─── Confirm password + DOB vs ID checks before submit ───
+        // ─── Client-side pre-submit validation ───
         document.getElementById('registerForm').addEventListener('submit', function (e) {
             const pwd = document.getElementById('passwordInput').value;
             const confirm = document.getElementById('confirmPasswordInput').value;
+
+            // Password rule check (matches server):
+            // >=8 chars, at least one uppercase, one number, one special character
+            if (pwd.length < 8 ||
+                !/[A-Z]/.test(pwd) ||
+                !/[0-9]/.test(pwd) ||
+                !/[^A-Za-z0-9]/.test(pwd)) {
+                e.preventDefault();
+                alert('Password must be at least 8 characters with one uppercase letter, one number, and one special character.');
+                document.getElementById('passwordInput').focus();
+                return false;
+            }
 
             if (pwd !== confirm) {
                 e.preventDefault();

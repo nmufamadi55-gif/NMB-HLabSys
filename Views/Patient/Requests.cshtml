@@ -1,0 +1,634 @@
+﻿@using NMB_HLabSys.ViewModels.PatientViewModels
+@model PatientRequestsViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "My Test Requests";
+    ViewData["RoleSubtitle"] = "Patient Portal";
+    ViewData["UserGreeting"] = $"{Model.FullName} (ID: {Model.PatientID})";
+    ViewData["UserInitials"] = string.IsNullOrEmpty(Model.FullName) ? "P" : Model.FullName.Substring(0, 1);
+}
+
+@section SidebarMenu {
+    <li><a href="@Url.Action("Dashboard", "Patient")"><i class="fas fa-notes-medical"></i> <span>My Results</span></a></li>
+    <li><a href="@Url.Action("Requests", "Patient")" class="active"><i class="fas fa-vials"></i> <span>My Requests</span></a></li>
+    <li><a href="@Url.Action("MedicalHistory", "Patient")"><i class="fas fa-history"></i> <span>Medical History</span></a></li>
+    <li><a href="@Url.Action("Consent", "Patient")"><i class="fas fa-hand-peace"></i> <span>Consent</span></a></li>
+    <li><a href="@Url.Action("Trends", "Patient")"><i class="fas fa-chart-line"></i> <span>Trends</span></a></li>
+    <li><a href="@Url.Action("Profile", "Patient")"><i class="fas fa-user-circle"></i> <span>My Profile</span></a></li>
+}
+
+<style>
+    :root {
+        --p-teal: #0891B2;
+        --p-teal-grad: linear-gradient(135deg, #0891B2 0%, #06B6D4 100%);
+        --p-navy: #0F172A;
+        --p-text: #1E293B;
+        --p-text-soft: #64748B;
+        --p-text-muted: #94A3B8;
+        --p-border: #E2E8F0;
+        --p-bg-soft: #F8FAFC;
+        --p-danger: #DC2626;
+        --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+        --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06), 0 2px 6px rgba(15, 23, 42, 0.04);
+        --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.10), 0 4px 12px rgba(15, 23, 42, 0.05);
+        --radius: 16px;
+    }
+
+    .page-hero {
+        position: relative;
+        margin: -1.2rem -1.2rem 2rem -1.2rem;
+        height: 320px;
+        border-radius: 0 0 24px 24px;
+        overflow: hidden;
+        display: flex;
+        align-items: flex-end;
+        padding: 2rem;
+        box-shadow: var(--shadow-lg);
+    }
+
+        .page-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url('https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=1600&q=85');
+            background-size: cover;
+            background-position: center;
+            z-index: 0;
+            transition: transform 12s ease-out;
+        }
+
+        .page-hero:hover::before {
+            transform: scale(1.04);
+        }
+
+        .page-hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(15,23,42,0) 0%, rgba(15,23,42,0) 40%, rgba(15,23,42,0.25) 70%, rgba(15,23,42,0.65) 100%);
+            z-index: 1;
+        }
+
+    .hero-pill {
+        position: relative;
+        z-index: 2;
+        background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 20px;
+        padding: 1.4rem 1.8rem;
+        color: white;
+        max-width: 700px;
+        width: 100%;
+        animation: heroFadeIn 0.8s ease-out;
+    }
+
+    @@keyframes heroFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .hero-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(6, 182, 212, 0.25);
+        border: 1px solid rgba(6, 182, 212, 0.4);
+        padding: 0.35rem 0.9rem;
+        border-radius: 20px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 0.7rem;
+        color: #67E8F9;
+    }
+
+    .hero-pill h1 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 0 0 0.3rem;
+        line-height: 1.15;
+    }
+
+    .hero-pill p {
+        font-size: 0.88rem;
+        color: rgba(255, 255, 255, 0.8);
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .hero-actions {
+        margin-top: 1rem;
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+    }
+
+    .hero-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.55rem 1.1rem;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+        font-family: inherit;
+        cursor: pointer;
+        border: none;
+        white-space: nowrap;
+    }
+
+    .hero-btn-primary {
+        background: var(--p-teal-grad);
+        color: white;
+        box-shadow: 0 4px 14px rgba(6, 182, 212, 0.4);
+    }
+
+        .hero-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(6, 182, 212, 0.5);
+            color: white;
+        }
+
+    .hero-btn-secondary {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        color: white;
+        backdrop-filter: blur(10px);
+    }
+
+        .hero-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            color: white;
+        }
+
+    .clean-card {
+        background: white;
+        border-radius: var(--radius);
+        border: 1px solid var(--p-border);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        animation: cardFadeIn 0.6s ease-out backwards;
+    }
+
+    @@keyframes cardFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(16px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .clean-card-header {
+        padding: 1.1rem 1.5rem;
+        border-bottom: 1px solid var(--p-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+        .clean-card-header h3 {
+            margin: 0;
+            color: var(--p-navy);
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            flex-wrap: wrap;
+        }
+
+            .clean-card-header h3 i {
+                color: var(--p-teal);
+                font-size: 0.95rem;
+            }
+
+    .clean-card-body {
+        padding: 1.5rem;
+    }
+
+    .request-meta-line {
+        color: var(--p-text-soft);
+        font-size: 0.78rem;
+        display: flex;
+        gap: 0.7rem;
+        flex-wrap: wrap;
+        margin-top: 0.3rem;
+    }
+
+        .request-meta-line i {
+            color: var(--p-teal);
+            margin-right: 0.2rem;
+        }
+
+    .filter-bar {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        padding: 1rem 1.5rem;
+        background: var(--p-bg-soft);
+        border-bottom: 1px solid var(--p-border);
+    }
+
+    .filter-pill {
+        background: white;
+        color: var(--p-text-soft);
+        border: 1px solid var(--p-border);
+        padding: 0.45rem 0.95rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+        .filter-pill:hover {
+            background: rgba(6, 182, 212, 0.08);
+            border-color: var(--p-teal);
+            color: var(--p-teal);
+            transform: translateY(-1px);
+        }
+
+        .filter-pill.active {
+            background: var(--p-teal-grad);
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+        }
+
+    .clean-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+
+        .clean-table thead th {
+            text-align: left;
+            padding: 0.85rem 1.2rem;
+            color: var(--p-text-soft);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            background: var(--p-bg-soft);
+            border-bottom: 1px solid var(--p-border);
+        }
+
+        .clean-table tbody td {
+            padding: 0.95rem 1.2rem;
+            color: var(--p-text);
+            border-bottom: 1px solid #F1F5F9;
+        }
+
+        .clean-table tbody tr:hover {
+            background: var(--p-bg-soft);
+        }
+
+        .clean-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .clean-table tbody tr.abnormal-row td:first-child {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+            .clean-table tbody tr.abnormal-row td:first-child::before {
+                content: '';
+                position: absolute;
+                left: 0.85rem;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: var(--p-danger);
+            }
+
+    .pill {
+        display: inline-block;
+        padding: 0.28rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+    }
+
+    .pill-normal {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+
+    .pill-warning {
+        background: #FEF3C7;
+        color: #92400E;
+    }
+
+    .pill-danger {
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+
+    .pill-info {
+        background: #DBEAFE;
+        color: #1E40AF;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.55rem 1.1rem;
+        border-radius: 10px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        border: 1px solid var(--p-border);
+        background: white;
+        color: var(--p-navy);
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+
+        .btn:hover {
+            border-color: var(--p-teal);
+            color: var(--p-teal);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+    .btn-primary {
+        background: var(--p-teal-grad);
+        color: white;
+        border: none;
+        box-shadow: 0 4px 14px rgba(6, 182, 212, 0.3);
+    }
+
+        .btn-primary:hover {
+            color: white;
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+        }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: var(--p-text-muted);
+    }
+
+        .empty-state i {
+            font-size: 2.5rem;
+            opacity: 0.35;
+            margin-bottom: 0.8rem;
+            display: block;
+        }
+
+        .empty-state h3 {
+            color: var(--p-navy);
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 0 0 0.4rem;
+        }
+
+        .empty-state p {
+            margin: 0;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+    .cancelled-banner {
+        padding: 0.9rem 1.5rem;
+        background: #FEE2E2;
+        color: #991B1B;
+        font-size: 0.82rem;
+        border-bottom: 1px solid var(--p-border);
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .awaiting-results {
+        padding: 1.2rem 1.5rem;
+        color: var(--p-text-soft);
+        font-size: 0.85rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+        .awaiting-results i {
+            color: var(--p-teal);
+            margin-top: 0.15rem;
+        }
+
+    @@media (max-width: 768px) {
+        .page-hero {
+            margin: -0.8rem -0.8rem 1.5rem -0.8rem;
+            height: 280px;
+            padding: 1.2rem;
+        }
+
+        .hero-pill {
+            padding: 1.1rem 1.3rem;
+        }
+
+            .hero-pill h1 {
+                font-size: 1.4rem;
+            }
+
+        .clean-card-body {
+            padding: 1.2rem;
+        }
+
+        .clean-card-header {
+            padding: 1rem 1.2rem;
+        }
+
+        .filter-bar {
+            padding: 0.9rem 1.2rem;
+        }
+    }
+</style>
+
+<div class="page-hero">
+    <div class="hero-pill">
+        <span class="hero-kicker"><i class="fas fa-vials"></i> My Test Requests</span>
+        <h1>Your Requests</h1>
+        <p>Every test your doctor has submitted — track progress and view results once released.</p>
+        <div class="hero-actions">
+            <a href="@Url.Action("Dashboard", "Patient")" class="hero-btn hero-btn-secondary">
+                <i class="fas fa-arrow-left"></i> Dashboard
+            </a>
+            <a href="@Url.Action("DownloadTestResultsPDF", "Patient")" class="hero-btn hero-btn-primary">
+                <i class="fas fa-download"></i> Download All Results
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="clean-card">
+    <div class="clean-card-header">
+        <h3>
+            <i class="fas fa-list"></i>
+            All Requests
+            <span class="pill pill-info" style="margin-left:.5rem;">@(Model.Requests?.Count ?? 0)</span>
+        </h3>
+    </div>
+
+    <div class="filter-bar">
+        @{
+            var currentStatus = Context.Request.Query["status"].ToString();
+            var filters = new[]
+            {
+                (Label: "All", Value: ""),
+                (Label: "Submitted", Value: "Submitted"),
+                (Label: "Samples Received", Value: "Sample Received"),
+                (Label: "In Progress", Value: "In Progress"),
+                (Label: "Completed", Value: "Completed"),
+                (Label: "Released", Value: "Released"),
+                (Label: "Cancelled", Value: "Cancelled")
+                };
+        }
+        @foreach (var f in filters)
+        {
+            var isActive = (string.IsNullOrEmpty(f.Value) && string.IsNullOrEmpty(currentStatus))
+            || (!string.IsNullOrEmpty(f.Value) && currentStatus == f.Value);
+            <a href="@Url.Action("Requests", "Patient", new { status = string.IsNullOrEmpty(f.Value) ? null : f.Value })"
+               class="filter-pill @(isActive ? "active" : "")">@f.Label</a>
+        }
+    </div>
+
+    @if (Model.Requests == null || !Model.Requests.Any())
+    {
+        <div class="clean-card-body">
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h3>No requests found</h3>
+                <p>
+                    @if (!string.IsNullOrEmpty(currentStatus))
+                    {
+                        @:No requests with status "@currentStatus".
+                    }
+                    else
+                    {
+                        @:Your doctor hasn't submitted any test requests yet.
+                    }
+                </p>
+            </div>
+        </div>
+    }
+    else
+    {
+        foreach (var req in Model.Requests)
+        {
+            var headerPillClass = req.IsCancelled ? "pill-danger"
+            : req.Status == "Released" ? "pill-normal"
+            : req.Status == "Completed" ? "pill-warning"
+            : req.Status == "Appointment Requested" ? "pill-normal"
+            : "pill-info";
+
+            <div class="clean-card" style="margin-bottom:1.2rem;">
+                <div class="clean-card-header">
+                    <div style="flex:1; min-width:0;">
+                        <h3>
+                            <i class="fas fa-file-medical"></i>
+                            @req.RequestNumber
+                            <span class="pill @headerPillClass">@req.Status</span>
+                        </h3>
+                        <div class="request-meta-line">
+                            <span><i class="fas fa-calendar"></i>@req.RequestDate.ToString("dd MMM yyyy HH:mm")</span>
+                            <span><i class="fas fa-user-md"></i>@req.DoctorName</span>
+                            <span><i class="fas fa-flask"></i>@req.TestCount test(s)</span>
+                            <span><i class="fas fa-bolt"></i>@req.Urgency</span>
+                        </div>
+                    </div>
+                    @if (req.CanViewResults)
+                    {
+                        <a href="@Url.Action("DownloadTestResultsPDF", "Patient", new { requestId = req.TestRequestID })"
+                           class="btn btn-primary">
+                            <i class="fas fa-file-pdf"></i> Download PDF
+                        </a>
+                    }
+                </div>
+
+                @if (req.IsCancelled && !string.IsNullOrWhiteSpace(req.CancellationReason))
+                {
+                    <div class="cancelled-banner">
+                        <i class="fas fa-ban" style="margin-top:2px;"></i>
+                        <span><strong>Cancelled</strong> — @req.CancellationReason</span>
+                    </div>
+                }
+                else if (!req.CanViewResults)
+                {
+                    <div class="awaiting-results">
+                        <i class="fas fa-clock"></i>
+                        <span>Results will appear here once your doctor releases them.</span>
+                    </div>
+                }
+                else if (req.Results == null || !req.Results.Any())
+                {
+                    <div class="awaiting-results">
+                        <i class="fas fa-inbox"></i>
+                        <span>No results recorded for this request yet.</span>
+                    </div>
+                }
+                else
+                {
+                    <table class="clean-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Test Name</th>
+                                <th>Result</th>
+                                <th>Normal Range</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var r in req.Results)
+                            {
+                                <tr class="@(r.IsAbnormal ? "abnormal-row" : "")">
+                                    <td>@req.RequestDate.ToString("dd MMM yyyy")</td>
+                                    <td>
+                                        <strong>@r.TestName</strong>
+                                        @if (!string.IsNullOrEmpty(r.CategoryName))
+                                        {
+                                            <div style="font-size:.72rem;color:var(--p-text-muted);">@r.CategoryName</div>
+                                        }
+                                    </td>
+                                    <td>@r.ResultValue @r.Unit</td>
+                                    <td>@r.NormalRangeDisplay</td>
+                                    <td>
+                                        <span class="pill @(r.IsAbnormal ? "pill-warning" : "pill-normal")">@r.StatusLabel</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        }
+    }
+</div>

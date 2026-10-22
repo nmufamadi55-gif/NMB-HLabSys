@@ -84,7 +84,7 @@
         align-items: center;
         gap: 1.4rem;
         flex-wrap: wrap;
-        max-width: 700px;
+        max-width: 760px;
         width: 100%;
         animation: heroFadeIn 0.8s ease-out;
     }
@@ -477,8 +477,11 @@
             <p>@Model.Email</p>
         </div>
         <div class="hero-actions">
+            <a href="@Url.Action("EditProfile", "Admin")" class="hero-btn hero-btn-primary">
+                <i class="fas fa-pen"></i> Edit Profile
+            </a>
             <a href="@Url.Action("Dashboard", "Admin")" class="hero-btn hero-btn-secondary">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
+                <i class="fas fa-arrow-left"></i> Dashboard
             </a>
         </div>
     </div>
