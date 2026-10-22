@@ -55,8 +55,7 @@ if (app.Environment.IsDevelopment())
             // Any user still on the old format gets silently upgraded.
             var knownUsers = new Dictionary<string, string>
             {
-                ["manager@nmblab.co.za"] = "Nmb#Manager2025!",
-                ["doctor@nmblab.co.za"] = "Nmb#Doctor2025!"
+                ["manager@nmblab.co.za"] = "Nmb#Manager2025!"
             };
 
             foreach (var (email, plain) in knownUsers)
@@ -89,38 +88,6 @@ if (app.Environment.IsDevelopment())
                 });
                 context.SaveChanges();
                 Console.WriteLine("✅ Manager seeded: manager@nmblab.co.za / Nmb#Manager2025!");
-            }
-
-            // ─── Seed doctor if missing ───
-            if (!context.Doctors.Any())
-            {
-                var doctorUser = new User
-                {
-                    Name = "Sarah",
-                    Surname = "Johnson",
-                    Email = "doctor@nmblab.co.za",
-                    ContactNumber = "0825555678",
-                    PasswordHash = hasher.HashPassword("Nmb#Doctor2025!"),
-                    UserRole = "Doctor",
-                    IsActive = true,
-                    IsPasswordChanged = false,
-                    CreatedDate = DateTime.Now
-                };
-                context.Users.Add(doctorUser);
-                context.SaveChanges();
-
-                context.Doctors.Add(new Doctor
-                {
-                    UserID = doctorUser.UserID,
-                    HPCSANumber = "HPCSA001",
-                    PracticeName = "Johnson Medical Practice",
-                    PracticeAddress = "123 Medical Street, Gqeberha, 6001",
-                    Specialization = "Haematology",
-                    IsVerified = true,
-                    RegisteredDate = DateTime.Now
-                });
-                context.SaveChanges();
-                Console.WriteLine("✅ Doctor seeded: doctor@nmblab.co.za / Nmb#Doctor2025!");
             }
     }
 }

@@ -115,7 +115,9 @@
             </div>
             <div class="form-group">
                 <label>Expected Delivery Date</label>
-                <input asp-for="ExpectedDeliveryDate" type="date" class="form-control" />
+                <!-- Adding min makes the browser calendar block past dates automatically -->
+                <input asp-for="ExpectedDeliveryDate" type="date" class="form-control"
+                       min="@DateTime.Today.ToString("yyyy-MM-dd")" />
                 <span asp-validation-for="ExpectedDeliveryDate" class="validation-message"></span>
             </div>
         </div>

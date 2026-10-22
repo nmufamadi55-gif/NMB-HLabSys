@@ -19,13 +19,49 @@
         }
     }
 
-    .quick-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin-bottom: 1.25rem;
+    /* KPI subtext */
+    .stat-card .stat-sub {
+        display: block;
+        margin-top: 0.2rem;
+        font-size: 0.7rem;
+        color: var(--gray-400);
     }
 
+        .stat-card .stat-sub.warning {
+            color: var(--warning-fg);
+        }
+
+        .stat-card .stat-sub.danger {
+            color: var(--danger-fg);
+        }
+
+    /* Low-stock list */
+    .stock-row {
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        gap: 0.75rem;
+        align-items: center;
+        padding: 0.65rem 0;
+        border-bottom: 1px solid var(--gray-100);
+        font-size: 0.8rem;
+    }
+
+        .stock-row:last-child {
+            border-bottom: none;
+        }
+
+    .stock-name {
+        font-weight: 500;
+        color: var(--gray-900);
+    }
+
+    .stock-qty {
+        font-size: 0.75rem;
+        color: var(--gray-500);
+        white-space: nowrap;
+    }
+
+    /* Activity list */
     .activity-list {
         display: flex;
         flex-direction: column;
@@ -67,94 +103,181 @@
         color: var(--gray-500);
     }
 
-    .stock-row {
-        display: grid;
-        grid-template-columns: 1fr auto auto;
-        gap: 0.75rem;
-        align-items: center;
-        padding: 0.65rem 0;
-        border-bottom: 1px solid var(--gray-100);
-        font-size: 0.8rem;
-    }
-
-        .stock-row:last-child {
-            border-bottom: none;
-        }
-
-    .stock-name {
-        font-weight: 500;
-        color: var(--gray-900);
-    }
-
-    .stock-qty {
-        font-size: 0.75rem;
-        color: var(--gray-500);
-        white-space: nowrap;
-    }
-
+    /* This-month stat grid */
     .summary-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
         gap: 1rem;
     }
 
-    .summary-item .val {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--brand-900);
-        line-height: 1.1;
+    .summary-item {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        padding: 0.9rem 1rem;
+        border-radius: var(--radius-md);
+        background: var(--gray-50);
+        text-decoration: none;
+        color: inherit;
+        transition: background 0.15s, transform 0.15s;
     }
 
-    .summary-item .lbl {
-        font-size: 0.7rem;
-        color: var(--gray-500);
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        margin-top: 0.2rem;
+        .summary-item:hover {
+            background: var(--brand-50);
+            transform: translateY(-1px);
+        }
+
+        .summary-item .summary-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+            .summary-item .summary-icon.blue {
+                background: linear-gradient(135deg, var(--brand-700), #1D97F1);
+            }
+
+            .summary-item .summary-icon.green {
+                background: linear-gradient(135deg, #10B981, #059669);
+            }
+
+            .summary-item .summary-icon.amber {
+                background: linear-gradient(135deg, #F59E0B, #D97706);
+            }
+
+            .summary-item .summary-icon.cyan {
+                background: linear-gradient(135deg, #0891B2, #06B6D4);
+            }
+
+        .summary-item .val {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--brand-900);
+            line-height: 1.1;
+        }
+
+        .summary-item .lbl {
+            font-size: 0.7rem;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-top: 0.2rem;
+        }
+
+    /* Alerts */
+    .alert {
+        padding: 0.75rem 1rem;
+        border-radius: var(--radius-md);
+        margin-bottom: 1rem;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .alert-danger {
+        background: var(--danger-bg);
+        color: var(--danger-fg);
+        border-left: 4px solid var(--danger-fg);
+    }
+
+    .alert-success {
+        background: var(--success-bg);
+        color: var(--success-fg);
+        border-left: 4px solid var(--success-fg);
     }
 </style>
 
-<!-- Quick actions -->
-<div class="quick-actions">
-    <a asp-action="CreateTestType" class="btn btn-primary"><i class="fas fa-plus"></i> New Test</a>
-    <a asp-action="CreateConsumable" class="btn btn-outline"><i class="fas fa-plus"></i> New Consumable</a>
-    <a asp-action="CreateOrder" class="btn btn-outline"><i class="fas fa-plus"></i> New Order</a>
-    <a asp-action="AddTechnician" class="btn btn-outline"><i class="fas fa-user-plus"></i> Add Technician</a>
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i>
+        <span>@TempData["SuccessMessage"]</span>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-circle"></i>
+        <span>@TempData["ErrorMessage"]</span>
+    </div>
+}
+
+<!-- ═══ Page header ═══ -->
+<div class="page-header">
+    <div>
+        <h2>Laboratory Dashboard</h2>
+        <p>Overview of your test catalogue, stock, and operations</p>
+    </div>
+    <div class="page-header-actions">
+        <a asp-action="CreateTestType" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New Test
+        </a>
+        <a asp-action="CreateConsumable" class="btn btn-outline">
+            <i class="fas fa-plus"></i> New Consumable
+        </a>
+        <a asp-action="CreateOrder" class="btn btn-outline">
+            <i class="fas fa-clipboard-list"></i> New Order
+        </a>
+        <a asp-action="AddTechnician" class="btn btn-outline">
+            <i class="fas fa-user-plus"></i> Add Technician
+        </a>
+    </div>
 </div>
 
-<!-- KPI cards -->
+<!-- ═══ KPI cards ═══ -->
 <div class="stats-grid">
     <a asp-action="TestCatalogue" class="stat-card" style="text-decoration:none;">
         <div class="stat-info">
             <h3>@Model.TotalTestTypes</h3>
             <p>Test Types</p>
+            <span class="stat-sub">@Model.TotalTestCategories categories</span>
         </div>
         <div class="stat-icon"><i class="fas fa-vial"></i></div>
     </a>
+
     <a asp-action="Stock" class="stat-card" style="text-decoration:none;">
         <div class="stat-info">
             <h3>@Model.TotalConsumables</h3>
             <p>Consumables</p>
+            @if (Model.LowStockItems > 0)
+            {
+                <span class="stat-sub danger">@Model.LowStockItems low stock</span>
+            }
+            else
+            {
+                <span class="stat-sub">All healthy</span>
+            }
         </div>
         <div class="stat-icon"><i class="fas fa-boxes-stacked"></i></div>
     </a>
+
     <a asp-action="Orders" class="stat-card" style="text-decoration:none;">
         <div class="stat-info">
             <h3>@Model.PendingOrders</h3>
             <p>Pending Orders</p>
+            <span class="stat-sub">Awaiting delivery</span>
         </div>
         <div class="stat-icon"><i class="fas fa-clipboard-list"></i></div>
     </a>
+
     <a asp-action="Staff" class="stat-card" style="text-decoration:none;">
         <div class="stat-info">
             <h3>@(Model.TotalTechnicians + Model.TotalDoctors)</h3>
             <p>Staff Members</p>
+            <span class="stat-sub">@Model.TotalTechnicians tech · @Model.TotalDoctors docs</span>
         </div>
         <div class="stat-icon"><i class="fas fa-users-gear"></i></div>
     </a>
 </div>
 
-<!-- Low stock + Recent activity -->
+<!-- ═══ Low stock + Recent activity ═══ -->
 <div class="dash-2col">
     <div class="card">
         <div class="card-header">
@@ -216,27 +339,39 @@
     </div>
 </div>
 
-<!-- This month summary -->
+<!-- ═══ This month ═══ -->
 <div class="card">
     <div class="card-header">
-        <h3><i class="fas fa-chart-line"></i> This Month</h3>
+        <h3><i class="fas fa-chart-line"></i> This Month — @DateTime.Now.ToString("MMMM yyyy")</h3>
     </div>
     <div class="summary-grid">
-        <div class="summary-item">
-            <div class="val">@Model.Statistics.TestsPerformedThisMonth</div>
-            <div class="lbl">Tests Completed</div>
-        </div>
-        <div class="summary-item">
-            <div class="val">@Model.Statistics.OrdersProcessedThisMonth</div>
-            <div class="lbl">Orders Processed</div>
-        </div>
-        <div class="summary-item">
-            <div class="val">R@Model.Statistics.TotalStockValue.ToString("N0")</div>
-            <div class="lbl">Stock Value</div>
-        </div>
-        <div class="summary-item">
-            <div class="val">@Model.Statistics.ActiveTechnicians</div>
-            <div class="lbl">Active Technicians</div>
-        </div>
+        <a asp-action="Reports" class="summary-item" title="Generate a category report">
+            <div class="summary-icon cyan"><i class="fas fa-vial"></i></div>
+            <div>
+                <div class="val">@Model.Statistics.TestsPerformedThisMonth</div>
+                <div class="lbl">Tests Completed</div>
+            </div>
+        </a>
+        <a asp-action="Orders" class="summary-item">
+            <div class="summary-icon blue"><i class="fas fa-clipboard-list"></i></div>
+            <div>
+                <div class="val">@Model.Statistics.OrdersProcessedThisMonth</div>
+                <div class="lbl">Orders Processed</div>
+            </div>
+        </a>
+        <a asp-action="Stock" class="summary-item">
+            <div class="summary-icon amber"><i class="fas fa-coins"></i></div>
+            <div>
+                <div class="val">R @Model.Statistics.TotalStockValue.ToString("N2")</div>
+                <div class="lbl">Stock Value</div>
+            </div>
+        </a>
+        <a asp-action="Staff" class="summary-item">
+            <div class="summary-icon green"><i class="fas fa-user-check"></i></div>
+            <div>
+                <div class="val">@Model.Statistics.ActiveTechnicians</div>
+                <div class="lbl">Active Technicians</div>
+            </div>
+        </a>
     </div>
 </div>

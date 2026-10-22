@@ -6,6 +6,7 @@
 }
 
 <style>
+    /* ═══ HERO ═══ */
     .report-hero {
         background: linear-gradient(135deg, var(--brand-900) 0%, var(--brand-700) 100%);
         color: white;
@@ -17,146 +18,109 @@
         gap: 1.5rem;
         flex-wrap: wrap;
     }
-
     .report-hero-icon {
-        width: 56px;
-        height: 56px;
+        width: 56px; height: 56px;
         border-radius: var(--radius-md);
         background: rgba(255,255,255,0.15);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.4rem;
-        flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.4rem; flex-shrink: 0;
     }
+    .report-hero-text { flex: 1; min-width: 220px; }
+    .report-hero-text h2 { margin: 0 0 0.2rem; font-size: 1.3rem; font-weight: 700; }
+    .report-hero-text p  { margin: 0; font-size: 0.85rem; opacity: 0.85; }
 
-    .report-hero-text {
-        flex: 1;
-        min-width: 220px;
+    /* ═══ SECTION HEADER ═══ */
+    .section-header {
+        display: flex; justify-content: space-between; align-items: flex-end;
+        gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0 1rem;
     }
-
-        .report-hero-text h2 {
-            margin: 0 0 0.2rem;
-            font-size: 1.3rem;
-            font-weight: 700;
-        }
-
-        .report-hero-text p {
-            margin: 0;
-            font-size: 0.85rem;
-            opacity: 0.85;
-        }
-
-    .charts-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
+    .section-header h3 {
+        margin: 0; font-size: 1rem; font-weight: 700; color: var(--gray-900);
+        display: flex; align-items: center; gap: 0.5rem;
     }
+    .section-header h3 i { color: var(--brand-700); }
+    .section-header p { margin: 0.25rem 0 0; font-size: 0.82rem; color: var(--gray-500); }
 
-    @@media (max-width: 900px) {
-        .charts-grid {
-            grid-template-columns: 1fr;
-        }
+    /* ═══ QUICK RANGES ═══ */
+    .quick-ranges { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+    .range-label  { font-size: 0.75rem; font-weight: 600; color: var(--gray-500); margin-right: 0.2rem; }
+    .range-chip {
+        padding: 0.35rem 0.85rem; border-radius: var(--radius-pill);
+        background: var(--gray-100); color: var(--gray-700);
+        font-size: 0.75rem; font-weight: 500; border: none; cursor: pointer;
+        transition: all 0.15s; font-family: inherit;
     }
+    .range-chip:hover  { background: var(--brand-50); color: var(--brand-700); }
+    .range-chip.active { background: var(--brand-gradient); color: white; }
 
-    .chart-card {
-        background: white;
-        border: 1px solid var(--gray-200);
-        border-radius: var(--radius-lg);
-        padding: 1.25rem;
-    }
-
-        .chart-card h3 {
-            margin: 0 0 1rem;
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--gray-900);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-            .chart-card h3 i {
-                color: var(--brand-700);
-            }
-
-    .chart-wrap {
-        position: relative;
-        height: 260px;
-    }
-
-    .report-card {
-        background: white;
-        border: 1px solid var(--gray-200);
-        border-radius: var(--radius-lg);
-        padding: 1.5rem;
-        position: relative;
-        display: flex;
-        flex-direction: column;
-    }
-
-        .report-card .report-icon {
-            width: 42px;
-            height: 42px;
-            border-radius: var(--radius-md);
-            background: var(--brand-50);
-            color: var(--brand-700);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-            margin-bottom: 0.85rem;
-        }
-
-        .report-card h3 {
-            margin: 0 0 0.35rem;
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--gray-900);
-        }
-
-        .report-card p {
-            margin: 0 0 1.25rem;
-            font-size: 0.82rem;
-            color: var(--gray-500);
-            line-height: 1.45;
-        }
-
-        .report-card.coming-soon {
-            opacity: 0.65;
-        }
-
-            .report-card.coming-soon::after {
-                content: 'Coming Soon';
-                position: absolute;
-                top: 1rem;
-                right: 1rem;
-                font-size: 0.65rem;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 0.08em;
-                padding: 0.2rem 0.6rem;
-                background: var(--warning-bg);
-                color: var(--warning-fg);
-                border-radius: var(--radius-pill);
-            }
-
+    /* ═══ REPORT GRID + CARDS ═══ */
     .report-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1rem;
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;
     }
+    .report-card {
+        background: white; border: 1px solid var(--gray-200);
+        border-radius: var(--radius-lg); padding: 1.5rem;
+        display: flex; flex-direction: column;
+    }
+    .report-card .report-icon {
+        width: 42px; height: 42px; border-radius: var(--radius-md);
+        background: var(--brand-50); color: var(--brand-700);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem; margin-bottom: 0.85rem;
+    }
+    .report-card h3 { margin: 0 0 0.35rem; font-size: 1rem; font-weight: 600; color: var(--gray-900); }
+    .report-card p  { margin: 0 0 1.25rem; font-size: 0.82rem; color: var(--gray-500); line-height: 1.45; }
+    .report-card .report-form { margin-top: auto; }
+    .report-card .form-row-2 { gap: 0.6rem; }
+
+    /* ═══ CHARTS ═══ */
+    .charts-grid {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    }
+    @@media (max-width: 900px) { .charts-grid { grid-template-columns: 1fr; } }
+    .chart-card {
+        background: white; border: 1px solid var(--gray-200);
+        border-radius: var(--radius-lg); padding: 1.25rem;
+    }
+    .chart-card h3 {
+        margin: 0 0 1rem; font-size: 0.9rem; font-weight: 600; color: var(--gray-900);
+        display: flex; align-items: center; gap: 0.5rem;
+    }
+    .chart-card h3 i { color: var(--brand-700); }
+    .chart-wrap { position: relative; height: 260px; }
+
+    /* ═══ ALERTS ═══ */
+    .alert {
+        padding: 0.8rem 1rem; border-radius: var(--radius-md);
+        margin-bottom: 1rem; font-size: 0.85rem;
+        display: flex; align-items: flex-start; gap: 0.5rem;
+    }
+    .alert-success { background: var(--success-bg, #D1FAE5); color: var(--success-fg, #065F46); border-left: 4px solid var(--success-fg, #10B981); }
+    .alert-danger  { background: var(--danger-bg,  #FEE2E2); color: var(--danger-fg,  #991B1B); border-left: 4px solid var(--danger-fg,  #DC2626); }
 </style>
 
 <div class="report-hero">
     <div class="report-hero-icon"><i class="fas fa-chart-line"></i></div>
     <div class="report-hero-text">
         <h2>Reports &amp; Analytics</h2>
-        <p>Live stats and downloadable PDF reports for lab operations</p>
+        <p>Generate signed PDF reports and view live operational metrics</p>
     </div>
 </div>
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i>
+        <span>@TempData["SuccessMessage"]</span>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-circle"></i>
+        <span>@TempData["ErrorMessage"]</span>
+    </div>
+}
 @if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Any()))
 {
     <div class="alert alert-danger">
@@ -170,161 +134,153 @@
     </div>
 }
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- LIVE CHARTS                                             -->
-<!-- ═══════════════════════════════════════════════════════ -->
-<div class="charts-grid">
-    <div class="chart-card">
-        <h3><i class="fas fa-vial"></i> Tests Completed — Last 6 Months</h3>
-        <div class="chart-wrap">
-            <canvas id="testsChart"></canvas>
-        </div>
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- PDF REPORTS                                         -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="section-header">
+    <div>
+        <h3><i class="fas fa-file-pdf"></i> PDF Reports</h3>
+        <p>Download a signed report for any date range</p>
     </div>
-
-    <div class="chart-card">
-        <h3><i class="fas fa-clipboard-list"></i> Orders Placed — Last 6 Months</h3>
-        <div class="chart-wrap">
-            <canvas id="ordersChart"></canvas>
-        </div>
-    </div>
-
-    <div class="chart-card">
-        <h3><i class="fas fa-tags"></i> Tests by Category</h3>
-        <div class="chart-wrap">
-            <canvas id="categoryChart"></canvas>
-        </div>
-    </div>
-
-    <div class="chart-card">
-        <h3><i class="fas fa-boxes-stacked"></i> Stock Status</h3>
-        <div class="chart-wrap">
-            <canvas id="stockChart"></canvas>
-        </div>
+    <div class="quick-ranges">
+        <span class="range-label">Quick select:</span>
+        <button type="button" class="range-chip" data-days="7">7 days</button>
+        <button type="button" class="range-chip" data-days="30">30 days</button>
+        <button type="button" class="range-chip" data-days="90">90 days</button>
+        <button type="button" class="range-chip" data-days="365">1 year</button>
     </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- PDF REPORTS                                            -->
-<!-- ═══════════════════════════════════════════════════════ -->
-<h3 style="font-size: 1rem; font-weight: 600; margin: 0 0 1rem;">PDF Reports</h3>
-
 <div class="report-grid">
+
+    <!-- ── Tests by Category ── -->
     <div class="report-card">
         <div class="report-icon"><i class="fas fa-vial"></i></div>
         <h3>Tests by Category</h3>
         <p>Total completed tests grouped by category for a chosen date range.</p>
-        <form method="post" asp-action="GenerateCategoryReport" style="margin-top:auto;">
+        <form method="post" asp-action="GenerateCategoryReport" class="report-form">
             @Html.AntiForgeryToken()
             <div class="form-row-2">
                 <div class="form-group">
                     <label>Start <span class="required">*</span></label>
-                    <input type="date" name="StartDate" class="form-control" required />
+                    <input type="date" name="StartDate" class="form-control"
+                           value="@Model.StartDate.ToString("yyyy-MM-dd")" required />
                 </div>
                 <div class="form-group">
                     <label>End <span class="required">*</span></label>
-                    <input type="date" name="EndDate" class="form-control" required />
+                    <input type="date" name="EndDate" class="form-control"
+                           value="@Model.EndDate.ToString("yyyy-MM-dd")" required />
                 </div>
             </div>
-            <button type="submit" class="btn btn-primary" style="width: 100%;">
+            <button type="submit" class="btn btn-primary" style="width:100%;">
                 <i class="fas fa-file-pdf"></i> Generate PDF
             </button>
         </form>
     </div>
 
-    <h3 style="font-size: 1rem; font-weight: 600; margin: 0 0 1rem;">PDF Reports</h3>
-
-    <div class="report-grid">
-        <!-- Tests by Category -->
-        <div class="report-card">
-            <div class="report-icon"><i class="fas fa-vial"></i></div>
-            <h3>Tests by Category</h3>
-            <p>Total completed tests grouped by category for a chosen date range.</p>
-            <form method="post" asp-action="GenerateCategoryReport" style="margin-top:auto;">
-                @Html.AntiForgeryToken()
-                <div class="form-row-2">
-                    <div class="form-group">
-                        <label>Start <span class="required">*</span></label>
-                        <input type="date" name="StartDate" class="form-control" required />
-                    </div>
-                    <div class="form-group">
-                        <label>End <span class="required">*</span></label>
-                        <input type="date" name="EndDate" class="form-control" required />
-                    </div>
+    <!-- ── Stock Report ── -->
+    <div class="report-card">
+        <div class="report-icon"><i class="fas fa-boxes-stacked"></i></div>
+        <h3>Stock Report</h3>
+        <p>Inventory snapshot with current levels, values and low-stock indicators.</p>
+        <form method="post" asp-action="GenerateStockReport" class="report-form">
+            @Html.AntiForgeryToken()
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label>Start <span class="required">*</span></label>
+                    <input type="date" name="StartDate" class="form-control"
+                           value="@Model.StartDate.ToString("yyyy-MM-dd")" required />
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">
-                    <i class="fas fa-file-pdf"></i> Generate PDF
-                </button>
-            </form>
-        </div>
-
-        <!-- Stock Report -->
-        <div class="report-card">
-            <div class="report-icon"><i class="fas fa-boxes-stacked"></i></div>
-            <h3>Stock Report</h3>
-            <p>Inventory snapshot with current levels, values and low-stock indicators.</p>
-            <form method="post" asp-action="GenerateStockReport" style="margin-top:auto;">
-                @Html.AntiForgeryToken()
-                <div class="form-row-2">
-                    <div class="form-group">
-                        <label>Start <span class="required">*</span></label>
-                        <input type="date" name="StartDate" class="form-control" required />
-                    </div>
-                    <div class="form-group">
-                        <label>End <span class="required">*</span></label>
-                        <input type="date" name="EndDate" class="form-control" required />
-                    </div>
+                <div class="form-group">
+                    <label>End <span class="required">*</span></label>
+                    <input type="date" name="EndDate" class="form-control"
+                           value="@Model.EndDate.ToString("yyyy-MM-dd")" required />
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">
-                    <i class="fas fa-file-pdf"></i> Generate PDF
-                </button>
-            </form>
-        </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;">
+                <i class="fas fa-file-pdf"></i> Generate PDF
+            </button>
+        </form>
+    </div>
 
-        <!-- Staff Performance -->
-        <div class="report-card">
-            <div class="report-icon"><i class="fas fa-users-gear"></i></div>
-            <h3>Staff Performance</h3>
-            <p>Tests completed per technician, grouped by category over a date range.</p>
-            <form method="post" asp-action="GenerateStaffReport" style="margin-top:auto;">
-                @Html.AntiForgeryToken()
-                <div class="form-row-2">
-                    <div class="form-group">
-                        <label>Start <span class="required">*</span></label>
-                        <input type="date" name="StartDate" class="form-control" required />
-                    </div>
-                    <div class="form-group">
-                        <label>End <span class="required">*</span></label>
-                        <input type="date" name="EndDate" class="form-control" required />
-                    </div>
+    <!-- ── Staff Performance ── -->
+    <div class="report-card">
+        <div class="report-icon"><i class="fas fa-users-gear"></i></div>
+        <h3>Staff Performance</h3>
+        <p>Tests completed per technician, grouped by category over a date range.</p>
+        <form method="post" asp-action="GenerateStaffReport" class="report-form">
+            @Html.AntiForgeryToken()
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label>Start <span class="required">*</span></label>
+                    <input type="date" name="StartDate" class="form-control"
+                           value="@Model.StartDate.ToString("yyyy-MM-dd")" required />
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">
-                    <i class="fas fa-file-pdf"></i> Generate PDF
-                </button>
-            </form>
-        </div>
+                <div class="form-group">
+                    <label>End <span class="required">*</span></label>
+                    <input type="date" name="EndDate" class="form-control"
+                           value="@Model.EndDate.ToString("yyyy-MM-dd")" required />
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;">
+                <i class="fas fa-file-pdf"></i> Generate PDF
+            </button>
+        </form>
+    </div>
 
-        <!-- Purchase Orders -->
-        <div class="report-card">
-            <div class="report-icon"><i class="fas fa-clipboard-list"></i></div>
-            <h3>Purchase Orders</h3>
-            <p>Summary of orders placed, fulfilled and cancelled in a date range.</p>
-            <form method="post" asp-action="GenerateOrdersReport" style="margin-top:auto;">
-                @Html.AntiForgeryToken()
-                <div class="form-row-2">
-                    <div class="form-group">
-                        <label>Start <span class="required">*</span></label>
-                        <input asp-for="StartDate" type="date" class="form-control" required />
-                    </div>
-                    <div class="form-group">
-                        <label>End <span class="required">*</span></label>
-                        <input asp-for="EndDate" type="date" class="form-control" required />
-                    </div>
+    <!-- ── Purchase Orders ── -->
+    <div class="report-card">
+        <div class="report-icon"><i class="fas fa-clipboard-list"></i></div>
+        <h3>Purchase Orders</h3>
+        <p>Summary of orders placed, fulfilled and cancelled in a date range.</p>
+        <form method="post" asp-action="GenerateOrdersReport" class="report-form">
+            @Html.AntiForgeryToken()
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label>Start <span class="required">*</span></label>
+                    <input type="date" name="StartDate" class="form-control"
+                           value="@Model.StartDate.ToString("yyyy-MM-dd")" required />
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">
-                    <i class="fas fa-file-pdf"></i> Generate PDF
-                </button>
-            </form>
-        </div>
+                <div class="form-group">
+                    <label>End <span class="required">*</span></label>
+                    <input type="date" name="EndDate" class="form-control"
+                           value="@Model.EndDate.ToString("yyyy-MM-dd")" required />
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;">
+                <i class="fas fa-file-pdf"></i> Generate PDF
+            </button>
+        </form>
+    </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- LIVE CHARTS                                         -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="section-header">
+    <div>
+        <h3><i class="fas fa-chart-line"></i> Operational Metrics</h3>
+        <p>Live snapshot of lab activity across the last 6 months</p>
+    </div>
+</div>
+
+<div class="charts-grid">
+    <div class="chart-card">
+        <h3><i class="fas fa-vial"></i> Tests Completed — Last 6 Months</h3>
+        <div class="chart-wrap"><canvas id="testsChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+        <h3><i class="fas fa-clipboard-list"></i> Orders Placed — Last 6 Months</h3>
+        <div class="chart-wrap"><canvas id="ordersChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+        <h3><i class="fas fa-tags"></i> Tests by Category</h3>
+        <div class="chart-wrap"><canvas id="categoryChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+        <h3><i class="fas fa-boxes-stacked"></i> Stock Status</h3>
+        <div class="chart-wrap"><canvas id="stockChart"></canvas></div>
     </div>
 </div>
 
@@ -332,15 +288,45 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script>
         (function () {
-            fetch('@Url.Action("ChartData", "LaboratoryManager")')
-                .then(r => r.json())
-                .then(data => {
-                    const brandBlue = '#0841C9';
-                    const brandBlueAlpha = 'rgba(8, 65, 201, 0.15)';
-                    const palette = ['#0841C9', '#1D97F1', '#F59E0B', '#10B981', '#EF4444',
-                        '#8B5CF6', '#EC4899', '#06B6D4'];
+            /* ═══ Quick ranges — fills every report form ═══ */
+            function toDateStr(d) {
+                return d.getFullYear() + '-' +
+                    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(d.getDate()).padStart(2, '0');
+            }
 
-                    const gridOpts = {
+            document.querySelectorAll('.range-chip').forEach(function (chip) {
+                chip.addEventListener('click', function () {
+                    var days = parseInt(this.dataset.days, 10);
+                    var end = new Date();
+                    var start = new Date();
+                    start.setDate(start.getDate() - days);
+
+                    var startStr = toDateStr(start);
+                    var endStr = toDateStr(end);
+
+                    document.querySelectorAll('.report-form input[type="date"]').forEach(function (input) {
+                        if (input.name === 'StartDate') input.value = startStr;
+                        else if (input.name === 'EndDate') input.value = endStr;
+                    });
+
+                    document.querySelectorAll('.range-chip').forEach(function (c) {
+                        c.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                });
+            });
+
+            /* ═══ Charts ═══ */
+            fetch('@Url.Action("ChartData", "LaboratoryManager")')
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    var brandBlue      = '#0841C9';
+                    var brandBlueAlpha = 'rgba(8, 65, 201, 0.15)';
+                    var palette        = ['#0841C9', '#1D97F1', '#F59E0B', '#10B981', '#EF4444',
+                                          '#8B5CF6', '#EC4899', '#06B6D4'];
+
+                    var gridOpts = {
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: { legend: { display: false } },
@@ -350,7 +336,6 @@
                         }
                     };
 
-                    // ─── Tests per month (line) ───
                     new Chart(document.getElementById('testsChart'), {
                         type: 'line',
                         data: {
@@ -359,44 +344,33 @@
                                 data: data.testsCompletedByMonth,
                                 borderColor: brandBlue,
                                 backgroundColor: brandBlueAlpha,
-                                fill: true,
-                                tension: 0.3,
-                                pointBackgroundColor: brandBlue,
-                                pointRadius: 4
+                                fill: true, tension: 0.3,
+                                pointBackgroundColor: brandBlue, pointRadius: 4
                             }]
                         },
                         options: gridOpts
                     });
 
-                    // ─── Orders per month (bar) ───
                     new Chart(document.getElementById('ordersChart'), {
                         type: 'bar',
                         data: {
                             labels: data.monthlyLabels,
-                            datasets: [{
-                                data: data.ordersByMonth,
-                                backgroundColor: '#1D97F1',
-                                borderRadius: 6
-                            }]
+                            datasets: [{ data: data.ordersByMonth, backgroundColor: '#1D97F1', borderRadius: 6 }]
                         },
                         options: gridOpts
                     });
 
-                    // ─── Tests by category (doughnut) ───
                     new Chart(document.getElementById('categoryChart'), {
                         type: 'doughnut',
                         data: {
-                            labels: data.testsByCategory.map(x => x.label),
+                            labels: data.testsByCategory.map(function (x) { return x.label; }),
                             datasets: [{
-                                data: data.testsByCategory.map(x => x.value),
-                                backgroundColor: palette,
-                                borderWidth: 2,
-                                borderColor: 'white'
+                                data: data.testsByCategory.map(function (x) { return x.value; }),
+                                backgroundColor: palette, borderWidth: 2, borderColor: 'white'
                             }]
                         },
                         options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
+                            responsive: true, maintainAspectRatio: false,
                             plugins: {
                                 legend: {
                                     position: 'right',
@@ -406,27 +380,24 @@
                         }
                     });
 
-                    // ─── Stock status (pie) ───
-                    const stockColors = {
-                        'Critical': '#EF4444',
-                        'Low': '#F59E0B',
-                        'Near Reorder': '#3B82F6',
-                        'Normal': '#10B981'
+                    var stockColors = {
+                        'Critical': '#EF4444', 'Low': '#F59E0B',
+                        'Near Reorder': '#3B82F6', 'Normal': '#10B981'
                     };
                     new Chart(document.getElementById('stockChart'), {
                         type: 'pie',
                         data: {
-                            labels: data.stockByStatus.map(x => x.label),
+                            labels: data.stockByStatus.map(function (x) { return x.label; }),
                             datasets: [{
-                                data: data.stockByStatus.map(x => x.value),
-                                backgroundColor: data.stockByStatus.map(x => stockColors[x.label] || '#94A3B8'),
-                                borderWidth: 2,
-                                borderColor: 'white'
+                                data: data.stockByStatus.map(function (x) { return x.value; }),
+                                backgroundColor: data.stockByStatus.map(function (x) {
+                                    return stockColors[x.label] || '#94A3B8';
+                                }),
+                                borderWidth: 2, borderColor: 'white'
                             }]
                         },
                         options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
+                            responsive: true, maintainAspectRatio: false,
                             plugins: {
                                 legend: {
                                     position: 'right',
@@ -436,7 +407,7 @@
                         }
                     });
                 })
-                .catch(err => console.error('Chart data failed to load', err));
+                .catch(function (err) { console.error('Chart data failed to load', err); });
         })();
     </script>
 }

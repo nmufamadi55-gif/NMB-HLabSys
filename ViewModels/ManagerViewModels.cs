@@ -726,7 +726,8 @@ namespace NMB_HLabSys.Models.ViewModels
         public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Contact number is required")]
-        [StringLength(20, ErrorMessage = "Contact number cannot exceed 20 characters.")]
+        [StringLength(10, MinimumLength = 10, ErrorMessage = "Contact number must be exactly 10 digits.")]
+        [RegularExpression(@"^0\d{9}$", ErrorMessage = "Phone number must start with 0 and be 10 digits long.")]
         public string ContactNumber { get; set; } = string.Empty;
 
         [StringLength(100, ErrorMessage = "Specialization cannot exceed 100 characters.")]
@@ -772,7 +773,8 @@ namespace NMB_HLabSys.Models.ViewModels
         public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Contact number is required")]
-        [StringLength(20, ErrorMessage = "Contact number cannot exceed 20 characters.")]
+        [StringLength(10, MinimumLength = 10, ErrorMessage = "Contact number must be exactly 10 digits.")]
+        [RegularExpression(@"^0\d{9}$", ErrorMessage = "Phone number must start with 0 and be 10 digits long.")]
         public string ContactNumber { get; set; } = string.Empty;
 
         [StringLength(100, ErrorMessage = "Specialization cannot exceed 100 characters.")]
@@ -850,7 +852,8 @@ namespace NMB_HLabSys.Models.ViewModels
         public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Contact number is required")]
-        [StringLength(20, ErrorMessage = "Contact number cannot exceed 20 characters.")]
+        [StringLength(10, MinimumLength = 10, ErrorMessage = "Contact number must be exactly 10 digits.")]
+        [RegularExpression(@"^0\d{9}$", ErrorMessage = "Phone number must start with 0 and be 10 digits long.")]
         public string ContactNumber { get; set; } = string.Empty;
 
         [StringLength(200, ErrorMessage = "Practice name cannot exceed 200 characters.")]
@@ -887,7 +890,8 @@ namespace NMB_HLabSys.Models.ViewModels
         public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Contact number is required")]
-        [StringLength(20, ErrorMessage = "Contact number cannot exceed 20 characters.")]
+        [StringLength(10, MinimumLength = 10, ErrorMessage = "Contact number must be exactly 10 digits.")]
+        [RegularExpression(@"^0\d{9}$", ErrorMessage = "Phone number must start with 0 and be 10 digits long.")]
         public string ContactNumber { get; set; } = string.Empty;
 
         [StringLength(200, ErrorMessage = "Practice name cannot exceed 200 characters.")]

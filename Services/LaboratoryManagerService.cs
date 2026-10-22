@@ -1779,15 +1779,17 @@ namespace NMB_HLabSys.Services
             if ((filter.EndDate.Date - filter.StartDate.Date).TotalDays > 366)
                 throw new ArgumentException("Report range cannot exceed 12 months.");
 
+            var start = filter.StartDate.Date;
+            var endExclusive = filter.EndDate.Date.AddDays(1);
+
             var reportData = await _context.RequestTestTypes
-    .Include(rt => rt.TestType)
-    .ThenInclude(tt => tt.Category)
-    .Include(rt => rt.TestRequest)
-    .Where(rt => rt.Status == "Completed" &&
-                  rt.CompletedDateTime.HasValue &&
-                  rt.CompletedDateTime.Value >= filter.StartDate &&
-                  rt.CompletedDateTime.Value <= filter.EndDate)
-    .GroupBy(rt => rt.TestType.Category.CategoryName)
+                .Include(rt => rt.TestType).ThenInclude(tt => tt.Category)
+                .Include(rt => rt.TestRequest)
+                .Where(rt => rt.Status == "Completed" &&
+                             rt.CompletedDateTime.HasValue &&
+                             rt.CompletedDateTime.Value >= start &&
+                             rt.CompletedDateTime.Value < endExclusive)
+                .GroupBy(rt => rt.TestType.Category.CategoryName)
     .Select(g => new CategoryReportData
     {
         CategoryName = g.Key ?? "Uncategorized",
@@ -1824,16 +1826,18 @@ namespace NMB_HLabSys.Services
 
         public async Task<byte[]> GenerateStaffReportAsync(ReportFilterViewModel filter)
         {
+            var start = filter.StartDate.Date;
+            var endExclusive = filter.EndDate.Date.AddDays(1);
             // Join TechnicianTestAssignments, TestTypes, Users, and RequestTestTypes to find completed tests
             var rawData = await (
                 from rt in _context.RequestTestTypes
-                join tech in _context.LabTechnicians on rt.AssignedTechnicianID equals tech.TechnicianID
+                join tech in _context.LabTechnicians on rt.AssignedTechnicianID equals (int?)tech.TechnicianID
                 join user in _context.Users on tech.UserID equals user.UserID
                 join test in _context.TestTypes on rt.TestTypeID equals test.TestID
                 join cat in _context.TestCategories on test.CategoryID equals cat.CategoryID
                 where rt.Status == "Completed" &&
-                      rt.CompletedDateTime >= filter.StartDate &&
-                      rt.CompletedDateTime <= filter.EndDate
+                      rt.CompletedDateTime >= start &&
+                      rt.CompletedDateTime < endExclusive
                 select new
                 {
                     TechnicianName = user.Name + " " + user.Surname,
@@ -1856,9 +1860,12 @@ namespace NMB_HLabSys.Services
 
         public async Task<byte[]> GenerateOrdersReportAsync(ReportFilterViewModel filter)
         {
+            var start = filter.StartDate.Date;
+            var endExclusive = filter.EndDate.Date.AddDays(1);
+
             var ordersData = await _context.PurchaseOrders
                 .Include(o => o.Supplier)
-                .Where(o => o.OrderDate >= filter.StartDate && o.OrderDate <= filter.EndDate)
+                .Where(o => o.OrderDate >= start && o.OrderDate < endExclusive)
                 .Select(o => new OrderListViewModel
                 {
                     OrderID = o.OrderID,

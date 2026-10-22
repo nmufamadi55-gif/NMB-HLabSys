@@ -1079,6 +1079,12 @@ namespace NMB_HLabSys.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> GenerateCategoryReport(ReportFilterViewModel filter)
         {
+            if (!ModelState.IsValid)
+            {
+                TempData["ErrorMessage"] = "Please ensure both dates are valid and not in the future.";
+                return RedirectToAction(nameof(Reports));
+            }
+
             try
             {
                 var bytes = await _service.GenerateCategoryReportAsync(filter);
@@ -1131,6 +1137,12 @@ namespace NMB_HLabSys.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> GenerateStaffReport(ReportFilterViewModel filter)
         {
+            if (!ModelState.IsValid)
+            {
+                TempData["ErrorMessage"] = "Please ensure both dates are valid and not in the future.";
+                return RedirectToAction(nameof(Reports));
+            }
+
             try
             {
                 var bytes = await _service.GenerateStaffReportAsync(filter);
@@ -1154,6 +1166,12 @@ namespace NMB_HLabSys.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> GenerateOrdersReport(ReportFilterViewModel filter)
         {
+            if (!ModelState.IsValid)
+            {
+                TempData["ErrorMessage"] = "Please ensure both dates are valid and not in the future.";
+                return RedirectToAction(nameof(Reports));
+            }
+
             try
             {
                 var bytes = await _service.GenerateOrdersReportAsync(filter);
